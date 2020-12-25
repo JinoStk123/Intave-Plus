@@ -35,7 +35,7 @@ import static de.jpx3.intave.user.UserMetaClientData.PROTOCOL_VERSION_VILLAGE_UP
 
 public final class Physics extends IntaveCheck {
   private final static boolean DEBUG_MOVEMENT = true;
-  private final static boolean MOVEMENT_EMULATION = true;
+  private final static boolean MOVEMENT_EMULATION = false;
   private final static float STEP_HEIGHT = 0.6f;
 
   private final IntavePlugin plugin;
@@ -546,7 +546,7 @@ public final class Physics extends IntaveCheck {
       movementData.verifiedLocation = new Location(player.getWorld(), receivedPositionX, receivedPositionY, receivedPositionZ);
     }
 
-    if (violationLevelIncrease > 5) {
+    if (violationLevelData.physicsVL > 2 && violationLevelIncrease > 0) {
       inventoryData.resynchronizeHeldItem();
       if (inventoryData.handActive()) {
         inventoryData.applySlotSwitch();

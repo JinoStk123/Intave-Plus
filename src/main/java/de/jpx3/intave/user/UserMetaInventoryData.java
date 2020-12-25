@@ -77,7 +77,7 @@ public final class UserMetaInventoryData {
       newItemSlot = 0;
     }
     setHeldItemSlot(newItemSlot);
-    Synchronizer.synchronizeDelayed(() -> setHeldItemSlot(previousItemSlot), 0);
+    setHeldItemSlot(previousItemSlot);
   }
 
   private void setHeldItemSlot(int slot) {
