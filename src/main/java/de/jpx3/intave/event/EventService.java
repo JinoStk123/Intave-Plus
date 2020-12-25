@@ -11,33 +11,26 @@ import de.jpx3.intave.user.UserRepositoryEventListener;
 
 public final class EventService {
   private final IntavePlugin plugin;
-  private final TransactionFeedbackService transactionFeedbackService;
-  private final MovementEmulationEngine emulationEngine;
+  private TransactionFeedbackService transactionFeedbackService;
+  private MovementEmulationEngine emulationEngine;
 
-  private final UserRepositoryEventListener userRepositoryEventListener;
+  private UserRepositoryEventListener userRepositoryEventListener;
+
 
   public EventService(IntavePlugin plugin) {
     this.plugin = plugin;
-    this.transactionFeedbackService = new TransactionFeedbackService(plugin);
-    this.emulationEngine = new MovementEmulationEngine(plugin);
-    this.userRepositoryEventListener = new UserRepositoryEventListener(plugin);
   }
 
   public void setup() {
+    this.transactionFeedbackService = new TransactionFeedbackService(plugin);
+    this.emulationEngine = new MovementEmulationEngine(plugin);
+    this.userRepositoryEventListener = new UserRepositoryEventListener(plugin);
     MovementDispatcher movementDispatcher = new MovementDispatcher(plugin);
     PotionEffectEvaluator potionEffectEvaluator = new PotionEffectEvaluator(plugin);
     PlayerAbilityEvaluator playerAbilityEvaluator = new PlayerAbilityEvaluator(plugin);
     PlayerInventoryEvaluator playerInventoryEvaluator = new PlayerInventoryEvaluator(plugin);
-
   }
-//
-//  private void registerListeners() {
-//    registerListener(new CheckableEventListener());
-//    registerListener(new UserRegistryEventListener(plugin));
-//    registerListener(new BlockAccessor());
-//  }
-
-
+  
   public MovementEmulationEngine emulationEngine() {
     return emulationEngine;
   }
