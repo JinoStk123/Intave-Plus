@@ -1,0 +1,27 @@
+plugins {
+  id 'java'
+}
+
+group 'org.example'
+version '1.0-SNAPSHOT'
+
+repositories {
+  mavenCentral()
+  maven { url = 'https://oss.sonatype.org/content/repositories/snapshots' }
+  maven { url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
+  maven { url "https://repo.dmulloy2.net/nexus/repository/public/" }
+}
+
+dependencies {
+  testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
+  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+  compileOnly 'org.spigotmc:spigot-api:1.12.2-R0.1-SNAPSHOT' // The Spigot API with no shadowing. Requires the OSS repo.
+  compileOnly 'org.bukkit:bukkit:1.12.2-R0.1-SNAPSHOT' // The Bukkit API with no shadowing.
+  compileOnly 'org.spigotmc:spigot:1.12.2.-R0.1-SNAPSHOT' // The full Spigot server with no shadowing. Requires mavenLocal.
+  compileOnly 'org.bukkit:craftbukkit:1.12.2-R0.1-SNAPSHOT' // The full CraftBukkit server with no shadowing. Requires mavenLocal.
+  compileOnly group: "com.comphenix.protocol", name: "ProtocolLib", version: "4.5.0";
+}
+
+test {
+  useJUnitPlatform()
+}

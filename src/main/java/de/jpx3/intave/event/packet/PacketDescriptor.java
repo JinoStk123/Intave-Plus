@@ -1,0 +1,18 @@
+package de.jpx3.intave.event.packet;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+/**
+ * Class generated using IntelliJ IDEA
+ * Created by Richard Strunk 2020
+ */
+
+@Target({ElementType.ANNOTATION_TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface PacketDescriptor {
+  Sender sender();
+  String packetName();
+}

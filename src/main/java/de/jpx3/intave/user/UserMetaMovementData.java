@@ -1,0 +1,220 @@
+package de.jpx3.intave.user;
+
+import com.comphenix.protocol.events.PacketContainer;
+import com.comphenix.protocol.reflect.StructureModifier;
+import de.jpx3.intave.tools.wrapper.WrappedAxisAlignedBB;
+import de.jpx3.intave.detect.checks.movement.physics.CollisionHelper;
+import de.jpx3.intave.reflect.Reflection;
+import de.jpx3.intave.user.helper.PlayerEffectHelper;
+import de.jpx3.intave.user.helper.PlayerMovementHelper;
+import de.jpx3.intave.user.helper.PlayerMovementLocaleHelper;
+import de.jpx3.intave.world.BlockLiquidHelper;
+import org.bukkit.Location;
+import org.bukkit.entity.Player;
+
+public final class UserMetaMovementData {
+  private final Player player;
+  private final User user;
+  private volatile Object nmsWorld;
+
+  public boolean disabledFlying;
+  public float width = 0.6f, height = 1.8f;
+  public boolean swimming, elytraFlying;
+
+  public boolean onGround, lastOnGround;
+  public boolean collidedHorizontally, collidedVertically;
+  public double gravity;
+
+  public double verifiedPositionX, verifiedPositionY, verifiedPositionZ;
+  public double thirdPositionX, thirdPositionY, thirdPositionZ;
+  public double lastPositionX, lastPositionY, lastPositionZ;
+  public double positionX, positionY, positionZ;
+  public boolean sprinting, lastSprinting, sneaking, lastSneaking;
+  public float rotationYaw, rotationPitch;
+  public float lastRotationYaw, lastRotationPitch;
+
+  private WrappedAxisAlignedBB boundingBox;
+  private double resetMotion;
+  private double jumpUpwardsMotion;
+  public int pastFlyPacket, pastWaterMovement;
+  private float aiMoveSpeed, jumpMovementFactor;
+  public boolean inWater, eyesInWater;
+  public boolean inWeb;
+  public int pastPushedByWaterFlow;
+  public int pastElytraFlying, pastVelocity;
+
+  public boolean invalidMovement;
+  public double physicsLastMotionX, physicsLastMotionY, physicsLastMotionZ;
+  public int pastRiptideSpin;
+  public int pastPlayerAttackPhysics;
+  public boolean physicsResetMotionX, physicsResetMotionZ;
+  public int lastForwardKey, lastStrafeKey;
+
+  public boolean teleport;
+  public int teleportId;
+  public volatile boolean awaitTeleport = false;
+  public Location teleportLocation = null;
+  public Location verifiedLocation;
+  public int teleportResendCountdown = 10;
+
+  public UserMetaMovementData(Player player, User user) {
+    this.player = player;
+    this.user = user;
+    applyPlayerStats();
+    updateWorld();
+    applyPlayerLocation();
+  }
+
+  private void applyPlayerLocation() {
+    Location location = player.getLocation();
+    verifiedLocation = player.getLocation();
+    positionX = location.getX();
+    positionY = location.getY();
+    positionZ = location.getZ();
+    verifiedPositionX = positionX;
+    verifiedPositionY = positionY;
+    verifiedPositionZ = positionZ;
+    //  entityBoundingBox = CollisionHelper.entityBoundingBoxOf(location.getX(), location.getY(), location.getZ());
+  }
+
+  private void applyPlayerStats() {
+    sprinting = player.isSprinting();
+    sneaking = player.isSneaking();
+  }
+
+  public void updateWorld() {
+    nmsWorld = Reflection.resolveWorldNMSHandle(player.getWorld());
+  }
+
+  public void updateMovement(
+    PacketContainer packet,
+    boolean hasMovement, boolean hasRotation
+  ) {
+    if (boundingBox == null) {
+      UserMetaClientData clientData = user.meta().clientData();
+      this.resetMotion = clientData.protocolVersion() <= 47 ? 0.005 : 0.003;
+
+      Location location = player.getLocation();
+      boundingBox = CollisionHelper.entityBoundingBoxOf(user, location.getX(), location.getY(), location.getZ());
+    }
+
+    jumpUpwardsMotion = PlayerMovementHelper.jumpMotionFor(player);
+
+    if (hasMovement) {
+      StructureModifier<Double> modifier = packet.getDoubles();
+      thirdPositionX = positionX;
+      thirdPositionY = positionY;
+      thirdPositionZ = positionZ;
+      lastPositionX = positionX;
+      lastPositionY = positionY;
+      lastPositionZ = positionZ;
+      positionX = modifier.read(0);
+      positionY = modifier.read(1);
+      positionZ = modifier.read(2);
+
+      swimming = PlayerMovementLocaleHelper.isSwimming(player);
+      elytraFlying = PlayerMovementLocaleHelper.flyingWithElytra(player);
+      boolean falling = motionY() <= 0.0D;
+      if (falling && PlayerEffectHelper.isPotionSlowFallingActive(player)) {
+        gravity = 0.01D;
+      } else {
+        gravity = 0.08D;
+      }
+      updateMovementMetaData();
+    }
+    if (hasRotation) {
+      StructureModifier<Float> modifier = packet.getFloat();
+      lastRotationYaw = rotationYaw = modifier.read(0);
+      lastRotationPitch = rotationPitch = modifier.read(1);
+    }
+  }
+
+  public float eyeHeight() {
+    float f = 1.62F;
+    if (player.isSleeping()) {
+      f = 0.2F;
+    } else if (!swimming && !elytraFlying && height != 0.6F) {
+      if (sneaking || height == 1.65F) {
+        f -= 0.08F;
+      }
+    } else {
+      f = 0.4F;
+    }
+
+    return f;
+  }
+
+  public void applyGroundInformationToPacket(PacketContainer packet) {
+    packet.getBooleans().write(0, onGround);
+  }
+
+  private void updateMovementMetaData() {
+    UserMetaAbilityData abilityData = user.meta().abilityData();
+    UserMetaPotionData potionData = user.meta().potionData();
+
+    aiMoveSpeed = abilityData.walkSpeed();
+    jumpMovementFactor = 0.02f;
+    float slowdownAmplifier = potionData.potionEffectSlownessAmplifier();
+    float speedAmplifier = potionData.potionEffectSpeedAmplifier();
+    aiMoveSpeed *= 1f + (-0.15f * slowdownAmplifier);
+    aiMoveSpeed *= 1f + (0.2f * speedAmplifier);
+    if (sprinting) {
+      aiMoveSpeed *= 1.3f;
+    }
+    if (lastSprinting) {
+      jumpMovementFactor = (float) ((double) jumpMovementFactor + (double) 0.02f * 0.3d);
+    }
+    if (abilityData.flying()) {
+      this.jumpMovementFactor = abilityData.flySpeed() * (float) (lastSprinting ? 2 : 1);
+    }
+  }
+
+  public boolean inLava() {
+    WrappedAxisAlignedBB lavaBoundingBox = boundingBox.expand(
+      -0.1f,
+      -0.4000000059604645D,
+      -0.1f
+    );
+    return BlockLiquidHelper.isLavaInBB(player.getWorld(), lavaBoundingBox);
+  }
+
+  public Object nmsWorld() {
+    return nmsWorld;
+  }
+
+  public double motionX() {
+    return positionX - verifiedPositionX;
+  }
+
+  public double motionY() {
+    return positionY - verifiedPositionY;
+  }
+
+  public double motionZ() {
+    return positionZ - verifiedPositionZ;
+  }
+
+  public WrappedAxisAlignedBB boundingBox() {
+    return boundingBox;
+  }
+
+  public double resetMotion() {
+    return resetMotion;
+  }
+
+  public double jumpUpwardsMotion() {
+    return jumpUpwardsMotion;
+  }
+
+  public float aiMoveSpeed() {
+    return aiMoveSpeed;
+  }
+
+  public float jumpMovementFactor() {
+    return jumpMovementFactor;
+  }
+
+  public void setBoundingBox(WrappedAxisAlignedBB entityBoundingBox) {
+    this.boundingBox = entityBoundingBox;
+  }
+}
