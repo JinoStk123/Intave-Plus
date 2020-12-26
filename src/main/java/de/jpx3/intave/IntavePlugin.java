@@ -2,6 +2,7 @@ package de.jpx3.intave;
 
 import de.jpx3.intave.adapter.ComponentLoader;
 import de.jpx3.intave.adapter.ViaVersionAdapter;
+import de.jpx3.intave.config.ConfigurationService;
 import de.jpx3.intave.detect.CheckService;
 import de.jpx3.intave.event.service.RetributionService;
 import de.jpx3.intave.event.EventService;
@@ -18,7 +19,10 @@ import org.bukkit.plugin.java.JavaPlugin;
 public final class IntavePlugin extends JavaPlugin {
   private static IntavePlugin singletonInstance;
 
+  public final static String VERSION = "@VERSION@";
+
   private IntaveLogger logger;
+  private ConfigurationService configurationService;
   private ComponentLoader componentLoader;
   private BukkitEventLinker eventLinker;
   private PacketSubscriptionLinker packetSubscriptionLinker;
@@ -74,6 +78,17 @@ public final class IntavePlugin extends JavaPlugin {
 
     try {
       // stage 7
+      configurationService = new ConfigurationService(this);
+      String configurationKey = configurationService.configurationKey();
+
+      // license check call
+
+
+      // resolve config hash
+
+      String requiredConfigurationHash = "server response";
+      configurationService.setupConfiguration(requiredConfigurationHash);
+
 
       checkService = new CheckService(this);
       retributionService = new RetributionService();
@@ -92,9 +107,7 @@ public final class IntavePlugin extends JavaPlugin {
   @Natify
   @Override
   public void onDisable() {
-
     logger.shutdown();
-
   }
 
   public IntaveLogger logger() {

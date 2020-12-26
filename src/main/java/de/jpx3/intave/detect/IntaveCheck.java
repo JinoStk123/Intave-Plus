@@ -20,4 +20,8 @@ public abstract class IntaveCheck implements EventProcessor {
   public List<IntaveCheckPart> intaveCheckParts() {
     return Lists.newArrayList();
   }
+
+  public String name() {
+    return checkName;
+  }
 }
