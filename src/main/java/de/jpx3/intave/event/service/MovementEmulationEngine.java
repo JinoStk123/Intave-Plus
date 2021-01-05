@@ -24,6 +24,7 @@ import org.bukkit.util.Vector;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -214,7 +215,7 @@ public final class MovementEmulationEngine {
     movementData.setBoundingBox(entityBoundingBox);
     movementData.setVerifiedLocation(teleportLocation.clone(), "Emulation-Setback");
 //    player.teleport(teleportLocation);
-    rotationlessTeleport(player, teleportLocation);
+    rotationlessTeleport(player, teleportLocation, movementData.rotationYaw, movementData.rotationPitch);
     updateMovementStatus(user);
   }
 
@@ -227,7 +228,7 @@ public final class MovementEmulationEngine {
 
   private final static Set<Object> teleportFlags = new HashSet<>();
 
-  private synchronized void rotationlessTeleport(Player player, Location to) {
+  private synchronized void rotationlessTeleport(Player player, Location to, float nativeYaw, float nativePitch) {
     PlayerTeleportEvent event = new PlayerTeleportEvent(player, player.getLocation().clone(), to.clone(), PlayerTeleportEvent.TeleportCause.SPECTATE);
     IntavePlugin.singletonInstance().eventLinker().fireEvent(event);
     if (player.isDead() || player.getHealth() <= 0 || player.getPassenger() != null || !player.isOnline() || !UserRepository.hasUser(player)) {
@@ -247,17 +248,21 @@ public final class MovementEmulationEngine {
         Field pitchField = entityClass.getField("pitch");
         float yaw = (float) yawField.get(playerHandle);
         float pitch = (float) pitchField.get(playerHandle);
-        yawField.set(playerHandle, 0f);
-        pitchField.set(playerHandle, 0f);
-        if (teleportFlags.isEmpty()) {
-          Class<?> playerTeleportFlags = Reflection.lookupServerClass("PacketPlayOutPosition$EnumPlayerTeleportFlags");
-          teleportFlags.add(playerTeleportFlags.getField("X_ROT").get(null));
-          teleportFlags.add(playerTeleportFlags.getField("Y_ROT").get(null));
-        }
         Location dest = event.getTo();
-        internalTeleport.invoke(playerConnection, dest.getX(), dest.getY(), dest.getZ(), 0, 0, teleportFlags);
-        yawField.set(playerHandle, yaw);
-        pitchField.set(playerHandle, pitch);
+        if(Math.abs(nativeYaw) > 360f) {
+          internalTeleport.invoke(playerConnection, dest.getX(), dest.getY(), dest.getZ(), nativeYaw % 360f, nativePitch, Collections.emptySet());
+        } else {
+          yawField.set(playerHandle, 0f);
+          pitchField.set(playerHandle, 0f);
+          if (teleportFlags.isEmpty()) {
+            Class<?> playerTeleportFlags = Reflection.lookupServerClass("PacketPlayOutPosition$EnumPlayerTeleportFlags");
+            teleportFlags.add(playerTeleportFlags.getField("X_ROT").get(null));
+            teleportFlags.add(playerTeleportFlags.getField("Y_ROT").get(null));
+          }
+          internalTeleport.invoke(playerConnection, dest.getX(), dest.getY(), dest.getZ(), 0, 0, teleportFlags);
+          yawField.set(playerHandle, yaw);
+          pitchField.set(playerHandle, pitch);
+        }
       } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException | NoSuchFieldException e) {
         throw new IntaveInternalException(e);
       }
