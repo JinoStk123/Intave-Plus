@@ -1,10 +1,12 @@
 package de.jpx3.intave.event.service.entity;
 
 import com.comphenix.protocol.events.PacketContainer;
+import de.jpx3.intave.adapter.ProtocolLibAdapter;
 import de.jpx3.intave.tools.hitbox.HitBoxBoundaries;
 import de.jpx3.intave.tools.wrapper.WrappedAxisAlignedBB;
 
 public class WrappedEntity {
+  private final static boolean NEW_POSITION_PROCESSING = ProtocolLibAdapter.serverVersion().isAtLeast(ProtocolLibAdapter.COMBAT_UPDATE);
   private final String entityName;
 
   public boolean isEntityLiving;
@@ -71,13 +73,18 @@ public class WrappedEntity {
    * @param packet contains information about the entity teleportation
    */
   public void handleEntityTeleport(PacketContainer packet) {
-    this.serverPosX = packet.getIntegers().read(1);
-    this.serverPosY = packet.getIntegers().read(2);
-    this.serverPosZ = packet.getIntegers().read(3);
-
-    double newPosX = (double) this.serverPosX / 32d;
-    double newPosY = (double) this.serverPosY / 32d;
-    double newPosZ = (double) this.serverPosZ / 32d;
+    double newPosX;
+    double newPosY;
+    double newPosZ;
+    if (NEW_POSITION_PROCESSING) {
+      newPosX = packet.getDoubles().read(0);
+      newPosY = packet.getDoubles().read(1);
+      newPosZ = packet.getDoubles().read(2);
+    } else {
+      newPosX = packet.getIntegers().read(1) / 32.0;
+      newPosY = packet.getIntegers().read(2) / 32.0;
+      newPosZ = packet.getIntegers().read(3) / 32.0;
+    }
 
     if (Math.abs(positions.posX - newPosX) < 0.03125d &&
       Math.abs(positions.posY - newPosY) < 0.015625d &&
@@ -104,9 +111,15 @@ public class WrappedEntity {
    * @param packet contains information about the entity movement
    */
   public void handleEntityMovement(PacketContainer packet) {
-    this.serverPosX += packet.getBytes().readSafely(0);
-    this.serverPosY += packet.getBytes().readSafely(1);
-    this.serverPosZ += packet.getBytes().readSafely(2);
+    if (NEW_POSITION_PROCESSING) {
+      this.serverPosX += packet.getIntegers().readSafely(1);
+      this.serverPosY += packet.getIntegers().readSafely(2);
+      this.serverPosZ += packet.getIntegers().readSafely(3);
+    } else {
+      this.serverPosX += packet.getBytes().readSafely(0);
+      this.serverPosY += packet.getBytes().readSafely(1);
+      this.serverPosZ += packet.getBytes().readSafely(2);
+    }
 
     double newPosX = (double) serverPosX / 32d;
     double newPosY = (double) serverPosY / 32d;

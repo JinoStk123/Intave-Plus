@@ -83,6 +83,9 @@ public final class MovementEmulationEngine {
     }
 
     User user = UserRepository.userOf(player);
+    if (!user.hasOnlinePlayer()) {
+      return;
+    }
     User.UserMeta meta = user.meta();
     UserMetaMovementData movementData = meta.movementData();
     UserMetaViolationLevelData violationLevelData = meta.violationLevelData();
@@ -133,6 +136,9 @@ public final class MovementEmulationEngine {
     }
 
     User user = UserRepository.userOf(player);
+    if (!user.hasOnlinePlayer()) {
+      return;
+    }
     User.UserMeta meta = user.meta();
     UserMetaMovementData movementData = meta.movementData();
     UserMetaViolationLevelData violationLevelData = meta.violationLevelData();

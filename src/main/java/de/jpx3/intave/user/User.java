@@ -2,6 +2,7 @@ package de.jpx3.intave.user;
 
 import de.jpx3.intave.access.IntaveInternalException;
 import de.jpx3.intave.reflect.Reflection;
+import de.jpx3.intave.tools.AccessHelper;
 import org.bukkit.entity.Player;
 
 import java.lang.ref.WeakReference;
@@ -38,6 +39,11 @@ public final class User {
     }
 
     return player;
+  }
+
+  public boolean hasOnlinePlayer() {
+    Player player = playerRef.get();
+    return player != null && AccessHelper.isOnline(player);
   }
 
   public UserCustomCheckMeta customMeta(Class<? extends UserCustomCheckMeta> classTarget) {

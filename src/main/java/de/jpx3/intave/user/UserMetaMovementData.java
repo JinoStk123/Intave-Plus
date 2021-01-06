@@ -118,12 +118,12 @@ public final class UserMetaMovementData {
     }
 
     jumpUpwardsMotion = PlayerMovementHelper.jumpMotionFor(player);
+    lastPositionX = positionX;
+    lastPositionY = positionY;
+    lastPositionZ = positionZ;
 
     if (hasMovement) {
       StructureModifier<Double> modifier = packet.getDoubles();
-      lastPositionX = positionX;
-      lastPositionY = positionY;
-      lastPositionZ = positionZ;
       positionX = modifier.read(0);
       positionY = modifier.read(1);
       positionZ = modifier.read(2);
@@ -138,10 +138,10 @@ public final class UserMetaMovementData {
       }
       updateMovementMetaData();
     }
+    lastRotationYaw = rotationYaw;
+    lastRotationPitch = rotationPitch;
     if (hasRotation) {
       StructureModifier<Float> modifier = packet.getFloat();
-      lastRotationYaw = rotationYaw;
-      lastRotationPitch = rotationPitch;
       rotationYaw = modifier.read(0);
       rotationPitch = modifier.read(1);
       lookVector = PlayerRotationHelper.vectorForRotation(rotationPitch, rotationYaw);

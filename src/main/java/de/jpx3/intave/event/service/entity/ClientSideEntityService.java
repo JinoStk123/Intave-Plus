@@ -3,9 +3,11 @@ package de.jpx3.intave.event.service.entity;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
+import com.comphenix.protocol.utility.MinecraftVersion;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.access.IntaveInternalException;
+import de.jpx3.intave.adapter.ProtocolLibAdapter;
 import de.jpx3.intave.event.packet.*;
 import de.jpx3.intave.reflect.Reflection;
 import de.jpx3.intave.tools.hitbox.EntityHitBoxResolver;
@@ -26,15 +28,30 @@ import java.util.Map;
 public final class ClientSideEntityService implements PacketEventSubscriber {
   private final static int SYNCHRONIZATIONS_PER_SECOND = 80; // 4 Entities
   private final IntavePlugin plugin;
+  private String dataWatcherEntityFieldName;
 
   public ClientSideEntityService(IntavePlugin plugin) {
     this.plugin = plugin;
     plugin.packetSubscriptionLinker().linkSubscriptionsIn(this);
     this.setupSynchronizer();
+    this.registerDataWatcherEntityFieldName();
   }
 
   private void setupSynchronizer() {
     Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, this::resetSynchronizationsAll, 0, 20);
+  }
+
+  private void registerDataWatcherEntityFieldName() {
+    MinecraftVersion serverVersion = ProtocolLibAdapter.serverVersion();
+    if (serverVersion.isAtLeast(ProtocolLibAdapter.VILLAGE_UPDATE)) {
+      dataWatcherEntityFieldName = "entity";
+    } else if (serverVersion.isAtLeast(ProtocolLibAdapter.FROSTBURN_UPDATE)) {
+      dataWatcherEntityFieldName = "c";
+    } else if (serverVersion.isAtLeast(ProtocolLibAdapter.COMBAT_UPDATE)) {
+      dataWatcherEntityFieldName = "b";
+    } else {
+      dataWatcherEntityFieldName = "a";
+    }
   }
 
   private void resetSynchronizationsAll() {
@@ -282,7 +299,7 @@ public final class ClientSideEntityService implements PacketEventSubscriber {
     Object handle = dataWatcher.getHandle();
     Class<?> handleClass = handle.getClass();
     try {
-      return entityByHandle(handle, handleClass.getDeclaredField("a"));
+      return entityByHandle(handle, handleClass.getDeclaredField(dataWatcherEntityFieldName));
     } catch (NoSuchFieldException e) {
       throw new IntaveInternalException(e);
     }
