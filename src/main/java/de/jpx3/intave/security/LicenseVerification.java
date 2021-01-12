@@ -6,6 +6,17 @@ public final class LicenseVerification {
   private static String licenseName;
 
   @Natify
+  public static String network() {
+    return "Intavede";
+  }
+
+  @Natify
+  public static String licenseKey() {
+    String rawLicense = rawLicense();
+    return rawLicense.substring(4, Math.min(9, rawLicense.length()));
+  }
+
+  @Natify
   public static String rawLicense() {
     if(licenseName == null) {
 /*      InputStream resourceAsStream = LicenseVerification.class.getResourceAsStream("5ee6db6d-6751-4081-9cbf-28eb0f6cc055");

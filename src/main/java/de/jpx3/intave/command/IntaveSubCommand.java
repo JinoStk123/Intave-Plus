@@ -96,8 +96,7 @@ public final class IntaveSubCommand {
     String prefix = IntavePlugin.prefix();
     String[] args = executedCommand.split(" ");
 
-    if(!PermissionCheck.permissionCheck(commandSender, permission)) {
-      commandSender.sendMessage("No permission " + PermissionCheck.permissionCheck(commandSender, permission));
+    if(!permission.equals("none") && !PermissionCheck.permissionCheck(commandSender, permission)) {
       commandSender.sendMessage(NO_PERMISSION_MESSAGE);
       return null;
     }
@@ -162,8 +161,7 @@ public final class IntaveSubCommand {
     String prefix = IntavePlugin.prefix();
     String[] args = executedCommand.split(" ");
 
-    if(!PermissionCheck.permissionCheck(commandSender, permission)) {
-      commandSender.sendMessage("No permission " + PermissionCheck.permissionCheck(commandSender, permission));
+    if(!permission.equals("none") && !PermissionCheck.permissionCheck(commandSender, permission)) {
       commandSender.sendMessage(NO_PERMISSION_MESSAGE);
       return null;
     }

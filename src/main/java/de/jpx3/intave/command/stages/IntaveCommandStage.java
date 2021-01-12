@@ -4,9 +4,12 @@ import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.command.CommandStage;
 import de.jpx3.intave.command.Optional;
 import de.jpx3.intave.command.SubCommand;
+import de.jpx3.intave.permission.PermissionCheck;
+import de.jpx3.intave.security.LicenseVerification;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserMessageChannel;
 import org.bukkit.ChatColor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
@@ -25,7 +28,7 @@ public final class IntaveCommandStage extends CommandStage {
   @SubCommand(
     selectors = "verbose",
     usage = "[<player>]",
-    description = "Toggles your message-stream for verbose messages",
+    description = "Toggle verbose messages",
     permission = "intave.command.verbose"
   )
   public void verboseCommand(User user, @Optional Player[] selectedPlayers) {
@@ -52,7 +55,7 @@ public final class IntaveCommandStage extends CommandStage {
   @SubCommand(
     selectors = "notify",
     usage = "",
-    description = "Toggle your message-stream for notifications",
+    description = "Toggle notifications",
     permission = "intave.command.notify"
   )
   public void notifyCommand(User user) {
@@ -66,6 +69,42 @@ public final class IntaveCommandStage extends CommandStage {
     } else {
       player.sendMessage(IntavePlugin.prefix() + "You are " + ChatColor.GREEN + "now " + IntavePlugin.defaultColor() + "receiving notifications");
     }
+  }
+
+  @SubCommand(
+    selectors = "version",
+    usage = "",
+    description = "Show version info"
+  )
+  public void versionCommand(User user) {
+    Player player = user.player();
+    sendVersionMessage(player);
+  }
+
+  @Override
+  protected void showInfo(CommandSender sender) {
+    boolean hasIntavePermission = PermissionCheck.permissionCheck(sender, "intave.command");
+
+    if(hasIntavePermission) {
+      super.showInfo(sender);
+    } else {
+      sendVersionMessage(sender);
+    }
+  }
+
+  private void sendVersionMessage(CommandSender player) {
+    boolean hasVersionViewPermission = PermissionCheck.permissionCheck(player, "intave.command");
+    boolean versionViewAllowed = false;
+
+    String version = hasVersionViewPermission ? IntavePlugin.version() + " (9 days old)" : "(version hidden)";
+
+    String prefix = IntavePlugin.prefix();
+    player.sendMessage(new String[]{
+      prefix + "Running Intave " + version,
+      prefix + "Made in Germany by the Intave development team",
+      prefix + "Visit our website for a full list of contributors",
+      prefix + (IntavePlugin.isInOfflineMode() ? "Unable to verify certificate " + LicenseVerification.licenseKey() + ". Intave servers down?" : "Certified for " + LicenseVerification.network() + " / " + LicenseVerification.licenseKey())
+    });
   }
 
   public static IntaveCommandStage singletonInstance() {

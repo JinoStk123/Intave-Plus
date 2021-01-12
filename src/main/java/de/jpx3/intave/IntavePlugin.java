@@ -32,6 +32,7 @@ public final class IntavePlugin extends JavaPlugin {
   private static String version = "UNKNOWN";
   private static String prefix = "§8[§c§lIntave§8]§7 ";
   private static String defaultColor = "";
+  private static boolean offlineMode = false;
 
   private IntaveLogger logger;
   private ProxyMessenger proxyMessenger;
@@ -215,6 +216,10 @@ public final class IntavePlugin extends JavaPlugin {
 
   public static String prefix() {
     return prefix;
+  }
+
+  public static boolean isInOfflineMode() {
+    return offlineMode;
   }
 
   public static String defaultColor() {
