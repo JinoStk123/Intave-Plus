@@ -9,6 +9,6 @@ public final class UserMetaViolationLevelData {
   public double physicsVL;
   public volatile boolean isInActiveTeleportBundle;
 
-  public Map<String, Double> violationLevel = new ConcurrentHashMap<>();
+  public Map<String, Map<String, Double>> violationLevel = new ConcurrentHashMap<>();
   public TrustFactor trustFactor = TrustFactor.YELLOW;
 }

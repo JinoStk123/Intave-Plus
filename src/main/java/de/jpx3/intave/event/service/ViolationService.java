@@ -14,10 +14,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 public final class ViolationService {
   private final IntavePlugin plugin;
@@ -42,7 +39,7 @@ public final class ViolationService {
 
     IntaveCheck check = plugin.checkService().searchCheck(checkName);
 
-    double oldVl = violationMapOf(detectedPlayer).computeIfAbsent(checkName, s -> 0d);
+    double oldVl = violationMapOf(detectedPlayer).computeIfAbsent(checkName, s -> new HashMap<>()).computeIfAbsent(thresholdsKey, s -> 0d);
     double newVl = MathHelper.minmax(0, oldVl + vl, 1000);
     double preventionActivation = resolvePreventionActivationThreshold(checkName, detectedPlayer);
 
@@ -62,7 +59,7 @@ public final class ViolationService {
     }
 
     performVerbose(detectedUser, checkName, oldVl, newVl, message, details);
-    violationMapOf(detectedPlayer).put(checkName, newVl);
+    violationMapOf(detectedPlayer).get(checkName).put(thresholdsKey, newVl);
 
     List<String> resolvedCommands = null;
     Map<Integer, List<String>> thresholds = check.checkConfiguration.settings().thresholdsBy(thresholdsKey);
@@ -128,7 +125,7 @@ public final class ViolationService {
     });
   }
 
-  private Map<String, Double> violationMapOf(Player player) {
+  private Map<String, Map<String, Double>> violationMapOf(Player player) {
     return UserRepository.userOf(player).meta().violationLevelData().violationLevel;
   }
 
