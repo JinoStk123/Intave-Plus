@@ -9,6 +9,7 @@ import de.jpx3.intave.detect.EventProcessor;
 import de.jpx3.intave.detect.checks.movement.Physics;
 import de.jpx3.intave.event.bukkit.BukkitEventSubscription;
 import de.jpx3.intave.event.packet.*;
+import de.jpx3.intave.tools.MathHelper;
 import de.jpx3.intave.tools.client.PlayerMovementLocaleHelper;
 import de.jpx3.intave.tools.sync.Synchronizer;
 import de.jpx3.intave.tools.wrapper.WrappedAxisAlignedBB;
@@ -114,6 +115,19 @@ public final class MovementDispatcher implements EventProcessor {
 
     if (movementData.awaitTeleport) {
       event.setCancelled(true);
+      return;
+    }
+
+    double distance = MathHelper.resolveDistance(
+      movementData.verifiedPositionX, movementData.verifiedPositionY, movementData.verifiedPositionZ,
+      movementData.positionX, movementData.positionY, movementData.positionZ
+    );
+    if(distance > 10) {
+      event.setCancelled(true);
+      Vector vector = new Vector(movementData.physicsLastMotionX, movementData.physicsLastMotionY, movementData.physicsLastMotionZ);
+      plugin.eventService().emulationEngine().emulationSetBack(player, vector, 10);
+      String details = "moved " + MathHelper.formatDouble(distance, 2) + " blocks";
+      plugin.retributionService().processViolation(player, 25, "Physics", "sent unsafe position", details);
       return;
     }
 
