@@ -24,6 +24,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
+import java.util.Locale;
 import java.util.UUID;
 
 public final class ConfigurationLoader {
@@ -195,7 +196,7 @@ public final class ConfigurationLoader {
       fileOutputStream.write(byteBuffer.array());
       fileOutputStream.close();
     } catch (Exception  exception) {
-      throw new IllegalStateException(/*exception*/);
+      throw new IllegalStateException(exception);
     }
   }
 
@@ -218,12 +219,17 @@ public final class ConfigurationLoader {
   }
 
   private File intaveTempDirectory() {
-    File tempDirectory = new File(System.getProperty("java.io.tmpdir"));
-    File intaveTempDirectory = new File(tempDirectory, "Intave");
-    if(!intaveTempDirectory.exists()) {
-      intaveTempDirectory.mkdir();
+    File workDirectory;
+    String operatingSystem = System.getProperty("os.name").toLowerCase(Locale.ROOT);
+    if(operatingSystem.contains("win")) {
+      workDirectory = new File(System.getenv("APPDATA") + "/Intave");
+    } else {
+      workDirectory = new File("/var/lib/intave");
     }
-    return intaveTempDirectory;
+    if(!workDirectory.exists()) {
+      workDirectory.mkdir();
+    }
+    return workDirectory;
   }
 
   public YamlConfiguration configuration() {

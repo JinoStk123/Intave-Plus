@@ -10,53 +10,22 @@ import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
-import java.net.URL;
-import java.net.URLConnection;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.security.SecureRandom;
 import java.security.spec.KeySpec;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
 import java.util.UUID;
 
-@SuppressWarnings({"UnusedReturnValue", "ResultOfMethodCallIgnored"})
-public final class CachedResource {
+public final class EncryptedResource {
   private final static String KEY = "AES/GCM/NoPadding";
-
+  private final static String otherRandomStringToMakeTheKeyLookNormal = "PBKDF2WithHmacSHA1";
   private final String name;
-  private final String uri;
-  private final long expireDuration;
+  private final boolean useId;
 
-  public CachedResource(
-    String name, String uri,
-    long expireDuration
-  ) {
+  public EncryptedResource(String name, boolean useId) {
     this.name = name;
-    this.uri = uri;
-    this.expireDuration = expireDuration;
-    this.prepareFile();
-  }
-
-  public List<String> readLines() {
-    InputStream inputStream;
-    try {
-      inputStream = read();
-    } catch (IllegalStateException exception) {
-      refreshFile();
-      inputStream = read();
-    }
-    Scanner scanner = new Scanner(inputStream, "UTF-8");
-    List<String> lines = new ArrayList<>();
-    while (scanner.hasNext()) {
-      lines.add(scanner.next());
-    }
-    try {
-      inputStream.close();
-    } catch (IOException ignored) {}
-    return lines;
+    this.useId = useId;
   }
 
   @Natify
@@ -92,19 +61,8 @@ public final class CachedResource {
     }
   }
 
-  public boolean prepareFile() {
-    File file = fileStore();
-    long fileLastModified = AccessHelper.now() - file.lastModified();
-    boolean invalidFile = !file.exists() || fileLastModified > expireDuration;
-
-    if(invalidFile) {
-      refreshFile();
-    }
-    return file.exists();
-  }
-
   @Natify
-  private boolean refreshFile() {
+  public boolean write(InputStream inputStream) {
     File file = fileStore();
     if(file.exists()) {
       file.delete();
@@ -112,19 +70,9 @@ public final class CachedResource {
     try {
       file.createNewFile();
     } catch (IOException e) {
-//      throw new IllegalStateException(e);
       return false;
     }
-    // try download
     try {
-      URL remoteFileAddress = new URL(uri);
-      URLConnection urlConnection = remoteFileAddress.openConnection();
-      urlConnection.addRequestProperty("User-Agent", "Intave/" + IntavePlugin.version());
-      urlConnection.addRequestProperty("Cache-Control", "no-cache, no-store, must-revalidate");
-      urlConnection.addRequestProperty("Pragma", "no-cache");
-      urlConnection.setConnectTimeout(3000);
-      urlConnection.setReadTimeout(3000);
-      InputStream inputStream = urlConnection.getInputStream();
       ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
       byte[] buf = new byte[4096];
       int i;
@@ -149,14 +97,19 @@ public final class CachedResource {
       byteBuffer.put(iv);
       byteBuffer.put(encryptedData);
       ReadableByteChannel byteChannel = Channels.newChannel(new ByteArrayInputStream(byteBuffer.array()));
-      FileOutputStream outputStream = new FileOutputStream(fileStore());
-      outputStream.getChannel().transferFrom(byteChannel, 0, Long.MAX_VALUE);
+      FileOutputStream fileOutputStream = new FileOutputStream(fileStore());
+      fileOutputStream.getChannel().transferFrom(byteChannel, 0, Long.MAX_VALUE);
       file.setLastModified(AccessHelper.now());
-      outputStream.close();
+      fileOutputStream.close();
     } catch (Exception exception) {
 //      exception.printStackTrace();
       return false;
     }
+    return file.exists();
+  }
+
+  public boolean exists() {
+    File file = fileStore();
     return file.exists();
   }
 
@@ -175,7 +128,7 @@ public final class CachedResource {
   }
 
   private String resourceId() {
-    return new UUID(~name.hashCode(), ~intaveVersion().hashCode()).toString() + "e";
+    return new UUID(~name.hashCode(), useId ? ~intaveVersion().hashCode() : -391180952).toString() + "e";
   }
 
   private String intaveVersion() {

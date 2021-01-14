@@ -388,10 +388,12 @@ public final class MovementDispatcher implements EventProcessor {
         return;
       }
 
+      if(isInActiveTeleportBundle) {
+        movementData.emulationVelocity = velocity.clone();
+      }
+
       plugin.eventService().transactionFeedbackService().requestPong(player, velocity, (player1, velocity1) -> {
-        if (isInActiveTeleportBundle) {
-          movementData.emulationVelocity = velocity1.clone();
-        } else {
+        if (!isInActiveTeleportBundle) {
           movementData.physicsLastMotionX = velocity1.getX();
           movementData.physicsLastMotionY = velocity1.getY();
           movementData.physicsLastMotionZ = velocity1.getZ();
