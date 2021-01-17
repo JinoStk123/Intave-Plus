@@ -40,6 +40,7 @@ import static de.jpx3.intave.user.UserMetaClientData.PROTOCOL_VERSION_VILLAGE_UP
 
 public final class Physics extends IntaveCheck {
   private final static double VL_DECREMENT_PER_VALID_MOVE = 0.05;
+  private final static boolean SIMULATE_USE_ITEM_TWICE = true;
 
   private final IntavePlugin plugin;
   private final BlockCollisionRepository blockCollisionRepository;
@@ -175,15 +176,11 @@ public final class Physics extends IntaveCheck {
     User.UserMeta meta = user.meta();
     UserMetaMovementData movementData = meta.movementData();
     UserMetaInventoryData inventoryData = meta.inventoryData();
-    double positionX = movementData.verifiedPositionX;
-    double positionY = movementData.verifiedPositionY;
-    double positionZ = movementData.verifiedPositionZ;
     double lastMotionX = movementData.physicsLastMotionX;
     double lastMotionY = movementData.physicsLastMotionY;
     double lastMotionZ = movementData.physicsLastMotionZ;
     boolean lenientItemUsageChecking = lenientItemUsageChecking(user);
     boolean inventoryOpen = inventoryData.inventoryOpen();
-    boolean inWeb = movementData.inWeb;
     boolean inLava = movementData.inLava();
     boolean inWater = movementData.inWater;
     boolean lastOnGround = movementData.lastOnGround;
@@ -198,15 +195,17 @@ public final class Physics extends IntaveCheck {
     for (int heldItemState = 0; heldItemState <= 1; heldItemState++) {
       boolean handActive = heldItemState == 1;
 
-      if (!lenientItemUsageChecking) {
-        // Force the player to accept the item usage
-        int blockLenience = inventoryData.pastItemUsageTransition < 5 && inventoryData.pastHotBarSlotChange < 5 ? 5 : 0;
-        if (inventoryData.handActiveTicks >= blockLenience && inventoryData.handActive() && !handActive) {
-          continue;
-        }
-        // Remove the ability to accept the item usage
-        if (!inventoryData.handActive() && handActive) {
-          continue;
+      if (!SIMULATE_USE_ITEM_TWICE) {
+        if (!lenientItemUsageChecking) {
+          // Force the player to accept the item usage
+          int blockLenience = inventoryData.pastItemUsageTransition < 5 && inventoryData.pastHotBarSlotChange < 5 ? 5 : 0;
+          if (inventoryData.handActiveTicks >= blockLenience && inventoryData.handActive() && !handActive) {
+            continue;
+          }
+          // Remove the ability to accept the item usage
+          if (!inventoryData.handActive() && handActive) {
+            continue;
+          }
         }
       }
 
@@ -234,13 +233,9 @@ public final class Physics extends IntaveCheck {
                 }
               }
               context.reset(lastMotionX, lastMotionY, lastMotionZ);
-              performSimulationOfState(
+              EntityCollisionResult collisionResult = performSimulationOfState(
                 user, context, yawSine, yawCosine, friction, keyForward, keyStrafe,
                 sneaking, attackReduce, jumped, sprinting, handActive
-              );
-              EntityCollisionResult collisionResult = entityCollisionRepository.resolveEntityCollisionOf(
-                user, context, inWeb,
-                positionX, positionY, positionZ
               );
               PhysicsProcessorContext collisionContext = collisionResult.context();
               double differenceX = collisionContext.motionX - receivedMotionX;
@@ -281,27 +276,19 @@ public final class Physics extends IntaveCheck {
       keyForward = 0;
       keyStrafe = 0;
     }
-    double positionX = movementData.verifiedPositionX;
-    double positionY = movementData.verifiedPositionY;
-    double positionZ = movementData.verifiedPositionZ;
     boolean handActive = inventoryData.handActive();
     boolean attackReduce = movementData.pastPlayerAttackPhysics == 0;
     boolean jumped = movementData.jumpUpwardsMotion() == movementData.motionY()
       && movementData.lastOnGround
       && !inventoryData.inventoryOpen();
     context.reset(movementData.physicsLastMotionX, movementData.physicsLastMotionY, movementData.physicsLastMotionZ);
-    performSimulationOfState(
+    return performSimulationOfState(
       user, context, yawSine, yawCosine, friction, keyForward, keyStrafe,
       sneaking, attackReduce, jumped, sprinting, handActive
     );
-    boolean inWeb = movementData.inWeb;
-    return entityCollisionRepository.resolveEntityCollisionOf(
-      user, context, inWeb,
-      positionX, positionY, positionZ
-    );
   }
 
-  private void performSimulationOfState(
+  private EntityCollisionResult performSimulationOfState(
     User user, PhysicsProcessorContext context,
     float yawSine, float yawCosine, float friction,
     int keyForward, int keyStrafe,
@@ -370,6 +357,17 @@ public final class Physics extends IntaveCheck {
     } else {
       performDefaultMoveSimulationOfState(user, context, moveForward, moveStrafe, yawSine, yawCosine, friction);
     }
+
+    if (!inWater && !elytraFlying && !inLava) {
+      tryRelinkFlyingPosition(user, context);
+    }
+
+    EntityCollisionResult collisionResult = entityCollisionRepository.resolveEntityCollisionOf(
+      user, context, movementData.inWeb,
+      positionX, positionY, positionZ
+    );
+    notePossibleFlyingPacket(user, collisionResult);
+    return collisionResult;
   }
 
   private void performSimulationInWaterOfState(
@@ -473,7 +471,6 @@ public final class Physics extends IntaveCheck {
         context.motionY = 0.0D;
       }
     }
-    tryRelinkFlyingPosition(user, context);
   }
 
   private void performRelativeMoveSimulationOfState(
@@ -585,6 +582,14 @@ public final class Physics extends IntaveCheck {
     context.motionX = result.motionX();
     context.motionY = result.motionY();
     context.motionZ = result.motionZ();
+  }
+
+  private void notePossibleFlyingPacket(User user, EntityCollisionResult collisionResult) {
+    UserMetaMovementData movementData = user.meta().movementData();
+    PhysicsProcessorContext context = collisionResult.context();
+    if (flyingPacket(context.motionX, context.motionY, context.motionZ)) {
+      movementData.pastFlyingPacketAccurate = 0;
+    }
   }
 
   private final static double FLYING_DISTANCE = 0.0009;
@@ -802,7 +807,7 @@ public final class Physics extends IntaveCheck {
       legitimateDeviation = 0.001;
     }
 
-    if ((movementData.pastWaterMovement < 10 || movementData.inLava()) && distanceMoved < 0.1) {
+    if ((movementData.pastPushedByWaterFlow < 10 || movementData.inLava()) && distanceMoved < 0.2) {
       legitimateDeviation = 0.1;
     }
 
