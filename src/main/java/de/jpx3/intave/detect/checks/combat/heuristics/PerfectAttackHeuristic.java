@@ -86,7 +86,7 @@ public final class PerfectAttackHeuristic extends IntaveMetaCheckPart<Heuristics
 //      String descriptor = "(" + MathHelper.formatDouble(yawSpeedAverage, 2) + ", " + MathHelper.formatDouble(distanceAverage, 2) + ")";
 
       if (failRate < 10 && (yawSpeedAverage > 10 || distanceAverage > 10)) {
-        String description = "high accuracy on borders " +
+        String description = "maintains high attack accuracy whilst aiming at hitbox corners " +
           "(fail:" + MathHelper.formatDouble(failRate, 2)
           + "%, r:" + MathHelper.formatDouble(yawSpeedAverage, 2)
           + ", d:" + MathHelper.formatDouble(distanceAverage, 2)

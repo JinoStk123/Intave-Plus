@@ -61,7 +61,7 @@ public final class RotationSensitivityHeuristic extends IntaveMetaCheckPart<Heur
               Confidence.PROBABLE,
               Anomaly.Type.KILLAURA,
               "rotations have too few decimals",
-              LIMIT_2 | DELAY_16s | SUGGEST_MINING
+              LIMIT_1 | LIMIT_2 | DELAY_16s | SUGGEST_MINING
             )
           );
         }

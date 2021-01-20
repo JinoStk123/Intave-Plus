@@ -750,7 +750,7 @@ public final class Physics extends IntaveCheck {
       violationLevelIncrease = Math.max(1, violationLevelIncrease);
       violationLevelData.physicsVL += violationLevelIncrease;
 
-      user.boundingBoxAccess().invalidate();
+//      user.boundingBoxAccess().invalidate();
     }
 
     if ((!spectator && !movedIntoBlock && violationLevelData.physicsVL > 20 && violationLevelIncrease > 0)) {

@@ -12,6 +12,8 @@ import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.adapter.ProtocolLibAdapter;
 import de.jpx3.intave.connect.sibyl.LabyModChannelHelper;
 import de.jpx3.intave.connect.sibyl.LabymodClientListener;
+import de.jpx3.intave.event.bukkit.BukkitEventSubscriber;
+import de.jpx3.intave.event.bukkit.BukkitEventSubscription;
 import de.jpx3.intave.executor.BackgroundExecutor;
 import de.jpx3.intave.reflect.Reflection;
 import de.jpx3.intave.security.LicenseVerification;
@@ -21,6 +23,7 @@ import de.jpx3.intave.tools.sync.Synchronizer;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -44,7 +47,7 @@ import java.util.function.Consumer;
  */
 
 
-public final class SibylAuthentication {
+public final class SibylAuthentication implements BukkitEventSubscriber {
   private final IntavePlugin plugin;
   private final LabymodClientListener authenticationListener;
 
@@ -53,6 +56,7 @@ public final class SibylAuthentication {
   public SibylAuthentication(IntavePlugin plugin) {
     this.plugin = plugin;
     this.authenticationListener = new LabymodClientListener(plugin, "sibyl-auth", this::processIncomingMessage);
+    this.plugin.eventLinker().registerEventsIn(this);
   }
 
   @Native
@@ -151,6 +155,12 @@ public final class SibylAuthentication {
     internalWhitelist.add(UUID.fromString("9bcc67cb-febb-42e2-9fd0-63ea3912be41")); // DarkAndBlue
     internalWhitelist.add("DarkAndBlue");
     internalWhitelist = ImmutableList.copyOf(internalWhitelist);
+  }
+
+  @Native
+  @BukkitEventSubscription
+  public void on(PlayerQuitEvent quit) {
+    authStates.remove(quit.getPlayer().getUniqueId());
   }
 
   @Native
