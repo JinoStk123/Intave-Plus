@@ -47,7 +47,8 @@ public final class UserMetaMovementData {
   public boolean canResetMotion;
   private double resetMotion;
   private double jumpUpwardsMotion;
-  public int pastFlyingPacketAccurate, pastWaterMovement;
+  public int pastWaterMovement;
+  private int pastClientFlyingPacket, pastFlyingPacketAccurate;
   private float aiMoveSpeed, jumpMovementFactor;
   public boolean inWater, eyesInWater;
   public boolean inWeb;
@@ -145,16 +146,15 @@ public final class UserMetaMovementData {
         gravity = 0.08D;
       }
       updateMovementMetaData();
+    } else {
+      pastClientFlyingPacket = 0;
     }
-//    if(hasMovement || hasRotation) {
-      lastRotationYaw = rotationYaw;
-      lastRotationPitch = rotationPitch;
-//    }
+    lastRotationYaw = rotationYaw;
+    lastRotationPitch = rotationPitch;
     if (hasRotation) {
       StructureModifier<Float> modifier = packet.getFloat();
       rotationYaw = modifier.read(0);
       rotationPitch = modifier.read(1);
-//      player.sendMessage("Received " + rotationYaw + " " + rotationPitch);
       lookVector = PlayerRotationHelper.vectorForRotation(rotationPitch, rotationYaw);
     }
   }
@@ -208,6 +208,24 @@ public final class UserMetaMovementData {
     return BlockLiquidHelper.isLavaInBB(player.getWorld(), lavaBoundingBox);
   }
 
+  public boolean recentlyEncounteredFlyingPacket(int ticks) {
+    UserMetaClientData clientData = user.meta().clientData();
+    if (clientData.flyingPacketStream()) {
+      return pastClientFlyingPacket <= ticks && pastFlyingPacketAccurate <= ticks;
+    } else {
+      return pastFlyingPacketAccurate <= ticks;
+    }
+  }
+
+  public void resetFlyingPacketAccurate() {
+    pastFlyingPacketAccurate = 0;
+  }
+
+  public void increaseFlyingPacket() {
+    pastFlyingPacketAccurate++;
+    pastClientFlyingPacket++;
+  }
+
   public Object nmsWorld() {
     return nmsWorld;
   }
@@ -246,6 +264,10 @@ public final class UserMetaMovementData {
 
   public float jumpMovementFactor() {
     return jumpMovementFactor;
+  }
+
+  public int pastFlyingPacketAccurate() {
+    return pastFlyingPacketAccurate;
   }
 
   public void setBoundingBox(WrappedAxisAlignedBB entityBoundingBox) {

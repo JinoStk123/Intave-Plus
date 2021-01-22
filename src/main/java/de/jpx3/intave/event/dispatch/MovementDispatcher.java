@@ -21,13 +21,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.util.Vector;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
-import java.util.concurrent.ThreadLocalRandom;
 
 public final class MovementDispatcher implements EventProcessor {
   private final TeleportPositionObserver teleportPositionObserver = new TeleportPositionObserver();
@@ -204,7 +202,7 @@ public final class MovementDispatcher implements EventProcessor {
     }
 
     // flag -> remove packet
-    if (movementData.invalidMovement) {
+    if (movementData.invalidMovement && violationLevelData.isInActiveTeleportBundle) {
       event.setCancelled(true);
     }
   }

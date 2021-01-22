@@ -89,7 +89,7 @@ public class AttackRaytrace extends IntaveMetaCheck<AttackRaytrace.AttackRaytrac
 
         if (entity != null && entity.checkable() && !player.isDead()) {
           if (entity.clientSynchronized && clientData.protocolVersion() >= PROTOCOL_VERSION_COMBAT_UPDATE
-            && movementData.pastFlyingPacketAccurate > 4
+            && !movementData.recentlyEncounteredFlyingPacket(4)
             && attackRaytraceMeta.lastFlyPacketCounterReach > 1
           ) {
             invalid = processReachCheck(player, entity);
