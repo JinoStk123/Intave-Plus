@@ -1,7 +1,9 @@
 package de.jpx3.intave.world.collision;
 
 import de.jpx3.intave.IntavePlugin;
+import de.jpx3.intave.adapter.ProtocolLibAdapter;
 import de.jpx3.intave.patchy.PatchyLoadingInjector;
+import de.jpx3.intave.reflect.ReflectionFailureException;
 import de.jpx3.intave.tools.wrapper.WrappedAxisAlignedBB;
 import de.jpx3.intave.world.BlockAccessor;
 import de.jpx3.intave.world.collision.patches.BoundingBoxPatcher;
@@ -20,8 +22,26 @@ import static de.jpx3.intave.IntaveControl.DISABLE_BLOCK_CACHING_ENTIRELY;
 public final class BoundingBoxAccess {
   private final static BoundingBoxResolver globalBoundingBoxResolver;
   static {
-    PatchyLoadingInjector.loadUnloadedClassPatched(IntavePlugin.class.getClassLoader(), "de.jpx3.intave.world.collision.LegacyBoundingBoxResolver");
-    globalBoundingBoxResolver = new LegacyBoundingBoxResolver();
+    String className = "de.jpx3.intave.world.collision.resolver.v1_8BoundingBoxResolver";
+    String acClass = "de.jpx3.intave.world.collision.resolver.ac.v1_8AlwaysCollidingBoundingBox";
+
+    if(ProtocolLibAdapter.COMBAT_UPDATE.atOrAbove()) {
+      className = "de.jpx3.intave.world.collision.resolver.v1_9BoundingBoxResolver";
+      acClass = "de.jpx3.intave.world.collision.resolver.ac.v1_9AlwaysCollidingBoundingBox";
+    }
+
+    PatchyLoadingInjector.loadUnloadedClassPatched(IntavePlugin.class.getClassLoader(), acClass);
+    PatchyLoadingInjector.loadUnloadedClassPatched(IntavePlugin.class.getClassLoader(), className);
+    globalBoundingBoxResolver = instanceOf(className);
+  }
+
+  private static <T> T instanceOf(String className) {
+    try {
+      //noinspection unchecked
+      return (T) Class.forName(className).newInstance();
+    } catch (InstantiationException | IllegalAccessException | ClassNotFoundException exception) {
+      throw new ReflectionFailureException(exception);
+    }
   }
 
   private final Player player;

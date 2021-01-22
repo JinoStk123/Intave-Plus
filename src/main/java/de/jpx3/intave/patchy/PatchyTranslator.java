@@ -26,20 +26,23 @@ final class PatchyTranslator {
   @Native
   public static byte[] translateClass(byte[] inputBytes) {
     ClassNode classNode = classNodeOf(inputBytes);
-//    System.out.println("Translating " + classNode.name);
+    System.out.println("[Intave/Patchy] Translating " + classNode.name);
     translateClassDependencies(classNode);
 //    System.out.println("Translating methods..");
     processMethods(selectedMethodsIn(classNode));
-/*
-    System.out.println(classNode.name + " " + classNode.superName);
-    for (MethodNode method : classNode.methods) {
-      System.out.println(method.name);
 
-      Textifier textifier;
-      MethodVisitor methodVisitor = new TraceMethodVisitor(textifier = new Textifier());
-      method.accept(methodVisitor);
-      System.out.println(textifier.text);
-    }*/
+//    System.out.println(classNode.name + " " + classNode.superName);
+//    System.out.println(classNode.name + " " + classNode.superName);
+//    for (MethodNode method : classNode.methods) {
+//      System.out.println(method.name);
+//
+//      Textifier textifier;
+//      MethodVisitor methodVisitor = new TraceMethodVisitor(textifier = new Textifier());
+//      method.accept(methodVisitor);
+//      System.out.println(textifier.text);
+//    }
+
+    System.out.println("[Intave/Patchy] Done");
 
     return byteArrayOf(classNode);
   }
@@ -92,6 +95,8 @@ final class PatchyTranslator {
       throw new IllegalStateException("Custom translations not yet supported for parameters");
     }
 
+    methodNode.signature = null;
+
     String desc = methodNode.desc;
 
     int versionBeginIndex = desc.indexOf("/v") + 1;
@@ -123,6 +128,8 @@ final class PatchyTranslator {
         if (!instructionTarget.equals(originalInstruction)) {
 //          System.out.println("Patched " + originalInstruction.owner + "." + originalInstruction.name + originalInstruction.desc + " with " + instructionTarget.owner + "." + instructionTarget.name + instructionTarget.desc);
         }
+
+//        System.out.println(instructionTarget);
 
         methodInsnNode.owner = instructionTarget.owner;
         methodInsnNode.name = instructionTarget.name;

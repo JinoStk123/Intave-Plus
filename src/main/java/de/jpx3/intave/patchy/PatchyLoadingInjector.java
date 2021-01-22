@@ -14,15 +14,16 @@ public final class PatchyLoadingInjector {
   @Native
   public static <T> Class<T> loadUnloadedClassPatched(ClassLoader classLoader, String className) {
     className = className.replace("/", ".");
+    byte[] classBytes;
     try {
       if(!classIsLoaded(classLoader, className)) {
-        byte[] classBytes = classBytesOf(classLoader, className);
+        classBytes = classBytesOf(classLoader, className);
         classBytes = PatchyTranslator.translateClass(classBytes);
         defineClass(classLoader, classBytes);
       }
       return classByName(className);
-    } catch (Exception e) {
-      throw new IllegalStateException(e);
+    } catch (Error | Exception e) {
+      throw new IllegalStateException("Failed to load class " + className, e);
     }
   }
 

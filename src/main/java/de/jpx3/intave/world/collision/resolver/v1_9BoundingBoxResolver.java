@@ -1,21 +1,20 @@
-package de.jpx3.intave.world.collision;
+package de.jpx3.intave.world.collision.resolver;
 
-import de.jpx3.intave.IntavePlugin;
-import de.jpx3.intave.patchy.PatchyLoadingInjector;
 import de.jpx3.intave.patchy.annotate.PatchyAutoTranslation;
-import de.jpx3.intave.patchy.annotate.PatchyTranslateParameters;
 import de.jpx3.intave.tools.wrapper.WrappedAxisAlignedBB;
-import net.minecraft.server.v1_8_R3.*;
+import de.jpx3.intave.world.collision.BoundingBoxResolver;
+import de.jpx3.intave.world.collision.resolver.ac.v1_9AlwaysCollidingBoundingBox;
+import net.minecraft.server.v1_9_R2.*;
 import org.bukkit.World;
-import org.bukkit.craftbukkit.v1_8_R3.CraftChunk;
-import org.bukkit.craftbukkit.v1_8_R3.CraftWorld;
+import org.bukkit.craftbukkit.v1_9_R2.CraftChunk;
+import org.bukkit.craftbukkit.v1_9_R2.CraftWorld;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public final class LegacyBoundingBoxResolver implements BoundingBoxResolver {
-  private final static AlwaysCollidingBoundingBox ALWAYS_COLLIDING_BOX = new AlwaysCollidingBoundingBox();
+public final class v1_9BoundingBoxResolver implements BoundingBoxResolver {
+  private final static v1_9AlwaysCollidingBoundingBox ALWAYS_COLLIDING_BOX = new v1_9AlwaysCollidingBoundingBox();
 
   @Override
   @PatchyAutoTranslation
@@ -27,10 +26,11 @@ public final class LegacyBoundingBoxResolver implements BoundingBoxResolver {
       return Collections.emptyList();
     }
     List<AxisAlignedBB> bbs = new ArrayList<>();
+
     blockData.getBlock().a(
+      blockData,
       ((CraftWorld) world).getHandle(),
       blockposition,
-      blockData,
       ALWAYS_COLLIDING_BOX,
       bbs,
       null
@@ -42,15 +42,15 @@ public final class LegacyBoundingBoxResolver implements BoundingBoxResolver {
   @PatchyAutoTranslation
   public List<WrappedAxisAlignedBB> resolve(World world, int posX, int posY, int posZ, int typeId, int blockState) {
     BlockPosition blockposition = new BlockPosition(posX, posY, posZ);
-    IBlockData blockData = Block.d.a((typeId << 4) | (blockState & 0xF));
+    IBlockData blockData = Block.getByCombinedId(typeId | blockState << 12 & 0xF);
     List<AxisAlignedBB> bbs = new ArrayList<>();
     if(blockData == null) {
       return Collections.emptyList();
     }
     blockData.getBlock().a(
+      blockData,
       ((CraftWorld) world).getHandle(),
       blockposition,
-      blockData,
       ALWAYS_COLLIDING_BOX,
       bbs,
       null
@@ -67,24 +67,5 @@ public final class LegacyBoundingBoxResolver implements BoundingBoxResolver {
       list.add(WrappedAxisAlignedBB.fromClass(bb));
     }
     return list;
-  }
-
-  static {
-    PatchyLoadingInjector.loadUnloadedClassPatched(IntavePlugin.class.getClassLoader(), "de.jpx3.intave.world.collision.LegacyBoundingBoxResolver$AlwaysCollidingBoundingBox");
-  }
-
-  @PatchyAutoTranslation
-  public static class AlwaysCollidingBoundingBox extends AxisAlignedBB {
-    @PatchyAutoTranslation
-    public AlwaysCollidingBoundingBox() {
-      super(0,0,0,1,1,1);
-    }
-
-    @Override
-    @PatchyAutoTranslation
-    @PatchyTranslateParameters
-    public boolean b(AxisAlignedBB axisAlignedBB) {
-      return true;
-    }
   }
 }

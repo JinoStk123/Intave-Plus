@@ -1,6 +1,7 @@
 package de.jpx3.intave.world.block;
 
 import com.comphenix.protocol.wrappers.BlockPosition;
+import de.jpx3.intave.patchy.annotate.PatchyAutoTranslation;
 import net.minecraft.server.v1_8_R3.Chunk;
 import net.minecraft.server.v1_8_R3.WorldServer;
 import org.bukkit.World;
@@ -11,8 +12,8 @@ import org.bukkit.inventory.ItemStack;
 
 public final class LegacyBlockAccessor implements BlockAccessor {
   @Override
+  @PatchyAutoTranslation
   public float blockDamage(Player player, ItemStack itemInHand, BlockPosition blockPosition) {
-    World world = player.getWorld();
     WorldServer worldServer = ((CraftWorld) player.getWorld()).getHandle();
     Chunk chunk = worldServer.getChunkIfLoaded(blockPosition.getX() >> 4, blockPosition.getZ() >> 4);
     if(chunk == null) {
@@ -23,6 +24,7 @@ public final class LegacyBlockAccessor implements BlockAccessor {
   }
 
   @Override
+  @PatchyAutoTranslation
   public boolean replacementPlace(World world, BlockPosition blockPosition) {
     WorldServer worldServer = ((CraftWorld) world).getHandle();
     Chunk chunk = worldServer.getChunkIfLoaded(blockPosition.getX() >> 4, blockPosition.getZ() >> 4);
