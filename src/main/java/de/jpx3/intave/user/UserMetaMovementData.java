@@ -228,6 +228,10 @@ public final class UserMetaMovementData {
     pastClientFlyingPacket++;
   }
 
+  public boolean inVehicle() {
+    return player != null && player.isInsideVehicle();
+  }
+
   public Object nmsWorld() {
     return nmsWorld;
   }

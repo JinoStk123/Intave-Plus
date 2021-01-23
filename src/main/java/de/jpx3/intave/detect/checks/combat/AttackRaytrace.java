@@ -193,6 +193,11 @@ public class AttackRaytrace extends IntaveMetaCheck<AttackRaytrace.AttackRaytrac
       }
     }
 
+    if (movementData.inVehicle()) {
+      vl = 0;
+      message += " (vehicle)";
+    }
+
     plugin.retributionService().processViolation(player, vl, "AttackRaytrace", message, details);
 //    player.sendMessage("§6s:" + reach);
     return true;
@@ -287,6 +292,11 @@ public class AttackRaytrace extends IntaveMetaCheck<AttackRaytrace.AttackRaytrac
         message = "attacked " + targetDescriptor + " from too far away";
         details = minReachDisplay + " at best, estimated";
       }
+
+      if (movementData.inVehicle()) {
+        message += " (vehicle)";
+      }
+
       plugin.retributionService().processViolation(player, 0, "AttackRaytrace", message, details);
       return true;
     }

@@ -96,12 +96,12 @@ public final class MovementDispatcher implements EventProcessor {
   public void receiveVehicleMove(PlayerMoveEvent event) {
     Player player = event.getPlayer();
     User user = UserRepository.userOf(player);
-    if (player.getVehicle() == null) {
+    User.UserMeta meta = user.meta();
+    UserMetaMovementData movementData = meta.movementData();
+    if (!movementData.inVehicle()) {
       return;
     }
     Location location = event.getTo();
-    User.UserMeta meta = user.meta();
-    UserMetaMovementData movementData = meta.movementData();
     UserMetaClientData clientData = meta.clientData();
     if (clientData.protocolVersion() >= PROTOCOL_VERSION_COMBAT_UPDATE) {
       return;
