@@ -25,6 +25,8 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.util.Vector;
 
 import java.lang.invoke.MethodHandle;
@@ -82,6 +84,26 @@ public final class MovementDispatcher implements EventProcessor {
     StructureModifier<String> strings = packet.getStrings();
 
 
+  }
+
+  @BukkitEventSubscription
+  public void receiveExternalTeleport(PlayerTeleportEvent event) {
+    Player player = event.getPlayer();
+    User user = UserRepository.userOf(player);
+    PlayerTeleportEvent.TeleportCause cause = event.getCause();
+    if (cause == PlayerTeleportEvent.TeleportCause.SPECTATE || cause == PlayerTeleportEvent.TeleportCause.UNKNOWN) {
+      return;
+    }
+    UserMetaMovementData movementData = user.meta().movementData();
+    movementData.artificialFallDistance = 0;
+  }
+
+  @BukkitEventSubscription
+  public void receiveRespawn(PlayerRespawnEvent event) {
+    Player player = event.getPlayer();
+    User user = UserRepository.userOf(player);
+    UserMetaMovementData movementData = user.meta().movementData();
+    movementData.artificialFallDistance = 0;
   }
 
   @BukkitEventSubscription
@@ -172,6 +194,9 @@ public final class MovementDispatcher implements EventProcessor {
   )
   public void receiveMovement(PacketEvent event) {
     Player player = event.getPlayer();
+    if (player.isDead()) {
+      return;
+    }
     PacketContainer packet = event.getPacket();
     User user = UserRepository.userOf(player);
 
@@ -270,6 +295,9 @@ public final class MovementDispatcher implements EventProcessor {
   )
   public void receiveFinalMovement(PacketEvent event) {
     Player player = event.getPlayer();
+    if (player.isDead()) {
+      return;
+    }
     PacketContainer packet = event.getPacket();
     User user = UserRepository.userOf(player);
 

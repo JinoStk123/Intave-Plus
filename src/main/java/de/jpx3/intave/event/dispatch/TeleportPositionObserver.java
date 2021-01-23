@@ -15,6 +15,7 @@ import de.jpx3.intave.user.UserRepository;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerTeleportEvent;
 
 import java.util.Set;
 
@@ -64,7 +65,7 @@ public final class TeleportPositionObserver implements PacketEventSubscriber {
         }
         Synchronizer.synchronize(() -> {
           Location location = movementData.teleportLocation;
-          player.teleport(location);
+          player.teleport(location, PlayerTeleportEvent.TeleportCause.SPECTATE);
         });
       }
     }
@@ -97,15 +98,6 @@ public final class TeleportPositionObserver implements PacketEventSubscriber {
         Bukkit.broadcastMessage("[Intave] Potential teleportation requested of " + player.getName() + "was evaluated as invalid");
       }
     }
-  }
-
-  private boolean validTeleportRotation(
-    Location teleportLocation,
-    float receivedYaw, float receivedPitch
-  ) {
-    double yawDeviation = MathHelper.distanceInDegrees(teleportLocation.getYaw(), receivedYaw);
-    double pitchDeviation = Math.abs(teleportLocation.getPitch() - receivedPitch);
-    return yawDeviation < 1e-5 && pitchDeviation < 1e-5;
   }
 
   private void dispatchLegacyTeleportation(
