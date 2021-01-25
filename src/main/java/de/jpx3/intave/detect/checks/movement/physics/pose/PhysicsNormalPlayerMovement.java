@@ -90,7 +90,7 @@ public class PhysicsNormalPlayerMovement extends PhysicsCalculationPart {
       performDefaultMoveSimulationOfState(user, context, forward, strafe, yawSine, yawCosine, friction);
     }
 
-    if (!inWater && !elytraFlying && !inLava && movementData.motionY() < 0) {
+    if (!inWater && !elytraFlying && !inLava) {
       tryRelinkFlyingPosition(user, context);
     }
 
@@ -212,7 +212,7 @@ public class PhysicsNormalPlayerMovement extends PhysicsCalculationPart {
         context.motionY = jumpUpwardsMotion;
         movementData.physicsPacketRelinkFlyVL = 0;
         break;
-      } else {
+      } else if (movementData.motionY() < 0){
         double nextPredictedX = interpolateX * slipperiness;
         double nextPredictedY = (interpolateY - 0.08) * 0.98f;
         double nextPredictedZ = interpolateZ * slipperiness;
