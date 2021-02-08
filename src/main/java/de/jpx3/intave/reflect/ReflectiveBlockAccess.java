@@ -26,6 +26,7 @@ public final class ReflectiveBlockAccess {
     Object resolveById(int blockId);
   }
 
+  @PatchyAutoTranslation
   private static final class BlockAccessLegacy implements BlockAccess {
     @PatchyAutoTranslation
     @Override
@@ -34,6 +35,7 @@ public final class ReflectiveBlockAccess {
     }
   }
 
+  @PatchyAutoTranslation
   private static final class BlockAccessNew implements BlockAccess {
     @PatchyAutoTranslation
     @Override

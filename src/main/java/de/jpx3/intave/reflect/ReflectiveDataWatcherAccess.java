@@ -6,6 +6,7 @@ import net.minecraft.server.v1_8_R3.Entity;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftEntity;
 import org.bukkit.entity.Player;
 
+@PatchyAutoTranslation
 public final class ReflectiveDataWatcherAccess {
   public static final int DATA_WATCHER_BLOCKING_ID = 4;
 

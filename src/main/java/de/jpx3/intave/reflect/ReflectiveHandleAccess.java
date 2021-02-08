@@ -6,6 +6,7 @@ import org.bukkit.craftbukkit.v1_8_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftEntity;
 import org.bukkit.entity.Entity;
 
+@PatchyAutoTranslation
 public final class ReflectiveHandleAccess {
   @PatchyAutoTranslation
   public static Object handleOf(Entity entity) {

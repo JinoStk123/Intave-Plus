@@ -10,6 +10,7 @@ import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_8_R3.CraftWorld;
 import org.bukkit.entity.Player;
 
+@PatchyAutoTranslation
 public final class LegacyVersionRaytracer implements VersionRaytracer {
   @Override
   @PatchyAutoTranslation

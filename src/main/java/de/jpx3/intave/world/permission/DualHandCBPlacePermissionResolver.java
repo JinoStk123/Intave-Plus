@@ -25,6 +25,7 @@ import org.bukkit.inventory.ItemStack;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+@PatchyAutoTranslation
 public final class DualHandCBPlacePermissionResolver implements BlockPlacePermissionCheck, BukkitEventSubscriber {
   @Override
   @PatchyAutoTranslation

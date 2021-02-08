@@ -11,6 +11,7 @@ import org.bukkit.craftbukkit.v1_15_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_15_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
+@PatchyAutoTranslation
 public final class VoxelVersionRaytracer implements VersionRaytracer {
   @Override
   @PatchyAutoTranslation
