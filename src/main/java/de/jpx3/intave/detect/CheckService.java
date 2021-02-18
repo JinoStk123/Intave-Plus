@@ -1,5 +1,6 @@
 package de.jpx3.intave.detect;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.access.IntaveInternalException;
@@ -7,7 +8,7 @@ import de.jpx3.intave.detect.checks.combat.AttackRaytrace;
 import de.jpx3.intave.detect.checks.combat.Heuristics;
 import de.jpx3.intave.detect.checks.movement.Physics;
 import de.jpx3.intave.detect.checks.movement.Timer;
-import de.jpx3.intave.detect.checks.world.breakspeedlimiter.BreakSpeedLimiter;
+import de.jpx3.intave.detect.checks.world.BreakSpeedLimiter;
 import de.jpx3.intave.detect.checks.world.InteractionRaytrace;
 import de.jpx3.intave.event.bukkit.BukkitEventLinker;
 import de.jpx3.intave.event.packet.PacketSubscriptionLinker;
@@ -72,16 +73,22 @@ public final class CheckService {
 
   public void bakeQuickAccess() {
     requestCache = new HashMap<>();
+    nameRequestCache = new HashMap<>();
+    checkNames = new ArrayList<>();
     for (IntaveCheck check : checks) {
       checkNames.add(check.name());
       requestCache.put(check.getClass(), check);
       nameRequestCache.put(check.name().toLowerCase(Locale.ROOT), check);
     }
     requestCache = ImmutableMap.copyOf(requestCache);
+    nameRequestCache = ImmutableMap.copyOf(nameRequestCache);
+    checkNames = ImmutableList.copyOf(checkNames);
   }
 
   public void resetQuickAccess() {
     requestCache = new HashMap<>();
+    nameRequestCache = new HashMap<>();
+    checkNames = new ArrayList<>();
   }
 
   public void linkPacketEventSubscriptions() {
@@ -174,6 +181,10 @@ public final class CheckService {
     YamlConfiguration configuration = plugin.configurationService().configuration();
     String checkSectionPath = "check." + checkConfiguration.check().configurationKey();
     ConfigurationSection checkSection = configuration.getConfigurationSection(checkSectionPath);
+    if(checkSection == null) {
+      checkConfiguration.setSettings(new HashMap<>());
+      return;
+    }
     Map<String, Object> mappings = new HashMap<>();
     Set<String> keys = checkSection.getKeys(true);
     for (String key : keys) {

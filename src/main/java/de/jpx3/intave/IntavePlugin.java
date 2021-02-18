@@ -26,10 +26,7 @@ import de.jpx3.intave.security.ContextSecrets;
 import de.jpx3.intave.security.HWIDVerification;
 import de.jpx3.intave.security.HashAccess;
 import de.jpx3.intave.security.SSLConnectionVerifier;
-import de.jpx3.intave.tools.AccessHelper;
-import de.jpx3.intave.tools.DurationTranslator;
-import de.jpx3.intave.tools.EncryptedResource;
-import de.jpx3.intave.tools.TpsResolver;
+import de.jpx3.intave.tools.*;
 import de.jpx3.intave.tools.annotate.Native;
 import de.jpx3.intave.tools.client.SinusCache;
 import de.jpx3.intave.tools.items.InventoryUseItemHelper;
@@ -38,6 +35,7 @@ import de.jpx3.intave.tools.wrapper.link.WrapperLinkage;
 import de.jpx3.intave.trustfactor.TrustFactorService;
 import de.jpx3.intave.update.VersionInformation;
 import de.jpx3.intave.update.VersionList;
+import de.jpx3.intave.user.UserRepository;
 import de.jpx3.intave.world.BlockAccessor;
 import de.jpx3.intave.world.block.BlockDataAccess;
 import de.jpx3.intave.world.collision.BoundingBoxAccess;
@@ -113,7 +111,6 @@ public final class IntavePlugin extends JavaPlugin {
 
     // event links must be available throughout the onEnable call
     eventLinker = new BukkitEventLinker(this);
-
   }
 
   @Native
@@ -298,35 +295,24 @@ public final class IntavePlugin extends JavaPlugin {
             } catch (Exception ignored) {}
 
             if(lastSuccessfulStart != null) {
+              String url_path = "https://raw.githubusercontent.com/Jpx3/IntaveStatus/main/availability";
+              URL url = new URL(url_path);
+              URLConnection connection = url.openConnection();
+              connection.setUseCaches(false);
+              connection.setDefaultUseCaches(false);
+              connection.addRequestProperty("User-Agent", "Intave/" + version());
+              connection.addRequestProperty("Cache-Control", "no-cache, no-store, must-revalidate");
+              connection.addRequestProperty("Pragma", "no-cache");
+              connection.connect();
+              connection.setConnectTimeout(4000);
+              connection.setReadTimeout(4000);
               if(AccessHelper.now() - lastSuccessfulStart > TimeUnit.DAYS.toMillis(3)) {
-                String url_path = "https://raw.githubusercontent.com/Jpx3/IntaveStatus/main/availability";
-                URL url = new URL(url_path);
-                URLConnection connection = url.openConnection();
-                connection.setUseCaches(false);
-                connection.setDefaultUseCaches(false);
-                connection.addRequestProperty("User-Agent", "Intave/" + version());
-                connection.addRequestProperty("Cache-Control", "no-cache, no-store, must-revalidate");
-                connection.addRequestProperty("Pragma", "no-cache");
-                connection.connect();
-                connection.setConnectTimeout(4000);
-                connection.setReadTimeout(4000);
                 try {
                   connection.connect();
                   allowLeniency = true;
                 } catch (IOException ignored) {}
               } else {
                 // perform github check
-                String url_path = "https://raw.githubusercontent.com/Jpx3/IntaveStatus/main/availability";
-                URL url = new URL(url_path);
-                URLConnection connection = url.openConnection();
-                connection.setUseCaches(false);
-                connection.setDefaultUseCaches(false);
-                connection.addRequestProperty("User-Agent", "Intave/" + version());
-                connection.addRequestProperty("Cache-Control", "no-cache, no-store, must-revalidate");
-                connection.addRequestProperty("Pragma", "no-cache");
-                connection.connect();
-                connection.setConnectTimeout(4000);
-                connection.setReadTimeout(4000);
                 Scanner scanner2 = new Scanner(connection.getInputStream(), "UTF-8");
                 Map<String, String> availabilities = new HashMap<>();
                 while (scanner2.hasNextLine()) {
@@ -350,7 +336,7 @@ public final class IntavePlugin extends JavaPlugin {
         // check if Intave even has internet connection
 
         if(!allowLeniency) {
-          logger().error("Unable to boot: Intave requires an internet connection");
+          logger().error("Unable to boot: Internet connection required to proceed");
           boolFailure();
 //          Synchronizer.synchronize(this::performShutdown);
           performShutdown();
@@ -429,7 +415,10 @@ public final class IntavePlugin extends JavaPlugin {
       customEventService.setup();
       eventService.setup();
     } catch (Exception exception) {
-      logger.error("Unable to boot");
+      logger.error("Unable to boot: A " + exception.getClass().getSimpleName() + " occurred");
+      exception.printStackTrace();
+
+      clearCacheFiles();
       boolFailure();
       performShutdown();
       return;
@@ -446,6 +435,11 @@ public final class IntavePlugin extends JavaPlugin {
 
     packetSubscriptionLinker.refreshInternalSubscriptions();
     logger.info("Intave booted successfully");
+  }
+
+  @Native
+  public void clearCacheFiles() {
+    configurationService.deleteCache();
   }
 
   @Native
@@ -466,6 +460,8 @@ public final class IntavePlugin extends JavaPlugin {
   public void performShutdown() {
     logger().info("Stopping Intave");
     BackgroundExecutor.stopBlocking();
+    GarbageCollector.die();
+    UserRepository.die();
     if(shadowIntegration != null) {
       shadowIntegration.shutdown();
     }

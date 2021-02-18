@@ -1,9 +1,11 @@
-package de.jpx3.intave.detect.checks.world.breakspeedlimiter;
+package de.jpx3.intave.detect.checks.world;
 
 import com.google.common.collect.ImmutableList;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.detect.IntaveCheck;
 import de.jpx3.intave.detect.IntaveCheckPart;
+import de.jpx3.intave.detect.checks.world.breakspeedlimiter.BreakSpeedFinishCheck;
+import de.jpx3.intave.detect.checks.world.breakspeedlimiter.BreakSpeedStartCheck;
 
 import java.util.List;
 

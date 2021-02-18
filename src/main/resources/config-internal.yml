@@ -42,6 +42,10 @@ check:
 
     enabled: true
 
+    uncertainty-vl: false
+
+    apply-hitbox-vl: true
+
     thresholds:
       50: "intave internals sendnotify &c{player}&7/{trust-color}&7 is attacking suspiciously (hitbox)"
       100:

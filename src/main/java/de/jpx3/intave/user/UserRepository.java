@@ -11,6 +11,7 @@ public final class UserRepository {
   private final static Map<UUID, User> userRepository = Maps.newConcurrentMap();
   private final static User deadUser = User.empty();
   private final static Object lock = new Object();
+  private static boolean closed;
 
   public static void registerUser(Player player) {
     userRepository.put(player.getUniqueId(), User.userFor(player));
@@ -27,6 +28,10 @@ public final class UserRepository {
   public static User userOf(Player player) {
     User user = userRepository.get(player.getUniqueId());
     if(user == null) {
+      if(closed) {
+        return deadUser;
+      }
+
       // check if player is offline
       boolean isOnline = AccessHelper.isOnline(player);
       // online -> recreate user object
@@ -41,5 +46,10 @@ public final class UserRepository {
       }
     }
     return user;
+  }
+
+  public static void die() {
+    closed = true;
+    userRepository.clear();
   }
 }

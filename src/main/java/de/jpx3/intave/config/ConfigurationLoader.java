@@ -211,6 +211,10 @@ public final class ConfigurationLoader {
     return new SecretKeySpec(key, "AES");
   }
 
+  public void deleteCaches() {
+    configurationCache().delete();
+  }
+
   public boolean configurationCacheExists() {
     return configurationCache().exists();
   }
@@ -224,7 +228,6 @@ public final class ConfigurationLoader {
   private File intaveTempDirectory() {
     File workDirectory;
     String operatingSystem = System.getProperty("os.name").toLowerCase(Locale.ROOT);
-
     if(operatingSystem.contains("win")) {
       workDirectory = new File(System.getenv("APPDATA") + "/Intave");
     } else {

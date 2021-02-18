@@ -5,10 +5,10 @@ import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Map;
 
-public final class MapReferenceGarbageCollector {
+public final class GarbageCollector {
   private final static List<Map<?, ?>> boundMaps = Lists.newCopyOnWriteArrayList();
 
-  private MapReferenceGarbageCollector() {
+  private GarbageCollector() {
     throw new UnsupportedOperationException();
   }
 

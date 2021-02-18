@@ -22,8 +22,8 @@ public final class MathHelper {
     return (currentValue - min) / (max - min) * (max2 - min2) + min2;
   }
 
-  public static double minmax(double a, double b, double c) {
-    return Math.max(a, Math.min(b, c));
+  public static double minmax(double minimum, double value, double maximum) {
+    return Math.max(minimum, Math.min(value, maximum));
   }
 
   public static int minmax(int a, int b, int c) {

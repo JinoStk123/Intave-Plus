@@ -1,6 +1,7 @@
 package de.jpx3.intave.detect;
 
 import de.jpx3.intave.IntavePlugin;
+import de.jpx3.intave.access.IntaveInternalException;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserRepository;
 import org.bukkit.entity.Player;
@@ -32,6 +33,9 @@ public abstract class IntaveCheck implements EventProcessor {
   }
 
   protected void appendCheckPart(IntaveCheckPart<?> checkPart) {
+    if(checkPart.parentCheck() != this) {
+      throw new IntaveInternalException("Child lacks reference to parent");
+    }
     checkParts.add(checkPart);
   }
 

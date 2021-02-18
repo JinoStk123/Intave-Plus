@@ -5,20 +5,20 @@ import de.jpx3.intave.user.UserCustomCheckMeta;
 import de.jpx3.intave.user.UserRepository;
 import org.bukkit.entity.Player;
 
-public abstract class IntaveMetaCheck<META extends UserCustomCheckMeta> extends IntaveCheck {
+public abstract class IntaveMetaCheck<M extends UserCustomCheckMeta> extends IntaveCheck {
   private final Class<? extends UserCustomCheckMeta> metaClass;
 
-  public IntaveMetaCheck(String checkName, String configurationName, Class<? extends UserCustomCheckMeta> metaClass) {
+  public IntaveMetaCheck(String checkName, String configurationName, Class<M> metaClass) {
     super(checkName, configurationName);
     this.metaClass = metaClass;
   }
 
-  protected META metaOf(Player player) {
+  protected M metaOf(Player player) {
     return metaOf(UserRepository.userOf(player));
   }
 
-  public META metaOf(User user) {
+  public M metaOf(User user) {
     //noinspection unchecked
-    return (META) user.customMeta(metaClass);
+    return (M) user.customMeta(metaClass);
   }
 }

@@ -31,6 +31,7 @@ public final class User {
   private final List<UserMessageChannel> receivingUserChannels = new ArrayList<>();
   private final Map<UserMessageChannel, UserMessageChannelPlayerConstraint> receiveWhitelist = Maps.newEnumMap(UserMessageChannel.class);
   private boolean ignoreNextPacket;
+  private boolean ignoreNextOutboundPacket;
   private boolean hasShadow;
   private ShadowPacketDataLink shadowRepo = null;
   private final long birthTimestamp = AccessHelper.now();
@@ -95,12 +96,24 @@ public final class User {
     return ignoreNextPacket;
   }
 
+  public boolean shouldIgnoreNextOutboundPacket() {
+    return ignoreNextOutboundPacket;
+  }
+
   public void ignoreNextPacket() {
     this.ignoreNextPacket = true;
   }
 
+  public void ignoreNextOutboundPacket() {
+    this.ignoreNextOutboundPacket = true;
+  }
+
   public void receiveNextPacket() {
     this.ignoreNextPacket = false;
+  }
+
+  public void receiveNextOutboundPacket() {
+    this.ignoreNextOutboundPacket = false;
   }
 
   public boolean hasShadow() {

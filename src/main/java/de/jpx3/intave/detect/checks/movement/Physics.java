@@ -410,8 +410,7 @@ public final class Physics extends IntaveCheck {
       decrementer.decrement(user, VL_DECREMENT_PER_VALID_MOVE);
     }
 
-    violationLevelData.physicsVL = Math.max(0, violationLevelData.physicsVL);
-    violationLevelData.physicsVL = Math.min(100, violationLevelData.physicsVL);
+    violationLevelData.physicsVL = MathHelper.minmax(0, violationLevelData.physicsVL, 100);
 
     boolean inWater = movementData.inWater;
     if (inWater || movementData.onLadderLast) {

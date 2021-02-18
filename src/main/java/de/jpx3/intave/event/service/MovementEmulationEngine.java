@@ -172,9 +172,9 @@ public final class MovementEmulationEngine {
       movementData.willReceiveSetbackVelocity = true;
       player.setVelocity(futureMotion);
 
-      movementData.physicsLastMotionX = futureMotion.getX();
-      movementData.physicsLastMotionY = futureMotion.getY();
-      movementData.physicsLastMotionZ = futureMotion.getZ();
+      movementData.physicsMotionX = futureMotion.getX();
+      movementData.physicsMotionY = futureMotion.getY();
+      movementData.physicsMotionZ = futureMotion.getZ();
 
 
       if (IntaveControl.DEBUG_EMULATION) {
@@ -197,9 +197,9 @@ public final class MovementEmulationEngine {
 
       // velocity
       Vector futureMotion = motionProceed(motion, user, boundingBox, true);
-//      movementData.physicsLastMotionX = futureMotion.getX();
-//      movementData.physicsLastMotionY = futureMotion.getY();
-//      movementData.physicsLastMotionZ = futureMotion.getZ();
+//      movementData.physicsMotionX = futureMotion.getX();
+//      movementData.physicsMotionY = futureMotion.getY();
+//      movementData.physicsMotionZ = futureMotion.getZ();
       movementData.willReceiveSetbackVelocity = true;
       movementData.setbackOverrideVelocity = futureMotion;
       player.setVelocity(new Vector(0, 0, 0));

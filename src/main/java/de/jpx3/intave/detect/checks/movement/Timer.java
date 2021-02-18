@@ -93,7 +93,7 @@ public final class Timer extends IntaveMetaCheck<Timer.TimerData> {
       if (plugin.violationProcessor().processViolation(player, 0.5, "Timer", "moved too frequently", balanceAsString + " packets ahead")) {
 //        plugin.eventService().emulationEngine().emulationSetBack(player, new Vector(0,0,0), 6);
         UserMetaMovementData movementData = user.meta().movementData();
-        plugin.eventService().emulationEngine().emulationSetBack(player, new Vector(movementData.physicsLastMotionX, movementData.physicsLastMotionY, movementData.physicsLastMotionZ), 6);
+        plugin.eventService().emulationEngine().emulationSetBack(player, new Vector(movementData.physicsMotionX, movementData.physicsMotionY, movementData.physicsMotionZ), 6);
         if(timerData.timerBalance > 50) {
           event.setCancelled(true);
         }
@@ -129,7 +129,7 @@ public final class Timer extends IntaveMetaCheck<Timer.TimerData> {
 
     if(timerData.flagTick) {
       UserMetaMovementData movementData = user.meta().movementData();
-      plugin.eventService().emulationEngine().emulationSetBack(player, new Vector(movementData.physicsLastMotionX,movementData.physicsLastMotionY, movementData.physicsLastMotionZ), 6);
+      plugin.eventService().emulationEngine().emulationSetBack(player, new Vector(movementData.physicsMotionX,movementData.physicsMotionY, movementData.physicsMotionZ), 6);
       event.setCancelled(true);
     }
   }

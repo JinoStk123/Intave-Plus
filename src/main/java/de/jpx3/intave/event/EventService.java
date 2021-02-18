@@ -14,6 +14,7 @@ import de.jpx3.intave.reflect.caller.CallerResolver;
 import de.jpx3.intave.reflect.caller.PluginInvocation;
 import de.jpx3.intave.tools.AccessHelper;
 import de.jpx3.intave.tools.DurationTranslator;
+import de.jpx3.intave.tools.GarbageCollector;
 import de.jpx3.intave.tools.sync.Synchronizer;
 import de.jpx3.intave.update.VersionInformation;
 import de.jpx3.intave.user.UserRepositoryEventListener;
@@ -21,6 +22,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
 public final class EventService implements BukkitEventSubscriber {
@@ -49,11 +51,10 @@ public final class EventService implements BukkitEventSubscriber {
   }
 
   @BukkitEventSubscription
-  public void on(PlayerJoinEvent event) {
-    Player player = event.getPlayer();
+  public void on(PlayerJoinEvent join) {
+    Player player = join.getPlayer();
 
     boolean hasNotificationPermission = PermissionCheck.permissionCheck(player, "intave.command");
-
     if (!hasNotificationPermission) {
       return;
     }
@@ -78,12 +79,17 @@ public final class EventService implements BukkitEventSubscriber {
   }
 
   @BukkitEventSubscription
-  public void on(PlayerTeleportEvent event) {
+  public void on(PlayerTeleportEvent teleport) {
     if(IntaveControl.DEBUG_TELEPORT_CAUSE_AND_CAUSER) {
       PluginInvocation pluginInvocation = CallerResolver.callerPluginInfo();
       String pluginClass = pluginInvocation == null ? "no other plugin" : pluginInvocation.className();
-      event.getPlayer().sendMessage("Teleport " + event.getCause() + " " + event.getTo() + " by " + pluginClass);
+      teleport.getPlayer().sendMessage("Teleport " + teleport.getCause() + " " + teleport.getTo() + " by " + pluginClass);
     }
+  }
+
+  @BukkitEventSubscription
+  public void on(PlayerQuitEvent quit) {
+    GarbageCollector.clear(quit.getPlayer());
   }
 
   public void sendPrefixedMessage(String message, CommandSender target) {

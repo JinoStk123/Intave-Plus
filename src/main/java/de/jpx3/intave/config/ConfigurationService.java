@@ -58,6 +58,10 @@ public final class ConfigurationService {
     }
   }
 
+  public void deleteCache() {
+    loader.deleteCaches();
+  }
+
   public ConfigurationLoader loader() {
     return loader;
   }

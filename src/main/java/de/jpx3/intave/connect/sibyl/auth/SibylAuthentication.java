@@ -17,7 +17,7 @@ import de.jpx3.intave.event.bukkit.BukkitEventSubscription;
 import de.jpx3.intave.executor.BackgroundExecutor;
 import de.jpx3.intave.reflect.ReflectiveAccess;
 import de.jpx3.intave.security.LicenseVerification;
-import de.jpx3.intave.tools.MapReferenceGarbageCollector;
+import de.jpx3.intave.tools.GarbageCollector;
 import de.jpx3.intave.tools.annotate.Native;
 import de.jpx3.intave.tools.sync.Synchronizer;
 import io.netty.buffer.ByteBuf;
@@ -51,7 +51,7 @@ public final class SibylAuthentication implements BukkitEventSubscriber {
   private final IntavePlugin plugin;
   private final LabymodClientListener authenticationListener;
 
-  private final Map<UUID, SibylAuthenticationState> authStates = MapReferenceGarbageCollector.watch(Maps.newConcurrentMap());
+  private final Map<UUID, SibylAuthenticationState> authStates = GarbageCollector.watch(Maps.newConcurrentMap());
 
   public SibylAuthentication(IntavePlugin plugin) {
     this.plugin = plugin;

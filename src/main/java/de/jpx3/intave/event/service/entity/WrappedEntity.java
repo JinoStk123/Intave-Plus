@@ -5,6 +5,7 @@ import de.jpx3.intave.access.IntaveInternalException;
 import de.jpx3.intave.adapter.ProtocolLibAdapter;
 import de.jpx3.intave.reflect.hitbox.HitBoxBoundaries;
 import de.jpx3.intave.tools.wrapper.WrappedAxisAlignedBB;
+import org.bukkit.entity.Player;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -225,6 +226,22 @@ public class WrappedEntity {
 
   public boolean tracingEnabled() {
     return enabledResponseTracing;
+  }
+
+  private final static int BACKTRACE_LENGTH = 8;
+
+  public void applyPositionUpdate(Player observer, boolean clientTickSync) {
+    if(!clientTickSync) {
+      if(possiblePositions.size() >= BACKTRACE_LENGTH) {
+        possiblePositions.remove(0);
+        possibleAlternativePositions.remove(0);
+      }
+    } else if (!possiblePositions.isEmpty()) {
+      possiblePositions.clear();
+      possibleAlternativePositions.clear();
+    }
+    possiblePositions.add(position.clone());
+    possibleAlternativePositions.add(alternativePosition.clone());
   }
 
   public void setResponseTracingEnabled(boolean enabledResponseTracing) {

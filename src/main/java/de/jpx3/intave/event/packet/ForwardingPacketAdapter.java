@@ -22,6 +22,12 @@ public final class ForwardingPacketAdapter extends IntavePacketAdapter {
 
   @Override
   public void onPacketSending(PacketEvent event) {
+    if(UserRepository.userOf(event.getPlayer()).shouldIgnoreNextOutboundPacket()) {
+      UserRepository.userOf(event.getPlayer()).receiveNextOutboundPacket();
+//      Bukkit.broadcastMessage(Bukkit.isPrimaryThread() + " " + event.getPacketType());
+      return;
+    }
+
     for (LocalPacketAdapter localPacketAdapter : targetList) {
       localPacketAdapter.onPacketSending(event);
     }
