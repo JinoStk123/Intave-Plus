@@ -5,23 +5,30 @@ import de.jpx3.intave.detect.checks.combat.heuristics.Confidence;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public final class HeuristicsPatternEncryption {
   @Test
   public void testPatternEncryption() {
     List<Anomaly> anomalies = Arrays.asList(
-//      Anomaly.anomalyOf("11", Confidence.LIKELY, Anomaly.Type.KILLAURA, "description", 0),
-//      Anomaly.anomalyOf("13", Confidence.LIKELY, Anomaly.Type.KILLAURA, "description", 0),
-//      Anomaly.anomalyOf("121", Confidence.LIKELY, Anomaly.Type.KILLAURA, "description", 0),
-//      Anomaly.anomalyOf("31", Confidence.LIKELY, Anomaly.Type.KILLAURA, "description", 0),
-      Anomaly.anomalyOf("32", Confidence.LIKELY, Anomaly.Type.KILLAURA, "description", 0)
+      Anomaly.anomalyOf("85", Confidence.MAYBE, Anomaly.Type.KILLAURA, "description", 0),
+      Anomaly.anomalyOf("85", Confidence.MAYBE, Anomaly.Type.KILLAURA, "description", 0),
+      Anomaly.anomalyOf("85", Confidence.MAYBE, Anomaly.Type.KILLAURA, "description", 0),
+      Anomaly.anomalyOf("85", Confidence.MAYBE, Anomaly.Type.KILLAURA, "description", 0),
+      Anomaly.anomalyOf("85", Confidence.MAYBE, Anomaly.Type.KILLAURA, "description", 0),
+      Anomaly.anomalyOf("122", Confidence.PROBABLE, Anomaly.Type.KILLAURA, "description", 0),
+      Anomaly.anomalyOf("122", Confidence.PROBABLE, Anomaly.Type.KILLAURA, "description", 0),
+      Anomaly.anomalyOf("122", Confidence.PROBABLE, Anomaly.Type.KILLAURA, "description", 0),
+      Anomaly.anomalyOf("122", Confidence.PROBABLE, Anomaly.Type.KILLAURA, "description", 0),
+      Anomaly.anomalyOf("121", Confidence.PROBABLE, Anomaly.Type.KILLAURA, "description", 0),
+      Anomaly.anomalyOf("121", Confidence.PROBABLE, Anomaly.Type.KILLAURA, "description", 0)
     );
+
+    anomalies = anomaliesForId(anomalies);
+
     String encryptAnomalies = encryptAnomalies(anomalies);
     System.out.println("encrypted:" + encryptAnomalies);
 
@@ -33,8 +40,64 @@ public final class HeuristicsPatternEncryption {
   }
 
   @Test
-  public void decrypt() {
-    System.out.println(decryptPatterns("pQZANwNA"));
+  public void test() {
+    System.out.println(decryptPatterns("NBfF1Wa0lr"));
+  }
+
+  private List<Anomaly> anomaliesForId(List<Anomaly> anomalies) {
+    // Remove anomalies without effect
+    anomalies.removeIf(anomaly -> anomaly.confidence() == Confidence.NONE);
+
+    // Remove duplicated anomalies
+    List<String> knownPatterns = new ArrayList<>();
+    List<Anomaly> suitableAnomalies = new ArrayList<>();
+
+    for (Anomaly anomaly : anomalies) {
+      String pattern = anomaly.key();
+      if (!knownPatterns.contains(pattern)) {
+        knownPatterns.add(pattern);
+        suitableAnomalies.add(anomaly);
+      }
+    }
+
+    anomalies = suitableAnomalies;
+
+    // Format anomalies after their priority
+    if (anomalies.size() > 2) {
+      anomalies.sort(Comparator.comparingInt(o -> o.confidence().level()));
+      Collections.reverse(anomalies);
+      List<Anomaly> reducedAnomalies = new ArrayList<>();
+      for (int i = 0; i <= 1; i++) {
+        reducedAnomalies.add(anomalies.get(i));
+      }
+      anomalies = reducedAnomalies;
+    }
+    return anomalies;
+  }
+
+  private String encrypt0(String string) {
+    char characterA = (char) Base64.getEncoder().encode(new byte[] {(byte) new SecureRandom().nextInt(0b111111)})[0];
+    char characterB = (char) Base64.getEncoder().encode(new byte[] {(byte) new SecureRandom().nextInt(0b111111)})[0];
+    byte[] bytes = string.getBytes(StandardCharsets.UTF_8);
+    for (int i = 0; i < bytes.length; i++) {
+      int key = characterA ^ characterB % (i + 1 ^ characterB * 5);
+      bytes[i] ^= key;
+    }
+    String encode = new String(Base64.getEncoder().encode(bytes));
+    encode = encode.replace("=", "");
+    return String.valueOf(characterA) + characterB + encode;
+  }
+
+  private String decrypt0(String string) {
+    char characterA = string.charAt(0);
+    char characterB = string.charAt(1);
+    string = string.substring(2);
+    byte[] bytes = Base64.getDecoder().decode(string);
+    for (int i = 0; i < bytes.length; i++) {
+      int key = characterA ^ characterB % (i + 1 ^ characterB * 5);
+      bytes[i] ^= key;
+    }
+    return new String(bytes);
   }
 
   private String encryptAnomalies(List<Anomaly> anomalies) {
@@ -46,7 +109,7 @@ public final class HeuristicsPatternEncryption {
       .stream()
       .map((anomaly) -> encryptPattern(anomaly, usableAnomalies.size()))
       .collect(Collectors.joining());
-    return encryptWithPadding(nonPadded, 6);
+    return encrypt0(encryptWithPadding(nonPadded, 6));
   }
 
   private String encryptPattern(String pattern, int size) {
@@ -55,12 +118,6 @@ public final class HeuristicsPatternEncryption {
     // >= 33 && <= 126
     int subCheck = Integer.parseInt(pattern.substring(pattern.length() - 1));
     int mainCheck = Integer.parseInt(pattern.substring(0, pattern.length() - 1));
-    if (mainCheck > 31) {
-      throw new IllegalArgumentException("Invalid pattern key: main-check cannot be greater than 31");
-    }
-    if (subCheck > 7) {
-      throw new IllegalArgumentException("Invalid pattern key: sub-check cannot be greater than 7");
-    }
     int checkCombined = mainCheck << 3 | subCheck;
     checkCombined ^= 452938422 ^ 987509231 ^ size;
     for (int i = 0; i < size * 2; i++) {
@@ -99,7 +156,8 @@ public final class HeuristicsPatternEncryption {
   }
 
   private String decryptPatterns(String patterns) {
-    patterns = decryptWithPadding(patterns);
+    patterns = decryptWithPadding(decrypt0(patterns));
+//    patterns = decrypt0(patterns);
     int size = patterns.length() / 2;
     List<String> decryptedPatterns = new ArrayList<>();
     while (patterns.length() > 0) {

@@ -8,7 +8,6 @@ import de.jpx3.intave.IntaveControl;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.detect.IntaveMetaCheck;
 import de.jpx3.intave.detect.checks.combat.heuristics.Anomaly;
-import de.jpx3.intave.detect.checks.combat.heuristics.AnomalyEnigma;
 import de.jpx3.intave.detect.checks.combat.heuristics.Confidence;
 import de.jpx3.intave.detect.checks.combat.heuristics.MiningStrategy;
 import de.jpx3.intave.detect.checks.combat.heuristics.detection.*;
@@ -23,6 +22,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
+import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -54,6 +55,7 @@ public final class Heuristics extends IntaveMetaCheck<Heuristics.HeuristicMeta> 
     appendCheckPart(new AirClickLimitHeuristic(this));
     appendCheckPart(new RotationLHeuristics(this));
     appendCheckPart(new AttackReduceIgnoreHeuristic(this));
+//    appendCheckPart(new PacketInventoryHeuristic(this));
   }
 
   public void saveAnomaly(Player player, Anomaly anomaly) {
@@ -82,7 +84,7 @@ public final class Heuristics extends IntaveMetaCheck<Heuristics.HeuristicMeta> 
 
     Confidence overallConfidence = computeOverallConfidence(allConfidences);
 
-    String pattern = formatPattern(anomaly.key());
+    String pattern = anomaly.key();
     String description = anomaly.description();
     String message = ChatColor.RED + "[HEUR] [DEB] " + player.getName() + " on p[" + pattern + "] (" + overallConfidence + "): " + description;
 
@@ -95,11 +97,6 @@ public final class Heuristics extends IntaveMetaCheck<Heuristics.HeuristicMeta> 
         authenticatedPlayer.sendMessage(message);
       }
     }
-  }
-
-  @Native
-  private String formatPattern(String pattern) {
-    return pattern.startsWith("0") ? pattern.substring(1) : pattern;
   }
 
   private void evaluateAll() {
@@ -155,7 +152,7 @@ public final class Heuristics extends IntaveMetaCheck<Heuristics.HeuristicMeta> 
 
   @Native
   private String resolveIdentifier(List<Anomaly> anomalies) {
-    return AnomalyEnigma.encryptAnomalies(anomaliesForId(anomalies));
+    return encryptAnomalies(anomaliesForId(anomalies));
   }
 
   private List<Anomaly> anomaliesForId(List<Anomaly> anomalies) {
@@ -164,29 +161,30 @@ public final class Heuristics extends IntaveMetaCheck<Heuristics.HeuristicMeta> 
 
     // Remove duplicated anomalies
     List<String> knownPatterns = Lists.newArrayList();
-    Iterator<Anomaly> iterator = anomalies.iterator();
-    while (iterator.hasNext()) {
-      Anomaly anomaly = iterator.next();
+    List<Anomaly> suitableAnomalies = Lists.newArrayList();
+
+    for (Anomaly anomaly : anomalies) {
       String pattern = anomaly.key();
-      if (knownPatterns.contains(pattern)) {
-        iterator.remove();
-      } else {
+      if (!knownPatterns.contains(pattern)) {
         knownPatterns.add(pattern);
+        suitableAnomalies.add(anomaly);
       }
     }
+    anomalies = suitableAnomalies;
 
-    // Format anomalies for their priority
-    if (anomalies.size() > 3) {
+    // Format anomalies after their priority
+    if (anomalies.size() > 2) {
       anomalies.sort(Comparator.comparingInt(o -> o.confidence().level()));
       Collections.reverse(anomalies);
       List<Anomaly> reducedAnomalies = Lists.newArrayList();
-      for (int i = 0; i < 3; i++) {
+      for (int i = 0; i <= 1; i++) {
         reducedAnomalies.add(anomalies.get(i));
       }
       anomalies = reducedAnomalies;
     }
     return anomalies;
   }
+
 
   private Anomaly.Type findDominantType(List<Anomaly> anomalies) {
     return anomalies.stream()
@@ -246,6 +244,64 @@ public final class Heuristics extends IntaveMetaCheck<Heuristics.HeuristicMeta> 
     }
   }
 
+  @Native
+  private String encryptAnomalies(List<Anomaly> anomalies) {
+    List<String> usableAnomalies = new ArrayList<>();
+    for (Anomaly anomaly : anomalies) {
+      String key = anomaly.key();
+      if (!usableAnomalies.contains(key)) {
+        usableAnomalies.add(key);
+      }
+    }
+    StringBuilder nonPaddedBuilder = new StringBuilder();
+    for (String pattern : usableAnomalies) {
+      int size = usableAnomalies.size();
+      int subCheck = Integer.parseInt(pattern.substring(pattern.length() - 1));
+      int mainCheck = Integer.parseInt(pattern.substring(0, pattern.length() - 1));
+      int checkCombined = mainCheck << 3 | subCheck;
+      checkCombined ^= 452938422 ^ 987509231 ^ size;
+      for (int i = 0; i < size * 2; i++) {
+        checkCombined ^= size * 28037423 * i;
+        checkCombined ^= 928344123 * size;
+        checkCombined ^= i * 4203874;
+      }
+      byte[] encode = Base64.getEncoder().encode(new byte[]{(byte) checkCombined});
+      String result = new String(encode).replace("=", "");
+      result = result.length() > 10 ? result.substring(0, 10) : result;
+      nonPaddedBuilder.append(result);
+    }
+    String pattern = nonPaddedBuilder.toString();
+    String string;
+    boolean exceededLength = pattern.length() >= 4;
+    int endingGarbageCharacters = exceededLength ? -1 : 6 - pattern.length();
+    endingGarbageCharacters ^= pattern.charAt(0);
+    String first = new String(Base64.getEncoder().encode(new byte[]{(byte) endingGarbageCharacters}));
+    first = first.replace("=", "");
+    if (pattern.length() >= 4) {
+      string = first + pattern;
+    } else {
+      StringBuilder patternStringBuilder = new StringBuilder();
+      patternStringBuilder.append(first);
+      patternStringBuilder.append(pattern);
+      while (patternStringBuilder.length() < 6) {
+        int garbageCharacter = Math.max(1, new SecureRandom().nextInt(64));
+        String garbage = new String(Base64.getEncoder().encode(new byte[]{(byte) garbageCharacter}));
+        garbage = garbage.replace("=", "");
+        patternStringBuilder.append(garbage);
+      }
+      string = patternStringBuilder.toString();
+    }
+    char characterA = (char) Base64.getEncoder().encode(new byte[] {(byte) new SecureRandom().nextInt(0b111111)})[0];
+    char characterB = (char) Base64.getEncoder().encode(new byte[] {(byte) new SecureRandom().nextInt(0b111111)})[0];
+    byte[] bytes = string.getBytes(StandardCharsets.UTF_8);
+    for (int i = 0; i < bytes.length; i++) {
+      int key = characterA ^ characterB % (i + 1 ^ characterB * 5);
+      bytes[i] ^= key;
+    }
+    String encode = new String(Base64.getEncoder().encode(bytes));
+    encode = encode.replace("=", "");
+    return String.valueOf(characterA) + characterB + encode;
+  }
 
   public static class HeuristicMeta extends UserCustomCheckMeta {
     public List<Anomaly> anomalies = Lists.newCopyOnWriteArrayList();
