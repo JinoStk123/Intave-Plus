@@ -38,16 +38,12 @@ public class LinearRegressionHeuristic extends IntaveMetaCheckPart<Heuristics, L
   )
   public void sneakStart(PacketEvent event) {
     Player player = event.getPlayer();
-    User user = userOf(player);
-    LinearRegressionHeuristicMeta meta = metaOf(player);
-
     EnumWrappers.PlayerAction action = event.getPacket().getPlayerActions().read(0);
 
     if (action == EnumWrappers.PlayerAction.START_SNEAKING) {
-      linearRegression(player, meta, true);
+      createNewWindow(player);
     }
   }
-
 
   @PacketSubscription(
     priority = ListenerPriority.HIGH,
@@ -64,7 +60,11 @@ public class LinearRegressionHeuristic extends IntaveMetaCheckPart<Heuristics, L
     boolean updated = addValuesToList(user);
 
     if (updated) {
-      linearRegression(player, meta, false);
+      linearRegression(player, meta);
+
+      if (meta.panel != null) {
+        meta.panel.repaint();
+      }
     }
   }
 
@@ -78,10 +78,8 @@ public class LinearRegressionHeuristic extends IntaveMetaCheckPart<Heuristics, L
       return false;
     }
 
-    float yawDiff = MathHelper.distanceInDegrees(movementData.rotationYaw, movementData.lastRotationYaw);
-
     double x = MathHelper.distanceInDegrees(attackData.perfectYaw(), movementData.rotationYaw);
-    double y = yawDiff;//Math.abs(movementData.rotationPitch - attackData.perfectPitch());
+    double y = MathHelper.distanceInDegrees(movementData.rotationYaw, movementData.lastRotationYaw);//Math.abs(movementData.rotationPitch - attackData.perfectPitch());
 
     if (x < 15 && y < 50) {
       if (x > meta.width)
@@ -89,8 +87,6 @@ public class LinearRegressionHeuristic extends IntaveMetaCheckPart<Heuristics, L
 
       if (y > meta.height)
         meta.height = y;
-
-//      player.sendMessage("" + x + " " + y);
 
       Vector vector = new Vector(x, y);
       meta.vectorList.add(vector);
@@ -100,7 +96,7 @@ public class LinearRegressionHeuristic extends IntaveMetaCheckPart<Heuristics, L
     return false;
   }
 
-  private void linearRegression(Player player, LinearRegressionHeuristicMeta meta, boolean showAsWindow) {
+  private void linearRegression(Player player, LinearRegressionHeuristicMeta meta) {
     double xSum = 0;
     double ySum = 0;
 
@@ -126,38 +122,34 @@ public class LinearRegressionHeuristic extends IntaveMetaCheckPart<Heuristics, L
     meta.m = m;
     meta.b = b;
 
-    if (showAsWindow) {
-      drawWindow(player);
-    }
-    if (meta.panel != null) {
-      meta.panel.repaint();
-    }
-
-    player.sendMessage(b + " " + denominator);
+    player.sendMessage("" + b);
   }
 
-  private void drawWindow(Player player) {
+  private void createNewWindow(Player player) {
     executorService.execute(() -> {
       LinearRegressionHeuristicMeta meta = metaOf(player);
       final int pointRadius = 2;
-      final int width = 800;
-      final int height = 800;
 
       JFrame window = new JFrame();
-      window.setSize(width, height);
+      window.setSize(800, 800);
       window.setFocusable(true);
       window.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
       JPanel panel = new JPanel() {
         @Override
         public void paint(Graphics g) {
-          g.clearRect(0, 0, width, height);
-          ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+          super.paint(g);
+          String newTitle = "Value count: " + meta.vectorList.size();
+          for(int i = newTitle.length(); i < 30; i++)
+            newTitle += " ";
+          window.setTitle(newTitle + " b: " + meta.b);
+          Graphics2D g2d = ((Graphics2D) g);
+          g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
           g.setColor(Color.blue);
           for (Vector vector : meta.vectorList) {
-            int x = (int) map(vector.x, 0, meta.width, 0, width);
-            int y = (int) map(vector.y, 0, meta.height, 0, height);
+            int x = (int) map(vector.x, 0, meta.width, 0, getWidth());
+            int y = (int) map(vector.y, 0, meta.height, 0, getHeight());
 
             g.fillOval(x - pointRadius, y - pointRadius, pointRadius * 2, pointRadius * 2);
           }
@@ -167,13 +159,13 @@ public class LinearRegressionHeuristic extends IntaveMetaCheckPart<Heuristics, L
           double x2 = meta.width;
           double y2 = meta.m * x2 + meta.b;
 
-          ((Graphics2D) g).setStroke(new BasicStroke(4f));
+          g2d.setStroke(new BasicStroke(4f));
           g.setColor(Color.black);
 
-          x1 = map(x1, 0, meta.width, 0, width);
-          y1 = map(y1, 0, meta.height, height, 0);
-          x2 = map(x2, 0, meta.width, 0, width);
-          y2 = map(y2, 0, meta.height, height, 0);
+          x1 = map(x1, 0, meta.width, 0, getWidth());
+          y1 = map(y1, 0, meta.height, getHeight(), 0);
+          x2 = map(x2, 0, meta.width, 0, getWidth());
+          y2 = map(y2, 0, meta.height, getHeight(), 0);
 
           g.drawLine((int) x1, (int) y1, (int) x2, (int) y2);
         }
