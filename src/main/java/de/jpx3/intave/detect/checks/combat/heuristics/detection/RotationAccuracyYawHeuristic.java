@@ -48,7 +48,7 @@ public final class RotationAccuracyYawHeuristic extends IntaveMetaCheckPart<Heur
       if (yawSpeed > 1.0) {
 
         if (yawSpeed > 3.0 && attackedEntity.moving(0.4)) {
-          double increase = MathHelper.minmax(-0.5, (2 - distanceToPerfectYaw) * Math.min(6, yawSpeed), 2);
+          double increase = MathHelper.minmax(-1.0, (2 - distanceToPerfectYaw) * Math.min(6, yawSpeed), 2);
 
           heuristicMeta.followBalance += increase;
 
@@ -61,7 +61,7 @@ public final class RotationAccuracyYawHeuristic extends IntaveMetaCheckPart<Heur
             int options = Anomaly.AnomalyOption.LIMIT_4 | Anomaly.AnomalyOption.SUGGEST_MINING;
             Anomaly anomaly = Anomaly.anomalyOf("81", Confidence.PROBABLE, Anomaly.Type.KILLAURA, description, options);
             parentCheck().saveAnomaly(player, anomaly);
-            heuristicMeta.followBalance -= 10;
+            heuristicMeta.followBalance -= 20;
           }
 
         }

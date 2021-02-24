@@ -65,8 +65,7 @@ public class Anomaly {
     return AnomalyOption.matches(options, AnomalyOption.SUGGEST_MINING);
   }
 
-  @Deprecated
-  public boolean requiresCombat() {
+  public boolean requiresHeavyCombat() {
     return AnomalyOption.matches(options, AnomalyOption.REQUIRES_HEAVY_COMBAT);
   }
 

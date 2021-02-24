@@ -1,7 +1,12 @@
 package de.jpx3.intave.detect.checks.combat.heuristics;
 
 import com.google.common.collect.ImmutableMap;
-import org.bukkit.entity.Player;
+import de.jpx3.intave.IntaveControl;
+import de.jpx3.intave.detect.checks.combat.heuristics.mining.EmulationHeavyExecutor;
+import de.jpx3.intave.detect.checks.combat.heuristics.mining.EmulationLightExecutor;
+import de.jpx3.intave.detect.checks.combat.heuristics.mining.EmulationModerateExecutor;
+import de.jpx3.intave.detect.checks.combat.heuristics.mining.MiningStartNotImplemented;
+import de.jpx3.intave.user.User;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -9,18 +14,18 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public enum MiningStrategy {
-  RAYTRX(player -> { }, 3, Confidence.CERTAIN, -1, false, false),
-  IULIA(player -> { }, 1, Confidence.CERTAIN, -1, false, false),
-  EMULATION_LIGHT(player -> { }, 1, Confidence.VERY_LIKELY, 10, false, true),
-  EMULATION_MODERATE(player -> { }, 2, Confidence.VERY_LIKELY, 10, true, true),
-  EMULATION_HEAVY(player -> { }, 3, Confidence.VERY_LIKELY, 10, true, true),
-  SWAP_EMULATION(player -> { }, 4, Confidence.CERTAIN, 10, true, true),
+  RAYTRX(MiningStartNotImplemented::new, 3, Confidence.CERTAIN, -1, false, false),
+  IULIA(MiningStartNotImplemented::new, 1, Confidence.CERTAIN, -1, false, false),
+  EMULATION_LIGHT(EmulationLightExecutor::new, 1, Confidence.LIKELY, 20_000, false, true),
+  EMULATION_MODERATE(EmulationModerateExecutor::new, 2, Confidence.VERY_LIKELY, 50_000, true, true),
+  EMULATION_HEAVY(EmulationHeavyExecutor::new, 3, Confidence.VERY_LIKELY, 10_000, true, true),
+  SWAP_EMULATION(MiningStartNotImplemented::new, 4, Confidence.CERTAIN, 10_000, true, true),
 
   ;
 
   public final static Map<MiningStrategy, Integer> RATING;
 
-  private final Consumer<Player> apply;
+  private final Consumer<User> apply;
   private final int effectiveness;
   private final Confidence detectionConfidence;
   private final int duration;
@@ -28,7 +33,7 @@ public enum MiningStrategy {
   private final boolean uniqueResponse;
 
   MiningStrategy(
-    Consumer<Player> apply,
+    Consumer<User> apply,
     int effectiveness,
     Confidence detectionConfidence, int duration,
     boolean observable,
@@ -42,8 +47,8 @@ public enum MiningStrategy {
     this.uniqueResponse = uniqueResponse;
   }
 
-  public void apply(Player player) {
-    apply.accept(player);
+  public void apply(User user) {
+    apply.accept(user);
   }
 
   public int effectiveness() {

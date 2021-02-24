@@ -1,11 +1,16 @@
 package de.jpx3.intave.user;
 
+import com.google.common.collect.Maps;
+import de.jpx3.intave.detect.checks.combat.heuristics.MiningStrategy;
+import de.jpx3.intave.detect.checks.combat.heuristics.mining.MiningStrategyExecutor;
 import de.jpx3.intave.event.service.entity.ClientSideEntityService;
 import de.jpx3.intave.event.service.entity.WrappedEntity;
 import de.jpx3.intave.tools.AccessHelper;
 import de.jpx3.intave.tools.annotate.Nullable;
 import de.jpx3.intave.tools.client.PlayerRotationHelper;
 import org.bukkit.entity.Player;
+
+import java.util.Map;
 
 public final class UserMetaAttackData {
   private final Player player;
@@ -17,6 +22,11 @@ public final class UserMetaAttackData {
 
   private WrappedEntity lastAttackedEntity;
   private float perfectYaw, perfectPitch;
+
+  public int attackCount;
+  public long miningStartEmulationHeavy, miningStartEmulationLight, miningStartEmulationModerate;
+  public int miningStartEntityDamageTicksBefore = -1;
+  public final Map<MiningStrategy, MiningStrategyExecutor> activeMiningStrategies = Maps.newHashMap();
 
   public UserMetaAttackData(Player player) {
     this.player = player;
