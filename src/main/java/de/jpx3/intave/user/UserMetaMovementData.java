@@ -269,7 +269,11 @@ public final class UserMetaMovementData {
     }
   }
 
-  public boolean exceededJumpPrevention() {
+  public boolean denyJump() {
+    UserMetaInventoryData inventoryData = user.meta().inventoryData();
+    if (inventoryData.inventoryOpen()) {
+      return true;
+    }
     IntavePlugin plugin = IntavePlugin.singletonInstance();
     TrustFactorService trustFactorService = plugin.trustFactorService();
     int trustFactorSetting = trustFactorService.trustFactorSetting("physics.joap-limit", player);

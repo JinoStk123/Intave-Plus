@@ -92,7 +92,7 @@ public final class PhysicsSimulator {
     boolean attackReduce = movementData.sprintingAllowed() && user.meta().movementData().pastPlayerAttackPhysics == 0;
 
     boolean jumped = false;
-    if (movementData.lastOnGround && !movementData.exceededJumpPrevention()) {
+    if (movementData.lastOnGround && !movementData.denyJump()) {
       double motionY = movementData.motionY();
       jumped = Math.abs(motionY - 0.2) < 1e-5 || motionY == movementData.jumpUpwardsMotion();
     }
@@ -100,7 +100,6 @@ public final class PhysicsSimulator {
     if (inventoryData.inventoryOpen()) {
       keyForward = 0;
       keyStrafe = 0;
-      jumped = false;
     }
 
     float moveForward = keyForward * 0.98f;
@@ -148,7 +147,7 @@ public final class PhysicsSimulator {
         if (jumped && ((!lastOnGround && !inLava && !inWater) || inventoryOpen)) {
           continue;
         }
-        if (jumped && movementData.exceededJumpPrevention()) {
+        if (jumped && movementData.denyJump()) {
           continue;
         }
 
