@@ -22,7 +22,7 @@ public final class IntaveRegisteredListener extends RegisteredListener {
     Class<? extends Event> eventClass,
     BukkitEventSubscription eventHandler
   ) {
-    super(listener, null, eventHandler.priority(), plugin, eventHandler.ignoreCancelled());
+    super(listener, null, eventHandler.priority(), plugin, true/*eventHandler.ignoreCancelled()*/);
     this.plugin = plugin;
     this.eventExecutor = eventExecutor;
     this.eventClass = eventClass;

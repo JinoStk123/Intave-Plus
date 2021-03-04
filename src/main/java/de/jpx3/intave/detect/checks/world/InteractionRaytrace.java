@@ -16,6 +16,7 @@ import de.jpx3.intave.event.packet.ListenerPriority;
 import de.jpx3.intave.event.packet.PacketDescriptor;
 import de.jpx3.intave.event.packet.PacketSubscription;
 import de.jpx3.intave.event.packet.Sender;
+import de.jpx3.intave.tools.annotate.DispatchCrossCall;
 import de.jpx3.intave.tools.items.InventoryUseItemHelper;
 import de.jpx3.intave.tools.sync.Synchronizer;
 import de.jpx3.intave.tools.wrapper.WrappedBlockPosition;
@@ -178,6 +179,7 @@ public final class InteractionRaytrace extends IntaveMetaCheck<InteractionRaytra
 //      @PacketDescriptor(sender = Sender.CLIENT, packetName = "POSITION_LOOK")
 //    }
 //  )
+  @DispatchCrossCall
   public void receiveMovement(PacketEvent event) {
     Player player = event.getPlayer();
     World world = player.getWorld();
@@ -524,6 +526,12 @@ public final class InteractionRaytrace extends IntaveMetaCheck<InteractionRaytra
     vl = MathHelper.minmax(0, vl - 1,8);
     interactionMeta.violationLevel.put(type, vl);
   }*/
+
+  @Override
+  public boolean enabled() {
+//    return super.enabled();
+    return false;
+  }
 
   public static class InteractionMeta extends UserCustomCheckMeta {
     final List<Interaction> interactionList = new ArrayList<>();

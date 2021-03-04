@@ -110,7 +110,7 @@ public final class ConfigurationLoader {
     }
     mappings.put(configurationKey.toLowerCase(), state);
     StringBuilder content = new StringBuilder();
-    mappings.forEach((key, value) -> content.append(key).append(":").append(value));
+    mappings.forEach((key, value) -> content.append(key).append(":").append(value).append("\r\n"));
     configurationStates.write(new ByteArrayInputStream(content.toString().getBytes(StandardCharsets.UTF_8)));
   }
 

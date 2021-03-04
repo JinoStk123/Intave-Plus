@@ -30,7 +30,6 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.util.NumberConversions;
@@ -159,6 +158,10 @@ public final class BlockActionDispatcher implements EventProcessor {
         BoundingBoxAccess boundingBoxAccess = UserRepository.userOf(player).boundingBoxAccess();
         boundingBoxAccess.override(world, blockX, blockY, blockZ, id, shape);
 //        boundingBoxAccess.invalidate(blockX, blockY, blockZ);
+
+        Synchronizer.packetSynchronize(() -> {
+          Synchronizer.synchronize(() -> boundingBoxAccess.invalidateOverride(world, blockX, blockY, blockZ));
+        });
       } else {
         if (IntaveControl.DEBUG_BLOCK_CACHING) {
           Synchronizer.synchronize(() -> {
@@ -193,6 +196,19 @@ public final class BlockActionDispatcher implements EventProcessor {
 //          boundingBoxAccess.invalidateInteraction(finalBlockLocation.getBlockX(), finalBlockLocation.getBlockY(), finalBlockLocation.getBlockZ()),
 //        30);
       }
+    }
+  }
+
+  @BukkitEventSubscription(ignoreCancelled = true)
+  public void onPre(BlockPlaceEvent place) {
+    if(/*place.isCancelled() && */place.getClass().equals(BlockPlaceEvent.class)) {
+      Block block = place.getBlock();
+      if(IntaveControl.DEBUG_BLOCK_CACHING) {
+        place.getPlayer().sendMessage("PlaceEvent " + place.getBlock());
+      }
+      BoundingBoxAccess boundingBoxAccess = UserRepository.userOf(place.getPlayer()).boundingBoxAccess();
+      boundingBoxAccess.invalidate(block.getX(), block.getY(), block.getZ());
+      boundingBoxAccess.invalidateOverride(block.getWorld(), block.getX(), block.getY(), block.getZ());
     }
   }
 
@@ -265,33 +281,18 @@ public final class BlockActionDispatcher implements EventProcessor {
     }
   }
 
-  @BukkitEventSubscription(priority = EventPriority.LOW, ignoreCancelled = true)
-  public void onPre(BlockPlaceEvent place) {
-    if(/*place.isCancelled() && */place.getClass().equals(BlockPlaceEvent.class)) {
-      Block block = place.getBlock();
-      Synchronizer.synchronizeDelayed(() -> {
-        BoundingBoxAccess boundingBoxAccess = UserRepository.userOf(place.getPlayer()).boundingBoxAccess();
-        boundingBoxAccess.invalidate(block.getX(), block.getY(), block.getZ());
-        boundingBoxAccess.invalidateOverride(block.getWorld(), block.getX(), block.getY(), block.getZ());
-//        if (IntaveControl.DEBUG_BLOCK_CACHING) {
-//          place.getPlayer().sendMessage("Reset place");
-//        }
-      }, 2);
-    }
-  }
-
-  @BukkitEventSubscription(priority = EventPriority.LOW, ignoreCancelled = true)
+  @BukkitEventSubscription(ignoreCancelled = true)
   public void onPre(BlockBreakEvent breeak) {
     if(/*breeak.isCancelled() && */breeak.getClass().equals(BlockBreakEvent.class)) {
       Block block = breeak.getBlock();
-      Synchronizer.synchronizeDelayed(() -> {
-        BoundingBoxAccess boundingBoxAccess = UserRepository.userOf(breeak.getPlayer()).boundingBoxAccess();
-        boundingBoxAccess.invalidate(block.getX(), block.getY(), block.getZ());
-        boundingBoxAccess.invalidateOverride(block.getWorld(), block.getX(), block.getY(), block.getZ());
+      BoundingBoxAccess boundingBoxAccess = UserRepository.userOf(breeak.getPlayer()).boundingBoxAccess();
+      boundingBoxAccess.invalidate(block.getX(), block.getY(), block.getZ());
+      boundingBoxAccess.invalidateOverride(block.getWorld(), block.getX(), block.getY(), block.getZ());
+//      Synchronizer.synchronizeDelayed(() -> {
 //        if (IntaveControl.DEBUG_BLOCK_CACHING) {
 //          breeak.getPlayer().sendMessage("Reset break");
 //        }
-      }, 2);
+//      }, 2);
     }
   }
 

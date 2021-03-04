@@ -20,6 +20,7 @@ import de.jpx3.intave.detect.checks.movement.physics.water.aquatics.*;
 import de.jpx3.intave.diagnostics.timings.Timings;
 import de.jpx3.intave.reflect.ReflectiveAccess;
 import de.jpx3.intave.tools.MathHelper;
+import de.jpx3.intave.tools.annotate.DispatchCrossCall;
 import de.jpx3.intave.tools.client.PlayerMovementHelper;
 import de.jpx3.intave.tools.client.PlayerMovementPoseHelper;
 import de.jpx3.intave.tools.wrapper.WrappedAxisAlignedBB;
@@ -122,6 +123,7 @@ public final class Physics extends IntaveCheck {
     }
   }
 
+  @DispatchCrossCall
   public void receiveMovement(User user, boolean hasMovement) {
     UserMetaMovementData movementData = user.meta().movementData();
     if (hasMovement) {
@@ -141,6 +143,7 @@ public final class Physics extends IntaveCheck {
     return PhysicsMovementPoseType.PHYSICS_NORMAL_MOVEMENT;
   }
 
+  @DispatchCrossCall
   public void endMovement(User user, boolean hasMovement) {
     UserMetaMovementData movementData = user.meta().movementData();
     double motionX = movementData.motionX();

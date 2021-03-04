@@ -12,7 +12,6 @@ public final class InteractionPermissionService {
   }
 
   public void setup() {
-
     // placement
 //    ClassLoader classLoader = InteractionPermissionService.class.getClassLoader();
 //    PatchyLoadingInjector.loadUnloadedClassPatched(classLoader, "de.jpx3.intave.world.permission.CustomCraftBlock");

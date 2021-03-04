@@ -43,8 +43,6 @@ import de.jpx3.intave.world.collision.patches.BoundingBoxPatcher;
 import de.jpx3.intave.world.permission.InteractionPermissionService;
 import de.jpx3.intave.world.raytrace.Raytracer;
 import org.bukkit.ChatColor;
-import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.plugin.RegisteredListener;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -414,7 +412,7 @@ public final class IntavePlugin extends JavaPlugin {
       customEventService.setup();
       eventService.setup();
     } catch (Exception exception) {
-      logger.error("Unable to boot: A " + exception.getClass().getSimpleName() + " occurred");
+      logger.error("Unable to boot: " + exception.getMessage());
       exception.printStackTrace();
 
       clearCacheFiles();
@@ -423,14 +421,14 @@ public final class IntavePlugin extends JavaPlugin {
       return;
     }
 
-    Synchronizer.synchronize(() -> {
+    /*Synchronizer.synchronize(() -> {
       for (RegisteredListener registeredListener : BlockPlaceEvent.getHandlerList().getRegisteredListeners()) {
         if (registeredListener.isIgnoringCancelled() && registeredListener.getPlugin() != IntavePlugin.this) {
           logger.info("WARNING: " + registeredListener.getPlugin().getName() + " in class " + registeredListener.getListener().getClass().getCanonicalName() + " has registered a BlockPlaceEvent listener ignoring cancels");
           logger.info("This could cause severe issues for your world atm when using some sort of custom block-reset mechanic");
         }
       }
-    });
+    });*/
 
     packetSubscriptionLinker.refreshInternalSubscriptions();
     logger.info("Intave booted successfully");

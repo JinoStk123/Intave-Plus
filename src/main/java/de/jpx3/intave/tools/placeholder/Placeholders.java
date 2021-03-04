@@ -30,6 +30,9 @@ public final class Placeholders {
     String initialString,
     Map<String, String> placeholderToReplacementMap
   ) {
+    if(initialString == null || initialString.isEmpty()) {
+      return "";
+    }
     for (
       Map.Entry<String, String> stringStringEntry : placeholderToReplacementMap.entrySet()
     ) {

@@ -1,5 +1,5 @@
 version: "14.0.0"
-state: 1
+state: 0
 
 check:
   physics:
@@ -7,7 +7,8 @@ check:
     thresholds:
       50: "intave internals sendnotify &c{player}&7/{trust-color}&7 is moving incorrectly"
       100:
-        - "intave internals sendnotify &c{player}&7/{trust-color}&7 has been removed for moving incorrectly"
+        - "intave internals sendnotify &c{player}&7/{trust-color}&7 is moving incorrectly #2"
+      999:
         - "kick {player} &cYou have been removed from the game based on data that was collected by the anti-cheat"
 
   timer:
@@ -67,7 +68,7 @@ check:
     enabled: true
 
     thresholds:
-      100: "intave internals sendnotify &c{player}&7/{trust-color}&7 is trying to break blocks too quickly"
+      100: "intave internals sendnotify &c{player}&7/{trust-color}&7 is breaking blocks too quickly"
 
   protocolscanner:
 
