@@ -57,7 +57,7 @@ public final class PlayerMovementHelper {
       Location location = new Location(
         world,
         WrappedMathHelper.floor(positionX),
-        WrappedMathHelper.floor(positionY - 1.0),
+        WrappedMathHelper.floor(positionY - movementData.frictionPosSubtraction()),
         WrappedMathHelper.floor(positionZ)
       );
       float slipperiness = PlayerMovementHelper.resolveSlipperiness(user, location);

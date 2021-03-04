@@ -12,7 +12,7 @@ import java.util.List;
 
 public final class EntityCollisionNewResolver implements PhysicsEntityCollision {
   @Override
-  public EntityCollisionResult resolveCollision(User user, Physics.PhysicsProcessorContext context, boolean inWeb, double positionX, double positionY, double positionZ) {
+  public SimulationResult resolveCollision(User user, Physics.PhysicsProcessorContext context, boolean inWeb, double positionX, double positionY, double positionZ) {
     Player player = user.player();
     User.UserMeta meta = user.meta();
     UserMetaMovementData movementData = meta.movementData();
@@ -196,7 +196,7 @@ public final class EntityCollisionNewResolver implements PhysicsEntityCollision 
     context.motionY = newPositionY - positionY;
     context.motionZ = newPositionZ - positionZ;
 
-    return new EntityCollisionResult(
+    return new SimulationResult(
       Physics.PhysicsProcessorContext.from(context), onGround,
       collidedHorizontally, collidedVertically,
       moveResetX, moveResetZ, step

@@ -242,7 +242,9 @@ public final class MovementDispatcher implements EventProcessor {
     if (!movementData.isTeleportConfirmationPacket) {
       interactionRaytraceCheck.receiveMovement(event);
 
-      physicsCheck.receiveMovement(user, hasMovement);
+      if (hasMovement) {
+        physicsCheck.receiveMovement(user);
+      }
       Boolean clientOnGround = packet.getBooleans().read(0);
 
       if (!vehicleMove) {

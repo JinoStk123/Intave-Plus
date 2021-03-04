@@ -3,7 +3,7 @@ package de.jpx3.intave.detect.checks.movement.physics.pose;
 import de.jpx3.intave.detect.checks.movement.Physics;
 import de.jpx3.intave.detect.checks.movement.physics.collision.block.BlockCollisionRepository;
 import de.jpx3.intave.detect.checks.movement.physics.collision.entity.EntityCollisionRepository;
-import de.jpx3.intave.detect.checks.movement.physics.collision.entity.EntityCollisionResult;
+import de.jpx3.intave.detect.checks.movement.physics.collision.entity.SimulationResult;
 import de.jpx3.intave.detect.checks.movement.physics.water.AquaticWaterMovementBase;
 import de.jpx3.intave.user.User;
 
@@ -14,7 +14,7 @@ public abstract class PhysicsCalculationPart {
     this.physics = physics;
   }
 
-  public abstract EntityCollisionResult performSimulation(
+  public abstract SimulationResult performSimulation(
     User user, Physics.PhysicsProcessorContext context,
     float keyForward, float keyStrafe,
     boolean attackReduce, boolean jumped, boolean handActive

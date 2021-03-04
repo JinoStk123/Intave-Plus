@@ -2,13 +2,13 @@ package de.jpx3.intave.detect.checks.movement.physics.collision.entity;
 
 import de.jpx3.intave.detect.checks.movement.Physics;
 
-public final class EntityCollisionResult {
+public final class SimulationResult {
   private final Physics.PhysicsProcessorContext context;
   private final boolean onGround, collidedHorizontally, collidedVertically;
   private final boolean resetMotionX, resetMotionZ;
   private final boolean step;
 
-  public EntityCollisionResult(
+  public SimulationResult(
     Physics.PhysicsProcessorContext context, boolean onGround,
     boolean collidedHorizontally, boolean collidedVertically,
     boolean resetMotionX, boolean resetMotionZ, boolean step

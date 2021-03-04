@@ -1,7 +1,7 @@
 package de.jpx3.intave.detect.checks.movement.physics.pose.vehicle;
 
 import de.jpx3.intave.detect.checks.movement.Physics;
-import de.jpx3.intave.detect.checks.movement.physics.collision.entity.EntityCollisionResult;
+import de.jpx3.intave.detect.checks.movement.physics.collision.entity.SimulationResult;
 import de.jpx3.intave.detect.checks.movement.physics.pose.PhysicsNormalPlayerMovement;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserMetaMovementData;
@@ -10,7 +10,7 @@ public final class PhysicsHorseMovement extends PhysicsNormalPlayerMovement {
   private final static double MAXIMUM_HORSE_MOVEMENT_SPEED = 0.22499999403953552D;//0.3374999970197678;
 
   @Override
-  public EntityCollisionResult performSimulation(
+  public SimulationResult performSimulation(
     User user, Physics.PhysicsProcessorContext context,
     float forward, float strafe,
     boolean attackReduce, boolean jumped, boolean handActive
@@ -57,7 +57,7 @@ public final class PhysicsHorseMovement extends PhysicsNormalPlayerMovement {
 //    float originalAIMoveSpeed = movementData.aiMoveSpeed();
 //    movementData.setAiMoveSpeed((float) 0.019904632);
 
-    EntityCollisionResult collisionResult = super.performSimulation(user, context, forward, strafe, attackReduce, jumped, handActive);
+    SimulationResult collisionResult = super.performSimulation(user, context, forward, strafe, attackReduce, jumped, handActive);
 
 //    movementData.setJumpMovementFactor(originalJumpMovementFactor);
 //    movementData.setAiMoveSpeed(originalAIMoveSpeed);

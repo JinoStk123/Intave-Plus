@@ -1,7 +1,7 @@
 package de.jpx3.intave.detect.checks.movement.physics.collision;
 
 import de.jpx3.intave.detect.checks.movement.Physics;
-import de.jpx3.intave.detect.checks.movement.physics.collision.entity.EntityCollisionResult;
+import de.jpx3.intave.detect.checks.movement.physics.collision.entity.SimulationResult;
 import de.jpx3.intave.tools.wrapper.WrappedAxisAlignedBB;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserMetaMovementData;
@@ -11,7 +11,7 @@ import org.bukkit.entity.Player;
 public interface PhysicsEntityCollision {
   float STEP_HEIGHT = 0.6f;
 
-  EntityCollisionResult resolveCollision(
+  SimulationResult resolveCollision(
     User user, Physics.PhysicsProcessorContext context,
     boolean inWeb,
     double positionX, double positionY, double positionZ

@@ -18,12 +18,11 @@ public final class EntityCollisionRepository {
     newCollisionResolver = new EntityCollisionNewResolver();
   }
 
-  public EntityCollisionResult resolveEntityCollisionOf(
+  public SimulationResult resolveEntityCollisionOf(
     User user, Physics.PhysicsProcessorContext context, boolean inWeb,
     double positionX, double positionY, double positionZ
   ) {
     UserMetaClientData clientData = user.meta().clientData();
-//    return legacyCollisionResolver.resolveCollision(user, context, inWeb, positionX, positionY, positionZ);
     return clientData.applyNewEntityCollisions()
       ? newCollisionResolver.resolveCollision(user, context, inWeb, positionX, positionY, positionZ)
       : legacyCollisionResolver.resolveCollision(user, context, inWeb, positionX, positionY, positionZ);

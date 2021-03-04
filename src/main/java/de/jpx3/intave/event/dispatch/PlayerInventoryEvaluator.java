@@ -37,6 +37,19 @@ public final class PlayerInventoryEvaluator implements PacketEventSubscriber, Bu
     updatePlayerHandItem((Player) entity, event.getFoodLevel());
   }
 
+  @PacketSubscription(
+    priority = ListenerPriority.HIGH,
+    packets = {
+      @PacketDescriptor(sender = Sender.SERVER, packetName = "RESPAWN"),
+    }
+  )
+  public void sentRespawn(PacketEvent event) {
+    Player player = event.getPlayer();
+    User user = UserRepository.userOf(player);
+    UserMetaInventoryData inventoryData = user.meta().inventoryData();
+    inventoryData.updateInventoryOpenState(false);
+  }
+
   private void updatePlayerHandItem(Player player, int foodLevel) {
     User user = UserRepository.userOf(player);
     UserMetaInventoryData inventoryData = user.meta().inventoryData();

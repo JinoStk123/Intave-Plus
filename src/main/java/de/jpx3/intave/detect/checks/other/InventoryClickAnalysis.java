@@ -31,7 +31,7 @@ public final class InventoryClickAnalysis extends IntaveCheck {
     boolean inventoryOpen = inventoryData.inventoryOpen();
 
     if (inventoryData.forceInventoryOnClickOpen && !inventoryOpen) {
-      String message = "insufficient inventory-click (inventory not opened)";
+      String message = "insufficient inventory-click (inventory not open)";
       plugin.violationProcessor().processViolation(player, 1 , "InventoryClickAnalysis", message, "");
       event.setCancelled(true);
     }
