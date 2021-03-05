@@ -153,7 +153,9 @@ public class AttackRaytrace extends IntaveMetaCheck<AttackRaytrace.AttackRaytrac
     attackData.setLastReach(reach);
     String message;
     String details;
+    String thresholdKey;
     int vl;
+
 
     AttackRaytraceResult.ResultType attackRaytraceResult = AttackRaytraceResult.raytraceResultOf(blockReachDistance, reach);
     String entityName = entity.entityName();
@@ -161,6 +163,7 @@ public class AttackRaytrace extends IntaveMetaCheck<AttackRaytrace.AttackRaytrac
       case MISS: {
         message = "attacked " + resolveIndefArticle(entityName) + " " + entityName.toLowerCase() + " out of sight";
         details = "";
+        thresholdKey = "applicable-thresholds.hitbox";
         vl = 2;
         break;
       }
@@ -171,6 +174,7 @@ public class AttackRaytrace extends IntaveMetaCheck<AttackRaytrace.AttackRaytrac
         String displayReach = MathHelper.formatDouble(reach, 4);
         message = "attacked " + resolveIndefArticle(entityName) + " " + entityName.toLowerCase() + " from too far away";
         details = displayReach + " blocks";
+        thresholdKey = "applicable-thresholds.reach";
         vl = 20;
         break;
       }
@@ -185,7 +189,7 @@ public class AttackRaytrace extends IntaveMetaCheck<AttackRaytrace.AttackRaytrac
       message += " (vehicle)";
     }
 
-    plugin.violationProcessor().processViolation(player, vl, "AttackRaytrace", message, details);
+    plugin.violationProcessor().processViolation(player, vl, "AttackRaytrace", message, details, thresholdKey);
 //    player.sendMessage("§6s:" + reach);
     return true;
   }
@@ -268,24 +272,28 @@ public class AttackRaytrace extends IntaveMetaCheck<AttackRaytrace.AttackRaytrac
     if(minReach > blockReachDistance) {
       String entityName = entity.entityName();
       String targetDescriptor = resolveIndefArticle(entityName) + " " + entityName.toLowerCase();
+      String thresholdKey = "";
+
 
       String message, details;
       if(minReach == 10) {
         message = "attacked " + targetDescriptor + " out of sight";
         details = "estimated";
+        thresholdKey = "applicable-thresholds.hitbox";
       } else {
         String minReachDisplay = MathHelper.formatDouble(minReach, 4) + " blocks";
 //        String maxReachDisplay = maxReach == 10 ? "miss" : MathHelper.formatDouble(maxReach, 4) + " blocks";
 //        message = "attacked "+targetDescriptor+" too far away (estimated) (" + minReachDisplay + " at best)";
         message = "attacked " + targetDescriptor + " from too far away";
         details = minReachDisplay + " at best, estimated";
+        thresholdKey = "applicable-thresholds.reach";
       }
 
       if (movementData.inVehicle()) {
         message += " (vehicle)";
       }
 
-      plugin.violationProcessor().processViolation(player, 0, "AttackRaytrace", message, details);
+      plugin.violationProcessor().processViolation(player, 0, "AttackRaytrace", message, details, thresholdKey);
       return true;
     }
     decrementer.decrement(user, 0.05);

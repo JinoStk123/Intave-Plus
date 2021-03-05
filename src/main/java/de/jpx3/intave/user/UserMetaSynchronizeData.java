@@ -18,6 +18,8 @@ public final class UserMetaSynchronizeData {
   public long lastKeepAliveDifference;
   public int latencyJitter;
   public short transactionCounter = Short.MIN_VALUE;
+  public long transactionNumCounter = 0;
+  public long lastReceivedTransactionNum = -1;
 
   public Map<Short, TransactionCallBackData<?>> transactionFeedBackMap() {
     return transactionFeedBackMap;

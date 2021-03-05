@@ -25,6 +25,7 @@ import de.jpx3.intave.reflect.ReflectiveAccess;
 import de.jpx3.intave.security.ContextSecrets;
 import de.jpx3.intave.security.HWIDVerification;
 import de.jpx3.intave.security.HashAccess;
+import de.jpx3.intave.security.LicenseVerification;
 import de.jpx3.intave.tools.*;
 import de.jpx3.intave.tools.annotate.Native;
 import de.jpx3.intave.tools.client.SinusCache;
@@ -52,6 +53,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
@@ -183,8 +185,8 @@ public final class IntavePlugin extends JavaPlugin {
         }
         String idKey = identificationKey > 0 ? new String(bytes) : "aaaaaaaa", response = "";
         try {
-          String url_path = "https://intave.de/auth.php";
-          URL url = new URL(url_path);
+          String path = "https://intave.de/auth.php";
+          URL url = new URL(path);
           URLConnection connection = url.openConnection();
           connection.setUseCaches(false);
           connection.setDefaultUseCaches(false);
@@ -195,6 +197,8 @@ public final class IntavePlugin extends JavaPlugin {
           connection.addRequestProperty("B", idKey);
           connection.addRequestProperty("C", HWIDVerification.publicHardwareIdentifier());
           connection.addRequestProperty("D", configurationKey);
+          connection.addRequestProperty("E", LicenseVerification.rawLicense());
+
           connection.connect();
 //          SSLConnectionVerifier.verifyURLConnection((HttpsURLConnection) connection);
           connection.setConnectTimeout(4000);
@@ -211,15 +215,19 @@ public final class IntavePlugin extends JavaPlugin {
 
         String message = null;
         boolean bad = false;
+        boolean clearReloCache = false;
+
         switch (response) {
           case "banned":
           case "invalid":
             message = "Unable to boot: Something went wrong verifying integrity";
             bad = true;
+            clearReloCache = true;
             break;
           case "hwid":
             message = "Unable to boot: Hardware identification failed";
             bad = true;
+            clearReloCache = true;
             break;
           case "hwidr":
             message = "Unable to boot: You need to enable hardware locking (see website)";
@@ -228,6 +236,7 @@ public final class IntavePlugin extends JavaPlugin {
           case "expired":
             message = "Unable to boot: Buy Intave for continued use";
             bad = true;
+            clearReloCache = true;
             break;
           case "timeout":
             message = "Unable to connect to service";
@@ -238,6 +247,24 @@ public final class IntavePlugin extends JavaPlugin {
 
         if (message != null) {
           logger.error(message);
+        }
+
+        if(clearReloCache) {
+          String operatingSystem = System.getProperty("os.name").toLowerCase(Locale.ROOT);
+          File workDirectory;
+          String filePath;
+          if(operatingSystem.contains("win")) {
+            filePath = System.getenv("APPDATA") + "/Intave/Relocator/";
+          } else {
+            filePath = "/home/.intave/relocator/";
+          }
+          workDirectory = new File(filePath);
+          if(workDirectory.exists() && workDirectory.listFiles() != null) {
+            for (File file : workDirectory.listFiles()) {
+              file.delete();
+            }
+          }
+          workDirectory.delete();
         }
 
         if (bad) {

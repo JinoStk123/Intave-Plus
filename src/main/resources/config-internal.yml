@@ -48,11 +48,16 @@ check:
 
     apply-hitbox-vl: true
 
-    thresholds:
-      50: "intave internals sendnotify &c{player}&7/{trust-color}&7 is attacking suspiciously (hitbox)"
-      100:
-        - "intave internals sendnotify &c{player}&7/{trust-color}&7 has been removed for attacking suspiciously (hitbox)"
-        - "kick {player} &cYou have been removed from the game based on data that was collected by the anti-cheat"
+    applicable-thresholds:
+      reach:
+        50: "intave internals sendnotify &c{player}&7/{trust-color}&7 is attacking suspiciously (reach)"
+        100:
+          - "intave internals sendnotify &c{player}&7/{trust-color}&7 has been removed for attacking suspiciously (reach)"
+          - "kick {player} &cYou have been removed from the game based on data that was collected by the anti-cheat"
+
+      hitbox:
+        50: "intave internals sendnotify &c{player}&7/{trust-color}&7 is attacking suspiciously (hitbox)"
+        100: "intave internals sendnotify &c{player}&7/{trust-color}&7 is attacking suspiciously #2 (hitbox)"
 
   interactionraytrace:
 
