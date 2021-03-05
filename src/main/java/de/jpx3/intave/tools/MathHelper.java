@@ -22,16 +22,16 @@ public final class MathHelper {
     return (currentValue - min) / (max - min) * (max2 - min2) + min2;
   }
 
-  public static double minmax(double minimum, double value, double maximum) {
-    return Math.max(minimum, Math.min(value, maximum));
+  public static double minmax(double min, double val, double max) {
+    return Math.max(min, Math.min(val, max));
   }
 
-  public static int minmax(int a, int b, int c) {
-    return Math.max(a, Math.min(b, c));
+  public static int minmax(int min, int val, int map) {
+    return Math.max(min, Math.min(val, map));
   }
 
-  public static long minmax(long a, long b, long c) {
-    return Math.max(a, Math.min(b, c));
+  public static long minmax(long min, long val, long max) {
+    return Math.max(min, Math.min(val, max));
   }
 
   public static double diff(double a, double b) {

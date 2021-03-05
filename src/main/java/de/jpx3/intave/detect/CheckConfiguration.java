@@ -98,7 +98,7 @@ public final class CheckConfiguration {
     }
 
     public double doubleInBoundsBy(String key, double min, double max, double def) {
-      return MathHelper.minmax(doubleBy(key, def), min, max);
+      return MathHelper.minmax(min, doubleBy(key, def), max);
     }
 
     public double doubleBy(String key, double def) {
@@ -118,7 +118,7 @@ public final class CheckConfiguration {
     }
 
     public long longInBoundsBy(String key, long min, long max, long def) {
-      return MathHelper.minmax(longBy(key, def), min, max);
+      return MathHelper.minmax(min, longBy(key, def), max);
     }
 
     public long longBy(String key, long def) {
@@ -138,7 +138,7 @@ public final class CheckConfiguration {
     }
 
     public int intInBoundsBy(String key, int min, int max, int def) {
-      return MathHelper.minmax(intBy(key, def), min, max);
+      return MathHelper.minmax(min, intBy(key, def), max);
     }
 
     public int intBy(String key, int def) {
