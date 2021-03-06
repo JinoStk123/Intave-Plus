@@ -5,6 +5,7 @@ import de.jpx3.intave.detect.checks.movement.physics.collision.entity.Simulation
 import de.jpx3.intave.detect.checks.movement.physics.pose.PhysicsCalculationPart;
 import de.jpx3.intave.detect.checks.movement.physics.pose.PhysicsMovementPose;
 import de.jpx3.intave.diagnostics.timings.Timings;
+import de.jpx3.intave.event.dispatch.AttackDispatcher;
 import de.jpx3.intave.reflect.ReflectiveDataWatcherAccess;
 import de.jpx3.intave.tools.MathHelper;
 import de.jpx3.intave.tools.items.InventoryUseItemHelper;
@@ -91,6 +92,12 @@ public final class PhysicsSimulator {
     boolean handActive = inventoryData.handActive();
     boolean attackReduce = movementData.sprintingAllowed() && user.meta().movementData().pastPlayerAttackPhysics == 0;
 
+//    if (AttackDispatcher.REDUCING_DISABLED) {
+//      attackReduce = false;
+//    } else {
+//      attackReduce = movementData.sprintingAllowed() && user.meta().movementData().pastPlayerAttackPhysics == 0;
+//    }
+
     boolean jumped = false;
     if (movementData.lastOnGround && !movementData.denyJump()) {
       double motionY = movementData.motionY();
@@ -145,6 +152,9 @@ public final class PhysicsSimulator {
       if (attackReduce && movementData.pastPlayerAttackPhysics >= 1) {
         continue;
       }
+     /* if (attackReduce && AttackDispatcher.REDUCING_DISABLED) {
+        continue;
+      }*/
 
       for (int jumpState = 0; jumpState <= 1; jumpState++) {
         boolean jumped = jumpState == 1;

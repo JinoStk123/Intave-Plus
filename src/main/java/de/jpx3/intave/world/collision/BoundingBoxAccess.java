@@ -7,7 +7,10 @@ import de.jpx3.intave.reflect.ReflectionFailureException;
 import de.jpx3.intave.tools.wrapper.WrappedAxisAlignedBB;
 import de.jpx3.intave.world.BlockAccessor;
 import de.jpx3.intave.world.collision.patches.BoundingBoxPatcher;
-import org.bukkit.*;
+import org.bukkit.Chunk;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 
 import java.lang.ref.WeakReference;
@@ -75,7 +78,10 @@ public final class BoundingBoxAccess {
     if (!globalReplacements.isEmpty()) {
       for (Location location : globalReplacements.keySet()) {
         if (location.getX() == posX && location.getZ() == posZ && location.getY() == posY) {
-          return globalReplacements.get(location).boundingBoxes;
+          CacheEntry cacheEntry = globalReplacements.get(location);
+          if(cacheEntry != null) {
+            return cacheEntry.boundingBoxes();
+          }
         }
       }
     }
@@ -94,7 +100,7 @@ public final class BoundingBoxAccess {
         blockCache.put(blockPositionKey, cacheEntry);
       }
     }
-    return cacheEntry.boundingBoxes;
+    return cacheEntry.boundingBoxes();
   }
 
   public Material resolveType(Chunk chunk, int posX, int posY, int posZ) {
@@ -117,7 +123,7 @@ public final class BoundingBoxAccess {
     if (!globalReplacements.isEmpty()) {
       for (Location location : globalReplacements.keySet()) {
         if (location.getX() == posX && location.getZ() == posZ && location.getY() == posY) {
-          return globalReplacements.get(location).type;
+          return globalReplacements.get(location).type();
         }
       }
     }
@@ -136,7 +142,7 @@ public final class BoundingBoxAccess {
         blockCache.put(blockPositionKey, cacheEntry);
       }
     }
-    return cacheEntry.type;
+    return cacheEntry.type();
   }
 
   public void identityInvalidate() {
@@ -207,6 +213,14 @@ public final class BoundingBoxAccess {
     public CacheEntry(List<WrappedAxisAlignedBB> boundingBoxes, Material type) {
       this.boundingBoxes = boundingBoxes;
       this.type = type;
+    }
+
+    public List<WrappedAxisAlignedBB> boundingBoxes() {
+      return boundingBoxes;
+    }
+
+    public Material type() {
+      return type;
     }
   }
 }

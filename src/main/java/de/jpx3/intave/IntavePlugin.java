@@ -251,14 +251,13 @@ public final class IntavePlugin extends JavaPlugin {
 
         if(clearReloCache) {
           String operatingSystem = System.getProperty("os.name").toLowerCase(Locale.ROOT);
-          File workDirectory;
-          String filePath;
+          String filePath = "";
           if(operatingSystem.contains("win")) {
             filePath = System.getenv("APPDATA") + "/Intave/Relocator/";
           } else {
             filePath = "/home/.intave/relocator/";
           }
-          workDirectory = new File(filePath);
+          File workDirectory = new File(filePath);
           if(workDirectory.exists() && workDirectory.listFiles() != null) {
             for (File file : workDirectory.listFiles()) {
               file.delete();

@@ -10,16 +10,20 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.util.Vector;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public final class BlockCollisionRepository {
   private final static MinecraftVersion MINECRAFT_VERSION = ProtocolLibAdapter.serverVersion();
   private final List<PhysicsBlockCollision> blockCollisions = Lists.newArrayList();
+  private final Map<Material, PhysicsBlockCollision> accessCache = new HashMap<>();
 
   public BlockCollisionRepository() {
     try {
       initializeBlocks();
       setupBlocks();
+      prepareAccessCache();
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -37,6 +41,17 @@ public final class BlockCollisionRepository {
   private void setupBlocks() {
     for (PhysicsBlockCollision blockCollision : blockCollisions) {
       blockCollision.setup(MINECRAFT_VERSION);
+    }
+  }
+
+  private void prepareAccessCache() {
+    for (PhysicsBlockCollision blockCollision : blockCollisions) {
+      if(!blockCollision.supportedOnServerVersion()) {
+        continue;
+      }
+      for (Material material : blockCollision.materials()) {
+        accessCache.put(material, blockCollision);
+      }
     }
   }
 
@@ -89,11 +104,6 @@ public final class BlockCollisionRepository {
   }
 
   private PhysicsBlockCollision findPotentialCollision(Material material) {
-    for (PhysicsBlockCollision blockCollision : blockCollisions) {
-      if (blockCollision.supportedOnServerVersion() && blockCollision.materials().contains(material)) {
-        return blockCollision;
-      }
-    }
-    return null;
+    return accessCache.get(material);
   }
 }

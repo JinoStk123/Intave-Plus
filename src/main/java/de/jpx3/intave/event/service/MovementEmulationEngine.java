@@ -5,6 +5,8 @@ import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.access.IntaveException;
 import de.jpx3.intave.access.IntaveInternalException;
 import de.jpx3.intave.reflect.ReflectiveAccess;
+import de.jpx3.intave.reflect.caller.CallerResolver;
+import de.jpx3.intave.reflect.caller.PluginInvocation;
 import de.jpx3.intave.tools.MathHelper;
 import de.jpx3.intave.tools.client.PlayerMovementHelper;
 import de.jpx3.intave.tools.sync.Synchronizer;
@@ -281,7 +283,20 @@ public final class MovementEmulationEngine {
   private final static Set<Object> teleportFlags = new HashSet<>();
 
   private synchronized void rotationlessTeleport(Player player, Location to, float nativeYaw, float nativePitch) {
-    PlayerTeleportEvent event = new PlayerTeleportEvent(player, player.getLocation().clone(), to.clone(), PlayerTeleportEvent.TeleportCause.SPECTATE);
+    PlayerTeleportEvent event = new PlayerTeleportEvent(player, player.getLocation().clone(), to.clone(), PlayerTeleportEvent.TeleportCause.SPECTATE) {
+      @Override
+      public void setCancelled(boolean cancel) {
+        if(cancel) {
+          PluginInvocation pluginInvocation = CallerResolver.callerPluginInfo();
+          if(pluginInvocation == null) {
+            System.out.println("[Intave] Intaves teleport event was cancelled by an unknown struct");
+          } else {
+            System.out.println("[Intave] " + pluginInvocation.pluginName() + " cancelled Intaves teleport event (" + pluginInvocation.className() + ": " + pluginInvocation.methodName() + ")");
+          }
+        }
+        super.setCancelled(cancel);
+      }
+    };
     plugin.eventLinker().fireEvent(event);
     if (player.isDead() || player.getHealth() <= 0 || player.getPassenger() != null || !player.isOnline() || !UserRepository.hasUser(player)) {
       return;

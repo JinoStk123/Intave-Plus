@@ -2,6 +2,7 @@ package de.jpx3.intave.detect;
 
 import com.google.common.collect.ImmutableMap;
 import de.jpx3.intave.access.IntaveException;
+import de.jpx3.intave.access.IntaveInternalException;
 import de.jpx3.intave.tools.MathHelper;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -51,7 +52,13 @@ public final class CheckConfiguration {
       }
       ConfigurationSection configurationSection = (ConfigurationSection) access.get(key);
       Map<Integer, List<String>> thresholdMap = new LinkedHashMap<>();
-      for (String configurationSectionKey : configurationSection.getKeys(false)) {
+      Set<String> section = configurationSection.getKeys(false);
+
+      if(section == null) {
+        throw new IntaveInternalException("Unable to locate threshold section " + key + " in check " + configurationCache.check().name());
+      }
+
+      for (String configurationSectionKey : section) {
         List<String> output = new ArrayList<>();
         if (configurationSection.isList(configurationSectionKey)) {
           output.addAll(configurationSection.getStringList(configurationSectionKey));

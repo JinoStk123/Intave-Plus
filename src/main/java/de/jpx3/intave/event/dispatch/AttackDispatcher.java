@@ -1,10 +1,15 @@
 package de.jpx3.intave.event.dispatch;
 
+import com.comphenix.protocol.PacketType;
+import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.EnumWrappers;
+import com.comphenix.protocol.wrappers.WrappedAttribute;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.detect.EventProcessor;
+import de.jpx3.intave.detect.checks.combat.Heuristics;
+import de.jpx3.intave.event.bukkit.BukkitEventSubscription;
 import de.jpx3.intave.event.packet.ListenerPriority;
 import de.jpx3.intave.event.packet.PacketDescriptor;
 import de.jpx3.intave.event.packet.PacketSubscription;
@@ -15,10 +20,22 @@ import de.jpx3.intave.user.UserMetaMovementData;
 import de.jpx3.intave.user.UserRepository;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerJoinEvent;
+
+import java.lang.reflect.InvocationTargetException;
+import java.util.Collections;
 
 public final class AttackDispatcher implements EventProcessor {
+  public static boolean REDUCING_DISABLED;
+
   public AttackDispatcher(IntavePlugin plugin) {
     plugin.packetSubscriptionLinker().linkSubscriptionsIn(this);
+    plugin.eventLinker().registerEventsIn(this);
+    REDUCING_DISABLED = plugin.checkService().searchCheck(Heuristics.class).configuration().settings().boolBy("disable-reducing", true);
+
+    for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+      disableReducing(onlinePlayer);
+    }
   }
 
   @PacketSubscription(
@@ -47,6 +64,27 @@ public final class AttackDispatcher implements EventProcessor {
       if (playerAttack(entityId)) {
         movementData.pastPlayerAttackPhysics = 0;
       }
+    }
+  }
+
+  @BukkitEventSubscription
+  public void on(PlayerJoinEvent join) {
+    disableReducing(join.getPlayer());
+  }
+
+  private void disableReducing(Player player) {
+    if(!REDUCING_DISABLED) {
+      return;
+    }
+    PacketContainer packet = ProtocolLibrary.getProtocolManager().createPacket(PacketType.Play.Server.UPDATE_ATTRIBUTES);
+    packet.getIntegers().write(0, player.getEntityId());
+    WrappedAttribute wrappedAttribute = WrappedAttribute.newBuilder().packet(packet).attributeKey("generic.attackDamage").baseValue(0).modifiers(Collections.emptyList()).build();
+    packet.getAttributeCollectionModifier().write(0, Collections.singletonList(wrappedAttribute));
+
+    try {
+      ProtocolLibrary.getProtocolManager().sendServerPacket(player, packet);
+    } catch (InvocationTargetException e) {
+      e.printStackTrace();
     }
   }
 

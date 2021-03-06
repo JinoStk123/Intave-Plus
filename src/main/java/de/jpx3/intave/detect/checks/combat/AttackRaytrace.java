@@ -13,8 +13,10 @@ import de.jpx3.intave.event.packet.PacketSubscription;
 import de.jpx3.intave.event.packet.Sender;
 import de.jpx3.intave.event.service.entity.WrappedEntity;
 import de.jpx3.intave.tools.MathHelper;
-import de.jpx3.intave.tools.wrapper.WrappedAxisAlignedBB;
+import de.jpx3.intave.tools.sync.Synchronizer;
 import de.jpx3.intave.user.*;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 
@@ -177,6 +179,16 @@ public class AttackRaytrace extends IntaveMetaCheck<AttackRaytrace.AttackRaytrac
         details = displayReach + " blocks";
         thresholdKey = "applicable-thresholds.reach";
         vl = 20;
+
+        Synchronizer.synchronize(() -> {
+          String sibylMessage = ChatColor.RED + "[R] " + player.getName() + " attacked " + entityName.toLowerCase() + " from " + displayReach + " blocks";
+          for (Player authenticatedPlayer : Bukkit.getOnlinePlayers()) {
+            if (plugin.sibylIntegrationService().isAuthenticated(authenticatedPlayer)) {
+              authenticatedPlayer.sendMessage(sibylMessage);
+            }
+          }
+        });
+
         break;
       }
       default: {

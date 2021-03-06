@@ -13,6 +13,7 @@ import de.jpx3.intave.tools.sync.Synchronizer;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserMetaSynchronizeData;
 import de.jpx3.intave.user.UserRepository;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.List;
@@ -20,10 +21,33 @@ import java.util.Map;
 
 public final class ConnectionHealthResolver implements PacketEventSubscriber {
   private final IntavePlugin plugin;
+  private final static long TIMEOUT_DURATION = 1000 * 20;
 
   public ConnectionHealthResolver(IntavePlugin plugin) {
     this.plugin = plugin;
     this.plugin.packetSubscriptionLinker().linkSubscriptionsIn(this);
+
+    this.plugin.getServer().getScheduler().scheduleAsyncRepeatingTask(plugin, () -> {
+      for (Player player : Bukkit.getOnlinePlayers()) {
+        User user = UserRepository.userOf(player);
+        long dur = AccessHelper.now() - lastKeepAliveResponse(user);
+        if(TIMEOUT_DURATION < dur) {
+          Synchronizer.synchronize(() -> {
+            player.kickPlayer("Connection timeout (no response for 20 seconds)");
+          });
+        }
+      }
+    }, 0, (TIMEOUT_DURATION / 50) / 2);
+  }
+
+  private long lastKeepAliveResponse(User user) {
+    UserMetaSynchronizeData synchronizeData = user.meta().synchronizeData();
+    Map<Long, Long> remainingPingPackets = synchronizeData.remainingPingPacketTimestamps();
+    long last = AccessHelper.now();
+    for (Long value : remainingPingPackets.values()) {
+      last = Math.min(value, last);
+    }
+    return last;
   }
 
   @PacketSubscription(

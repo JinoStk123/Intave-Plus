@@ -1,5 +1,6 @@
 package de.jpx3.intave.world;
 
+import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.event.bukkit.BukkitEventSubscriber;
 import de.jpx3.intave.event.bukkit.BukkitEventSubscription;
 import de.jpx3.intave.tools.annotate.Relocate;
@@ -28,6 +29,7 @@ public final class BlockAccessor implements BukkitEventSubscriber {
 
   public static void setup() {
     Bukkit.getWorlds().forEach(world -> invalidRequestBlockMap.put(world, world.getBlockAt(0, -1, 0)));
+    IntavePlugin.singletonInstance().eventLinker().registerEventsIn(new BlockAccessor());
   }
 
   public static Block blockAccess(Location location) {
