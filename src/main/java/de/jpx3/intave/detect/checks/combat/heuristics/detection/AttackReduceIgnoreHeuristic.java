@@ -6,6 +6,7 @@ import de.jpx3.intave.detect.IntaveMetaCheckPart;
 import de.jpx3.intave.detect.checks.combat.Heuristics;
 import de.jpx3.intave.detect.checks.combat.heuristics.Anomaly;
 import de.jpx3.intave.detect.checks.combat.heuristics.Confidence;
+import de.jpx3.intave.event.dispatch.AttackDispatcher;
 import de.jpx3.intave.event.packet.ListenerPriority;
 import de.jpx3.intave.event.packet.PacketDescriptor;
 import de.jpx3.intave.event.packet.PacketSubscription;
@@ -37,6 +38,10 @@ public final class AttackReduceIgnoreHeuristic extends IntaveMetaCheckPart<Heuri
     User user = UserRepository.userOf(player);
     UserMetaMovementData movementData = user.meta().movementData();
     AttackReduceMeta heuristicMeta = metaOf(user);
+
+    if (AttackDispatcher.REDUCING_DISABLED) {
+      return;
+    }
 
     if (movementData.lastSprinting && movementData.sprinting && movementData.pastPlayerAttackPhysics == 0) {
       if (movementData.ignoredAttackReduce) {
