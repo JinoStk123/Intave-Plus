@@ -16,6 +16,7 @@ import de.jpx3.intave.reflect.hitbox.HitBoxBoundaries;
 import de.jpx3.intave.reflect.hitbox.ReflectiveEntityHitBoxAccess;
 import de.jpx3.intave.tools.wrapper.WrappedMathHelper;
 import de.jpx3.intave.user.User;
+import de.jpx3.intave.user.UserMetaMovementData;
 import de.jpx3.intave.user.UserMetaSynchronizeData;
 import de.jpx3.intave.user.UserRepository;
 import org.bukkit.Bukkit;
@@ -34,6 +35,7 @@ import java.util.Map;
 public final class ClientSideEntityService implements PacketEventSubscriber {
   private final IntavePlugin plugin;
   private String dataWatcherEntityFieldName;
+  private final static boolean NEW_POSITION_PROCESSING = ProtocolLibAdapter.serverVersion().isAtLeast(ProtocolLibAdapter.COMBAT_UPDATE);
 
   public ClientSideEntityService(IntavePlugin plugin) {
     this.plugin = plugin;
@@ -151,7 +153,7 @@ public final class ClientSideEntityService implements PacketEventSubscriber {
       entityName = entityNameOf(entity);
       livingEntity = true;
     }
-    processPacketSpawnMob(user, entityName, packet, livingEntity, hitBoxBoundaries);
+    processPacketSpawnMob(user, event.getPacketType(), entityName, packet, livingEntity, hitBoxBoundaries);
   }
 
   @PacketSubscription(
@@ -193,6 +195,11 @@ public final class ClientSideEntityService implements PacketEventSubscriber {
     Player player = event.getPlayer();
     User user = UserRepository.userOf(player);
     UserMetaSynchronizeData synchronizeData = user.meta().synchronizeData();
+    UserMetaMovementData movementData = user.meta().movementData();
+
+    if(movementData.lastTeleport == 0) {
+      return;
+    }
     for (Map.Entry<Integer, WrappedEntity> entry : synchronizeData.synchronizedEntityMap().entrySet()) {
       WrappedEntity entity = entry.getValue();
       entity.onLivingUpdate();
@@ -290,18 +297,69 @@ public final class ClientSideEntityService implements PacketEventSubscriber {
 
   private void processPacketSpawnMob(
     User user,
+    PacketType packetType,
     String entityName, PacketContainer packet,
     boolean isEntityLiving, HitBoxBoundaries boundaries
   ) {
     Integer entityID = packet.getIntegers().read(0);
-    Integer serverPosX = packet.getIntegers().read(2);
-    Integer serverPosY = packet.getIntegers().read(3);
-    Integer serverPosZ = packet.getIntegers().read(4);
-    processEntitySpawn(
-      user, entityName, isEntityLiving, entityID,
-      serverPosX, serverPosY, serverPosZ,
-      boundaries
-    );
+
+    if(NEW_POSITION_PROCESSING) {
+      // 1.9+
+      // TODO: Das spawnen von entities auf 1.9+ komplett nochmal überprüfen da posX/Y/Z statt serverPosX/Y/Z genutzt wird
+      // TODO: Ich hatte auf 1.9.4 noch false positives für hitbox wenn sich zwei spieler bewegt hatten (vielleicht teleport packets)
+      double posX = packet.getDoubles().read(0);
+      double posY = packet.getDoubles().read(1);
+      double posZ = packet.getDoubles().read(2);
+
+      processEntitySpawn(
+        user, entityName, isEntityLiving, entityID,
+        posX, posY, posZ,
+        boundaries
+      );
+    } else {
+      // 1.8.x
+      Integer serverPosX;
+      Integer serverPosY;
+      Integer serverPosZ;
+
+      if(packetType == PacketType.Play.Server.SPAWN_ENTITY_LIVING) {
+        // dead or living entities
+        serverPosX = packet.getIntegers().read(2);
+        serverPosY = packet.getIntegers().read(3);
+        serverPosZ = packet.getIntegers().read(4);
+      } else {
+        // players
+        serverPosX = packet.getIntegers().read(1);
+        serverPosY = packet.getIntegers().read(2);
+        serverPosZ = packet.getIntegers().read(3);
+      }
+
+      processEntitySpawn(
+        user, entityName, isEntityLiving, entityID,
+        serverPosX, serverPosY, serverPosZ,
+        boundaries
+      );
+
+//      WrappedEntity wrappedEntity = entityByIdentifier(user, entityID);
+//      if(wrappedEntity != null)
+//        Bukkit.broadcastMessage("pt " + packetType.name() + " p " + user.player().getName() + " e " + wrappedEntity.position);
+    }
+  }
+
+  private void processEntitySpawn(
+    User user, String entityName,
+    boolean isEntityLiving, int entityId,
+    double posX, double posY, double posZ,
+    HitBoxBoundaries boundaries
+  ) {
+    UserMetaSynchronizeData synchronizeData = user.meta().synchronizeData();
+    Map<Integer, WrappedEntity> synchronizedEntityMap = synchronizeData.synchronizedEntityMap();
+    WrappedEntity entity = new WrappedEntity(entityName, isEntityLiving, boundaries);
+    entity.serverPosX = WrappedMathHelper.floor(posX * 32d);
+    entity.serverPosY = WrappedMathHelper.floor(posY * 32d);
+    entity.serverPosZ = WrappedMathHelper.floor(posZ * 32d);
+    entity.setPositionAndRotationSpawnMob(posX, posY, posZ, posY);
+    synchronizedEntityMap.put(entityId, entity);
   }
 
   private void processEntitySpawn(

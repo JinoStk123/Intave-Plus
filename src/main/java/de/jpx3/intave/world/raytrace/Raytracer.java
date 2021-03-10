@@ -47,6 +47,9 @@ public final class Raytracer {
     }
   }
 
+  /**
+   * @param expandBoundingBox should be "0.1f" for a default hitbox
+   */
   public static double distanceOf(
     Player player, WrappedEntity entity,
     boolean useAlternativePositionY,

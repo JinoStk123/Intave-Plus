@@ -80,6 +80,11 @@ public class AttackRaytrace extends IntaveMetaCheck<AttackRaytrace.AttackRaytrac
     UserMetaMovementData movementData = meta.movementData();
     UserMetaViolationLevelData violationLevelData = meta.violationLevelData();
 
+    if(movementData.lastTeleport == 0) {
+      attackRaytraceMeta.remainingAttacks.clear();
+      return;
+    }
+
     List<Attack> remainingAttacks = attackRaytraceMeta.remainingAttacks;
     if(!remainingAttacks.isEmpty()) {
       for (Attack remainingAttack : remainingAttacks) {
@@ -138,6 +143,9 @@ public class AttackRaytrace extends IntaveMetaCheck<AttackRaytrace.AttackRaytrac
     }
   }
 
+  /**
+   * @param expandHitbox should be "0.1f" for a default hitbox
+   */
   private boolean processReachCheck(Player player, WrappedEntity entity, double expandHitbox) {
     User user = UserRepository.userOf(player);
     User.UserMeta meta = user.meta();
@@ -188,8 +196,12 @@ public class AttackRaytrace extends IntaveMetaCheck<AttackRaytrace.AttackRaytrac
         thresholdKey = "applicable-thresholds.hitbox";
         vl = 2;
         Synchronizer.synchronize(() -> {
+          String standing = "";
+          if(expandHitbox > 0.1f) {
+            standing = "standing";
+          }
           String sibylMessage = ChatColor.RED + "[R] " + player.getName() + " attacked " + entityName.toLowerCase() +
-            " out of sight (" + clientData.versionAsString() + ")";
+            " out of sight " + standing;
           for (Player authenticatedPlayer : Bukkit.getOnlinePlayers()) {
             if (plugin.sibylIntegrationService().isAuthenticated(authenticatedPlayer)) {
               authenticatedPlayer.sendMessage(sibylMessage);
@@ -218,7 +230,7 @@ public class AttackRaytrace extends IntaveMetaCheck<AttackRaytrace.AttackRaytrac
             standing = "standing";
           }
           String sibylMessage = ChatColor.RED + "[R] " + player.getName() + " attacked " + entityName.toLowerCase() +
-            " from " + displayReach + " blocks (" + clientData.versionAsString() + ") " + standing;
+            " from " + displayReach + " " + standing;
           for (Player authenticatedPlayer : Bukkit.getOnlinePlayers()) {
             if (plugin.sibylIntegrationService().isAuthenticated(authenticatedPlayer)) {
               authenticatedPlayer.sendMessage(sibylMessage);
