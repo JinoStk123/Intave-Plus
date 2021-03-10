@@ -10,6 +10,7 @@ import de.jpx3.intave.event.packet.ListenerPriority;
 import de.jpx3.intave.event.packet.PacketDescriptor;
 import de.jpx3.intave.event.packet.PacketSubscription;
 import de.jpx3.intave.event.packet.Sender;
+import de.jpx3.intave.event.service.entity.WrappedEntity;
 import de.jpx3.intave.tools.MathHelper;
 import de.jpx3.intave.user.*;
 import org.bukkit.entity.Player;
@@ -42,6 +43,7 @@ public final class RotationLHeuristics extends IntaveMetaCheckPart<Heuristics, R
     if (!attackData.recentlyAttacked(1000)) {
       return;
     }
+    WrappedEntity entity = attackData.lastAttackedEntity();
 
     double distanceToPerfectYaw = MathHelper.distanceInDegrees(attackData.perfectYaw(), movementData.rotationYaw);
     float yawSpeed = MathHelper.distanceInDegrees(movementData.rotationYaw, movementData.lastRotationYaw);
@@ -66,7 +68,7 @@ public final class RotationLHeuristics extends IntaveMetaCheckPart<Heuristics, R
 
       if (yawAverage >= 3.5 && maxDistanceToPerfectYaw <= 12.5 && averageRatio > 1) {
         String descriptor = "precise rotation yaw (" + yawAverage + ")";
-        Anomaly anomaly = Anomaly.anomalyOf("92", Confidence.MAYBE, Anomaly.Type.KILLAURA, descriptor,  Anomaly.AnomalyOption.LIMIT_8);
+        Anomaly anomaly = Anomaly.anomalyOf("92", Confidence.MAYBE, Anomaly.Type.KILLAURA, descriptor, Anomaly.AnomalyOption.LIMIT_8);
         parentCheck().saveAnomaly(player, anomaly);
       }
 
@@ -74,8 +76,11 @@ public final class RotationLHeuristics extends IntaveMetaCheckPart<Heuristics, R
       heuristicMeta.yawSpeeds.clear();
     }
 
-    heuristicMeta.distancesToPerfectYaw.add(distanceToPerfectYaw);
-    heuristicMeta.yawSpeeds.add((double) yawSpeed);
+
+    if (entity.moving(0.1)) {
+      heuristicMeta.distancesToPerfectYaw.add(distanceToPerfectYaw);
+      heuristicMeta.yawSpeeds.add((double) yawSpeed);
+    }
   }
 
   public final static class RotationLMeta extends UserCustomCheckMeta {

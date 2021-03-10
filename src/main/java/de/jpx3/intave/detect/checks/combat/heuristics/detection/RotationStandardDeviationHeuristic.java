@@ -45,9 +45,9 @@ public final class RotationStandardDeviationHeuristic extends IntaveMetaCheckPar
     UserMetaMovementData movementData = meta.movementData();
     UserMetaAttackData attackData = meta.attackData();
     RotationStandardDeviationMeta heuristicMeta = metaOf(player);
-    WrappedEntity attackedEntity = attackData.lastAttackedEntity();
+    WrappedEntity entity = attackData.lastAttackedEntity();
 
-    if (attackedEntity != null && attackData.recentlyAttacked(500) && attackedEntity.moving(0.05)) {
+    if (entity != null && attackData.recentlyAttacked(500) && entity.moving(0.05)) {
       /*
       Yaw deviation
        */

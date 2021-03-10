@@ -41,18 +41,38 @@ public final class RotationAccuracyYawHeuristic extends IntaveMetaCheckPart<Heur
     UserMetaMovementData movementData = meta.movementData();
     UserMetaAttackData attackData = meta.attackData();
     RotationAccuracyHeuristicMeta heuristicMeta = metaOf(player);
-    WrappedEntity attackedEntity = attackData.lastAttackedEntity();
+    WrappedEntity entity = attackData.lastAttackedEntity();
 
     float rotationYaw = movementData.rotationYaw;
     float perfectYaw = attackData.perfectYaw();
     float yawSpeed = MathHelper.distanceInDegrees(rotationYaw, movementData.lastRotationYaw);
     float distanceToPerfectYaw = MathHelper.distanceInDegrees(perfectYaw, rotationYaw);
 
-    if (attackedEntity != null && attackedEntity.moving(0.2) && attackData.recentlyAttacked(1000)) {
+    if (entity == null) {
+      return;
+    }
+
+    if (attackData.recentlyAttacked(150)
+      && yawSpeed > 1001
+      && attackData.lastReach() > 1.0
+      && !attackData.recentlySwitchedEntity(200)
+    ) {
+      if (heuristicMeta.snapVL++ > 0) {
+        String description = "suspicious rotation snap (" + yawSpeed + ")";
+        int options = Anomaly.AnomalyOption.LIMIT_4 | Anomaly.AnomalyOption.SUGGEST_MINING;
+        Anomaly anomaly = Anomaly.anomalyOf("86", Confidence.PROBABLE, Anomaly.Type.KILLAURA, description, options);
+        parentCheck().saveAnomaly(player, anomaly);
+        plugin.eventService().attackCancelService().requestDamageCancel(user, AttackCancelType.DCRM);
+      }
+    } else if (heuristicMeta.snapVL > 0) {
+      heuristicMeta.snapVL -= 0.1;
+    }
+
+    if (entity.moving(0.2) && attackData.recentlyAttacked(1000)) {
 
       if (yawSpeed > 1.0) {
 
-        if (yawSpeed > 3.0 && attackedEntity.moving(0.4)) {
+        if (yawSpeed > 3.0 && entity.moving(0.4)) {
           double increase = MathHelper.minmax(-1.0, (2 - distanceToPerfectYaw) * Math.min(6, yawSpeed), 2);
 
           heuristicMeta.followBalance += increase;
@@ -114,7 +134,9 @@ public final class RotationAccuracyYawHeuristic extends IntaveMetaCheckPart<Heur
       }
     }
 
-    if (Math.hypot(movementData.motionX(), movementData.motionZ()) < 0.05 || attackData.lastReach() < 1) {
+    if (Math.hypot(movementData.motionX(), movementData.motionZ()) < 0.05
+      || attackData.lastReach() < 1
+      || !entity.moving(0.1)) {
       return;
     }
 
@@ -144,6 +166,7 @@ public final class RotationAccuracyYawHeuristic extends IntaveMetaCheckPart<Heur
     private double balanceYawAccuracyOther;
     private double rotationAccuracyVL;
     private double followBalance;
+    private double snapVL;
 
     private int lastBodyDirection;
     private int bitBoxCornerBalance;
