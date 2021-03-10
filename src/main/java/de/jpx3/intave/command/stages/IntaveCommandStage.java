@@ -128,6 +128,16 @@ public final class IntaveCommandStage extends CommandStage {
   )
   public void rootCommand(User user) {}
 
+  @SubCommand(
+    selectors = "diagnostics",
+    usage = "",
+    description = "Intave statistics",
+    permission = "intave.command.diagnostics.*"
+  )
+  @Forward(
+    target = IntaveDiagnosticsStage.class
+  )
+  public void diagnosticsCommand(CommandSender commandSender) {}
 
   @SubCommand(
     selectors = "internals",

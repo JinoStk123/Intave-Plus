@@ -2,40 +2,40 @@ package de.jpx3.intave.detect;
 
 public final class CheckStatistics {
   private long totalViolations;
-  private long executedCommands;
 
-  private long passed;
-  private long failed;
+  private long totalProcessed;
+  private long totalPassed;
+  private long totalFails;
+
+  public void increasePasses() {
+    totalPassed++;
+  }
+
+  public void increaseFails() {
+    totalFails++;
+  }
+
+  public void increaseViolations() {
+    totalViolations++;
+  }
+
+  public void increaseTotal() {
+    totalProcessed++;
+  }
 
   public long totalViolations() {
     return totalViolations;
   }
 
-  public void setTotalViolations(long totalViolations) {
-    this.totalViolations = totalViolations;
+  public long totalProcessed() {
+    return totalProcessed;
   }
 
-  public long executedCommands() {
-    return executedCommands;
+  public long totalPasses() {
+    return totalPassed;
   }
 
-  public void setExecutedCommands(long executedCommands) {
-    this.executedCommands = executedCommands;
-  }
-
-  public long passed() {
-    return passed;
-  }
-
-  public void setPassed(long passed) {
-    this.passed = passed;
-  }
-
-  public long failed() {
-    return failed;
-  }
-
-  public void setFailed(long failed) {
-    this.failed = failed;
+  public long totalFails() {
+    return totalFails;
   }
 }

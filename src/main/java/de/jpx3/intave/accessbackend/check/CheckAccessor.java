@@ -83,7 +83,7 @@ public final class CheckAccessor {
 
       @Override
       public Map<Integer, List<String>> commandsOf(String threshold) {
-        return check.checkConfiguration.settings().thresholdsBy(threshold);
+        return check.configuration().settings().thresholdsBy(threshold);
       }
 
       @Override

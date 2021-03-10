@@ -87,8 +87,10 @@ public final class Timer extends IntaveMetaCheck<Timer.TimerData> {
 
 //    player.sendMessage(String.valueOf(timerData.timerBalance));
 
+    statistics().increaseTotal();
     if (timerData.timerBalance > 10) {
       String balanceAsString = MathHelper.formatDouble(timerData.timerBalance / 10, 2);
+      statistics().increaseFails();
       if (plugin.violationProcessor().processViolation(player, 0.5, "Timer", "moved too frequently", balanceAsString + " packets ahead")) {
 //        plugin.eventService().emulationEngine().emulationSetBack(player, new Vector(0,0,0), 6);
         UserMetaMovementData movementData = user.meta().movementData();
@@ -103,6 +105,7 @@ public final class Timer extends IntaveMetaCheck<Timer.TimerData> {
       // leniency
       timerData.timerBalance -= 5.5;
     } else {
+      statistics().increasePasses();
       if (timerData.timerBalance > 0) {
         timerData.timerBalance -= 0.025;
       }

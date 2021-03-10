@@ -202,4 +202,8 @@ public final class CheckService {
   public List<String> checkNames() {
     return checkNames;
   }
+
+  public List<IntaveCheck> checks() {
+    return checks;
+  }
 }

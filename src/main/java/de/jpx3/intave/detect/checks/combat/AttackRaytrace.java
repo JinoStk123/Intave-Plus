@@ -88,6 +88,7 @@ public class AttackRaytrace extends IntaveMetaCheck<AttackRaytrace.AttackRaytrac
     List<Attack> remainingAttacks = attackRaytraceMeta.remainingAttacks;
     if(!remainingAttacks.isEmpty()) {
       for (Attack remainingAttack : remainingAttacks) {
+        statistics().increaseTotal();
         WrappedEntity entity = entityByIdentifier(user, remainingAttack.entityId());
         boolean invalid = false;
         if (entity != null && entity.checkable() && !player.isDead()) {
@@ -119,6 +120,12 @@ public class AttackRaytrace extends IntaveMetaCheck<AttackRaytrace.AttackRaytrac
             }
           }
         }
+        if (invalid) {
+          statistics().increaseFails();
+        } else {
+          statistics().increasePasses();
+        }
+
         if(!invalid && !violationLevelData.isInActiveTeleportBundle) {
           receiveExcludedPacket(player, remainingAttack.packet);
         }

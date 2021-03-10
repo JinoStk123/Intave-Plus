@@ -3,6 +3,8 @@ package de.jpx3.intave.command.stages;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.command.CommandStage;
 import de.jpx3.intave.command.SubCommand;
+import de.jpx3.intave.detect.CheckStatistics;
+import de.jpx3.intave.detect.IntaveCheck;
 import de.jpx3.intave.diagnostics.timings.Timing;
 import de.jpx3.intave.diagnostics.timings.Timings;
 import de.jpx3.intave.tools.MathHelper;
@@ -30,7 +32,7 @@ public final class IntaveRootStage extends CommandStage {
     permission = "sibyl"
   )
   @Native
-  public void internalCommand(User user) {
+  public void timingsCommand(User user) {
     Player player = user.player();
     if(plugin.sibylIntegrationService().authentication().isAuthenticated(player)) {
       player.sendMessage(ChatColor.RED + "Loading timings...");
@@ -52,6 +54,34 @@ public final class IntaveRootStage extends CommandStage {
     }
   }
 
+  @SubCommand(
+    selectors = "statistics",
+    usage = "",
+    description = "Output check statistics",
+    permission = "sibyl"
+  )
+  @Native
+  public void checkStatisticsCommand(User user) {
+    Player player = user.player();
+    player.sendMessage(ChatColor.RED + "Loading statistics...");
+    for (IntaveCheck check : plugin.checkService().checks()) {
+      CheckStatistics statistics = check.statistics();
+      double processed = statistics.totalProcessed();
+      double violations = statistics.totalViolations();
+      double failed = statistics.totalFails();
+      long passed = statistics.totalPasses();
+
+      if (processed == 0) {
+        continue;
+      }
+
+      String failedRate = MathHelper.formatDouble(failed / processed * 100, 5);
+      String violatedRate = MathHelper.formatDouble(violations / processed * 100, 5);
+
+      String message = String.format("Check/%s: %s::%s%% / vio %s%%", check.name(), passed, failedRate, violatedRate);
+      player.sendMessage(ChatColor.WHITE + message);
+    }
+  }
 
   public static IntaveRootStage singletonInstance() {
     if(singletonInstance == null) {

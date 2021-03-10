@@ -41,8 +41,18 @@ public final class CheckStatisticsAccessor {
       }
 
       @Override
-      public final long executedCommands() {
-        return intaveCheck.statistics().executedCommands();
+      public long totalPasses() {
+        return intaveCheck.statistics().totalPasses();
+      }
+
+      @Override
+      public long totalProcesses() {
+        return intaveCheck.statistics().totalProcessed();
+      }
+
+      @Override
+      public long totalFails() {
+        return intaveCheck.statistics().totalFails();
       }
     };
   }

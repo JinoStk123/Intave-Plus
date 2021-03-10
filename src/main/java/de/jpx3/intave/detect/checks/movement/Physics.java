@@ -249,7 +249,6 @@ public final class Physics extends IntaveCheck {
 
     UserMetaMovementData movementData = meta.movementData();
     UserMetaViolationLevelData violationLevelData = meta.violationLevelData();
-    UserMetaInventoryData inventoryData = meta.inventoryData();
     UserMetaAbilityData abilityData = meta.abilityData();
     PhysicsProcessorContext context = expectedMovement.context();
 
@@ -287,8 +286,9 @@ public final class Physics extends IntaveCheck {
     movementData.onLadderLast = onLadder;
     onLadder = movementData.onLadderLast || onLadderLast;
 
-    double verticalViolationIncrease = calculateVerticalViolationLevelIncrease(user, predictedY, onLadder);
-    double horizontalViolationIncrease = calculateHorizontalViolationIncrease(user, predictedX, predictedZ, onLadder);
+    boolean skipVLCalculation = distance <= 1e-5;
+    double verticalViolationIncrease = skipVLCalculation ? 0 : calculateVerticalViolationLevelIncrease(user, predictedY, onLadder);
+    double horizontalViolationIncrease = skipVLCalculation ? 0 : calculateHorizontalViolationIncrease(user, predictedX, predictedZ, onLadder);
 
     if (movementData.pastVelocity < 10) {
       if (horizontalViolationIncrease > 0) {
@@ -407,8 +407,10 @@ public final class Physics extends IntaveCheck {
       violationLevelData.physicsVL += violationLevelIncrease;
       violationLevelData.physicsInvalidMovementsInRow++;
       user.boundingBoxAccess().invalidate();
+      statistics().increaseFails();
     } else {
       violationLevelData.physicsInvalidMovementsInRow = 0;
+      statistics().increasePasses();
     }
 
     if (!spectator && violationLevelData.physicsVL > 20 && violationLevelIncrease > 0) {
@@ -429,6 +431,8 @@ public final class Physics extends IntaveCheck {
         movementData.invalidMovement = true;
       }
     }
+
+    statistics().increaseTotal();
 
     if (violationLevelIncrease == 0 && violationLevelData.physicsVL < 1) {
       decrementer.decrement(user, VL_DECREMENT_PER_VALID_MOVE);

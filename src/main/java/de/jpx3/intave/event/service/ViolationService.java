@@ -65,11 +65,12 @@ public final class ViolationService {
       return response == IntaveViolationEvent.Reaction.INTERRUPT && preventionActivation <= newVl;
     }
 
+    check.statistics().increaseViolations();
     performVerbose(detectedUser, checkName, oldVl, newVl, message, details);
     violationMapOf(detectedPlayer).get(checkName).put(thresholdsKey, newVl);
 
     List<String> resolvedCommands = null;
-    Map<Integer, List<String>> thresholds = check.checkConfiguration.settings().thresholdsBy(thresholdsKey);
+    Map<Integer, List<String>> thresholds = check.configuration().settings().thresholdsBy(thresholdsKey);
 
     for (int i = (int) oldVl + 1; i <= newVl; i++) {
       List<String> commands = thresholds.get(i);
