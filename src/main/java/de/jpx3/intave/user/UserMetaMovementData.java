@@ -196,10 +196,13 @@ public final class UserMetaMovementData {
   }
 
   public float eyeHeight() {
+    if (player.isSleeping()) {
+      return 0.2f;
+    }
     if (swimming || elytraFlying /*|| spinAttack */) {
       return 0.4f;
     } else if (sneaking) {
-      return 1.27f;
+      return 1.62f - user.meta().clientData().cameraSneakOffset();
     } else {
       return 1.62f;
     }

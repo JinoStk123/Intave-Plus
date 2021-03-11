@@ -185,15 +185,7 @@ public final class Raytracer {
 
   private static double resolvePlayerEyeHeight(Player player) {
     User user = UserRepository.userOf(player);
-    UserMetaMovementData movementData = user.meta().movementData();
-    float f = 1.62f;
-    if (player.isSleeping()) {
-      f = 0.2f;
-    }
-    if (movementData.sneaking) {
-      f -= user.meta().clientData().cameraSneakOffset();
-    }
-    return f;
+    return user.meta().movementData().eyeHeight();
   }
 
   private static double resolveBlockReachDistance(GameMode gameMode) {
