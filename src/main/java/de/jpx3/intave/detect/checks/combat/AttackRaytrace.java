@@ -161,11 +161,13 @@ public class AttackRaytrace extends IntaveMetaCheck<AttackRaytrace.AttackRaytrac
     UserMetaAttackData attackData = meta.attackData();
     UserMetaMovementData movementData = meta.movementData();
     UserMetaClientData clientData = meta.clientData();
+
     double blockReachDistance = reachDistance(player.getGameMode() == GameMode.CREATIVE);
     float lastRotationYaw = movementData.lastRotationYaw % 360;
     float rotationYaw = movementData.rotationYaw % 360;
     boolean alternativePositionY = clientData.protocolVersion() == UserMetaClientData.PROTOCOL_VERSION_BOUNTIFUL_UPDATE;
     boolean hasAlwaysMouseDelayFix = clientData.protocolVersion() >= 314;
+
     // mouse delay fix
     Raytracer.EntityInteractionRaytrace distanceOfResult = distanceOf(
       player,
@@ -184,6 +186,44 @@ public class AttackRaytrace extends IntaveMetaCheck<AttackRaytrace.AttackRaytrac
         expandHitbox
       );
     }
+
+//    if(IntaveControl.DISABLE_LICENSE_CHECK) {
+//      if(!IntaveControl.GOMME_MODE) {
+//        if (entity.clientSynchronized) {
+//          PacketContainer packetContainer = ProtocolLibrary.getProtocolManager().createPacket(PacketType.Play.Server.CUSTOM_PAYLOAD);
+//          packetContainer.getStrings().write(0, "ATTACKRAYTRACE");
+//          try {
+//            ByteBuf byteBuf = Unpooled.buffer();
+//            byteBuf.writeInt(entity.entityId());
+//            byteBuf.writeDouble(entity.position.posX);
+//            byteBuf.writeDouble(entity.position.posY);
+//            byteBuf.writeDouble(entity.position.posZ);
+//            byteBuf.writeFloat(movementData.rotationYaw);
+//            byteBuf.writeFloat(movementData.rotationPitch);
+//            byteBuf.writeDouble(movementData.lastPositionX);
+//            byteBuf.writeDouble(movementData.lastPositionY);
+//            byteBuf.writeDouble(movementData.lastPositionZ);
+//            byte[] bytes = ("newPosRotationIncrements " + entity.newPosRotationIncrements).getBytes(StandardCharsets.UTF_8);
+//            byteBuf.writeInt(bytes.length);
+//            byteBuf.writeBytes(bytes);
+//
+//            Class<Object> packetDataSerializerClass = (Class<Object>) ReflectiveAccess.lookupServerClass("PacketDataSerializer");
+//            Object packetDataSerializer = packetDataSerializerClass.getConstructor(ByteBuf.class).newInstance(byteBuf);
+//            packetContainer.getSpecificModifier(packetDataSerializerClass).write(0, packetDataSerializer);
+//            Synchronizer.synchronize(() -> {
+//              try {
+//                ProtocolLibrary.getProtocolManager().sendServerPacket(player, packetContainer);
+//              } catch (InvocationTargetException e) {
+//                e.printStackTrace();
+//              }
+//            });
+//          } catch (Exception e) {
+//            e.printStackTrace();
+//          }
+//        }
+//      }
+//    }
+
     attackData.setLastReach(distanceOfResult.reach);
     String message, details, thresholdKey;
     AttackRaytraceResult attackRaytraceResult = AttackRaytrace.AttackRaytraceResult.of(distanceOfResult.reach, blockReachDistance);
@@ -297,6 +337,7 @@ public class AttackRaytrace extends IntaveMetaCheck<AttackRaytrace.AttackRaytrac
     User.UserMeta meta = user.meta();
     UserMetaMovementData movementData = meta.movementData();
     UserMetaClientData clientData = meta.clientData();
+
     double blockReachDistance = reachDistance(player.getGameMode() == GameMode.CREATIVE);
     float lastRotationYaw = movementData.lastRotationYaw % 360;
     float rotationYaw = movementData.rotationYaw % 360;
