@@ -1,5 +1,6 @@
 package de.jpx3.intave.detect.checks.combat;
 
+import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
@@ -13,17 +14,21 @@ import de.jpx3.intave.event.packet.PacketDescriptor;
 import de.jpx3.intave.event.packet.PacketSubscription;
 import de.jpx3.intave.event.packet.Sender;
 import de.jpx3.intave.event.service.entity.WrappedEntity;
+import de.jpx3.intave.reflect.ReflectiveAccess;
 import de.jpx3.intave.tools.MathHelper;
 import de.jpx3.intave.tools.sync.Synchronizer;
 import de.jpx3.intave.tools.wrapper.WrappedVector;
 import de.jpx3.intave.user.*;
 import de.jpx3.intave.world.raytrace.Raytracer;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.InvocationTargetException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -198,12 +203,11 @@ public class AttackRaytrace extends IntaveMetaCheck<AttackRaytrace.AttackRaytrac
 //            byteBuf.writeDouble(entity.position.posX);
 //            byteBuf.writeDouble(entity.position.posY);
 //            byteBuf.writeDouble(entity.position.posZ);
-//            byteBuf.writeFloat(movementData.rotationYaw);
-//            byteBuf.writeFloat(movementData.rotationPitch);
 //            byteBuf.writeDouble(movementData.lastPositionX);
 //            byteBuf.writeDouble(movementData.lastPositionY);
 //            byteBuf.writeDouble(movementData.lastPositionZ);
-//            byte[] bytes = ("newPosRotationIncrements " + entity.newPosRotationIncrements).getBytes(StandardCharsets.UTF_8);
+//            byteBuf.writeInt(entity.newPosRotationIncrements);
+//            byte[] bytes = ("" + entity.lastIncrementChange).getBytes(StandardCharsets.UTF_8);
 //            byteBuf.writeInt(bytes.length);
 //            byteBuf.writeBytes(bytes);
 //
