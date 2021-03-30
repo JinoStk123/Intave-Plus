@@ -105,15 +105,15 @@ public final class NewComplexColliderProcessor implements ComplexColliderProcess
         d9 = axisalignedbb6.calculateYOffset(axisalignedbb5, d9);
       }
       axisalignedbb4 = axisalignedbb4.offset(0.0D, d9, 0.0D);
-      double d15 = startMotionX;
-      for (WrappedAxisAlignedBB axisalignedbb7 : list) {
-        d15 = axisalignedbb7.calculateXOffset(axisalignedbb4, d15);
-      }
       double d16 = startMotionZ;
       for (WrappedAxisAlignedBB axisalignedbb8 : list) {
         d16 = axisalignedbb8.calculateZOffset(axisalignedbb4, d16);
       }
       axisalignedbb4 = axisalignedbb4.offset(0.0D, 0.0D, d16);
+      double d15 = startMotionX;
+      for (WrappedAxisAlignedBB axisalignedbb7 : list) {
+        d15 = axisalignedbb7.calculateXOffset(axisalignedbb4, d15);
+      }
       axisalignedbb4 = axisalignedbb4.offset(d15, 0.0D, 0.0D);
       WrappedAxisAlignedBB axisalignedbb14 = entityBoundingBox;
       double d17 = context.motionY;
