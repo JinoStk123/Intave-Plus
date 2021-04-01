@@ -1,11 +1,11 @@
 package de.jpx3.intave.user;
 
 import com.google.common.collect.Maps;
-import de.jpx3.intave.fakeplayer.FakePlayer;
 import de.jpx3.intave.detect.checks.combat.heuristics.MiningStrategy;
 import de.jpx3.intave.detect.checks.combat.heuristics.mining.MiningStrategyExecutor;
 import de.jpx3.intave.event.service.entity.ClientSideEntityService;
 import de.jpx3.intave.event.service.entity.WrappedEntity;
+import de.jpx3.intave.fakeplayer.FakePlayer;
 import de.jpx3.intave.tools.AccessHelper;
 import de.jpx3.intave.tools.annotate.Nullable;
 import de.jpx3.intave.tools.annotate.Relocate;

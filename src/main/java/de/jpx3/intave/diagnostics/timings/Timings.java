@@ -23,6 +23,10 @@ public class Timings {
   public static final Timing CHECK_PHYSICS_PROC_ITR = Timing.of("Check/Physics/ProcItr");
   public static final Timing CHECK_PHYSICS_EVAL = Timing.of("Check/Physics/Eval");
 
+  public static final Timing HITBOX_RESOLVE = Timing.of("BBA/Resolve");
+  public static final Timing HITBOX_REQUEST = Timing.of("BBA/Request");
+  public static final Timing HITBOX_OVERRIDE_CHECK = Timing.of("BBA/OverrideCheck");
+
   public static void addTiming(Timing timing) {
     timingPool.add(timing);
   }

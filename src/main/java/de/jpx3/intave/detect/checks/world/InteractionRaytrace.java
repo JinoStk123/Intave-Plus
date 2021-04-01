@@ -10,14 +10,17 @@ import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.comphenix.protocol.wrappers.WrappedBlockData;
 import com.google.common.collect.Maps;
 import de.jpx3.intave.IntavePlugin;
+import de.jpx3.intave.access.player.event.BucketAction;
 import de.jpx3.intave.detect.CheckViolationLevelDecrementer;
 import de.jpx3.intave.detect.IntaveMetaCheck;
 import de.jpx3.intave.event.bukkit.BukkitEventSubscription;
+import de.jpx3.intave.event.dispatch.PlayerAbilityEvaluator;
 import de.jpx3.intave.event.packet.ListenerPriority;
 import de.jpx3.intave.event.packet.PacketDescriptor;
 import de.jpx3.intave.event.packet.PacketSubscription;
 import de.jpx3.intave.event.packet.Sender;
 import de.jpx3.intave.tools.annotate.DispatchCrossCall;
+import de.jpx3.intave.tools.client.MaterialLogic;
 import de.jpx3.intave.tools.items.InventoryUseItemHelper;
 import de.jpx3.intave.tools.sync.Synchronizer;
 import de.jpx3.intave.tools.wrapper.WrappedBlockPosition;
@@ -39,9 +42,12 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.player.PlayerBucketEmptyEvent;
+import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
@@ -153,7 +159,7 @@ public final class InteractionRaytrace extends IntaveMetaCheck<InteractionRaytra
 
     EnumWrappers.PlayerDigType playerDigType = packet.getPlayerDigTypes().readSafely(0);
     float blockDamage = BlockDataAccess.blockDamage(player, user.meta().inventoryData().heldItem(), blockPosition);
-    boolean instantBreak = blockDamage == Float.POSITIVE_INFINITY || blockDamage >= 1.0f;
+    boolean instantBreak = blockDamage == Float.POSITIVE_INFINITY || blockDamage >= 1.0f || user.meta().abilityData().inGameMode(PlayerAbilityEvaluator.GameMode.CREATIVE);
     boolean breakBlock = instantBreak || playerDigType == STOP_DESTROY_BLOCK;
 
 //    if (!breakBlock) {
@@ -270,9 +276,9 @@ public final class InteractionRaytrace extends IntaveMetaCheck<InteractionRaytra
     /* emulate placement */
     if(interaction.type == InteractionType.PLACE && !invalid) {
       emulationFailed = !emulatePlacement(player, interaction);
-    } else if(interaction.type == InteractionType.INTERACT) {
+    } else if(interaction.type == InteractionType.INTERACT && !invalid) {
       emulationFailed = !emulateInteraction(player, interaction);
-    } else if(interaction.type == InteractionType.BREAK) {
+    } else if(interaction.type == InteractionType.BREAK && !invalid) {
       emulationFailed = !emulateBreak(player, interaction);
     }
 
@@ -346,8 +352,31 @@ public final class InteractionRaytrace extends IntaveMetaCheck<InteractionRaytra
 
   private boolean emulateInteraction(Player player, Interaction interaction) {
     World world = interaction.world();
-    Block clickedBlock = BukkitBlockAccess.blockAccess(interaction.targetBlock.toLocation(world));
+    Location clickedBlockLocation = interaction.targetBlock.toLocation(world);
+    Block clickedBlock = BukkitBlockAccess.blockAccess(clickedBlockLocation);
     Material clickedType = clickedBlock.getType();
+    Material itemTypeInHand = interaction.itemTypeInHand;
+    BoundingBoxAccess boundingBoxAccess = userOf(player).boundingBoxAccess();
+
+    Location placementLocation = clickedBlockLocation.clone().add(WrappedEnumDirection.getFront(interaction.targetDirection).getDirectionVec().convertToBukkitVec());
+    Material placementType = placementLocation.getBlock().getType();
+
+//    player.sendMessage(clickedType + " interaction with " + itemTypeInHand + " in hand (" + placementType + ")");
+    if(itemTypeInHand == Material.BUCKET) {
+      // remove liquid on location if exists
+      if(MaterialLogic.isLiquid(placementType)) {
+        // emulate
+        if (WorldPermission.bukkitActionPermission(player, BucketAction.FILL_BUCKET, clickedBlock, BlockFace.SELF, itemTypeInHand, null)) {
+          boundingBoxAccess.override(world, placementLocation.getBlockX(), placementLocation.getBlockY(), placementLocation.getBlockZ(), 0, 0);
+        }
+      }
+    } else if(itemTypeInHand == Material.WATER_BUCKET || itemTypeInHand == Material.LAVA_BUCKET) {
+      // emulate
+      if (WorldPermission.bukkitActionPermission(player, BucketAction.EMPTY_BUCKET, clickedBlock, BlockFace.SELF, itemTypeInHand, null)) {
+        boundingBoxAccess.override(world, placementLocation.getBlockX(), placementLocation.getBlockY(), placementLocation.getBlockZ(), itemTypeInHand == Material.WATER_BUCKET ? Material.WATER.getId() : Material.LAVA.getId(), 15);
+      }
+    }
+
     if(clickedType == Material.WOODEN_DOOR) {
 
     } else if(clickedType == Material.TRAP_DOOR) {
@@ -357,7 +386,6 @@ public final class InteractionRaytrace extends IntaveMetaCheck<InteractionRaytra
       byte newData = (byte) (!newOpen ? (data | bitMask) : (data & ~bitMask));
 
       int id = clickedBlock.getType().getId();
-      BoundingBoxAccess boundingBoxAccess = userOf(player).boundingBoxAccess();
       boundingBoxAccess.override(world, clickedBlock.getX(), clickedBlock.getY(), clickedBlock.getZ(), id, newData);
 
       Synchronizer.packetSynchronize(() ->
@@ -366,8 +394,27 @@ public final class InteractionRaytrace extends IntaveMetaCheck<InteractionRaytra
     return true;
   }
 
+  @BukkitEventSubscription
+  public void on(PlayerBucketFillEvent fill) {
+    Player player = fill.getPlayer();
+    Block block = fill.getBlockClicked().getRelative(fill.getBlockFace());
+
+    BoundingBoxAccess boundingBoxAccess = userOf(player).boundingBoxAccess();
+    boundingBoxAccess.invalidate(block.getX(), block.getY(), block.getZ());
+    boundingBoxAccess.invalidateOverride(block.getWorld(), block.getX(), block.getY(), block.getZ());
+  }
+
+  @BukkitEventSubscription
+  public void on(PlayerBucketEmptyEvent empty) {
+    Player player = empty.getPlayer();
+    Block block = empty.getBlockClicked().getRelative(empty.getBlockFace());
+
+    BoundingBoxAccess boundingBoxAccess = userOf(player).boundingBoxAccess();
+    boundingBoxAccess.invalidate(block.getX(), block.getY(), block.getZ());
+    boundingBoxAccess.invalidateOverride(block.getWorld(), block.getX(), block.getY(), block.getZ());
+  }
+
   private boolean emulateBreak(Player player, Interaction interaction) {
-    User user = userOf(player);
     World world = interaction.world();
     BlockPosition blockPosition = interaction.targetBlock;
     Location blockBreakLocation = blockPosition.toLocation(world);

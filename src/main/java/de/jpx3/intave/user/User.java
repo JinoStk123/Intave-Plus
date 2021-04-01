@@ -223,7 +223,6 @@ public final class User {
     }
   }
 
-  @Relocate
   public static final class UserMeta {
     private final UserMetaViolationLevelData violationLevelData;
     private final UserMetaMovementData movementData;

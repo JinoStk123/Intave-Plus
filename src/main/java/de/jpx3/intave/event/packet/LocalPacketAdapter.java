@@ -4,10 +4,8 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketEvent;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.logging.IntaveLogger;
-import de.jpx3.intave.tools.annotate.Relocate;
 import de.jpx3.intave.user.UserRepository;
 
-@Relocate
 public final class LocalPacketAdapter extends IntavePacketAdapter implements Comparable<LocalPacketAdapter> {
   private final String methodName;
   private final ListenerPriority priority;

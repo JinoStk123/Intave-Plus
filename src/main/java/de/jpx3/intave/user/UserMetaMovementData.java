@@ -42,6 +42,7 @@ public final class UserMetaMovementData {
   public double verifiedPositionX, verifiedPositionY, verifiedPositionZ;
   public double lastPositionX, lastPositionY, lastPositionZ;
   public double positionX, positionY, positionZ;
+  public double lastMotionX, lastMotionY, lastMotionZ;
   public boolean sprinting, lastSprinting, sneaking, lastSneaking;
   private boolean sprintingAllowed, actualSneaking;
   private float yawSine, yawCosine, friction;

@@ -40,7 +40,7 @@ public final class Collision {
     if (outsideBorderLast && outsideBorderCurrent) {
       movementData.outsideBorder = false;
     } else if (!outsideBorderLast && !outsideBorderCurrent) {
-      movementData.outsideBorder= true;
+      movementData.outsideBorder = true;
     }
 
     BoundingBoxAccess boundingBoxAccess = user.boundingBoxAccess();

@@ -88,15 +88,18 @@ public final class Timer extends IntaveMetaCheck<Timer.TimerData> {
     timerData.timerBalance += 10;
 //    }
 
-    int allowedLagInSeconds = trustFactorSetting("buffer-size", player);
+    int allowedLagInSeconds = 2;//trustFactorSetting("buffer-size", player);
 
     if (AccessHelper.now() - timerData.lastRespawn < 6000) {
       allowedLagInSeconds = Math.max(allowedLagInSeconds, 8);
     }
+    if(AccessHelper.now() - timerData.lastLagSpike < 12000 && !highToleranceMode) {
+      allowedLagInSeconds = Math.max(allowedLagInSeconds / 2, 1);
+    }
 
     int packetLimit = allowedLagInSeconds * -(20 * 10);
+
     timerData.timerBalance = MathHelper.minmax(packetLimit, timerData.timerBalance, 200);
-//    player.sendMessage(timerData.timerBalance + " / " + allowedLagInSeconds);
 
     if (delta > 500) {
       timerData.lastLagSpike = AccessHelper.now();
@@ -106,6 +109,14 @@ public final class Timer extends IntaveMetaCheck<Timer.TimerData> {
           timerData.timerBalance = Math.max(0, timerData.timerBalance);
         });
       });
+
+      if(timerData.timerBalance <= packetLimit) {
+        if (plugin.violationProcessor().processViolation(player, 0.5, "Timer", "experienced lagspike", -packetLimit + " packets")) {
+          UserMetaMovementData movementData = user.meta().movementData();
+          plugin.eventService().emulationEngine().emulationSetBack(player, new Vector(movementData.physicsMotionX, movementData.physicsMotionY, movementData.physicsMotionZ), 12);
+//          event.setCancelled(true);
+        }
+      }
     }
 
     // fast recover
@@ -121,10 +132,10 @@ public final class Timer extends IntaveMetaCheck<Timer.TimerData> {
     if (timerData.timerBalance > overflowLimit) {
       String balanceAsString = MathHelper.formatDouble(timerData.timerBalance / 10, 2);
       statistics().increaseFails();
-      if (plugin.violationProcessor().processViolation(player, 0.5, "Timer", "moved too frequently", balanceAsString + " packets ahead")) {
+      if (plugin.violationProcessor().processViolation(player, 0.5, "Timer", "moved too frequently", balanceAsString + " ticks ahead")) {
 //        plugin.eventService().emulationEngine().emulationSetBack(player, new Vector(0,0,0), 6);
         UserMetaMovementData movementData = user.meta().movementData();
-        plugin.eventService().emulationEngine().emulationSetBack(player, new Vector(movementData.physicsMotionX, movementData.physicsMotionY, movementData.physicsMotionZ), 6);
+        plugin.eventService().emulationEngine().emulationSetBack(player, new Vector(movementData.physicsMotionX, movementData.physicsMotionY, movementData.physicsMotionZ), 12);
         if (timerData.timerBalance > 50) {
           event.setCancelled(true);
         }
@@ -133,7 +144,7 @@ public final class Timer extends IntaveMetaCheck<Timer.TimerData> {
       }
       timerData.lastTimerFlag = AccessHelper.now();
       // leniency
-      timerData.timerBalance -= 2.5;
+      timerData.timerBalance -= highToleranceMode || timerData.timerBalance > overflowLimit ? 2.5 : 0.5;
     } else {
       statistics().increasePasses();
       if (timerData.timerBalance > 0) {

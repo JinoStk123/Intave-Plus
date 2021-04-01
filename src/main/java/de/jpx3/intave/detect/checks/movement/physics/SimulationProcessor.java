@@ -103,8 +103,12 @@ public final class SimulationProcessor {
     Pose movementPoseType = movementData.movementPoseType();
     PoseSimulator simulator = movementPoseType.simulator();
     MotionVector motionVector = movementData.motionVector;
-    int keyForward = movementData.keyForward;
-    int keyStrafe = movementData.keyStrafe;
+    int direction = directionFrom(movementData.motionX() - movementData.lastMotionX, movementData.motionZ() - movementData.lastMotionZ, movementData.rotationYaw);
+    int keyForward = forwardKeyFrom(direction);//movementData.keyForward;
+    int keyStrafe = strafeKeyFrom(direction);//movementData.keyStrafe;
+
+    user.player().sendMessage(forwardKeyFrom(direction) + " " + movementData.keyForward);
+    user.player().sendMessage(strafeKeyFrom(direction) + " " + movementData.keyStrafe);
     boolean handActive = inventoryData.handActive();
     boolean attackReduce = !AttackDispatcher.REDUCING_DISABLED && movementData.sprintingAllowed() && user.meta().movementData().pastPlayerAttackPhysics == 0;
     boolean jumped = false;
@@ -125,6 +129,38 @@ public final class SimulationProcessor {
     movementData.physicsJumped = jumped;
     motionVector.resetTo(movementData);
     return simulator.performSimulation(user, motionVector, moveForward, moveStrafe, attackReduce, jumped, handActive);
+  }
+
+  private int directionFrom(double motionX, double motionZ, float yaw) {
+    if (Math.hypot(motionX, motionZ) > 0.0001) {
+      float direction;
+      direction = (float) (Math.atan2(motionZ, motionX) * 180f / (float) Math.PI - 90f);
+      direction -= yaw;
+      direction %= 360f;
+      direction = Math.abs(direction);
+      direction /= 45f;
+      return Math.round(direction);
+    }
+    return -1;
+  }
+
+  private final int[] forwardKeys = {1,  1,  0, -1, -1, -1, 0, 1, 1};
+  private final int[] strafeKeys  = {0, -1, -1, -1,  0,  1, 1, 1, 0};
+
+  private int forwardKeyFrom(int direction) {
+    if(direction > 0) {
+      return forwardKeys[direction];
+    } else {
+      return 0;
+    }
+  }
+
+  private int strafeKeyFrom(int direction) {
+    if(direction > 0) {
+      return strafeKeys[direction];
+    } else {
+      return 0;
+    }
   }
 
   private final static boolean[] BOOLEAN_STATES_TF = new boolean[]{true, false};
