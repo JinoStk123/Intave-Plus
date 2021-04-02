@@ -183,7 +183,7 @@ public final class SimulationProcessor {
   private final static boolean[] BOOLEAN_STATES_TF = new boolean[]{true, false};
   private final static boolean[] BOOLEAN_STATES_FT = new boolean[]{false, true};
 
-  private final static int[][] KEYS_BY_OCCURRENCE = {{1, 0}, {1, -1}, {1, 1}, {0, 0}, {0, -1}, {0, 1}, {-1, -1}, {-1, 0}, {-1, -1}};
+  private final static int[][] SORTED_KEYS = {{1, 0}, {1, -1}, {1, 1}, {0, 0}, {0, -1}, {0, 1}, {-1, -1}, {-1, 0}, {-1, -1}};
 
   private IterativeSimulationResult simulatePossibleMovement(User user) {
     User.UserMeta meta = user.meta();
@@ -213,9 +213,9 @@ public final class SimulationProcessor {
             continue;
           }
           for (int i = 0; i < 9; i++) {
-            int[] keyPair = KEYS_BY_OCCURRENCE[i];
+            int[] keyPair = SORTED_KEYS[i];
             int keyForward = keyPair[0];
-            int keyStrafe = keyPair[0];
+            int keyStrafe = keyPair[1];
             if (movementData.sprinting && keyForward != 1) {
               continue;
             }
