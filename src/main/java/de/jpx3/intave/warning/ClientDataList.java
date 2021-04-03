@@ -12,11 +12,11 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
-public final class ClientDatas {
+public final class ClientDataList {
   private final static CachedResource CACHED_RESOURCE = new CachedResource("clientdata", "https://intave.de/api/clientdata.json", TimeUnit.DAYS.toMillis(1));
   private final List<ClientData> content;
 
-  public ClientDatas(List<ClientData> content) {
+  public ClientDataList(List<ClientData> content) {
     this.content = content;
   }
 
@@ -24,13 +24,13 @@ public final class ClientDatas {
     return content;
   }
 
-  public static ClientDatas generate() {
+  public static ClientDataList generate() {
     Scanner scanner = new Scanner(CACHED_RESOURCE.read());
     StringBuilder stringBuilder = new StringBuilder();
     while (scanner.hasNextLine()) {
       stringBuilder.append(scanner.nextLine());
     }
-    return new ClientDatas(parseClientData(stringBuilder.toString()));
+    return new ClientDataList(parseClientData(stringBuilder.toString()));
   }
 
   private static List<ClientData> parseClientData(String rawJson) {

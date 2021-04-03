@@ -20,14 +20,14 @@ import java.util.Locale;
 
 public final class ClientWarningService implements PacketEventSubscriber {
   private final IntavePlugin plugin;
-  private ClientDatas clientDatas;
+  private ClientDataList clientDatas;
 
   public ClientWarningService(IntavePlugin plugin) {
     this.plugin = plugin;
   }
 
   public void setup() {
-    clientDatas = ClientDatas.generate();
+    clientDatas = ClientDataList.generate();
     plugin.packetSubscriptionLinker().linkSubscriptionsIn(this);
   }
 
@@ -91,8 +91,6 @@ public final class ClientWarningService implements PacketEventSubscriber {
       case "kick":
         Synchronizer.synchronize(() -> player.kickPlayer(ChatColor.RED + clientData.content()));
         break;
-
-
     }
   }
 
