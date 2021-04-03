@@ -8,17 +8,17 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class Filterer {
+public final class Filters {
   private final IntavePlugin plugin;
   private final List<Filter> availableFilters = new ArrayList<>();
 
-  public Filterer(IntavePlugin plugin) {
+  public Filters(IntavePlugin plugin) {
     this.plugin = plugin;
   }
 
   public void setup() {
     setup(EquipmentFilter.class);
-
+    setup(HealthFilter.class);
 
     linkEnabled();
   }
@@ -35,7 +35,6 @@ public final class Filterer {
   private void linkEnabled() {
     for (Filter filter : availableFilters) {
       if(filter.enabled()) {
-
         plugin.eventLinker().registerEventsIn(filter);
         plugin.packetSubscriptionLinker().linkSubscriptionsIn(filter);
       }

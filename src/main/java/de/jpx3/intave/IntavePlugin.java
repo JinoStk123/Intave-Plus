@@ -18,7 +18,7 @@ import de.jpx3.intave.event.packet.PacketSubscriptionLinker;
 import de.jpx3.intave.event.service.CustomEventService;
 import de.jpx3.intave.event.service.ViolationService;
 import de.jpx3.intave.executor.BackgroundExecutor;
-import de.jpx3.intave.filter.Filterer;
+import de.jpx3.intave.filter.Filters;
 import de.jpx3.intave.lib.asm.Frame;
 import de.jpx3.intave.logging.IntaveLogger;
 import de.jpx3.intave.metrics.Metrics;
@@ -91,7 +91,7 @@ public final class IntavePlugin extends JavaPlugin {
   private CustomEventService customEventService;
   private ViolationService violationService;
   private CheckService checkService;
-  private Filterer filterer;
+  private Filters filters;
   private WorldPermission worldPermission;
   private TrustFactorService trustFactorService;
   private VersionList versionList;
@@ -424,8 +424,8 @@ public final class IntavePlugin extends JavaPlugin {
       prefix = ChatColor.translateAlternateColorCodes('&', prefix);
       defaultColor = ChatColor.getLastColors(prefix);
 
-      filterer = new Filterer(this);
-      filterer.setup();
+      filters = new Filters(this);
+      filters.setup();
 
       shadowIntegration = new LabymodShadowIntegration(this);
       shadowIntegration.setup();
@@ -567,6 +567,9 @@ public final class IntavePlugin extends JavaPlugin {
     }
     if(accessService != null) {
       accessService.serverAccessor().pluginShutdown();
+    }
+    if(proxyMessenger != null) {
+      proxyMessenger.closeChannel();
     }
     try {
       // mark caches as deletable

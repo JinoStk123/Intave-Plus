@@ -15,7 +15,6 @@ public final class ProxyListeningResponder {
 
   public ProxyListeningResponder(IntavePlugin plugin) {
     this.plugin = plugin;
-
     setupPacketResponses();
   }
 

@@ -9,6 +9,7 @@ check:
       100:
         - "intave internals sendnotify &c{player}&7/{trust-color}&7 is moving incorrectly #2"
       999:
+        - "intave internals collectivekick {player} &cYou have been kicked, because an account with your ip address was removed from the game"
         - "kick {player} &cYou have been removed from the game based on data that was collected by the anti-cheat"
 
   timer:
@@ -30,12 +31,14 @@ check:
       "!!":
         25:
           - "intave internals sendnotify &c{player}&7/{trust-color}&7 has been removed for attacking suspiciously (!!) (heuristics)"
+          - "intave internals collectivekick {player} &cYou have been kicked, because an account with your ip address was removed from the game"
           - "kick {player} &cYou have been removed from the game based on data that was collected by the anti-cheat"
 
       "!":
         25: "intave internals sendnotify &c{player}&7/{trust-color}&7 is attacking suspiciously (!) (heuristics)"
         50:
           - "intave internals sendnotify &c{player}&7/{trust-color}&7 has been removed for attacking suspiciously (!) (heuristics)"
+          - "intave internals collectivekick {player} &cYou have been kicked, because an account with your ip address was removed from the game"
           - "kick {player} &cYou have been removed from the game based on data that was collected by the anti-cheat"
 
       "?!":
@@ -55,6 +58,7 @@ check:
         50: "intave internals sendnotify &c{player}&7/{trust-color}&7 is attacking suspiciously (reach)"
         100:
           - "intave internals sendnotify &c{player}&7/{trust-color}&7 has been removed for attacking suspiciously (reach)"
+          - "intave internals collectivekick {player} &cYou have been kicked, because an account with your ip address was removed from the game"
           - "kick {player} &cYou have been removed from the game based on data that was collected by the anti-cheat"
 
       hitbox:
@@ -87,6 +91,7 @@ check:
       50: "intave internals sendnotify &c{player}&7/{trust-color}&7 is sending invalid packets"
       100:
         - "intave internals sendnotify &c{player}&7/{trust-color}&7 has been removed for sending invalid packets"
+        - "intave internals collectivekick {player} &cYou have been kicked, because an account with your ip address was removed from the game"
         - "kick {player} &cYou have been removed from the game based on data that was collected by the anti-cheat"
 
   placementanalysis:
@@ -97,6 +102,7 @@ check:
       50: "intave internals sendnotify &c{player}&7/{trust-color}&7 is placing blocks incorrectly"
       100:
         - "intave internals sendnotify &c{player}&7/{trust-color}&7 has been removed for placing blocks incorrectly"
+        - "intave internals collectivekick {player} &cYou have been kicked, because an account with your ip address was removed from the game"
         - "kick {player} &cYou have been removed from the game based on data that was collected by the anti-cheat"
 
   inventoryclickanalysis:
@@ -107,6 +113,7 @@ check:
       50: "intave internals sendnotify &c{player}&7/{trust-color}&7 is performing invalid item-operations"
       100:
         - "intave internals sendnotify &c{player}&7/{trust-color}&7 has been removed for clicking suspiciously on items"
+        - "intave internals collectivekick {player} &cYou have been kicked, because an account with your ip address was removed from the game"
         - "kick {player} &cYou have been removed from the game based on data that was collected by the anti-cheat"
 
   clickspeedlimiter:
@@ -119,6 +126,7 @@ check:
       50: "intave internals sendnotify &c{player}&7/{trust-color}&7 is attacking too quickly"
       100:
         - "intave internals sendnotify &c{player}&7/{trust-color}&7 has been removed for attacking too quickly"
+        - "intave internals collectivekick {player} &cYou have been kicked, because an account with your ip address was removed from the game"
         - "kick {player} &cYou have been removed from the game based on data that was collected by the anti-cheat"
 
   abilityspeedlimiter:

@@ -117,6 +117,17 @@ public final class IntaveCommandStage extends CommandStage {
 */
 
   @SubCommand(
+    selectors = "proxy",
+    usage = "",
+    description = "Access proxy related features",
+    permission = "intave.command.proxy"
+  )
+  @Forward(
+    target = IntaveProxyStage.class
+  )
+  public void proxyCommand(CommandSender sender) {}
+
+  @SubCommand(
     selectors = "root",
     usage = "",
     description = "",

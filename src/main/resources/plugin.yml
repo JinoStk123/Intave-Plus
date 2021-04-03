@@ -46,6 +46,9 @@ permissions:
   intave.command.restart:
     default: op
 
+  intave.command.proxy:
+    default: false
+
   intave.command.diagnostics:
     default: op
 
@@ -59,13 +62,14 @@ permissions:
   intave.command.diagnostics.statistics:
     default: op
 
-  intave.command.internals.*:
+  intave.command.internals:
     default: false
 
     children:
       intave.command.internals.delay: true
       intave.command.internals.rejoinblock: true
       intave.command.internals.sendnotify: true
+      intave.command.internals.collectivekick: true
 
   intave.command.internals.delay:
     default: false
@@ -74,4 +78,7 @@ permissions:
     default: false
 
   intave.command.internals.sendnotify:
+    default: false
+
+  intave.command.internals.collectivekick:
     default: false

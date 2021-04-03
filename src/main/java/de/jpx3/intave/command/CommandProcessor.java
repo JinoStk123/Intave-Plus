@@ -1,9 +1,6 @@
 package de.jpx3.intave.command;
 
-import de.jpx3.intave.command.stages.IntaveCommandStage;
-import de.jpx3.intave.command.stages.IntaveDiagnosticsStage;
-import de.jpx3.intave.command.stages.IntaveInternalsStage;
-import de.jpx3.intave.command.stages.IntaveRootStage;
+import de.jpx3.intave.command.stages.*;
 import org.bukkit.block.CommandBlock;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -25,6 +22,7 @@ public final class CommandProcessor implements CommandExecutor, TabCompleter {
     IntaveInternalsStage.singletonInstance();
     IntaveRootStage.singletonInstance();
     IntaveDiagnosticsStage.singletonInstance();
+    IntaveProxyStage.singletonInstance();
   }
 
   @Override

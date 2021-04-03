@@ -100,19 +100,20 @@ public final class IntaveInternalsStage extends CommandStage {
     return watcher;
   }
 
-/*  @SubCommand(
-    selectors = "timeout",
-    usage = "<player>",
-    permission = "intave.command.internals.timeout",
-    description = "Makes a player think his connection crashed"
+  @SubCommand(
+    selectors = "collectivekick",
+    usage = "<player> <message>",
+    permission = "intave.command.internals.collectivekick",
+    description = "Kicks all players with the same ip as the target player"
   )
-  public void eternalTimeout(CommandSender commandSender, Player target) {
-
-
-
-
-    commandSender.sendMessage(IntavePlugin.prefix() + ChatColor.RED + target.getName() + " " + IntavePlugin.defaultColor() + "has timed");
-  }*/
+  public void collectiveKick(CommandSender commandSender, Player target, String message) {
+    for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+      if(!onlinePlayer.equals(target) && onlinePlayer.getAddress().equals(target.getAddress())) {
+        String parsedMessage = ChatColor.translateAlternateColorCodes('&', message);
+        Synchronizer.synchronize(() -> onlinePlayer.kickPlayer(parsedMessage));
+      }
+    }
+  }
 
   public static IntaveInternalsStage singletonInstance() {
     if(singletonInstance == null) {

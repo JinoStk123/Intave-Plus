@@ -16,14 +16,11 @@ public final class PacketRegister {
 
   static {
     Map<Integer, Class<? extends IntavePacket>> packetMap = new HashMap<>();
-
     packetMap.put(0, IntavePacketOutVersion.class);
     packetMap.put(1, IntavePacketOutExecuteCommand.class);
     packetMap.put(2, IntavePacketOutPunishment.class);
-    packetMap.put(3, IntavePacketOutRetributionData.class);
-
+    packetMap.put(3, IntavePacketOutKicked.class);
     packetMap.put(100, IntavePacketInRequestVersion.class);
-
     packets = ImmutableMap.copyOf(packetMap);
   }
 

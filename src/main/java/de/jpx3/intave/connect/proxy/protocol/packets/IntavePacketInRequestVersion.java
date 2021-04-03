@@ -17,11 +17,9 @@ public class IntavePacketInRequestVersion extends IntavePacket {
 
   @Override
   public void applyFrom(ByteArrayDataInput input) throws IllegalStateException, AssertionError {
-
   }
 
   @Override
   public void applyTo(ByteArrayDataOutput output) {
-
   }
 }

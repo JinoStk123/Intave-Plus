@@ -30,44 +30,40 @@ import java.util.Map;
  */
 
 public final class ProxyMessenger {
-  public final static int PROTOCOL_VERSION = 3;
+  public final static int PROTOCOL_VERSION = 4;
   public final static String INCOMING_CHANNEL = "IPC-P2S";
   public final static String OUTGOING_CHANNEL = "BungeeCord";
-  private static final boolean ENABLED = false;
+
   private final IntavePlugin plugin;
-  private final boolean packetOutputAllowed;
   private final IntavePacketSerializer packetSerializer = new IntavePacketSerializer();
+
+  private final boolean packetOutputAllowed;
   private volatile boolean channelOpen;
+
   private Map<Class<? extends IntavePacket>, List<IntavePacketSubscription>> packetListeners = null;
 
   public ProxyMessenger(IntavePlugin plugin) {
     this.plugin = plugin;
-
     boolean spigotExpectingProxyConnections = SpigotConfig.bungee;
     boolean serverInOnlineMode = plugin.getServer().getOnlineMode();
-
     IntaveLogger logger = plugin.logger();
-
-    packetOutputAllowed = ENABLED;
-
-    if (!ENABLED) {
+    this.packetOutputAllowed = plugin.configurationService().configuration().getBoolean("proxy.enable", false);
+    if (!packetOutputAllowed) {
       return;
     }
-
     if (spigotExpectingProxyConnections) {
       if (serverInOnlineMode) {
         logger.info("Spigot expecting proxy connections in online mode?");
-        logger.info("Not establishing IPC");
+        logger.info("Proxy connection offline");
         return;
       } else {
-        logger.info("Spigot expecting proxy connections, so should we (IPC support enabled)");
+        logger.info("Proxy connection online");
       }
     } else {
-      logger.info("Spigot is not expecting proxy connections");
-      logger.info("Not establishing IPC");
+      logger.info("Spigot is not in bungee mode");
+      logger.info("Proxy connection offline");
       return;
     }
-
     openChannel();
   }
 
@@ -79,7 +75,6 @@ public final class ProxyMessenger {
       .filter(integerClassEntry -> integerClassEntry.getKey() >= 100)
       .map(Map.Entry::getValue)
       .forEach(packetType -> packetListeners.put(packetType, Lists.newCopyOnWriteArrayList()));
-
     Messenger messenger = Bukkit.getServer().getMessenger();
     messenger.registerOutgoingPluginChannel(plugin, OUTGOING_CHANNEL);
     messenger.registerIncomingPluginChannel(plugin, INCOMING_CHANNEL, new IncomingMessageListener(plugin, this));
@@ -88,7 +83,6 @@ public final class ProxyMessenger {
 
   public void closeChannel() {
     packetListeners.clear();
-
     Messenger messenger = Bukkit.getServer().getMessenger();
     messenger.unregisterIncomingPluginChannel(plugin);
     messenger.unregisterOutgoingPluginChannel(plugin);
@@ -99,7 +93,6 @@ public final class ProxyMessenger {
     if (!isChannelOpen() || !packetOutputAllowed) {
       return;
     }
-
     BackgroundExecutor.execute(() -> {
       ByteArrayDataOutput byteOutput = ByteStreams.newDataOutput();
       byteOutput.writeUTF("IPC_BEGIN");
@@ -115,7 +108,6 @@ public final class ProxyMessenger {
     if (!isChannelOpen()) {
       return;
     }
-
     packetListeners.get(type).add(interpreter);
   }
 

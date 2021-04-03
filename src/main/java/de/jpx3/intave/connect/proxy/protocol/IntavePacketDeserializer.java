@@ -9,7 +9,6 @@ import com.google.common.io.ByteArrayDataInput;
  */
 
 public final class IntavePacketDeserializer {
-
   public IntavePacket deserializeUsing(int packetId, ByteArrayDataInput dataInput) throws InstantiationException, IllegalAccessException, IllegalStateException {
     IntavePacket packet = PacketRegister.getClassOf(packetId).orElseThrow(IllegalStateException::new).newInstance();
     packet.applyFrom(dataInput);

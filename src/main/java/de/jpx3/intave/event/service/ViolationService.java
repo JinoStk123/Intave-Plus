@@ -5,6 +5,7 @@ import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.access.check.event.IntaveCommandExecutionEvent;
 import de.jpx3.intave.access.check.event.IntaveViolationEvent;
 import de.jpx3.intave.access.player.trust.TrustFactor;
+import de.jpx3.intave.connect.proxy.protocol.packets.IntavePacketOutKicked;
 import de.jpx3.intave.detect.IntaveCheck;
 import de.jpx3.intave.logging.IntaveLogger;
 import de.jpx3.intave.tools.MathHelper;
@@ -103,6 +104,12 @@ public final class ViolationService {
         Synchronizer.synchronize(() -> {
           if(resolvedCommand.startsWith("ban") || resolvedCommand.startsWith("kick")) {
             plugin.eventService().reconDelayLimiter().ban(detectedPlayer.getAddress().getAddress(), detectedPlayer.getUniqueId(), finalCheckName1);
+            plugin.proxyMessenger().sendPacket(detectedPlayer, new IntavePacketOutKicked(
+              detectedPlayer.getUniqueId(),
+              finalCheckName1,
+              message,
+              newVl
+            ));
           }
           IntaveLogger.logger().globalPrintLn("[Intave] Issued server command /" + ChatColor.stripColor(resolvedCommand) + "");
           plugin.logger().commandExecution(resolvedCommand);

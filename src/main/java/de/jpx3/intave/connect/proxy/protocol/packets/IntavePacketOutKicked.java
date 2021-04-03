@@ -12,21 +12,19 @@ import java.util.UUID;
  * Copyright Richard Strunk 2019
  */
 
-public class IntavePacketOutRetributionData extends IntavePacket {
+public class IntavePacketOutKicked extends IntavePacket {
 
   private UUID playerId;
   private String checkName;
-  private String checkCategory;
   private String finalFlagMessage;
-  private int finalTotalViolationLevel;
+  private double finalTotalViolationLevel;
 
-  public IntavePacketOutRetributionData() {
+  public IntavePacketOutKicked() {
   }
 
-  public IntavePacketOutRetributionData(UUID playerId, String checkName, String checkCategory, String finalFlagMessage, int finalTotalViolationLevel) {
+  public IntavePacketOutKicked(UUID playerId, String checkName, String finalFlagMessage, double finalTotalViolationLevel) {
     this.playerId = playerId;
     this.checkName = checkName;
-    this.checkCategory = checkCategory;
     this.finalFlagMessage = finalFlagMessage;
     this.finalTotalViolationLevel = finalTotalViolationLevel;
   }
@@ -35,17 +33,15 @@ public class IntavePacketOutRetributionData extends IntavePacket {
   public void applyFrom(ByteArrayDataInput input) throws IllegalStateException, AssertionError {
     playerId = UUID.fromString(input.readUTF());
     checkName = input.readUTF();
-    checkCategory = input.readUTF();
     finalFlagMessage = input.readUTF();
-    finalTotalViolationLevel = input.readInt();
+    finalTotalViolationLevel = input.readDouble();
   }
 
   @Override
   public void applyTo(ByteArrayDataOutput output) {
     output.writeUTF(playerId.toString());
     output.writeUTF(checkName);
-    output.writeUTF(checkCategory);
     output.writeUTF(finalFlagMessage);
-    output.writeInt(finalTotalViolationLevel);
+    output.writeDouble(finalTotalViolationLevel);
   }
 }

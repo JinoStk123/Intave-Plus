@@ -17,7 +17,6 @@ public class IntavePacketOutExecuteCommand extends IntavePacket {
   private String command;
 
   public IntavePacketOutExecuteCommand() {
-
   }
 
   public IntavePacketOutExecuteCommand(UUID playerId, String command) {

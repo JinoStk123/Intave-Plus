@@ -10,11 +10,9 @@ import com.google.common.io.ByteStreams;
  */
 
 public final class IntavePacketSerializer {
-
   public byte[] serializeDataFrom(IntavePacket packet) {
     ByteArrayDataOutput dataOutput = ByteStreams.newDataOutput();
     packet.applyTo(dataOutput);
     return dataOutput.toByteArray();
   }
-
 }
