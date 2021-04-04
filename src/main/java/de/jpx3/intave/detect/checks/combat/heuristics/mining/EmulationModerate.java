@@ -10,7 +10,7 @@ import de.jpx3.intave.user.UserMetaSynchronizeData;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static de.jpx3.intave.command.stages.IntaveCommandStage.locationBehind;
+import static de.jpx3.intave.detect.checks.combat.heuristics.mining.EmulationLight.locationBehind;
 
 public final class EmulationModerate extends MiningStrategyExecutor{
   public EmulationModerate(User user) {
