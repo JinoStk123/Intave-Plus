@@ -9,13 +9,18 @@ import java.util.UUID;
 
 public final class FakePlayerBuilder {
   private Player parentPlayer = null;
-  private Movement movement = null;
-  private UUID uuid = null;
-  private int timeout = 10_000;
   private int entityID = -1;
   private String name;
+  private UUID uuid = null;
   private String tabListPrefix;
   private String prefix;
+  private Movement movement = null;
+  private int timeout = 10_000;
+  private boolean invisible = false;
+  private boolean visibleInTablist = true;
+  private boolean equipArmor = true;
+  private boolean equipHeldItem = true;
+  private FakePlayerAttackSubscriber fakePlayerAttackSubscriber = () -> {};
 
   private FakePlayerBuilder() {
   }
@@ -64,6 +69,31 @@ public final class FakePlayerBuilder {
     return this;
   }
 
+  public FakePlayerBuilder setInvisible(boolean invisible) {
+    this.invisible = invisible;
+    return this;
+  }
+
+  public FakePlayerBuilder setInTablist(boolean visibleInTablist) {
+    this.visibleInTablist = visibleInTablist;
+    return this;
+  }
+
+  public FakePlayerBuilder setEquipArmor(boolean equipArmor) {
+    this.equipArmor = equipArmor;
+    return this;
+  }
+
+  public FakePlayerBuilder setEquipHeldItem(boolean equipHeldItem) {
+    this.equipHeldItem = equipHeldItem;
+    return this;
+  }
+
+  public FakePlayerBuilder setAttackSubscriber(FakePlayerAttackSubscriber subscriber) {
+    this.fakePlayerAttackSubscriber = subscriber;
+    return this;
+  }
+
   public FakePlayer build() {
     Preconditions.checkNotNull(this.parentPlayer);
     Preconditions.checkNotNull(this.uuid);
@@ -79,7 +109,12 @@ public final class FakePlayerBuilder {
       this.tabListPrefix == null ? this.name : this.tabListPrefix,
       this.prefix == null ? this.name : this.prefix,
       this.entityID,
-      this.timeout
+      this.timeout,
+      this.invisible,
+      this.visibleInTablist,
+      this.equipArmor,
+      this.equipHeldItem,
+      this.fakePlayerAttackSubscriber
     );
   }
 }

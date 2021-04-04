@@ -3,10 +3,13 @@ package de.jpx3.intave.event.dispatch;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.reflect.StructureModifier;
+import com.comphenix.protocol.utility.MinecraftReflection;
+import com.comphenix.protocol.wrappers.EnumWrappers;
 import de.jpx3.intave.adapter.ProtocolLibAdapter;
 import de.jpx3.intave.event.packet.*;
 import de.jpx3.intave.logging.IntaveLogger;
 import de.jpx3.intave.tools.MathHelper;
+import de.jpx3.intave.tools.annotate.KeepEnumInternalNames;
 import de.jpx3.intave.tools.sync.Synchronizer;
 import de.jpx3.intave.tools.wrapper.WrappedAxisAlignedBB;
 import de.jpx3.intave.user.User;
@@ -233,5 +236,21 @@ public final class TeleportPositionObserver implements PacketEventSubscriber {
     double teleportLocationZ = teleportLocation.getZ();
     WrappedAxisAlignedBB boundingBox = WrappedAxisAlignedBB.createFromPosition(user, teleportLocationX, teleportLocationY, teleportLocationZ);
     movementData.setBoundingBox(boundingBox);
+  }
+
+  private static final class TeleportPositionFlagsHelper {
+    private static final Class<?> FLAGS_CLASS = MinecraftReflection.getMinecraftClass(
+      "EnumPlayerTeleportFlags",
+      "PacketPlayOutPosition$EnumPlayerTeleportFlags"
+    );
+
+    private static StructureModifier<Set<PlayerTeleportFlag>> flagsModifier(PacketContainer packet) {
+      return packet.getSets(EnumWrappers.getGenericConverter(FLAGS_CLASS, PlayerTeleportFlag.class));
+    }
+
+    @KeepEnumInternalNames
+    public enum PlayerTeleportFlag {
+      X, Y, Z, Y_ROT, X_ROT
+    }
   }
 }

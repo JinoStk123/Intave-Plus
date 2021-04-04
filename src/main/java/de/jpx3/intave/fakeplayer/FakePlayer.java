@@ -6,13 +6,14 @@ import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.*;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.fakeplayer.movement.LocationUtils;
 import de.jpx3.intave.fakeplayer.movement.types.Movement;
 import de.jpx3.intave.fakeplayer.randomaction.ActionType;
 import de.jpx3.intave.fakeplayer.randomaction.RandomAction;
-import de.jpx3.intave.fakeplayer.randomaction.actions.EquipmentAction;
+import de.jpx3.intave.fakeplayer.randomaction.actions.EquipmentArmorAction;
+import de.jpx3.intave.fakeplayer.randomaction.actions.EquipmentHeldItemAction;
 import de.jpx3.intave.fakeplayer.randomaction.actions.HurtAnimationAction;
 import de.jpx3.intave.fakeplayer.randomaction.actions.SwingAnimationAction;
 import de.jpx3.intave.tools.wrapper.WrappedMathHelper;
@@ -25,7 +26,6 @@ import org.bukkit.entity.Player;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 public final class FakePlayer implements TickTaskScheduler {
@@ -34,15 +34,22 @@ public final class FakePlayer implements TickTaskScheduler {
   private final static ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
 
   private final WrappedDataWatcher wrappedDataWatcher = new WrappedDataWatcher();
-  private final Set<RandomAction> actions;
+  private final List<RandomAction> actions;
   private final Movement movement;
   private final Player parentPlayer;
+  private final User user;
   private final WrappedGameProfile wrappedGameProfile;
   private final String tabListPrefix, prefix;
   private final int fakePlayerID, timeout;
   public double killAuraVL = 0;
   private int taskId;
   private int previousLatency = 0, ticks = 0;
+
+  private final boolean invisible;
+  private final boolean visibleInTablist;
+  private final boolean equipArmor;
+  private final boolean equipHeldItem;
+  private final FakePlayerAttackSubscriber attackSubscriber;
 
   FakePlayer(
     Movement movement,
@@ -51,10 +58,14 @@ public final class FakePlayer implements TickTaskScheduler {
     String tabListPrefix,
     String prefix,
     int entityId,
-    int timeout
+    int timeout,
+    boolean invisible,
+    boolean visibleInTablist,
+    boolean equipArmor,
+    boolean equipHeldItem,
+    FakePlayerAttackSubscriber attackSubscriber
   ) {
-    User user = UserRepository.userOf(parentPlayer);
-    user.meta().attackData().setFakePlayer(this);
+    this.user = UserRepository.userOf(parentPlayer);
     this.timeout = timeout;
     this.movement = movement;
     this.wrappedGameProfile = wrappedGameProfile;
@@ -62,11 +73,27 @@ public final class FakePlayer implements TickTaskScheduler {
     this.fakePlayerID = entityId;
     this.tabListPrefix = tabListPrefix;
     this.prefix = prefix;
-    this.actions = ImmutableSet.of(
+    this.equipArmor = equipArmor;
+    this.equipHeldItem = equipHeldItem;
+    this.actions = loadActions();
+    this.invisible = invisible;
+    this.visibleInTablist = visibleInTablist;
+    this.attackSubscriber = attackSubscriber;
+    user.meta().attackData().setFakePlayer(this);
+  }
+
+  private List<RandomAction> loadActions() {
+    List<RandomAction> actions = Lists.newArrayList(
       new SwingAnimationAction(parentPlayer, this),
-      new HurtAnimationAction(parentPlayer, this),
-      new EquipmentAction(parentPlayer, this)
+      new HurtAnimationAction(parentPlayer, this)
     );
+    if (equipHeldItem) {
+      actions.add(new EquipmentHeldItemAction(parentPlayer, this));
+    }
+    if (equipArmor) {
+      actions.add(new EquipmentArmorAction(parentPlayer, this));
+    }
+    return actions;
   }
 
   @Override
@@ -112,7 +139,24 @@ public final class FakePlayer implements TickTaskScheduler {
     } catch (InvocationTargetException e) {
       e.printStackTrace();
     }
-    RandomAction.findAndProcessAction(this.actions, ActionType.EQUIPMENT);
+
+    if (!visibleInTablist) {
+      TabListHelper.removeFromTabList(this.parentPlayer, this.wrappedGameProfile);
+    }
+    if (invisible) {
+      FakePlayerMetaDataHelper.updateVisibility(parentPlayer, this, true);
+    }
+
+    //
+    // Apply equipment
+    //
+    if (equipArmor) {
+      RandomAction.findAndProcessAction(this.actions, ActionType.EQUIPMENT);
+    }
+    if (equipHeldItem) {
+      RandomAction.findAndProcessAction(this.actions, ActionType.HELD_ITEM_CHANGE);
+    }
+
     FakePlayerMetaDataHelper.updateHealthFor(parentPlayer, this, SPAWN_HEALTH_STATE);
     applyDisplayName();
     startTickScheduler();
@@ -182,7 +226,9 @@ public final class FakePlayer implements TickTaskScheduler {
 
   public void despawn() {
     stopTickScheduler();
-    TabListHelper.removeFromTabList(this.parentPlayer, this.wrappedGameProfile);
+    if (this.visibleInTablist) {
+      TabListHelper.removeFromTabList(this.parentPlayer, this.wrappedGameProfile);
+    }
     PacketContainer packet = protocolManager.createPacket(PacketType.Play.Server.ENTITY_DESTROY);
     packet.getIntegerArrays().writeSafely(0, new int[]{this.fakePlayerID});
     try {
@@ -190,6 +236,7 @@ public final class FakePlayer implements TickTaskScheduler {
     } catch (InvocationTargetException e) {
       e.printStackTrace();
     }
+    user.meta().attackData().setFakePlayer(null);
   }
 
   private void onTick() {
@@ -207,6 +254,7 @@ public final class FakePlayer implements TickTaskScheduler {
     } else {
       setSneaking(false);
     }
+    setSneaking(false);
     if (this.ticks % 10 == 0 && this.movement.onGround) {
       sendWalkingSoundEffect(this.movement.location);
     }
@@ -386,7 +434,7 @@ public final class FakePlayer implements TickTaskScheduler {
     return this.fakePlayerID;
   }
 
-  public Set<RandomAction> actions() {
+  public List<RandomAction> actions() {
     return this.actions;
   }
 
@@ -396,6 +444,10 @@ public final class FakePlayer implements TickTaskScheduler {
 
   public Movement movement() {
     return this.movement;
+  }
+
+  public FakePlayerAttackSubscriber attackSubscriber() {
+    return attackSubscriber;
   }
 
   @Override

@@ -15,8 +15,8 @@ import org.bukkit.inventory.ItemStack;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
-public final class EquipmentAction extends RandomAction {
-  public EquipmentAction(Player player, FakePlayer fakePlayer) {
+public final class EquipmentArmorAction extends RandomAction {
+  public EquipmentArmorAction(Player player, FakePlayer fakePlayer) {
     super(Probability.LOW, ActionType.EQUIPMENT, player, fakePlayer);
   }
 
@@ -31,10 +31,6 @@ public final class EquipmentAction extends RandomAction {
       }
       int slotId = armorContext.type().slotId();
       sendEquipment(slotId - 1, armorMaterial);
-    }
-    Material optionalHeldItem = equipment.heldItem();
-    if (optionalHeldItem != null) {
-      sendEquipment(0, optionalHeldItem);
     }
   }
 

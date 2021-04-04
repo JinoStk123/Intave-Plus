@@ -35,6 +35,6 @@ public final class ConvertEntityMovement extends Movement {
 
   @Override
   public boolean doBlockCollisions() {
-    return true;
+    return false;
   }
 }

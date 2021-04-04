@@ -12,9 +12,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 public final class FakePlayerMetaDataHelper {
-  private final static int SPRINT_BYTE = 3;
-  private final static int SNEAK_BYTE = 1;
   private final static ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
+  private final static int SPRINT_BYTE = 3;
 
   public static void setSprinting(
     Player player,
@@ -36,6 +35,8 @@ public final class FakePlayerMetaDataHelper {
     }
     updateMetaData(player, fakePlayer, watchableObjects);
   }
+
+  private final static int SNEAK_BYTE = 1;
 
   public static void setSneaking(
     Player player,
@@ -74,8 +75,29 @@ public final class FakePlayerMetaDataHelper {
     updateMetaData(player, fakePlayer, watchableObjects);
   }
 
+  private final static int INVISIBLE_BYTE = 5;
+
+  public static void updateVisibility(
+    Player player,
+    FakePlayer fakePlayer,
+    boolean invisible
+  ) {
+    WrappedDataWatcher wrappedDataWatcher = fakePlayer.wrappedDataWatcher();
+    List<WrappedWatchableObject> watchableObjects = wrappedDataWatcher.getWatchableObjects();
+    for (WrappedWatchableObject watchableObject : watchableObjects) {
+      if (watchableObject.getIndex() != 0) {
+        continue;
+      }
+      byte b0 = wrappedDataWatcher.getByte(0);
+      byte value = invisible ? (byte) (b0 | 1 << INVISIBLE_BYTE) : (byte) (b0 & ~(1 << INVISIBLE_BYTE));
+      watchableObject.setValue(value);
+    }
+    updateMetaData(player, fakePlayer, watchableObjects);
+  }
+
   private static void updateMetaData(
-    Player player, FakePlayer fakePlayer,
+    Player player,
+    FakePlayer fakePlayer,
     List<WrappedWatchableObject> watchableObjects
   ) {
     PacketContainer packet = protocolManager.createPacket(PacketType.Play.Server.ENTITY_METADATA);

@@ -240,7 +240,7 @@ public final class User {
       this.abilityData = new UserMetaAbilityData(player);
       this.potionData = new UserMetaPotionData(player);
       this.inventoryData = new UserMetaInventoryData(player);
-      this.synchronizeData = new UserMetaSynchronizeData();
+      this.synchronizeData = new UserMetaSynchronizeData(player);
       this.movementData = new UserMetaMovementData(player, user);
       this.attackData = new UserMetaAttackData(player);
       this.punishmentData = new UserMetaPunishmentData(player);

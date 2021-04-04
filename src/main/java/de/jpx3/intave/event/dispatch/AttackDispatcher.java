@@ -14,6 +14,8 @@ import de.jpx3.intave.event.packet.ListenerPriority;
 import de.jpx3.intave.event.packet.PacketDescriptor;
 import de.jpx3.intave.event.packet.PacketSubscription;
 import de.jpx3.intave.event.packet.Sender;
+import de.jpx3.intave.fakeplayer.FakePlayer;
+import de.jpx3.intave.fakeplayer.FakePlayerAttackSubscriber;
 import de.jpx3.intave.tools.sync.Synchronizer;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserMetaAttackData;
@@ -71,6 +73,15 @@ public final class AttackDispatcher implements EventProcessor {
       attackData.setLastAttackedEntityID(entityId);
       if (playerAttack(entityId)) {
         movementData.pastPlayerAttackPhysics = 0;
+      }
+
+      FakePlayer fakePlayer = attackData.fakePlayer();
+      if (fakePlayer != null) {
+        fakePlayer.onAttack();
+        if (fakePlayer.fakePlayerEntityId() == entityId) {
+          FakePlayerAttackSubscriber attackSubscriber = fakePlayer.attackSubscriber();
+          attackSubscriber.receive();
+        }
       }
     }
   }

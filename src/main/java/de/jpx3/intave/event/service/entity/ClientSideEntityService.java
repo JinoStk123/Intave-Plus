@@ -9,16 +9,14 @@ import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.access.IntaveInternalException;
 import de.jpx3.intave.adapter.ProtocolLibAdapter;
 import de.jpx3.intave.event.packet.*;
+import de.jpx3.intave.fakeplayer.FakePlayer;
 import de.jpx3.intave.logging.IntaveLogger;
 import de.jpx3.intave.reflect.ReflectiveAccess;
 import de.jpx3.intave.reflect.ReflectiveHandleAccess;
 import de.jpx3.intave.reflect.hitbox.HitBoxBoundaries;
 import de.jpx3.intave.reflect.hitbox.ReflectiveEntityHitBoxAccess;
 import de.jpx3.intave.tools.wrapper.WrappedMathHelper;
-import de.jpx3.intave.user.User;
-import de.jpx3.intave.user.UserMetaMovementData;
-import de.jpx3.intave.user.UserMetaSynchronizeData;
-import de.jpx3.intave.user.UserRepository;
+import de.jpx3.intave.user.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -133,6 +131,7 @@ public final class ClientSideEntityService implements PacketEventSubscriber {
 
   private void processEntitySpawn(Player player, PacketEvent event) {
     User user = UserRepository.userOf(player);
+    UserMetaAttackData attackData = user.meta().attackData();
     PacketContainer packet = event.getPacket();
     String entityName;
     HitBoxBoundaries hitBoxBoundaries;
@@ -144,9 +143,16 @@ public final class ClientSideEntityService implements PacketEventSubscriber {
       livingEntity = false;
     } else {
       // player
-      Object entity = entityOfDataWatcher(packet.getDataWatcherModifier().read(0));
-      hitBoxBoundaries = ReflectiveEntityHitBoxAccess.boundariesOf(entity);
-      entityName = entityNameOf(entity);
+      Integer entityID = packet.getIntegers().read(0);
+      FakePlayer fakePlayer = attackData.fakePlayer();
+      if (fakePlayer != null && fakePlayer.fakePlayerEntityId() == entityID) {
+        entityName = "<Intave-Bot>";
+        hitBoxBoundaries = HitBoxBoundaries.of(0.6f, 1.8f);
+      } else {
+        Object entity = entityOfDataWatcher(packet.getDataWatcherModifier().read(0));
+        hitBoxBoundaries = ReflectiveEntityHitBoxAccess.boundariesOf(entity);
+        entityName = entityNameOf(entity);
+      }
       livingEntity = true;
     }
     processPacketSpawnMob(user, event.getPacketType(), entityName, packet, livingEntity, hitBoxBoundaries);
