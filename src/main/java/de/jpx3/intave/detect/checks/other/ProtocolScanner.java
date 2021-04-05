@@ -22,21 +22,18 @@ public final class ProtocolScanner extends IntaveMetaCheck<ProtocolScanner.Proto
 
   @PacketSubscription(
     packets = {
-      @PacketDescriptor(sender = Sender.CLIENT, packetName = "")
+      @PacketDescriptor(sender = Sender.CLIENT, packetName = "POSITION_LOOK"),
+      @PacketDescriptor(sender = Sender.CLIENT, packetName = "LOOK")
     }
   )
   public void on(PacketEvent event) {
     Player player = event.getPlayer();
-    PacketContainer packet = event.getPacket();
-    boolean hasRotation = packet.getBooleans().read(2);
-    if (hasRotation) {
-      float rotationPitch = event.getPacket().getFloat().read(1);
-      if (Math.abs(rotationPitch) > 90.05f) {
-        event.getPacket().getFloat().writeSafely(1, 0f);
-        String message = "sent invalid rotation";
-        String details = "pitch at " + MathHelper.formatDouble(rotationPitch, 4);
-        plugin.violationProcessor().processViolation(player, 100, "ProtocolScanner", message, details);
-      }
+    float rotationPitch = event.getPacket().getFloat().read(1);
+    if (Math.abs(rotationPitch) > 90.05f) {
+      event.getPacket().getFloat().writeSafely(1, 0f);
+      String message = "sent invalid rotation";
+      String details = "pitch at " + MathHelper.formatDouble(rotationPitch, 4);
+      plugin.violationProcessor().processViolation(player, 100, "ProtocolScanner", message, details);
     }
   }
 
@@ -52,7 +49,7 @@ public final class ProtocolScanner extends IntaveMetaCheck<ProtocolScanner.Proto
     ProtocolScannerMeta meta = metaOf(user);
     int slot = packet.getIntegers().read(0);
     if (meta.lastSlot == slot && slot > 0) {
-      plugin.violationProcessor().processViolation(player, meta.slotPacketsSent > 4 ? 100 : 0, "ProtocolScanner","sent slot twice", "slot " + slot);
+      plugin.violationProcessor().processViolation(player, meta.slotPacketsSent > 4 ? 100 : 0, "ProtocolScanner", "sent slot twice", "slot " + slot);
     }
     meta.lastSlot = slot;
     meta.slotPacketsSent++;
