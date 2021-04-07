@@ -60,47 +60,30 @@ public final class MovementEmulationEngine {
   public void emulationSetBack(Player player, Vector motion, int ticks) {
     User user = UserRepository.userOf(player);
     User.UserMeta meta = user.meta();
-    UserMetaMovementData movementData = meta.movementData();
     UserMetaViolationLevelData violationLevelData = meta.violationLevelData();
-    double jumpUpwardsMotion = meta.movementData().jumpUpwardsMotion();
-
     if (violationLevelData.isInActiveTeleportBundle) {
       return;
     }
-
-    if (movementData.emulationVelocity != null) {
-      motion = movementData.emulationVelocity;
-//      Bukkit.broadcastMessage(player.getName() + ": velocity start apply " + motion);
-      movementData.emulationVelocity = null;
-    }
-
-//    if (Math.abs(motion.getY() - jumpUpwardsMotion) < 0.01) {
-//      motion.setX(motion.getX() / 3);
-//      motion.setZ(motion.getZ() / 3);
-//    }
-
     // starting conditions
-
     violationLevelData.isInActiveTeleportBundle = true;
-
     if (IntaveControl.DEBUG_EMULATION) {
       player.sendMessage("[E+] " + motion + " (" + ticks + " ticks)");
     }
-
-    proceedEmulationTick(player, motion, ticks, ticks);
+    proceedEmulationTick(player, motion, ticks);
   }
 
   public void emulationPushOutOfBlock(
-    Player player, WrappedAxisAlignedBB boundingBox,
-    double motionX, double motionY, double motionZ
+    Player player,
+    WrappedAxisAlignedBB boundingBox,
+    double motionX,
+    double motionY,
+    double motionZ
   ) {
     User user = UserRepository.userOf(player);
     UserMetaViolationLevelData violationLevelData = user.meta().violationLevelData();
-
     if (violationLevelData.isInActiveTeleportBundle) {
       return;
     }
-
     violationLevelData.isInActiveTeleportBundle = true;
     UserMetaMovementData movementData = user.meta().movementData();
     movementData.physicsMotionX = motionX;
@@ -148,10 +131,10 @@ public final class MovementEmulationEngine {
     }
   }
 
-  private void proceedEmulationTick(Player player, Vector motion, int ticks, int startingTicks) {
+  private void proceedEmulationTick(Player player, Vector motion, int ticks) {
     if (!Bukkit.isPrimaryThread()) {
       Vector finalMotion1 = motion;
-      Synchronizer.synchronizeDelayed(() -> proceedEmulationTick(player, finalMotion1, ticks, startingTicks), 0);
+      Synchronizer.synchronizeDelayed(() -> proceedEmulationTick(player, finalMotion1, ticks), 0);
       return;
     }
 
@@ -164,115 +147,99 @@ public final class MovementEmulationEngine {
     UserMetaMovementData movementData = meta.movementData();
     UserMetaViolationLevelData violationLevelData = meta.violationLevelData();
 
-    // check motion status (velocity?)
-    Location futurePosition = movementData.verifiedLocation();
-    WrappedAxisAlignedBB boundingBox = WrappedAxisAlignedBB.createFromPosition(user, futurePosition);
-
-    Vector emulationVelocity = movementData.emulationVelocity;
-    if (emulationVelocity != null) {
-//      Bukkit.broadcastMessage(player.getName() + ": velocity midair apply " + emulationVelocity);
-      motion = motionProceed(emulationVelocity, user, boundingBox, false);
-      movementData.emulationVelocity = null;
-    } else {
-      motion = motionProceed(motion, user, boundingBox, startingTicks > ticks);
-    }
-
-    // add y motion to falldistance
+    // update fall-distance
     if (motion.getY() < 0) {
       movementData.artificialFallDistance += -motion.getY();
     }
 
+    // check motion status (velocity?)
+    Location futurePosition = movementData.verifiedLocation();
     futurePosition = futurePosition.clone().add(motion);
     futurePosition.setYaw(movementData.rotationYaw);
     futurePosition.setPitch(movementData.rotationPitch);
 
-    if ((Math.abs(motion.getX()) < 0.01 && Math.abs(motion.getZ()) < 0.01 && motion.getY() == 0.0) || ticks <= 0) {
-      // velocity
-
+    int nextTick = ticks - 1;
+    if (nextTick <= 0 || motion.length() < 0.01) {
       teleport(player, futurePosition);
-      violationLevelData.isInActiveTeleportBundle = false;
-
-      Vector futureMotion = motionProceed(motion, user, boundingBox, true);
-
+      // velocity
+      WrappedAxisAlignedBB boundingBox = WrappedAxisAlignedBB.createFromPosition(user, futurePosition);
+      Vector futureMotion = motionProceed(motion, user, boundingBox);
       movementData.willReceiveSetbackVelocity = true;
       player.setVelocity(futureMotion);
-
       movementData.physicsMotionX = futureMotion.getX();
       movementData.physicsMotionY = futureMotion.getY();
       movementData.physicsMotionZ = futureMotion.getZ();
-
       if (movementData.onGround) {
         physicsCheck.applyFallDamageUpdate(user);
         movementData.artificialFallDistance = 0;
       }
-
       if (IntaveControl.DEBUG_EMULATION) {
         player.sendMessage("[E-] (" + ticks + " ticks remaining)");
       }
-
+      violationLevelData.isInActiveTeleportBundle = false;
     } else {
+      WrappedAxisAlignedBB boundingBox = WrappedAxisAlignedBB.createFromPosition(user, futurePosition);
+      Vector emulationVelocity = movementData.emulationVelocity;
+      if (emulationVelocity != null) {
+        motion = motionProceed(emulationVelocity, user, boundingBox);
+        movementData.emulationVelocity = null;
+      } else {
+        motion = motionProceed(motion, user, boundingBox);
+      }
       // teleport
-      //player.teleport(futurePosition);
       teleport(player, futurePosition);
-
       if (IntaveControl.DEBUG_EMULATION) {
         String s = "[E/] " + MathHelper.formatMotion(motion) + " at " + MathHelper.formatPosition(futurePosition) + " (" + ticks + " ticks remaining)";
         player.sendMessage(s);
       }
-      //   s += " @" + movementData.entityBoundingBox();
-
       Vector finalMotion = motion;
-      Synchronizer.synchronizeDelayed(() -> proceedEmulationTick(player, finalMotion, ticks - 1, startingTicks), 1);
-
+      Synchronizer.synchronizeDelayed(() -> proceedEmulationTick(player, finalMotion, nextTick), 1);
       // velocity
-      Vector futureMotion = motionProceed(motion, user, boundingBox, true);
-//      movementData.physicsMotionX = futureMotion.getX();
-//      movementData.physicsMotionY = futureMotion.getY();
-//      movementData.physicsMotionZ = futureMotion.getZ();
+      Vector futureMotion = motionProceed(motion, user, boundingBox);
       movementData.willReceiveSetbackVelocity = true;
       movementData.setbackOverrideVelocity = futureMotion;
       player.setVelocity(new Vector(0, 0, 0));
     }
   }
 
-  private Vector motionProceed(Vector lastMotion, User user, WrappedAxisAlignedBB boundingBox, boolean applyPhysics) {
+  private Vector motionProceed(Vector lastMotion, User user, WrappedAxisAlignedBB boundingBox) {
     Player player = user.player();
     UserMetaMovementData movementData = user.meta().movementData();
-    double motionY = lastMotion.getY();
-    if (applyPhysics) {
-      // TODO: 01/07/21 ladder/vines
-
-      if (movementData.inWater) {
-        motionY = lastMotion.getY() * 0.8f;
-        motionY -= 0.02;
-      } else {
-        motionY = (lastMotion.getY() - movementData.gravity) * 0.98f;
-      }
+    lastMotion = lastMotion.clone();
+    double motionY;
+    if (Math.abs(lastMotion.getX()) < movementData.resetMotion()) {
+      lastMotion.setX(0);
+    }
+    if (Math.abs(lastMotion.getY()) < movementData.resetMotion()) {
+      lastMotion.setY(0);
+    }
+    if (Math.abs(lastMotion.getZ()) < movementData.resetMotion()) {
+      lastMotion.setZ(0);
+    }
+    if (movementData.inWater) {
+      motionY = lastMotion.getY() * 0.8f;
+      motionY -= 0.02;
+    } else {
+      motionY = (lastMotion.getY() - movementData.gravity) * 0.98f;
     }
     Vector collisionVector = resolveCollisionVector(player, boundingBox, lastMotion.getX(), motionY, lastMotion.getZ());
     boolean onGround = motionY != collisionVector.getY() && motionY < 0.0;
     motionY = collisionVector.getY();
     double multiplier;
-    if (applyPhysics) {
-      if (movementData.inWater) {
-        multiplier = 0.8f;
-      } else {
-        multiplier = onGround ? 0.546f : 0.91f;
-      }
+    if (movementData.inWater) {
+      multiplier = 0.8f;
     } else {
-      multiplier = 1;
+      multiplier = movementData.lastOnGround ? 0.546f : 0.91f;
     }
     double motionX = lastMotion.getX() * multiplier;
     double motionZ = lastMotion.getZ() * multiplier;
-    if (applyPhysics) {
-      if (movementData.inWeb) {
-        motionX *= 0.25D;
-        motionY *= 0.05f;
-        motionZ *= 0.25D;
-      }
-      movementData.lastOnGround = movementData.onGround;
-      movementData.onGround = onGround;
+    if (movementData.inWeb) {
+      motionX *= 0.25D;
+      motionY *= 0.05f;
+      motionZ *= 0.25D;
     }
+    movementData.lastOnGround = movementData.onGround;
+    movementData.onGround = onGround;
     collisionVector = resolveCollisionVector(player, boundingBox, motionX, motionY, motionZ);
 
     // webs, water

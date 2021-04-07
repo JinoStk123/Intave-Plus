@@ -28,10 +28,7 @@ import de.jpx3.intave.world.collider.result.ComplexColliderSimulationResult;
 import de.jpx3.intave.world.collider.result.QuickColliderSimulationResult;
 import de.jpx3.intave.world.collision.Collision;
 import de.jpx3.intave.world.waterflow.Waterflow;
-import org.bukkit.ChatColor;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -431,7 +428,7 @@ public final class Physics extends IntaveCheck {
 
       user.boundingBoxAccess().identityInvalidate();
 
-      boolean setback = plugin.violationProcessor().processViolation(player, violationLevelIncrease / 20d, "Physics", message, details) || violationLevelData.physicsVL >= 60;
+      boolean setback = plugin.violationProcessor().processViolation(player, violationLevelIncrease / 10d, "Physics", message, details) || violationLevelData.physicsVL >= 60;
       if (setback) {
         plugin.eventService().emulationEngine().emulationSetBack(player, emulationMotion, movementData.pastExternalVelocity <= 8 ? 8 : 1);
       }
@@ -724,9 +721,11 @@ public final class Physics extends IntaveCheck {
     boolean movedTooQuicklyCheckable = distanceMoved > 0.15 || violationLevelData.physicsInvalidMovementsInRow >= 8;
 
     if (movedTooQuickly && movedTooQuicklyCheckable && abuseHorizontally > 0 && !recentlyVelocity) {
-//      double vl = Math.max(abuseHorizontally, 0.3) * 100.0;
+      boolean aggressive = distance > 0.4;
+      //noinspection UnnecessaryLocalVariable
+      double vl = Math.max(abuseHorizontally, aggressive ? 0.6 : 0.3) * (aggressive ? 200 : 100);
 //      Bukkit.broadcastMessage(user.player().getName() + " moved too quickly: vl+" + vl);
-      return Math.max(abuseHorizontally, 0.3) * 100.0;
+      return vl;
     }
 
     double multiplier = abuseHorizontally > 0.1 ? 20.0 : 10.0;
@@ -759,9 +758,5 @@ public final class Physics extends IntaveCheck {
     if (Math.abs(movementData.physicsMotionZ) < resetMotion) {
       movementData.physicsMotionZ = 0.0;
     }
-  }
-
-  public SimulationProcessor simulationService() {
-    return simulationService;
   }
 }

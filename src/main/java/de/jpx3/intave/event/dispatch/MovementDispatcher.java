@@ -262,15 +262,6 @@ public final class MovementDispatcher implements EventProcessor {
       }
 
       timerCheck.checkSetback(event);
-
-      // delete velocity cache if not used
-//      if(!violationLevelData.isInActiveTeleportBundle && !movementData.invalidMovement) {
-//        if(movementData.emulationVelocity != null) {
-//          Bukkit.broadcastMessage("Delete emulation space " + movementData.emulationVelocity);
-//          movementData.emulationVelocity = null;
-//        }
-//      }
-
       attackData.updatePerfectRotation();
 
       if (inventoryData.awaitingSlotSet != -1) {
@@ -486,9 +477,7 @@ public final class MovementDispatcher implements EventProcessor {
         return;
       }
 
-//      Bukkit.broadcastMessage(player.getName() + ": motion update force: " + MathHelper.formatMotion(velocity) + " " + isInActiveTeleportBundle);
       movementData.emulationVelocity = velocity.clone();
-//      movementData.pastOutgoingVelocity = 0;
       plugin.eventService().transactionFeedbackService().requestPong(player, velocity, this::receiveVelocity);
     }
   }
