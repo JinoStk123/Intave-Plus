@@ -50,7 +50,7 @@ public final class RotationAccuracyYawHeuristic extends IntaveMetaCheckPart<Heur
     float yawSpeed = MathHelper.distanceInDegrees(rotationYaw, movementData.lastRotationYaw);
     float distanceToPerfectYaw = MathHelper.distanceInDegrees(perfectYaw, rotationYaw);
 
-    if (entity == null) {
+    if (entity == null || movementData.lastTeleport < 5) {
       return;
     }
 
@@ -70,12 +70,12 @@ public final class RotationAccuracyYawHeuristic extends IntaveMetaCheckPart<Heur
       heuristicMeta.snapVL -= 0.1;
     }
 
-    if (entity.moving(0.2) && attackData.recentlyAttacked(1000)) {
+    if (entity.moving(0.05) && attackData.recentlyAttacked(1000)) {
 
       if (yawSpeed > 1.0) {
 
-        if (yawSpeed > 3.0 && entity.moving(0.4)) {
-          double increase = MathHelper.minmax(-1.0, (2 - distanceToPerfectYaw) * Math.min(6, yawSpeed), 2);
+        if (yawSpeed > 3.0) {
+          double increase = MathHelper.minmax(-0.5, (2.2 - distanceToPerfectYaw) * Math.min(6, yawSpeed), 2);
 
           heuristicMeta.followBalance += increase;
 
@@ -85,10 +85,10 @@ public final class RotationAccuracyYawHeuristic extends IntaveMetaCheckPart<Heur
 
           if (heuristicMeta.followBalance > 25) {
             String description = "follows entity movement too precisely";
-            int options = LIMIT_4 | SUGGEST_MINING;
+            int options = LIMIT_4 | SUGGEST_MINING | DELAY_64s;
             Anomaly anomaly = Anomaly.anomalyOf("81", Confidence.PROBABLE, Anomaly.Type.KILLAURA, description, options);
             parentCheck().saveAnomaly(player, anomaly);
-            heuristicMeta.followBalance -= 20;
+            heuristicMeta.followBalance -= 7;
             plugin.eventService().attackCancelService().requestDamageCancel(user, AttackCancelType.LIGHT);
           }
 
