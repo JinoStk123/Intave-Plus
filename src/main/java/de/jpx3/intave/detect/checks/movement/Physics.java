@@ -297,7 +297,7 @@ public final class Physics extends IntaveCheck {
       movementData.artificialFallDistance = 0;
     }
 
-    if (!skipVLCalculation && movementData.pastExternalVelocity < 10) {
+    if (!skipVLCalculation && movementData.pastExternalVelocity < 10 && !movementData.recentlyEncounteredFlyingPacket(2)) {
       if (horizontalViolationIncrease > 0) {
         horizontalViolationIncrease = Math.max(horizontalViolationIncrease, 1.0);
       }
