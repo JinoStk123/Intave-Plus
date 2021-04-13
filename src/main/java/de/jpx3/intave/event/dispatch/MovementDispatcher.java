@@ -98,6 +98,7 @@ public final class MovementDispatcher implements EventProcessor {
     User user = UserRepository.userOf(player);
     UserMetaMovementData movementData = user.meta().movementData();
     movementData.updateWorld();
+    user.boundingBoxAccess().identityInvalidate();
   }
 
   @BukkitEventSubscription

@@ -28,7 +28,10 @@ import de.jpx3.intave.world.collider.result.ComplexColliderSimulationResult;
 import de.jpx3.intave.world.collider.result.QuickColliderSimulationResult;
 import de.jpx3.intave.world.collision.Collision;
 import de.jpx3.intave.world.waterflow.Waterflow;
-import org.bukkit.*;
+import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -366,7 +369,7 @@ public final class Physics extends IntaveCheck {
 
         String message = "moved into " + (currentlyInOverride ? "emulated" : "") + " " + shortenTypeName(block.getType()) + " block";
         boolean multipleBoxes = intersectionBoundingBoxesCurrent.size() > 1;
-        String details = (multipleBoxes ? intersectionBoundingBoxesCurrent.size() : "one") + " box" + (multipleBoxes ? "es" : "") + " " + movementData.height;
+        String details = (multipleBoxes ? intersectionBoundingBoxesCurrent.size() : "one") + " box" + (multipleBoxes ? "es" : "");
 
         user.boundingBoxAccess().identityInvalidate();
 

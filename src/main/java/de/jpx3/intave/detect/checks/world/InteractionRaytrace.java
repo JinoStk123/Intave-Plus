@@ -52,8 +52,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import static com.comphenix.protocol.wrappers.EnumWrappers.PlayerDigType.ABORT_DESTROY_BLOCK;
-import static com.comphenix.protocol.wrappers.EnumWrappers.PlayerDigType.STOP_DESTROY_BLOCK;
+import static com.comphenix.protocol.wrappers.EnumWrappers.PlayerDigType.*;
 
 public final class InteractionRaytrace extends IntaveMetaCheck<InteractionRaytrace.InteractionMeta> {
   private final IntavePlugin plugin;
@@ -109,10 +108,20 @@ public final class InteractionRaytrace extends IntaveMetaCheck<InteractionRaytra
       isPlacement ? InteractionType.PLACE : InteractionType.INTERACT, facing,
       itemTypeInHand,
       hand == null ? EnumWrappers.Hand.MAIN_HAND : hand,
+      false,
       false
     );
-    interactionMeta.interactionList.add(interaction);
-    event.setCancelled(true);
+    Location playerLocation = new Location(player.getWorld(), movementData.lastPositionX, movementData.lastPositionY, movementData.lastPositionZ);
+    playerLocation.setYaw(movementData.rotationYaw);
+    playerLocation.setPitch(movementData.rotationPitch);
+    Location playerLocationmdf = playerLocation.clone();
+    playerLocationmdf.setYaw(movementData.lastRotationYaw);
+    if(prevalidateInteraction(interaction, playerLocation, playerLocationmdf)) {
+      emulate(interaction);
+    } else {
+      interactionMeta.interactionList.add(interaction);
+      event.setCancelled(true);
+    }
   }
 
   @PacketSubscription(
@@ -126,6 +135,7 @@ public final class InteractionRaytrace extends IntaveMetaCheck<InteractionRaytra
     PacketContainer packet = event.getPacket();
     BlockPosition blockPosition = packet.getBlockPositionModifier().readSafely(0);
     User user = userOf(player);
+    UserMetaMovementData movementData = user.meta().movementData();
     if (blockPosition == null || event.isCancelled()) {
       return;
     }
@@ -145,16 +155,33 @@ public final class InteractionRaytrace extends IntaveMetaCheck<InteractionRaytra
     if (enumDirection == 255 || blocking) {
       return;
     }
+
     InteractionMeta interactionMeta = metaOf(user);
+
     Interaction interaction = new Interaction(
       player.getWorld(), player, blockPosition, enumDirection, packet.deepClone(), breakBlock ? InteractionType.BREAK : InteractionType.INTERACT,
       null,
       user.meta().inventoryData().heldItemType(),
       EnumWrappers.Hand.MAIN_HAND,
-      playerDigType == ABORT_DESTROY_BLOCK
+      playerDigType == ABORT_DESTROY_BLOCK,
+      playerDigType == START_DESTROY_BLOCK
     );
-    interactionMeta.interactionList.add(interaction);
-    event.setCancelled(true);
+    Location playerLocation = new Location(player.getWorld(), movementData.lastPositionX, movementData.lastPositionY, movementData.lastPositionZ);
+    playerLocation.setYaw(movementData.rotationYaw);
+    playerLocation.setPitch(movementData.rotationPitch);
+    Location playerLocationmdf = playerLocation.clone();
+    playerLocationmdf.setYaw(movementData.lastRotationYaw);
+
+    boolean mustPostValidate = interactionMeta.remainingBlockStart > 0;
+    if(!mustPostValidate && prevalidateInteraction(interaction, playerLocation, playerLocationmdf)) {
+      emulate(interaction);
+    } else {
+      interactionMeta.interactionList.add(interaction);
+      event.setCancelled(true);
+      if(playerDigType == START_DESTROY_BLOCK) {
+        interactionMeta.remainingBlockStart++;
+      }
+    }
   }
 
   @DispatchCrossCall
@@ -197,6 +224,11 @@ public final class InteractionRaytrace extends IntaveMetaCheck<InteractionRaytra
     Player player = interaction.player();
     User user = userOf(player);
     InteractionMeta interactionMeta = metaOf(player);
+
+    if(interaction.isStartBlockBreak()) {
+      interactionMeta.remainingBlockStart--;
+    }
+
     WrappedMovingObjectPosition raycastResult = Raytracer.blockRayTrace(player, playerLocation);
     WrappedMovingObjectPosition raycastResultmdf = Raytracer.blockRayTrace(player, playerLocationmdf);
     boolean estimateMouseDelayFix = interactionMeta.estimateMouseDelayFix;
@@ -256,21 +288,62 @@ public final class InteractionRaytrace extends IntaveMetaCheck<InteractionRaytra
         }
       }
     }
-    boolean emulationFailed = false;
-    /* emulate placement */
-    if(interaction.type == InteractionType.PLACE && !invalid) {
-      emulationFailed = !emulatePlacement(player, interaction);
-    } else if(interaction.type == InteractionType.INTERACT && !invalid) {
-      emulationFailed = !emulateInteraction(player, interaction);
-    } else if(interaction.type == InteractionType.BREAK && !invalid) {
-      emulationFailed = !emulateBreak(player, interaction);
+
+    if(!invalid) {
+      boolean emulationFailed = emulate(interaction);
+      if(emulationFailed) {
+        emulatePacket(interaction, raycastResult, targetLocation, raycastLocation, hitMiss, true, true);
+        return;
+      }
     }
-    if(emulationFailed) {
-      emulatePacket(interaction, raycastResult, targetLocation, raycastLocation, hitMiss, true, true);
-      return;
-    }
+
     boolean flag = invalid && !interaction.ignoreFlags && performFlag(interaction, raycastResult, targetLocation, raycastLocation, hitMiss, atLeastLookingAtBlock);
     emulatePacket(interaction, raycastResult, targetLocation, raycastLocation, hitMiss, flag, false);
+  }
+
+  private boolean emulate(Interaction interaction) {
+    Player player = interaction.player();
+    boolean emulationFailed = false;
+    if(interaction.type == InteractionType.PLACE) {
+      emulationFailed = !emulatePlacement(player, interaction);
+    } else if(interaction.type == InteractionType.INTERACT) {
+      emulationFailed = !emulateInteraction(player, interaction);
+    } else if(interaction.type == InteractionType.BREAK) {
+      emulationFailed = !emulateBreak(player, interaction);
+    }
+    return emulationFailed;
+  }
+
+  private boolean prevalidateInteraction(Interaction interaction, Location playerLocation, Location playerLocationmdf) {
+    World world = interaction.world();
+    Player player = interaction.player();
+    InteractionMeta interactionMeta = metaOf(player);
+    WrappedMovingObjectPosition raycastResult = Raytracer.blockRayTrace(player, playerLocation);
+    WrappedMovingObjectPosition raycastResultmdf = Raytracer.blockRayTrace(player, playerLocationmdf);
+    boolean estimateMouseDelayFix = interactionMeta.estimateMouseDelayFix;
+
+    // first raytrace check
+    WrappedMovingObjectPosition firstRaytraceResult = estimateMouseDelayFix ? raycastResultmdf : raycastResult;
+    boolean hitMiss = (firstRaytraceResult == null || firstRaytraceResult.hitVec == WrappedVector.ZERO);
+    WrappedBlockPosition raycastVector = hitMiss ? WrappedBlockPosition.ORIGIN : firstRaytraceResult.getBlockPos();
+    Location raycastLocation = raycastVector.toLocation(world);
+    Location targetLocation = interaction.targetBlock.toLocation(world);
+    boolean invalid = hitMiss ||
+      raycastLocation.distance(targetLocation) > 0 ||
+      interaction.targetDirection != firstRaytraceResult.sideHit.getIndex();
+
+    // if first raytrace failed..
+    if (invalid) {
+      // ..try again with mouse delay fix toggled differently
+      WrappedMovingObjectPosition secondRaytraceResult = estimateMouseDelayFix ? raycastResult : raycastResultmdf;
+      boolean hitMiss2 = secondRaytraceResult == null || secondRaytraceResult.hitVec == WrappedVector.ZERO;
+      WrappedBlockPosition raycastVector2 = hitMiss2 ? WrappedBlockPosition.ORIGIN : secondRaytraceResult.getBlockPos();
+      Location raycastLocation2 = raycastVector2.toLocation(world);
+      invalid = hitMiss2 ||
+        raycastLocation2.distance(targetLocation) > 0 ||
+        interaction.targetDirection != secondRaytraceResult.sideHit.getIndex();
+    }
+    return !invalid;
   }
 
   private boolean emulatePlacement(Player player, Interaction interaction) {
@@ -652,12 +725,6 @@ public final class InteractionRaytrace extends IntaveMetaCheck<InteractionRaytra
     );
   }
 
-  public static class InteractionMeta extends UserCustomCheckMeta {
-    final List<Interaction> interactionList = new CopyOnWriteArrayList<>();
-    public long lastPlacement;
-    public boolean estimateMouseDelayFix = false;
-  }
-
   public enum InteractionType {
     BREAK(ResponseType.CANCEL, false),
     INTERACT(ResponseType.RAYTRACE_CAST, false),
@@ -691,7 +758,8 @@ public final class InteractionRaytrace extends IntaveMetaCheck<InteractionRaytra
     private final Vector facingVector;
     private final Material itemTypeInHand;
     private final EnumWrappers.Hand hand;
-    private final boolean ignoreFlags;
+    private boolean ignoreFlags;
+    private boolean isStartBlockBreak;
     private boolean entered = false;
     private boolean changeLocked = true;
 
@@ -702,8 +770,8 @@ public final class InteractionRaytrace extends IntaveMetaCheck<InteractionRaytra
       PacketContainer thePacket,
       InteractionType type,
       Vector facingVector, Material itemTypeInHand, EnumWrappers.Hand hand,
-      boolean ignoreFlags
-    ) {
+      boolean ignoreFlags,
+      boolean isStartBlockBreak) {
       this.world = world;
       this.player = player;
       this.targetBlock = targetBlock;
@@ -714,6 +782,7 @@ public final class InteractionRaytrace extends IntaveMetaCheck<InteractionRaytra
       this.itemTypeInHand = itemTypeInHand;
       this.hand = hand;
       this.ignoreFlags = ignoreFlags;
+      this.isStartBlockBreak = isStartBlockBreak;
     }
 
     public PacketContainer thePacket() {
@@ -764,6 +833,10 @@ public final class InteractionRaytrace extends IntaveMetaCheck<InteractionRaytra
       return entered;
     }
 
+    public boolean isStartBlockBreak() {
+      return isStartBlockBreak;
+    }
+
     @Override
     public String toString() {
       return "Interaction{" +
@@ -776,5 +849,12 @@ public final class InteractionRaytrace extends IntaveMetaCheck<InteractionRaytra
         ", entered=" + entered +
         '}';
     }
+  }
+
+  public static class InteractionMeta extends UserCustomCheckMeta {
+    final List<Interaction> interactionList = new CopyOnWriteArrayList<>();
+    public long lastPlacement;
+    public boolean estimateMouseDelayFix = false;
+    public long remainingBlockStart = 0;
   }
 }
