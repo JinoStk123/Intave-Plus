@@ -62,22 +62,22 @@ public class DefaultPoseSimulator extends PoseSimulator {
     }
     if (jumped) {
       boolean allowJumpInWater = false;
-     if (clientData.waterUpdate()) {
-       // Geht nicht anders
-       Material material = BukkitBlockAccess.cacheAppliedTypeAccess(
-         user, user.player().getWorld(),
-         movementData.lastPositionX, movementData.lastPositionY, movementData.lastPositionZ
-       );
-       int blockData = BukkitBlockAccess.cacheAppliedDataAccess(
-         user, user.player().getWorld(),
-         movementData.lastPositionX, movementData.lastPositionY, movementData.lastPositionZ
-       );
-       float heightPercentage = LegacyWaterPhysics.resolveLiquidHeightPercentage(blockData);
-       if (movementData.onGround) {
-         heightPercentage += movementData.positionY % 1;
-         allowJumpInWater = !MaterialLogic.isWater(material) || heightPercentage > 0.5;
-       }
-     }
+      if (clientData.waterUpdate()) {
+        // Geht nicht anders
+        Material material = BukkitBlockAccess.cacheAppliedTypeAccess(
+          user, user.player().getWorld(),
+          movementData.lastPositionX, movementData.lastPositionY, movementData.lastPositionZ
+        );
+        int blockData = BukkitBlockAccess.cacheAppliedDataAccess(
+          user, user.player().getWorld(),
+          movementData.lastPositionX, movementData.lastPositionY, movementData.lastPositionZ
+        );
+        float heightPercentage = LegacyWaterPhysics.resolveLiquidHeightPercentage(blockData);
+        if (movementData.onGround) {
+          heightPercentage += movementData.positionY % 1;
+          allowJumpInWater = !MaterialLogic.isWater(material) || heightPercentage > 0.5;
+        }
+      }
       if (inWater && !allowJumpInWater) {
         context.motionY += 0.04F;
       } else if (inLava) {
@@ -226,6 +226,7 @@ public class DefaultPoseSimulator extends PoseSimulator {
         break;
       } else if (jump && flyingPacket(diffX * 0.15, 0.0, diffZ * 0.15) && !movementData.denyJump()) {
         context.motionY = jumpUpwardsMotion;
+        movementData.artificialFallDistance = 0f;
         movementData.physicsPacketRelinkFlyVL = 0;
         break;
       } else if (movementData.motionY() < 0) {
