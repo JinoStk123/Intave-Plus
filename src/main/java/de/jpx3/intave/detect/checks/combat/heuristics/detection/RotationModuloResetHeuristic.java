@@ -122,7 +122,7 @@ public final class RotationModuloResetHeuristic extends IntaveMetaCheckPart<Heur
       return;
     }
 
-    if(movementData.lastTeleport < 5) {
+    if(movementData.lastTeleport <= 2) {
       meta.lastLastYawMotion = 0;
       meta.lastYawMotion = 0;
       return;
