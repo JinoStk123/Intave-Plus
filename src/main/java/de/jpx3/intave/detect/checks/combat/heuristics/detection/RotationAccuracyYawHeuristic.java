@@ -75,7 +75,7 @@ public final class RotationAccuracyYawHeuristic extends IntaveMetaCheckPart<Heur
       if (yawSpeed > 1.0) {
 
         if (yawSpeed > 3.0) {
-          double increase = MathHelper.minmax(-0.5, (2.2 - distanceToPerfectYaw) * Math.min(6, yawSpeed), 2);
+          double increase = MathHelper.minmax(-2.5, (2.2 - distanceToPerfectYaw) * Math.min(6, yawSpeed), 2);
 
           heuristicMeta.followBalance += increase;
 

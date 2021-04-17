@@ -3,6 +3,7 @@ package de.jpx3.intave.detect.checks.combat.heuristics.detection;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.EnumWrappers;
+import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.detect.IntaveMetaCheckPart;
 import de.jpx3.intave.detect.checks.combat.Heuristics;
 import de.jpx3.intave.detect.checks.combat.heuristics.Anomaly;
@@ -11,6 +12,7 @@ import de.jpx3.intave.event.packet.ListenerPriority;
 import de.jpx3.intave.event.packet.PacketDescriptor;
 import de.jpx3.intave.event.packet.PacketSubscription;
 import de.jpx3.intave.event.packet.Sender;
+import de.jpx3.intave.event.punishment.AttackCancelType;
 import de.jpx3.intave.event.service.entity.WrappedEntity;
 import de.jpx3.intave.tools.AccessHelper;
 import de.jpx3.intave.user.*;
@@ -22,8 +24,11 @@ import static de.jpx3.intave.user.UserMetaClientData.PROTOCOL_VERSION_BOUNTIFUL_
 import static de.jpx3.intave.world.raytrace.Raytracer.distanceOf;
 
 public final class AttackRequiredHeuristic extends IntaveMetaCheckPart<Heuristics, AttackRequiredHeuristic.VentolotlMeta> {
+  private final IntavePlugin plugin;
+
   public AttackRequiredHeuristic(Heuristics parentCheck) {
     super(parentCheck, AttackRequiredHeuristic.VentolotlMeta.class);
+    this.plugin = IntavePlugin.singletonInstance();
   }
 
   @PacketSubscription(
@@ -90,9 +95,14 @@ public final class AttackRequiredHeuristic extends IntaveMetaCheckPart<Heuristic
         long timeToLastFlag = AccessHelper.now() - meta.lastFlag;
         if (timeToLastFlag < 10_000 && timeToLastFlag > 50) {
           int vl = (meta.vl += 200) / 200;
-          int options = Anomaly.AnomalyOption.SUGGEST_MINING;
-          Anomaly anomaly = Anomaly.anomalyOf("151", Confidence.NONE, Anomaly.Type.KILLAURA, "missed attack packet vl:" + vl, options);
+          int options = Anomaly.AnomalyOption.DELAY_64s | Anomaly.AnomalyOption.DELAY_128s;
+          boolean flag = vl >= 8;
+          Confidence confidence = flag ? Confidence.PROBABLE : Confidence.NONE;
+          Anomaly anomaly = Anomaly.anomalyOf("151", confidence, Anomaly.Type.KILLAURA, "missed attack packet vl:" + vl, options);
           parentCheck().saveAnomaly(player, anomaly);
+          if (flag) {
+            plugin.eventService().attackCancelService().requestDamageCancel(user, AttackCancelType.LIGHT);
+          }
         }
         meta.lastFlag = AccessHelper.now();
       }

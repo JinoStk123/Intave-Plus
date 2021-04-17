@@ -43,6 +43,10 @@ public final class AttackReduceIgnoreHeuristic extends IntaveMetaCheckPart<Heuri
       return;
     }
 
+    if (movementData.recentlyEncounteredFlyingPacket(1)) {
+      return;
+    }
+
     if (movementData.lastSprinting && movementData.sprinting && movementData.pastPlayerAttackPhysics == 0) {
       if (movementData.ignoredAttackReduce) {
         if (heuristicMeta.vl++ > 5) {
