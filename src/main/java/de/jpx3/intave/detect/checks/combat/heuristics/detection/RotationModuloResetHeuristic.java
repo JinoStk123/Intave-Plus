@@ -104,6 +104,7 @@ public final class RotationModuloResetHeuristic extends IntaveMetaCheckPart<Heur
   }
 
   @PacketSubscription(
+    priority = ListenerPriority.HIGH,
     packets = {
       @PacketDescriptor(sender = Sender.CLIENT, packetName = "POSITION_LOOK"),
       @PacketDescriptor(sender = Sender.CLIENT, packetName = "LOOK"),
@@ -117,30 +118,36 @@ public final class RotationModuloResetHeuristic extends IntaveMetaCheckPart<Heur
     UserMetaMovementData movementData = user.meta().movementData();
     RotationModuloResetHeuristicMeta meta = metaOf(user);
 
+    if (ProtocolLibAdapter.serverVersion().isAtLeast(ProtocolLibAdapter.COMBAT_UPDATE)) {
+      return;
+    }
+
+    if(movementData.lastTeleport < 5) {
+      meta.lastLastYawMotion = 0;
+      meta.lastYawMotion = 0;
+      return;
+    }
+
     double yawMotion = Math.abs(movementData.lastRotationYaw - movementData.rotationYaw);
 
-    if(movementData.lastTeleport > 5) {
-      if (ProtocolLibAdapter.serverVersion().isAtLeast(ProtocolLibAdapter.COMBAT_UPDATE)) {
-        return;
-      }
-      if (meta.lastLastYawMotion < 7 && meta.lastYawMotion > 50 && yawMotion < 3) {
-        // lastLastYawMotion < 7 && lastYawMotion > 50 && yawMotion < 7 && lastSwing <= 3
-        String description = "rotation hop (llMotion:"
-            + MathHelper.formatDouble(meta.lastLastYawMotion, 2)
-            + " lMotion:" +  MathHelper.formatDouble(meta.lastYawMotion, 2)
-            + " curMotion:" + MathHelper.formatDouble(yawMotion, 2)
-            + " swing:" + Math.max(meta.lastSwing,99)
-            + " attack:" + Math.max(meta.lastAttack, 99)
-            + " tp:" + Math.max(movementData.lastTeleport, 99)
-            + ")";
-        int options = Anomaly.AnomalyOption.DELAY_128s;
-        Anomaly anomaly = Anomaly.anomalyOf("102", Confidence.NONE, Anomaly.Type.KILLAURA, description, options);
-        parentCheck().saveAnomaly(player, anomaly);
-      }
+    if (meta.lastLastYawMotion < 7 && meta.lastYawMotion > 50 && yawMotion < 3) {
+      // lastLastYawMotion < 7 && lastYawMotion > 50 && yawMotion < 7 && lastSwing <= 3
+      String description = "rotation hop (llMotion:"
+          + MathHelper.formatDouble(meta.lastLastYawMotion, 2)
+          + " lMotion:" +  MathHelper.formatDouble(meta.lastYawMotion, 2)
+          + " curMotion:" + MathHelper.formatDouble(yawMotion, 2)
+          + " swing:" + Math.min(meta.lastSwing, 99)
+          + " attack:" + Math.min(meta.lastAttack, 99);
+      if(movementData.lastTeleport < 20)
+        description += " tp:" + Math.min(movementData.lastTeleport, 99);
+      description += ")";
+
+      int options = Anomaly.AnomalyOption.DELAY_128s;
+      Anomaly anomaly = Anomaly.anomalyOf("102", Confidence.NONE, Anomaly.Type.KILLAURA, description, options);
+      parentCheck().saveAnomaly(player, anomaly);
     }
-    if(movementData.lastTeleport != 0) {
-      prepareNextTick(meta, yawMotion);
-    }
+
+    prepareNextTick(meta, yawMotion);
   }
 
   private void prepareNextTick(RotationModuloResetHeuristicMeta meta, double yawMotion) {
