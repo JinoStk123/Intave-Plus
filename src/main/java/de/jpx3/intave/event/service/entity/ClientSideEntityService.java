@@ -5,6 +5,7 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.utility.MinecraftVersion;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
+import com.comphenix.protocol.wrappers.WrappedWatchableObject;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.access.IntaveInternalException;
 import de.jpx3.intave.adapter.ProtocolLibAdapter;
@@ -452,9 +453,8 @@ public final class ClientSideEntityService implements PacketEventSubscriber {
     if (entity == null) {
       return;
     }
-    WrappedDataWatcher dataWatcher = new WrappedDataWatcher(packet.getWatchableCollectionModifier().read(0));
-    if (dataWatcher.getObject(6) != null) {
-      float health = dataWatcher.getFloat(6);
+    Float health = readHealthOf(packet.getWatchableCollectionModifier().read(0));
+    if (health != null) {
       boolean synchronize = entity.clientSynchronized && entity.tracingEnabled();
       if (synchronize) {
         plugin.eventService().transactionFeedbackService().requestPong(player, entity, (p, e) -> updateHealthState(e, health));
@@ -462,6 +462,16 @@ public final class ClientSideEntityService implements PacketEventSubscriber {
         updateHealthState(entity, health);
       }
     }
+  }
+
+  private Float readHealthOf(List<WrappedWatchableObject> watchableObjects) {
+    for (WrappedWatchableObject watchableObject : watchableObjects) {
+      int index = watchableObject.getIndex();
+      if (index == 6) {
+        return (Float) watchableObject.getValue();
+      }
+    }
+    return null;
   }
 
   private void updateHealthState(WrappedEntity entity, float health) {
