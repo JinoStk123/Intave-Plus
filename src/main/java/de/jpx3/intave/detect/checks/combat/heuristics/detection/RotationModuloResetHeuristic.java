@@ -45,6 +45,8 @@ public final class RotationModuloResetHeuristic extends IntaveMetaCheckPart<Heur
     UserMetaAttackData attackData = user.meta().attackData();
     RotationModuloResetHeuristicMeta heuristicMeta = metaOf(user);
 
+    heuristicMeta.rotationPacketCounter++;
+
     WrappedEntity attackedEntity = attackData.lastAttackedEntity();
     if (attackedEntity == null || attackData.recentlySwitchedEntity(5000) || movementData.lastTeleport < 100) {
       return;
@@ -156,7 +158,7 @@ public final class RotationModuloResetHeuristic extends IntaveMetaCheckPart<Heur
       isLegit = true;
     }
 
-    if (!isLegit && (meta.lastSwing <= 5 || meta.lastAttack <= 5)) {
+    if (!isLegit && (meta.lastSwing <= 5 || meta.lastAttack <= 5) && meta.rotationPacketCounter > 5) {
       // lastLastYawMotion < 7 && lastYawMotion > 50 && yawMotion < 7 && lastSwing <= 3
       String description = "rotation hop ("
         + "val:" + getArrayAsString(meta, yawMotion)
@@ -238,6 +240,7 @@ public final class RotationModuloResetHeuristic extends IntaveMetaCheckPart<Heur
   }
 
   public static final class RotationModuloResetHeuristicMeta extends UserCustomCheckMeta {
+    private int rotationPacketCounter;
     private double[] rotationMotions = new double[4];
     private int index;
     private int lastSwing;

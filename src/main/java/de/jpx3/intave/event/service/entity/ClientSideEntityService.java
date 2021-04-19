@@ -21,6 +21,7 @@ import de.jpx3.intave.user.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
@@ -312,12 +313,17 @@ public final class ClientSideEntityService implements PacketEventSubscriber {
     int serverPosX = WrappedMathHelper.floor(location.getX() * 32d);
     int serverPosY = WrappedMathHelper.floor(location.getY() * 32d);
     int serverPosZ = WrappedMathHelper.floor(location.getZ() * 32d);
-    processEntitySpawn(
+    WrappedEntity entity = processEntitySpawn(
       user,
       entityName, isEntityLiving, entityID,
       serverPosX, serverPosY, serverPosZ,
       boundaries
     );
+
+    if(bukkitEntity instanceof  LivingEntity) {
+      LivingEntity livingEntity = (LivingEntity) bukkitEntity;
+      entity.health = (float) livingEntity.getHealth();
+    }
   }
 
   private String entityNameByBukkitEntity(Entity entity) {
@@ -388,7 +394,7 @@ public final class ClientSideEntityService implements PacketEventSubscriber {
     synchronizedEntityMap.put(entityId, entity);
   }
 
-  private void processEntitySpawn(
+  private WrappedEntity processEntitySpawn(
     User user, String entityName,
     boolean isEntityLiving, int entityId,
     int serverPosX, int serverPosY, int serverPosZ,
@@ -405,6 +411,8 @@ public final class ClientSideEntityService implements PacketEventSubscriber {
     entity.serverPosZ = serverPosZ;
     entity.setPositionAndRotationSpawnMob(posX, posY, posZ, posY);
     synchronizedEntityMap.put(entityId, entity);
+
+    return entity;
   }
 
   @PacketSubscription(
