@@ -15,9 +15,15 @@ import de.jpx3.intave.event.packet.Sender;
 import de.jpx3.intave.event.punishment.AttackCancelType;
 import de.jpx3.intave.event.service.entity.WrappedEntity;
 import de.jpx3.intave.tools.MathHelper;
+import de.jpx3.intave.tools.client.RotationHelper;
+import de.jpx3.intave.tools.wrapper.WrappedMathHelper;
 import de.jpx3.intave.user.*;
 import de.jpx3.intave.world.raytrace.Raytracer;
 import org.bukkit.entity.Player;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public final class RotationModuloResetHeuristic extends IntaveMetaCheckPart<Heuristics, RotationModuloResetHeuristic.RotationModuloResetHeuristicMeta> {
   private final IntavePlugin plugin;
@@ -105,99 +111,6 @@ public final class RotationModuloResetHeuristic extends IntaveMetaCheckPart<Heur
   @PacketSubscription(
     priority = ListenerPriority.HIGH,
     packets = {
-      @PacketDescriptor(sender = Sender.CLIENT, packetName = "POSITION_LOOK"),
-      @PacketDescriptor(sender = Sender.CLIENT, packetName = "LOOK"),
-      @PacketDescriptor(sender = Sender.CLIENT, packetName = "FLYING"),
-      @PacketDescriptor(sender = Sender.CLIENT, packetName = "POSITION")
-    }
-  )
-  public void receiveMovementPacket2(PacketEvent event) {
-    Player player = event.getPlayer();
-    User user = UserRepository.userOf(player);
-    UserMetaMovementData movementData = user.meta().movementData();
-    RotationModuloResetHeuristicMeta meta = metaOf(user);
-
-    if (ProtocolLibAdapter.serverVersion().isAtLeast(ProtocolLibAdapter.COMBAT_UPDATE)) {
-      return;
-    }
-
-    if (movementData.lastTeleport <= 5) {
-      meta.rotationMotions = new double[meta.rotationMotions.length];
-      return;
-    }
-
-    double yawMotion = Math.abs(movementData.lastRotationYaw - movementData.rotationYaw);
-
-    boolean isLegit = false;
-
-    for (int i = 0; i < meta.rotationMotions.length; i++) {
-      double value = meta.rotationMotions[i];
-      if (i == getHopIndex(meta)) {
-        if (value < 50) {
-          isLegit = true;
-        }
-      } else {
-        if (value > 9) {
-          isLegit = true;
-        }
-      }
-    }
-
-    if (yawMotion > 12) {
-      isLegit = true;
-    }
-
-    if (!isLegit && (meta.lastSwing <= 5 || meta.lastAttack <= 5) && meta.rotationPacketCounter > 5) {
-      String description = "rotation snap ("
-        + "val:" + getArrayAsString(meta, yawMotion)
-        + " swing:" + Math.min(meta.lastSwing, 99)
-        + "/" + Math.min(meta.lastAttack, 99);
-      if(movementData.lastTeleport < 20) {
-        description += " tp:" + movementData.lastTeleport;
-      }
-      description += ")";
-
-      int options = Anomaly.AnomalyOption.DELAY_128s;
-      Anomaly anomaly = Anomaly.anomalyOf("102", Confidence.NONE, Anomaly.Type.KILLAURA, description, options);
-      parentCheck().saveAnomaly(player, anomaly);
-    }
-
-//    if (meta.lastLastYawMotion < 7 && meta.lastYawMotion > 50 && yawMotion < 6) {
-
-//    }
-
-    prepareNextTick(meta, yawMotion);
-  }
-
-  private String getArrayAsString(RotationModuloResetHeuristicMeta meta, double yawMotion) {
-    String out = "[";
-    for(int i = 0; i < meta.rotationMotions.length; i++) {
-      double value = meta.rotationMotions[Math.floorMod(i + meta.index - 3, meta.rotationMotions.length)];
-      out += MathHelper.formatDouble(value, 2) + "/";
-    }
-    out += MathHelper.formatDouble(yawMotion, 2);
-    out += "]";
-    return out;
-  }
-
-  private int getHopIndex(RotationModuloResetHeuristicMeta meta) {
-    return Math.floorMod(meta.index - 1, meta.rotationMotions.length);
-  }
-
-  private void prepareNextTick(RotationModuloResetHeuristicMeta meta, double yawMotion) {
-    meta.lastSwing++;
-    meta.lastAttack++;
-
-    meta.rotationMotions[meta.index] = yawMotion;
-    meta.index++;
-    if (meta.index > meta.rotationMotions.length - 1) {
-      meta.index = 0;
-    }
-  }
-
-  @PacketSubscription(
-    priority = ListenerPriority.HIGH,
-    packets = {
       @PacketDescriptor(sender = Sender.CLIENT, packetName = "ARM_ANIMATION")
     }
   )
@@ -224,12 +137,135 @@ public final class RotationModuloResetHeuristic extends IntaveMetaCheckPart<Heur
 
     if (entityUseAction == EnumWrappers.EntityUseAction.ATTACK) {
       meta.lastAttack = 0;
+      meta.perfectRotations = new double[meta.perfectRotations.length];
     }
   }
 
+  @PacketSubscription(
+    priority = ListenerPriority.HIGH,
+    packets = {
+      @PacketDescriptor(sender = Sender.CLIENT, packetName = "POSITION_LOOK"),
+      @PacketDescriptor(sender = Sender.CLIENT, packetName = "LOOK"),
+      @PacketDescriptor(sender = Sender.CLIENT, packetName = "FLYING"),
+      @PacketDescriptor(sender = Sender.CLIENT, packetName = "POSITION")
+    }
+  )
+  public void receiveMovementPacket2(PacketEvent event) {
+    if (ProtocolLibAdapter.serverVersion().isAtLeast(ProtocolLibAdapter.COMBAT_UPDATE)) {
+      return;
+    }
+    Player player = event.getPlayer();
+    User user = UserRepository.userOf(player);
+    UserMetaMovementData movementData = user.meta().movementData();
+    RotationModuloResetHeuristicMeta meta = metaOf(user);
+    double yawMotion = Math.abs(movementData.lastRotationYaw - movementData.rotationYaw);
+
+    if(yawMotion > 50) {
+      UserMetaAttackData attackData = user.meta().attackData();
+      if(attackData.lastAttackedEntity() != null) {
+        WrappedEntity wrappedEntity = attackData.lastAttackedEntity();
+        WrappedEntity.EntityPositionContext lastEntityPosition = wrappedEntity.positionHistory.get(Math.max(wrappedEntity.positionHistory.size() - 2, 0));
+        float lastPerfectYaw = RotationHelper.resolveYawRotation(lastEntityPosition, movementData.lastPositionX, movementData.lastPositionZ);
+        double lastDiff = Math.abs(WrappedMathHelper.wrapAngleTo180_double(lastPerfectYaw - movementData.lastRotationYaw));
+        meta.perfectRotations[Math.floorMod(meta.index -1, meta.perfectRotations.length)] = lastDiff;
+
+        double diff = Math.abs(WrappedMathHelper.wrapAngleTo180_double(attackData.perfectYaw() - movementData.rotationYaw));
+        meta.perfectRotations[meta.index] = diff;
+      }
+    } else {
+      meta.perfectRotations[meta.index] = Double.NaN;
+    }
+
+    if (movementData.lastTeleport <= 5) {
+      meta.rotationMotions = new double[meta.rotationMotions.length];
+      return;
+    }
+
+
+    boolean isLegit = false;
+
+    for (int i = 0; i < meta.rotationMotions.length; i++) {
+      double value = meta.rotationMotions[i];
+      if (i == getHopIndex(meta)) {
+        if (value < 50) {
+          isLegit = true;
+        }
+      } else {
+        if (value > 9) {
+          isLegit = true;
+        }
+      }
+    }
+
+    if (yawMotion > 12) {
+      isLegit = true;
+    }
+
+    if (!isLegit && (meta.lastSwing <= 5 || meta.lastAttack <= 5) && meta.rotationPacketCounter > 5) {
+      String description = "rotation snap ("
+        + getArrayAsString(meta.rotationMotions, yawMotion, meta.index)
+        + " swing:" + Math.min(meta.lastSwing, 99)
+        + "/" + Math.min(meta.lastAttack, 99);
+      if(movementData.lastTeleport < 20) {
+        description += " tp:" + movementData.lastTeleport;
+      }
+
+      UserMetaAttackData attackData = user.meta().attackData();
+      if(attackData.lastAttackedEntity() != null) {
+        description += " perfYaw:" + MathHelper.formatDouble(meta.perfectRotations[Math.floorMod(meta.index - 2, meta.perfectRotations.length)], 2)
+        + "/" + MathHelper.formatDouble(meta.perfectRotations[Math.floorMod(meta.index - 1, meta.perfectRotations.length)], 2);
+      }
+
+      description += ")";
+
+      int options = Anomaly.AnomalyOption.DELAY_128s;
+      Anomaly anomaly = Anomaly.anomalyOf("102", Confidence.NONE, Anomaly.Type.KILLAURA, description, options);
+      parentCheck().saveAnomaly(player, anomaly);
+    }
+
+//    if (meta.lastLastYawMotion < 7 && meta.lastYawMotion > 50 && yawMotion < 6) {
+
+//    }
+
+    prepareNextTick(meta, yawMotion);
+  }
+
+  private String getArrayAsString(double[] array, double additional, int index) {
+    String out = "[";
+    for(int i = 0; i < array.length; i++) {
+      double value = array[Math.floorMod(i + index - 3, array.length)];
+      out += MathHelper.formatDouble(value, 2) + "/";
+    }
+    out += MathHelper.formatDouble(additional, 2);
+    out += "]";
+    return out;
+  }
+
+  private int getHopIndex(RotationModuloResetHeuristicMeta meta) {
+    return Math.floorMod(meta.index - 1, meta.rotationMotions.length);
+  }
+
+  private int getHopIndexWithOffset(RotationModuloResetHeuristicMeta meta, int offset) {
+    return Math.floorMod(getHopIndex(meta) + offset, meta.rotationMotions.length);
+  }
+
+  private void prepareNextTick(RotationModuloResetHeuristicMeta meta, double yawMotion) {
+    meta.lastSwing++;
+    meta.lastAttack++;
+
+    meta.rotationMotions[meta.index] = yawMotion;
+    meta.index++;
+    if (meta.index > meta.rotationMotions.length - 1) {
+      meta.index = 0;
+    }
+  }
+
+
   public static final class RotationModuloResetHeuristicMeta extends UserCustomCheckMeta {
+    // used to disable the check on startup
     private int rotationPacketCounter;
     private double[] rotationMotions = new double[4];
+    private double[] perfectRotations = new double[4];
     private int index;
     private int lastSwing;
     private int lastAttack;
