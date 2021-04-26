@@ -38,7 +38,7 @@ public final class EntityNoDamageTickChanger {
     return Math.max(0, noDamageTicks + ticks);
   }
 
-  private static void removeNoDamageTickChangeOf(User user) {
+  public static void removeNoDamageTickChangeOf(User user) {
     Player player = user.player();
     UserMetaPunishmentData punishmentData = user.meta().punishmentData();
     if (punishmentData.appliedDamageTicks != resolveNoDamageTicksOf(player)) {
@@ -63,7 +63,7 @@ public final class EntityNoDamageTickChanger {
     return -1;
   }
 
-  private static void setNoDamageTicksOf(Player player, int noDamageTicks) {
+  public static void setNoDamageTicksOf(Player player, int noDamageTicks) {
     try {
       Object handle = ReflectiveHandleAccess.handleOf(player);
       Field maxDamageTicks = handle.getClass().getField("maxNoDamageTicks");
