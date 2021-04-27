@@ -360,7 +360,7 @@ public final class InteractionRaytrace extends IntaveMetaCheck<InteractionRaytra
     World world = interaction.world();
     Location blockAgainstLocation = interaction.targetBlock.toLocation(world);
     Location defaultPlacementLocation = blockAgainstLocation.clone().add(WrappedEnumDirection.getFront(interaction.targetDirection).getDirectionVec().convertToBukkitVec());
-    boolean replace = BlockDataAccess.replacementPlace(world, new BlockPosition(blockAgainstLocation.toVector()));
+    boolean replace = BlockDataAccess.replacementPlace(world, player, new BlockPosition(blockAgainstLocation.toVector()));
     Location blockPlacementLocation = replace ? blockAgainstLocation : defaultPlacementLocation;
     Material itemTypeInHand = interaction.itemTypeInHand;
     int blockX = blockPlacementLocation.getBlockX();
@@ -560,7 +560,7 @@ public final class InteractionRaytrace extends IntaveMetaCheck<InteractionRaytra
             World world = player.getWorld();
             Material material = user.meta().inventoryData().heldItemType();
             int dat = 0;
-            boolean replace = BlockDataAccess.replacementPlace(world, new BlockPosition(raycastLocation.toVector()));
+            boolean replace = BlockDataAccess.replacementPlace(world, player, new BlockPosition(raycastLocation.toVector()));
             Location placementLocation = replace ? raycastLocation : raycastLocation.clone().add(raycastResult.sideHit.getDirectionVec().convertToBukkitVec());
             boolean raytraceCollidesWithPosition = Collision.playerInImaginaryBlock(
               user, world, placementLocation.getBlockX(), placementLocation.getBlockY(), placementLocation.getBlockZ(),
@@ -679,7 +679,7 @@ public final class InteractionRaytrace extends IntaveMetaCheck<InteractionRaytra
       mustFlag = true;
       vl = 0;
     }
-    Violation violation = Violation.fromType(InteractionRaytrace.class)
+    Violation violation = Violation.builderFor(InteractionRaytrace.class)
       .withPlayer(player).withMessage(message).withDetails(details).withVL(vl)
       .build();
     ViolationContext violationContext = plugin.violationProcessor().processViolation(violation);

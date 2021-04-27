@@ -82,14 +82,14 @@ public final class MappingFileCompiler {
   }
 
   @KeepEnumInternalNames
-  public enum Operator {
+  private enum Operator {
     IS_NOW,
     IS_NOW_CALLED,
     IS_NOW_LOCATED_AT
   }
 
   @KeepEnumInternalNames
-  public enum TranslationType {
+  private enum TranslationType {
     CLASS(new ClassApplier()),
     METHOD(new MethodApplier()),
     FIELD(new FieldApplier())
@@ -106,11 +106,11 @@ public final class MappingFileCompiler {
     }
   }
 
-  public interface Applier {
+  private interface Applier {
     void apply(String original, Operator operator, String target, Map<String, String> classTranslation, Map<Handle, Handle> handleTranslation);
   }
 
-  public static class ClassApplier implements Applier {
+  private static class ClassApplier implements Applier {
     @Override
     public void apply(String original, Operator operator, String target, Map<String, String> classTranslation, Map<Handle, Handle> handleTranslation) {
       switch (operator) {
@@ -129,14 +129,14 @@ public final class MappingFileCompiler {
     }
   }
 
-  public static class MethodApplier implements Applier {
+  private static class MethodApplier implements Applier {
     @Override
     public void apply(String original, Operator operator, String target, Map<String, String> classTranslation, Map<Handle, Handle> handleTranslation) {
 
     }
   }
 
-  public static class FieldApplier implements Applier {
+  private static class FieldApplier implements Applier {
     @Override
     public void apply(String original, Operator operator, String target, Map<String, String> classTranslation, Map<Handle, Handle> handleTranslation) {
 

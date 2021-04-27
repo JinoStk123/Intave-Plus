@@ -74,7 +74,7 @@ public final class Violation {
     return ViolationFlags.matches(optionFlags, flag);
   }
 
-  public static Builder fromType(Class<? extends IntaveCheck> checkClass) {
+  public static Builder builderFor(Class<? extends IntaveCheck> checkClass) {
     return new Builder(checkClass);
   }
 

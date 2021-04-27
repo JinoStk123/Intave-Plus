@@ -13,5 +13,5 @@ import org.bukkit.inventory.ItemStack;
 public interface BlockAccessor {
   float blockDamage(Player player, ItemStack itemInHand, BlockPosition blockPosition);
 
-  boolean replacementPlace(World world, BlockPosition blockPosition);
+  boolean replacementPlace(World world, Player player, BlockPosition blockPosition);
 }

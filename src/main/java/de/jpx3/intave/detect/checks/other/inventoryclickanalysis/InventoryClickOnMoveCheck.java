@@ -47,7 +47,7 @@ public final class InventoryClickOnMoveCheck extends IntaveCheckPart<InventoryCl
 
     if (keyForward != 0 || keyStrafe != 0) {
       String message = "performed inventory-click whilst walking";
-      Violation violation = Violation.fromType(InventoryClickAnalysis.class)
+      Violation violation = Violation.builderFor(InventoryClickAnalysis.class)
         .withPlayer(player)
         .withMessage(message)
         .withVL(5)

@@ -12,11 +12,6 @@ import org.bukkit.entity.Player;
 import java.util.List;
 
 public final class BlockFarmlandPatch extends BoundingBoxPatch {
-
-  public BlockFarmlandPatch() {
-    super(Material.SOIL);
-  }
-
   @Override
   protected List<WrappedAxisAlignedBB> patch(World world, Player player, Block block, List<WrappedAxisAlignedBB> bbs) {
     return patch(world, player, block.getType(), block.getData(), bbs);
@@ -32,5 +27,11 @@ public final class BlockFarmlandPatch extends BoundingBoxPatch {
       builder.shape(0,0,0,1,1, 1);
     }
     return builder.applyAndResolve();
+  }
+
+  @Override
+  public boolean appliesTo(Material material) {
+    String name = material.name();
+    return name.equals("SOIL") || name.equals("FARMLAND");
   }
 }

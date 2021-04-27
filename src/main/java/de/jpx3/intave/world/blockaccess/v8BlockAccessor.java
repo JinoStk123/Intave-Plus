@@ -26,7 +26,7 @@ public final class v8BlockAccessor implements BlockAccessor {
 
   @Override
   @PatchyAutoTranslation
-  public boolean replacementPlace(World world, BlockPosition blockPosition) {
+  public boolean replacementPlace(World world, Player player, BlockPosition blockPosition) {
     WorldServer worldServer = ((CraftWorld) world).getHandle();
     Chunk chunk = worldServer.getChunkIfLoaded(blockPosition.getX() >> 4, blockPosition.getZ() >> 4);
     if(chunk == null) {

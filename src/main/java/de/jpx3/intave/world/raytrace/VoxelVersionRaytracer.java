@@ -17,7 +17,8 @@ public final class VoxelVersionRaytracer implements VersionRaytracer {
   @PatchyAutoTranslation
   public WrappedMovingObjectPosition raytrace(World world, Player player, WrappedVector eyeVector, WrappedVector targetVector) {
     net.minecraft.server.v1_15_R1.World minecraftWorld = ((CraftWorld) world).getHandle().getMinecraftWorld();
-    RayTrace raytraceConfiguration = new RayTrace((Vec3D) eyeVector.convertToNativeVec3(),
+    RayTrace raytraceConfiguration = new RayTrace(
+      (Vec3D) eyeVector.convertToNativeVec3(),
       (Vec3D) targetVector.convertToNativeVec3(),
       RayTrace.BlockCollisionOption.OUTLINE,
       RayTrace.FluidCollisionOption.NONE,

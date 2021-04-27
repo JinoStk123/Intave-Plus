@@ -227,7 +227,7 @@ public final class MovementDispatcher implements EventProcessor {
       plugin.eventService().emulationEngine().emulationSetBack(player, vector, 10);
       String message = "sent unsafe position";
       String details = "moved " + MathHelper.formatDouble(distance, 2) + " blocks";
-      Violation violation = Violation.fromType(Physics.class)
+      Violation violation = Violation.builderFor(Physics.class)
         .withPlayer(player).withMessage(message).withDetails(details)
         .withVL(25)
         .build();

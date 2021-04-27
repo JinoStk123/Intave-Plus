@@ -21,8 +21,6 @@ public final class BlockGlassPanePatch extends BoundingBoxPatch {
 
   @Override
   protected List<WrappedAxisAlignedBB> patch(World world, Player player, Material type, int blockState, List<WrappedAxisAlignedBB> bbs) {
-
-
     return super.patch(world, player, type, blockState, bbs);
   }
 }

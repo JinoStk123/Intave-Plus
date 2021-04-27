@@ -49,7 +49,7 @@ public final class InventoryClickNotOpenCheck extends IntaveCheckPart<InventoryC
 
     if (inventoryData.forceInventoryOnClickOpen && !inventoryOpen && pastInventoryOpen > 1) {
       String message = "insufficient inventory-click (inventory not open)";
-      Violation violation = Violation.fromType(InventoryClickAnalysis.class)
+      Violation violation = Violation.builderFor(InventoryClickAnalysis.class)
         .withPlayer(player).withMessage(message)
         .withVL(1)
         .build();

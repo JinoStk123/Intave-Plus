@@ -236,7 +236,7 @@ public class AttackRaytrace extends IntaveMetaCheck<AttackRaytrace.AttackRaytrac
       message += " (vehicle)";
     }
 
-    Violation violation = Violation.fromType(AttackRaytrace.class)
+    Violation violation = Violation.builderFor(AttackRaytrace.class)
       .withPlayer(player).withMessage(message).withDetails(details)
       .withCustomThreshold(thresholdKey).withVL(vl)
       .build();
@@ -349,7 +349,7 @@ public class AttackRaytrace extends IntaveMetaCheck<AttackRaytrace.AttackRaytrac
         message += " (vehicle)";
       }
 
-      Violation violation = Violation.fromType(AttackRaytrace.class)
+      Violation violation = Violation.builderFor(AttackRaytrace.class)
         .withPlayer(player).withMessage(message).withDetails(details)
         .withCustomThreshold(thresholdKey).withVL(0)
         .appendFlags(DONT_PROCESS_VIOSTAT)

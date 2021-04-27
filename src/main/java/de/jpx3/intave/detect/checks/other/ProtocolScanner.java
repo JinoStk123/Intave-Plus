@@ -2,7 +2,6 @@ package de.jpx3.intave.detect.checks.other;
 
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
-import com.comphenix.protocol.wrappers.EnumWrappers;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.adapter.ProtocolLibAdapter;
 import de.jpx3.intave.detect.IntaveMetaCheck;
@@ -10,7 +9,9 @@ import de.jpx3.intave.event.packet.PacketDescriptor;
 import de.jpx3.intave.event.packet.PacketSubscription;
 import de.jpx3.intave.event.packet.Sender;
 import de.jpx3.intave.event.service.violation.Violation;
+import de.jpx3.intave.reflect.ReflectiveAccess;
 import de.jpx3.intave.tools.MathHelper;
+import de.jpx3.intave.tools.annotate.KeepEnumInternalNames;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserCustomCheckMeta;
 import de.jpx3.intave.user.UserMetaClientData;
@@ -39,7 +40,7 @@ public final class ProtocolScanner extends IntaveMetaCheck<ProtocolScanner.Proto
       event.getPacket().getFloat().writeSafely(1, 0f);
       String message = "sent invalid rotation";
       String details = "pitch at " + MathHelper.formatDouble(rotationPitch, 4);
-      Violation violation = Violation.fromType(ProtocolScanner.class)
+      Violation violation = Violation.builderFor(ProtocolScanner.class)
         .withPlayer(player).withMessage(message).withDetails(details)
         .withVL(100)
         .build();
@@ -59,7 +60,7 @@ public final class ProtocolScanner extends IntaveMetaCheck<ProtocolScanner.Proto
     ProtocolScannerMeta meta = metaOf(user);
     int slot = packet.getIntegers().read(0);
     if (meta.lastSlot == slot && slot > 0) {
-      Violation violation = Violation.fromType(ProtocolScanner.class)
+      Violation violation = Violation.builderFor(ProtocolScanner.class)
         .withPlayer(player).withMessage("sent slot twice").withDetails("slot " + slot)
         .withVL(meta.slotPacketsSent > 4 ? 100 : 0)
         .build();
@@ -70,6 +71,8 @@ public final class ProtocolScanner extends IntaveMetaCheck<ProtocolScanner.Proto
   }
 
   private final static boolean HAS_OFF_HAND = ProtocolLibAdapter.COMBAT_UPDATE.atOrAbove();
+
+  private static Class<?> enumMainHandClass;
 
   @PacketSubscription(
     packets = {
@@ -82,7 +85,10 @@ public final class ProtocolScanner extends IntaveMetaCheck<ProtocolScanner.Proto
     PacketContainer packet = event.getPacket();
     UserMetaClientData clientData = user.meta().clientData();
     if (HAS_OFF_HAND && clientData.combatUpdate()) {
-      EnumWrappers.Hand sentHand = packet.getHands().read(0);
+      if(enumMainHandClass == null) {
+        enumMainHandClass = ReflectiveAccess.lookupServerClass("EnumMainHand");
+      }
+      HandSlot sentHand = packet.getEnumModifier(HandSlot.class, enumMainHandClass).read(0);
       if (!equalHand(player.getMainHand(), sentHand)) {
         return;
       }
@@ -91,7 +97,7 @@ public final class ProtocolScanner extends IntaveMetaCheck<ProtocolScanner.Proto
     int keyForward = movementData.keyForward;
     int keyStrafe = movementData.keyStrafe;
     if (keyForward != 0 || keyStrafe != 0) {
-      Violation violation = Violation.fromType(ProtocolScanner.class)
+      Violation violation = Violation.builderFor(ProtocolScanner.class)
         .withPlayer(player)
         .withMessage("updated client settings whilst walking")
         .withDetails("version " + clientData.versionString())
@@ -102,13 +108,19 @@ public final class ProtocolScanner extends IntaveMetaCheck<ProtocolScanner.Proto
     }
   }
 
-  private boolean equalHand(Object bukkitHand, EnumWrappers.Hand hand) {
-    return bukkitHand == MainHand.LEFT && hand == EnumWrappers.Hand.MAIN_HAND
-      || bukkitHand == MainHand.RIGHT && hand == EnumWrappers.Hand.OFF_HAND;
+  private boolean equalHand(Object bukkitHand, HandSlot hand) {
+    return bukkitHand == MainHand.LEFT && hand == HandSlot.LEFT
+      || bukkitHand == MainHand.RIGHT && hand == HandSlot.RIGHT;
   }
 
   public static class ProtocolScannerMeta extends UserCustomCheckMeta {
     private int lastSlot = 0;
     private int slotPacketsSent = 0;
+  }
+
+  @KeepEnumInternalNames
+  public enum HandSlot {
+    LEFT,
+    RIGHT
   }
 }

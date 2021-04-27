@@ -5,7 +5,6 @@ import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.adapter.ProtocolLibAdapter;
 import de.jpx3.intave.detect.CheckViolationLevelDecrementer;
 import de.jpx3.intave.detect.IntaveMetaCheckPart;
-import de.jpx3.intave.detect.checks.combat.Heuristics;
 import de.jpx3.intave.detect.checks.other.InventoryClickAnalysis;
 import de.jpx3.intave.event.bukkit.BukkitEventSubscription;
 import de.jpx3.intave.event.punishment.AttackCancelType;
@@ -62,7 +61,7 @@ public final class InventoryClickDelayAnalyzer extends IntaveMetaCheckPart<Inven
     boolean flag2 = speedAttr > 100;
 
     if (distance > 2 && flag && (flag2 || AccessHelper.now() - meta.lastTimeEstimatedMousePositonMovedTooQuickly < 5000)) {
-      Violation violation = Violation.fromType(InventoryClickAnalysis.class)
+      Violation violation = Violation.builderFor(InventoryClickAnalysis.class)
         .withPlayer(player).withDefaultThreshold()
         .withMessage("is switching too quickly between item slots")
         .withDetails("moved from slot "+lastSlot+" to slot "+slot+" in " + MathHelper.formatDouble(time, 3) + " seconds")

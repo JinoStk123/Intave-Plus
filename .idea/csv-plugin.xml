@@ -206,6 +206,20 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="\src\main\java\de\jpx3\intave\tools\placeholder\PlayerContext.java">
+          <value>
+            <Attribute>
+              <option name="separator" value=";" />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\src\main\java\de\jpx3\intave\world\blockaccess\BlockAccessor.java">
+          <value>
+            <Attribute>
+              <option name="separator" value=";" />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="\src\main\java\de\jpx3\intave\world\collision\BoundingBoxAccess.java">
           <value>
             <Attribute>
@@ -235,6 +249,13 @@
           </value>
         </entry>
         <entry key="\src\main\java\de\jpx3\intave\world\collision\CubicBoundingBoxResolverFilter.java">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\src\main\java\de\jpx3\intave\world\collision\patches\BlockLilyPadPatch.java">
           <value>
             <Attribute>
               <option name="separator" value="," />

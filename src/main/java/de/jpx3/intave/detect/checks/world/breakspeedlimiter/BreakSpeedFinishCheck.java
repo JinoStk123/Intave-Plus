@@ -104,7 +104,7 @@ public final class BreakSpeedFinishCheck extends IntaveMetaCheckPart<BreakSpeedL
             String details = "at " + percentage;
 
             ViolationProcessor violationProcessor = IntavePlugin.singletonInstance().violationProcessor();
-            Violation violation = Violation.fromType(BreakSpeedLimiter.class)
+            Violation violation = Violation.builderFor(BreakSpeedLimiter.class)
               .withPlayer(player).withMessage(message).withDetails(details)
               .withVL(10)
               .build();
@@ -123,7 +123,7 @@ public final class BreakSpeedFinishCheck extends IntaveMetaCheckPart<BreakSpeedL
             String message = "finished breaking-process too quickly";
             String details = exceeded + "ms faster than expected";
             ViolationProcessor violationProcessor = IntavePlugin.singletonInstance().violationProcessor();
-            Violation violation = Violation.fromType(BreakSpeedLimiter.class)
+            Violation violation = Violation.builderFor(BreakSpeedLimiter.class)
               .withPlayer(player).withMessage(message).withDetails(details)
               .withVL(10)
               .build();

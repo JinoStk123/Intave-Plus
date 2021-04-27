@@ -1,6 +1,5 @@
 package de.jpx3.intave.world.collision.patches;
 
-import de.jpx3.intave.reflect.ReflectiveMaterialAccess;
 import de.jpx3.intave.tools.wrapper.WrappedAxisAlignedBB;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserRepository;
@@ -15,10 +14,6 @@ import java.util.List;
 import static de.jpx3.intave.user.UserMetaClientData.PROTOCOL_VERSION_COMBAT_UPDATE;
 
 public final class BlockLilyPadPatch extends BoundingBoxPatch {
-  protected BlockLilyPadPatch() {
-    super(ReflectiveMaterialAccess.materialById(111));
-  }
-
   @Override
   public List<WrappedAxisAlignedBB> patch(World world, Player player, Block block, List<WrappedAxisAlignedBB> bbs) {
     return patch(world, player, block.getType(), block.getData(), bbs);
@@ -36,5 +31,11 @@ public final class BlockLilyPadPatch extends BoundingBoxPatch {
       builder.shape(0.5F - f, 0.0F, 0.5F - f, 0.5F + f, f1, 0.5F + f);
     }
     return builder.applyAndResolve();
+  }
+
+  @Override
+  public boolean appliesTo(Material material) {
+    String name = material.name();
+    return name.contains("WATER_LILY");
   }
 }

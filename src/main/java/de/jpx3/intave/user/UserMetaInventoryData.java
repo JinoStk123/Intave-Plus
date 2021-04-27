@@ -43,6 +43,10 @@ public final class UserMetaInventoryData {
     return player == null ? null : player.getInventory().getItem(handSlot);//heldItem;
   }
 
+  public int handSlot() {
+    return handSlot;
+  }
+
   public Material heldItemType() {
     ItemStack heldItem = heldItem();
     return heldItem == null || heldItem.getAmount() == 0 ? Material.AIR : heldItem.getType();

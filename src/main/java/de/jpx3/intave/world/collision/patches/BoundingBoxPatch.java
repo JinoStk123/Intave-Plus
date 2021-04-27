@@ -23,6 +23,7 @@ public abstract class BoundingBoxPatch {
   protected List<WrappedAxisAlignedBB> patch(World world, Player player, Material type, int blockState, List<WrappedAxisAlignedBB> bbs) {
     return bbs;
   }
+
   public boolean appliesTo(Material material) {
     return Arrays.stream(this.material).anyMatch(matcher -> matcher == material);
   }

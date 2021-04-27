@@ -60,7 +60,7 @@ public final class PlacementPacketOrderAnalyzer extends IntaveMetaCheckPart<Plac
 
           if (permutePacketIncrementDiff > 20) {
             if (meta.packetOrderBalance++ >= 2) {
-              Violation violation = Violation.fromType(PlacementAnalysis.class)
+              Violation violation = Violation.builderFor(PlacementAnalysis.class)
                 .withPlayer(player)
                 .withMessage(COMMON_FLAG_MESSAGE)
                 .withVL(2)

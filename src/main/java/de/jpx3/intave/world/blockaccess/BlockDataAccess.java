@@ -6,8 +6,10 @@ import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.access.IntaveInternalException;
 import de.jpx3.intave.logging.IntaveLogger;
 import de.jpx3.intave.patchy.PatchyLoadingInjector;
+import de.jpx3.intave.reflect.ReflectiveAccess;
 import de.jpx3.intave.reflect.ReflectiveBlockAccess;
 import de.jpx3.intave.reflect.ReflectiveMaterialAccess;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -27,6 +29,9 @@ public final class BlockDataAccess {
     String resolverName = "de.jpx3.intave.world.blockaccess.v8BlockAccessor";
     if (MinecraftVersion.COMBAT_UPDATE.atOrAbove()) {
       resolverName = "de.jpx3.intave.world.blockaccess.v9BlockAccessor";
+    }
+    if(MinecraftVersion.AQUATIC_UPDATE.atOrAbove()) {
+      resolverName = "de.jpx3.intave.world.blockaccess.v13BlockAccessor";
     }
 
     ClassLoader classLoader = IntavePlugin.class.getClassLoader();
@@ -64,8 +69,51 @@ public final class BlockDataAccess {
 
      */
 
-    // TODO: 4/4/2021 add option for 1.16
+    if(MinecraftVersion.VILLAGE_UPDATE.atOrAbove()) {
+      newClickableLoad();
+    } else {
+      legacyClickableLoad();
+    }
+  }
 
+  private static void newClickableLoad() {
+    Method getState, createBlockData, getBlock;
+    try {
+      createBlockData = Bukkit.class.getMethod("createBlockData", Material.class);
+      getState = ReflectiveAccess.lookupCraftBukkitClass("block.data.CraftBlockData").getMethod("getState");
+      getBlock = ReflectiveAccess.lookupServerClass("IBlockData").getMethod("getBlock");
+    } catch (NoSuchMethodException exception) {
+      throw new IntaveInternalException(exception);
+    }
+
+    for (Material material : Material.values()) {
+      if(!material.isBlock()) {
+        continue;
+      }
+      Object block = null;
+      try {
+        block = getBlock.invoke(getState.invoke(createBlockData.invoke(null, material)));
+      } catch (Exception exception) {
+        exception.printStackTrace();
+      }
+      if (block == null) {
+        IntaveLogger.logger().globalPrintLn("No block found for material " + material);
+        continue;
+      }
+      List<Method> methods = allMethodsIn(block.getClass());
+      for (Method method : methods) {
+        String methodName = method.getName();
+        if (methodName.equalsIgnoreCase("interact")) {
+          String declaringClassName = method.getDeclaringClass().getSimpleName();
+          if (!declaringClassName.equals("Block") && !declaringClassName.equals("BlockBase")) {
+            clickableMaterials.add(material);
+          }
+        }
+      }
+    }
+  }
+
+  private static void legacyClickableLoad() {
     for (int i = 0; i < 1000; i++) {
       Material material = ReflectiveMaterialAccess.materialById(i);
       if (material == null) {
@@ -109,7 +157,7 @@ public final class BlockDataAccess {
     return blockAccessor.blockDamage(player, itemInHand, blockPosition);
   }
 
-  public static boolean replacementPlace(World world, BlockPosition blockPosition) {
-    return blockAccessor.replacementPlace(world, blockPosition);
+  public static boolean replacementPlace(World world, Player player, BlockPosition blockPosition) {
+    return blockAccessor.replacementPlace(world, player, blockPosition);
   }
 }

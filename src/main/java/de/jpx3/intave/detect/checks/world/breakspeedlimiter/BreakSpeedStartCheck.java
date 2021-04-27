@@ -65,7 +65,7 @@ public final class BreakSpeedStartCheck extends IntaveMetaCheckPart<BreakSpeedLi
             String message = "started block-break too quickly";
             String details = ticksBetween + " " + (ticksBetween == 1 ? "tick" : "ticks") + " between";
             ViolationProcessor violationProcessor = IntavePlugin.singletonInstance().violationProcessor();
-            Violation violation = Violation.fromType(BreakSpeedLimiter.class)
+            Violation violation = Violation.builderFor(BreakSpeedLimiter.class)
               .withPlayer(player).withMessage(message).withDetails(details).withVL(5)
               .build();
             ViolationContext violationContext = violationProcessor.processViolation(violation);
@@ -80,7 +80,7 @@ public final class BreakSpeedStartCheck extends IntaveMetaCheckPart<BreakSpeedLi
               String message = "started block-break too quickly";
               String details = milliseconds + "ms between";
               ViolationProcessor violationProcessor = IntavePlugin.singletonInstance().violationProcessor();
-              Violation violation = Violation.fromType(BreakSpeedLimiter.class)
+              Violation violation = Violation.builderFor(BreakSpeedLimiter.class)
                 .withPlayer(player).withMessage(message).withDetails(details)
                 .withVL(1)
                 .build();

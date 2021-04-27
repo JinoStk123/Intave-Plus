@@ -1,12 +1,9 @@
 package de.jpx3.intave.world.raytrace;
 
 import com.comphenix.protocol.utility.MinecraftVersion;
-import de.jpx3.intave.access.IntaveInternalException;
-import de.jpx3.intave.adapter.ProtocolLibAdapter;
 import de.jpx3.intave.detect.checks.combat.AttackRaytrace;
 import de.jpx3.intave.event.service.entity.WrappedEntity;
 import de.jpx3.intave.patchy.PatchyLoadingInjector;
-import de.jpx3.intave.reflect.ReflectiveAccess;
 import de.jpx3.intave.tools.client.RotationHelper;
 import de.jpx3.intave.tools.client.SinusCache;
 import de.jpx3.intave.tools.wrapper.WrappedAxisAlignedBB;
@@ -24,16 +21,12 @@ public final class Raytracer {
   private static final boolean[] BOOLEANSTATES = new boolean[] { false, true };
 
   public static void setup() {
-    boolean voxelVersion = false;
-    try {
-      ReflectiveAccess.lookupServerClass("VoxelShape");
-      voxelVersion = true;
-    } catch (IntaveInternalException ignored) {}
-
     String className;
-    if(voxelVersion) {
+    if(MinecraftVersion.VILLAGE_UPDATE.atOrAbove()) {
       className = "de.jpx3.intave.world.raytrace.VoxelVersionRaytracer";
-    } else if (ProtocolLibAdapter.serverVersion().isAtLeast(MinecraftVersion.COMBAT_UPDATE)) {
+    } else if(MinecraftVersion.AQUATIC_UPDATE.atOrAbove()) {
+      className = "de.jpx3.intave.world.raytrace.AquaticUpdateRaytracer";
+    } else if (MinecraftVersion.COMBAT_UPDATE.atOrAbove()) {
       className = "de.jpx3.intave.world.raytrace.CombatUpdateRaytracer";
     } else {
       className = "de.jpx3.intave.world.raytrace.LegacyVersionRaytracer";
