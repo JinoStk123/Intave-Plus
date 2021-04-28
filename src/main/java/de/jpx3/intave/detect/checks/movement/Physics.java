@@ -688,8 +688,17 @@ public final class Physics extends IntaveCheck {
     }
 
     double abuseVertically = Math.max(0, differenceY - legitimateDeviation);
+    double multiplier;
 
-    double multiplier = abuseVertically > 0.009 ? 305.0 : 10.0;
+    if (abuseVertically > 0.1) {
+      multiplier = 5000;
+    } else if (abuseVertically > 0.009) {
+      abuseVertically = Math.max(abuseVertically, 0.1);
+      multiplier = 200;
+    } else {
+      multiplier = 100;
+    }
+
     if (criticalWeb) {
       multiplier *= 40;
     }
