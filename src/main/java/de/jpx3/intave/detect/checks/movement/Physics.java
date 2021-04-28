@@ -177,7 +177,7 @@ public final class Physics extends IntaveCheck {
       calculationPart.prepareNextTick(user, movementData.positionX, movementData.positionY, movementData.positionZ, motionX, motionY, motionZ);
     }
   }
-
+  
   private boolean applicableForJumpDenial(Vector velocity) {
     return velocity.clone().setY(0).length() > 0.2;
   }
@@ -469,9 +469,14 @@ public final class Physics extends IntaveCheck {
 
       user.boundingBoxAccess().identityInvalidate();
 
+      double addedVL = violationLevelIncrease;
+      if(movementData.denyJump() && violationLevelData.physicsVL <= 100) {
+        addedVL = Math.min(50, verticalViolationIncrease);
+      }
+
       Violation violation = Violation.builderFor(Physics.class)
         .withPlayer(player).withMessage(message).withDetails(details)
-        .withVL(violationLevelIncrease / 10d).build();
+        .withVL(addedVL / 10d).build();
       ViolationContext violationContext = plugin.violationProcessor().processViolation(violation);
 
       boolean setback = violationContext.shouldCounterThreat() || violationLevelData.physicsVL >= 75;
@@ -688,8 +693,17 @@ public final class Physics extends IntaveCheck {
     }
 
     double abuseVertically = Math.max(0, differenceY - legitimateDeviation);
+    double multiplier;
 
-    double multiplier = abuseVertically > 0.009 ? 305.0 : 10.0;
+    if (abuseVertically > 0.1) {
+      multiplier = 5000;
+    } else if (abuseVertically > 0.009) {
+      abuseVertically = Math.max(abuseVertically, 0.1);
+      multiplier = 200;
+    } else {
+      multiplier = 100;
+    }
+
     if (criticalWeb) {
       multiplier *= 40;
     }
