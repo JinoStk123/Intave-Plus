@@ -5,16 +5,16 @@ import org.bukkit.entity.Player;
 import java.lang.reflect.Method;
 import java.util.UUID;
 
-public final class ViaVersion2Access implements ViaVersionAccess {
-  private Object viaVersionInstance;
+public final class ViaVersion4Access implements ViaVersionAccess {
+  private Object viaVersionTarget;
   private Method getPlayerVersionMethod;
 
   @Override
   public void setup() {
     try {
-      Class<?> viaVersion = Class.forName("us.myles.ViaVersion.api.ViaVersion");
-      viaVersionInstance = viaVersion.getMethod("getInstance").invoke(null);
-      getPlayerVersionMethod = viaVersionInstance.getClass().getMethod("getPlayerVersion", UUID.class);
+      Class<?> apiAcessorClass = Class.forName("com.viaversion.viaversion.api.Via");
+      this.viaVersionTarget = apiAcessorClass.getMethod("getAPI").invoke(null);
+      this.getPlayerVersionMethod = Class.forName("com.viaversion.viaversion.api.ViaAPI").getMethod("getPlayerVersion", UUID.class);
     } catch (Exception exception) {
       throw new IllegalStateException("Invalid ViaVersion linkage", exception);
     }
@@ -23,7 +23,7 @@ public final class ViaVersion2Access implements ViaVersionAccess {
   @Override
   public int protocolVersionOf(Player player) {
     try {
-      return (int) getPlayerVersionMethod.invoke(viaVersionInstance, player.getUniqueId());
+      return (int) getPlayerVersionMethod.invoke(viaVersionTarget, player.getUniqueId());
     } catch (Exception exception) {
       throw new IllegalStateException("Unable to resolve player version", exception);
     }
@@ -37,9 +37,9 @@ public final class ViaVersion2Access implements ViaVersionAccess {
   @Override
   public boolean available() {
     try {
-      Class.forName("us.myles.ViaVersion.api.ViaVersion");
+      Class.forName("com.viaversion.viaversion.api.Via");
       return true;
-    } catch (ClassNotFoundException e) {
+    } catch (ClassNotFoundException exception) {
       return false;
     }
   }
