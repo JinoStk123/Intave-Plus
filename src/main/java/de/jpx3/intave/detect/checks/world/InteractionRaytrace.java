@@ -280,7 +280,7 @@ public final class InteractionRaytrace extends IntaveMetaCheck<InteractionRaytra
         targetLocation.getBlockZ() + 1
       ).grow(0.1);
       Location location = estimateMouseDelayFix ? playerLocationmdf : playerLocation;
-      WrappedVector origin = Raytracer.resolvePositionEyes(location, location, 1.0f, user.meta().movementData().eyeHeight());
+      WrappedVector origin = Raytracer.resolvePositionEyes(location, location, user.meta().movementData().eyeHeight(), 1f);
       WrappedVector directionVector = hitVec.subtract(origin).normalize().scale(0.2);
       WrappedVector itrVector = origin.scale(1);
       if(targetBlockBox.isVecInside(hitVec)) {
