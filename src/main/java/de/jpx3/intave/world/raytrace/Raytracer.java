@@ -22,7 +22,9 @@ public final class Raytracer {
 
   public static void setup() {
     String className;
-    if(MinecraftVersions.VER1_14_0.atOrAbove()) {
+    if(MinecraftVersions.VER1_16_2.atOrAbove())  {
+      className = "de.jpx3.intave.world.raytrace.NetherUpdateRaytracer";
+    } else if(MinecraftVersions.VER1_14_0.atOrAbove()) {
       className = "de.jpx3.intave.world.raytrace.VoxelVersionRaytracer";
     } else if(MinecraftVersions.VER1_13_0.atOrAbove()) {
       className = "de.jpx3.intave.world.raytrace.AquaticUpdateRaytracer";

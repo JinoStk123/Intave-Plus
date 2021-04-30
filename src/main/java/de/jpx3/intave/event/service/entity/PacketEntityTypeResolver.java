@@ -26,8 +26,9 @@ public final class PacketEntityTypeResolver {
   private String dataWatcherEntityFieldName;
 
   public PacketEntityTypeResolver(IntavePlugin plugin) {
-    this.registerDataWatcherEntityFieldName();
     if (DATA_WATCHER) {
+      this.registerDataWatcherEntityFieldName();
+    } else {
       PatchyLoadingInjector.loadUnloadedClassPatched(plugin.getClass().getClassLoader(), "de.jpx3.intave.event.service.entity.PacketEntityTypeResolver$EntityTypeResolver");
     }
   }
