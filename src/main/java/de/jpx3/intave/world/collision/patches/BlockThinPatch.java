@@ -115,6 +115,10 @@ public final class BlockThinPatch extends BoundingBoxPatch {
           west  |= index == 5 || index == 0;
         }
 
+        if(!(north || east || south || west) && user.meta().clientData().waterUpdate()) {
+          north = south = east = west = true;
+        }
+
         List<WrappedAxisAlignedBB> bbList = new ArrayList<>(count);
         bbList.add(STATES_9[0]);
         if (north) bbList.add(STATES_9[1]);
