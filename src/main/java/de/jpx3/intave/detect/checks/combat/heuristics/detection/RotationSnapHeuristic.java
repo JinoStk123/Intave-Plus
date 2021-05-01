@@ -1,6 +1,7 @@
 package de.jpx3.intave.detect.checks.combat.heuristics.detection;
 
 import com.comphenix.protocol.events.PacketEvent;
+import com.comphenix.protocol.wrappers.BlockPosition;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import de.jpx3.intave.IntaveControl;
 import de.jpx3.intave.IntavePlugin;
@@ -20,7 +21,10 @@ import de.jpx3.intave.tools.MathHelper;
 import de.jpx3.intave.tools.wrapper.WrappedAxisAlignedBB;
 import de.jpx3.intave.tools.wrapper.WrappedMathHelper;
 import de.jpx3.intave.user.*;
+import de.jpx3.intave.world.blockaccess.BlockDataAccess;
+import de.jpx3.intave.world.blockaccess.BukkitBlockAccess;
 import de.jpx3.intave.world.raytrace.Raytracer;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
 import java.util.HashMap;
@@ -48,6 +52,36 @@ public class RotationSnapHeuristic extends IntaveMetaCheckPart<Heuristics, Rotat
     RotationSnapHeuristicMeta meta = metaOf(user);
 
     meta.lastSwing = 0;
+  }
+
+  @PacketSubscription(
+    priority = ListenerPriority.HIGH,
+    packets = {
+      @PacketDescriptor(sender = Sender.CLIENT, packetName = "BLOCK_PLACE")
+    }
+  )
+  public void blockPlace(PacketEvent event) {
+    if (ProtocolLibraryAdapter.serverVersion().isAtLeast(MinecraftVersions.VER1_9_0)) {
+      return;
+    }
+    Player player = event.getPlayer();
+    User user = userOf(player);
+
+    // TODO: 01/28/21 Warning by Richy: The block-place is empty for native server versions from 1.9! Use the USE_ITEM packet instead
+    BlockPosition blockPosition = event.getPacket().getBlockPositionModifier().read(0);
+    int blockPlaceDirection = event.getPacket().getIntegers().read(0);
+
+    if (blockPosition != null) {
+      if (blockPlaceDirection != 255) {
+        Material clickedType = BukkitBlockAccess.blockAccess(blockPosition.toLocation(player.getWorld())).getType();
+        boolean clickable = BlockDataAccess.isClickable(clickedType);
+
+        if (!clickable) {
+          RotationSnapHeuristicMeta meta = metaOf(user);
+          meta.lastBlockPlace = 0;
+        }
+      }
+    }
   }
 
   @PacketSubscription(
@@ -248,6 +282,10 @@ public class RotationSnapHeuristic extends IntaveMetaCheckPart<Heuristics, Rotat
       vl = 10;
     }
 
+    if(meta.lastBlockPlace < 3) {
+      vl *= 1.5;
+    }
+
     if (channgedLookToEntity) {
       vl *= 2;
     }
@@ -281,6 +319,7 @@ public class RotationSnapHeuristic extends IntaveMetaCheckPart<Heuristics, Rotat
 
     meta.lastSwing++;
     meta.lastAttack++;
+    meta.lastBlockPlace++;
   }
 
 
@@ -297,6 +336,7 @@ public class RotationSnapHeuristic extends IntaveMetaCheckPart<Heuristics, Rotat
     private int rotationPacketCounter;
     private int lastSwing;
     private int lastAttack;
+    private int lastBlockPlace;
   }
 
   enum KeyStates {
