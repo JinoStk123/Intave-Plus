@@ -24,6 +24,10 @@ public abstract class BoundingBoxPatch {
     return bbs;
   }
 
+  protected boolean requireRepose() {
+    return false;
+  }
+
   public boolean appliesTo(Material material) {
     return Arrays.stream(this.material).anyMatch(matcher -> matcher == material);
   }

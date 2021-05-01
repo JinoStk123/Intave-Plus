@@ -369,8 +369,8 @@ public class WrappedAxisAlignedBB {
     return originBox;
   }
 
-  public void setOriginBox(boolean originBox) {
-    this.originBox = originBox;
+  public void setOriginBox() {
+    this.originBox = true;
   }
 
   public WrappedAxisAlignedBB copy() {

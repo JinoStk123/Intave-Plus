@@ -7,6 +7,7 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +22,7 @@ public final class BoundingBoxPatcher {
     add(BlockLilyPadPatch.class);
     add(BlockFenceGatePatch.class);
     add(BlockFarmlandPatch.class);
-//    add(BlockThinPatch.class);
+    add(BlockThinPatch.class);
   }
 
   private static void add(Class<? extends BoundingBoxPatch> patchClass) {
@@ -43,12 +44,12 @@ public final class BoundingBoxPatcher {
 
   public static List<WrappedAxisAlignedBB> patch(World world, Player player, Block block, List<WrappedAxisAlignedBB> bbs) {
     BoundingBoxPatch boundingBoxPatch = patches.get(block.getType());
-    return boundingBoxPatch == null ? bbs : transpose(boundingBoxPatch.patch(world, player, block, forceRepose(bbs, block.getX(), block.getY(), block.getZ())), block.getX(), block.getY(), block.getZ());
+    return boundingBoxPatch == null ? bbs : transpose(boundingBoxPatch.patch(world, player, block, checkRepose(boundingBoxPatch, bbs, block.getX(), block.getY(), block.getZ())), block.getX(), block.getY(), block.getZ());
   }
 
-  public static List<WrappedAxisAlignedBB> patch(World world, Player player, int blockX, int blockY, int blockZ, Material type, int blockState, List<WrappedAxisAlignedBB> bbs) {
+  public static List<WrappedAxisAlignedBB> patch(World world, Player player, int blockX, int blockY, int blockZ, Material type, int blockState, List<WrappedAxisAlignedBB> boxes) {
     BoundingBoxPatch boundingBoxPatch = patches.get(type);
-    return boundingBoxPatch == null ? bbs : transpose(boundingBoxPatch.patch(world, player, type, blockState, forceRepose(bbs, blockX, blockY, blockZ)), blockX, blockY, blockZ);
+    return boundingBoxPatch == null ? boxes : transpose(boundingBoxPatch.patch(world, player, type, blockState, checkRepose(boundingBoxPatch, boxes, blockX, blockY, blockZ)), blockX, blockY, blockZ);
   }
 
   public static List<WrappedAxisAlignedBB> transpose(List<WrappedAxisAlignedBB> boundingBoxes, int posX, int posY, int posZ) {
@@ -64,14 +65,15 @@ public final class BoundingBoxPatcher {
     return boundingBoxes;
   }
 
-  public static List<WrappedAxisAlignedBB> forceRepose(List<WrappedAxisAlignedBB> boundingBoxes, int posX, int posY, int posZ) {
-//    if(boundingBoxes.isEmpty()) {
-//      return boundingBoxes;
-//    }
-//    for (int i = 0; i < boundingBoxes.size(); i++) {
-//      WrappedAxisAlignedBB boundingBox = boundingBoxes.get(i);
-//      boundingBoxes.set(i, boundingBox.offset(-posX, -posY, -posZ));
-//    }
-    return boundingBoxes;
+  public static List<WrappedAxisAlignedBB> checkRepose(BoundingBoxPatch patch, List<WrappedAxisAlignedBB> boundingBoxes, int posX, int posY, int posZ) {
+    if(!patch.requireRepose() || boundingBoxes.isEmpty()) {
+      return boundingBoxes;
+    }
+    List<WrappedAxisAlignedBB> reposedList = new ArrayList<>(boundingBoxes);
+    for (int i = 0; i < reposedList.size(); i++) {
+      WrappedAxisAlignedBB boundingBox = reposedList.get(i);
+      reposedList.set(i, boundingBox.offset(-posX, -posY, -posZ));
+    }
+    return reposedList;
   }
 }

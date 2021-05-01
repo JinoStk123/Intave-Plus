@@ -1,6 +1,5 @@
 package de.jpx3.intave.world.collision.patches;
 
-import com.google.common.collect.Lists;
 import de.jpx3.intave.adapter.MinecraftVersions;
 import de.jpx3.intave.tools.wrapper.WrappedAxisAlignedBB;
 import de.jpx3.intave.user.User;
@@ -19,15 +18,14 @@ import java.util.List;
 
 public final class BlockThinPatch extends BoundingBoxPatch {
   protected static final WrappedAxisAlignedBB[] STATES_8 = new WrappedAxisAlignedBB[] {
-    new WrappedAxisAlignedBB(0.0F, 0.0F, 0.4375F, 1.0F, 1.0F, 0.5625F), // base a
-    new WrappedAxisAlignedBB(0.4375F, 0.0F, 0.0F, 0.5625F, 1.0F, 1.0F), // base b
+    new WrappedAxisAlignedBB(0.0F, 0.0F, 0.4375F, 1.0F, 1.0F, 0.5625F), // full ew connection
+    new WrappedAxisAlignedBB(0.4375F, 0.0F, 0.0F, 0.5625F, 1.0F, 1.0F), // full ns connection
     new WrappedAxisAlignedBB(0.4375F, 0.0F, 0.0F, 0.5625F, 1.0F, 0.5F), // north
     new WrappedAxisAlignedBB(0.5F, 0.0F, 0.4375F, 1.0F, 1.0F, 0.5625F), // east
     new WrappedAxisAlignedBB(0.4375F, 0.0F, 0.5F, 0.5625F, 1.0F, 1.0F), // south
     new WrappedAxisAlignedBB(0.0F, 0.0F, 0.4375F, 0.5F, 1.0F, 0.5625F), // west
   };
 
-  protected static final List<WrappedAxisAlignedBB> EMPTY_STATE_8 = Lists.newArrayList(STATES_8[0], STATES_8[1]);
 
   protected static final WrappedAxisAlignedBB[] STATES_9 = new WrappedAxisAlignedBB[] {
     new WrappedAxisAlignedBB(0.4375D, 0.0D, 0.4375D, 0.5625D, 1.0D, 0.5625D), // base
@@ -37,12 +35,10 @@ public final class BlockThinPatch extends BoundingBoxPatch {
     new WrappedAxisAlignedBB(0.0D, 0.0D, 0.4375D, 0.5625D, 1.0D, 0.5625D), // west
   };
 
-  protected static final List<WrappedAxisAlignedBB> EMPTY_STATE_9 = Lists.newArrayList(STATES_9[0]);
-
   public BlockThinPatch() {
     super(Material.STAINED_GLASS_PANE, Material.IRON_FENCE);
-    Arrays.stream(STATES_8).forEach(box -> box.setOriginBox(true));
-    Arrays.stream(STATES_9).forEach(box -> box.setOriginBox(true));
+    Arrays.stream(STATES_8).forEach(WrappedAxisAlignedBB::setOriginBox);
+    Arrays.stream(STATES_9).forEach(WrappedAxisAlignedBB::setOriginBox);
   }
 
   @Override
@@ -61,24 +57,42 @@ public final class BlockThinPatch extends BoundingBoxPatch {
         for (WrappedAxisAlignedBB bb : bbs) {
           indices[count++] = indexOf9(bb);
         }
-        boolean hasState = false;
+
+        boolean north = false;
+        boolean south = false;
+        boolean west = false;
+        boolean east = false;
+
         for (int index : indices) {
-          if (index > 0) {
-            hasState = true;
-            break;
-          }
+          north |= index == 1;
+          east  |= index == 2;
+          south |= index == 3;
+          west  |= index == 4;
         }
-        if (hasState) {
-          List<WrappedAxisAlignedBB> list = new ArrayList<>();
-          for (int value : indices) {
-            if (value > 0) {
-              list.add(STATES_8[value + 1]);
-            }
+
+        List<WrappedAxisAlignedBB> bbList = new ArrayList<>(count + 2);
+        boolean anyConnection = west || east || north || south;
+
+        if ((!west || !east) && anyConnection) {
+          if (west) {
+            bbList.add(STATES_8[5]);
+          } else if (east) {
+            bbList.add(STATES_8[3]);
           }
-          return list;
         } else {
-          return EMPTY_STATE_8;
+          bbList.add(STATES_8[0]);
         }
+
+        if ((!north || !south) && anyConnection) {
+          if (north) {
+            bbList.add(STATES_8[2]);
+          } else if (south) {
+            bbList.add(STATES_8[4]);
+          }
+        } else {
+          bbList.add(STATES_8[1]);
+        }
+        return bbList;
       }
     } else {
       if (user.meta().clientData().combatUpdate()) {
@@ -88,22 +102,26 @@ public final class BlockThinPatch extends BoundingBoxPatch {
         for (WrappedAxisAlignedBB bb : bbs) {
           indices[count++] = indexOf8(bb);
         }
-        boolean hasState = true;
+        
+        boolean north = false;
+        boolean east = false;
+        boolean south = false;
+        boolean west = false;
+
         for (int index : indices) {
-          if (index <= 1) {
-            hasState = false;
-            break;
-          }
+          north |= index == 2 || index == 1;
+          east  |= index == 3 || index == 0;
+          south |= index == 4 || index == 1;
+          west  |= index == 5 || index == 0;
         }
-        if (hasState) {
-          List<WrappedAxisAlignedBB> list = new ArrayList<>();
-          for (int operand : indices) {
-            list.add(STATES_9[operand - 1]);
-          }
-          return list;
-        } else {
-          return EMPTY_STATE_9;
-        }
+
+        List<WrappedAxisAlignedBB> bbList = new ArrayList<>(count);
+        bbList.add(STATES_9[0]);
+        if (north) bbList.add(STATES_9[1]);
+        if (east)  bbList.add(STATES_9[2]);
+        if (south) bbList.add(STATES_9[3]);
+        if (west)  bbList.add(STATES_9[4]);
+        return bbList;
       }
     }
 
@@ -128,5 +146,10 @@ public final class BlockThinPatch extends BoundingBoxPatch {
       }
     }
     return -1;
+  }
+
+  @Override
+  protected boolean requireRepose() {
+    return true;
   }
 }
