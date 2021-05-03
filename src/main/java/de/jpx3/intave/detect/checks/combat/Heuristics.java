@@ -105,6 +105,10 @@ public final class Heuristics extends IntaveMetaCheck<Heuristics.HeuristicMeta> 
       player.sendMessage(message);
     }
 
+    if (IntaveControl.GOMME_MODE) {
+      System.out.println(message);
+    }
+
     for (Player authenticatedPlayer : Bukkit.getOnlinePlayers()) {
       if (plugin.sibylIntegrationService().isAuthenticated(authenticatedPlayer)) {
         authenticatedPlayer.sendMessage(message);

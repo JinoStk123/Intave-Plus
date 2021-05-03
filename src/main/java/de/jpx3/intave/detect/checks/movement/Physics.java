@@ -188,10 +188,6 @@ public final class Physics extends IntaveCheck {
       calculationPart.prepareNextTick(user, movementData.positionX, movementData.positionY, movementData.positionZ, motionX, motionY, motionZ);
     }
   }
-  
-  private boolean applicableForJumpDenial(Vector velocity) {
-    return velocity.clone().setY(0).length() > 0.2;
-  }
 
   public void updateOnGroundIfFlying(User user) {
     UserMetaMovementData movementData = user.meta().movementData();
@@ -329,7 +325,9 @@ public final class Physics extends IntaveCheck {
     }
 
     boolean velocityDetected = false;
-    if (!skipVLCalculation && movementData.pastExternalVelocity < 10 && !movementData.recentlyEncounteredFlyingPacket(2)) {
+    boolean checkVelocity = !skipVLCalculation && movementData.pastInWeb > 5 && !movementData.inWater;
+
+    if (checkVelocity && movementData.pastExternalVelocity < 10 && !movementData.recentlyEncounteredFlyingPacket(2)) {
       if (distance > 0.0005 && !onLadder) {
         boolean aggressive = violationLevelData.physicsVelocityVL++ >= VELOCITY_VL_THRESHOLD;
         if (aggressive || distance > 0.01) {
@@ -480,14 +478,9 @@ public final class Physics extends IntaveCheck {
 
       user.boundingBoxAccess().identityInvalidate();
 
-      double addedVL = violationLevelIncrease;
-//      if(movementData.denyJump() && violationLevelData.physicsVL <= 100) {
-//        addedVL = Math.min(250, verticalViolationIncrease);
-//      }
-
       Violation violation = Violation.builderFor(Physics.class)
         .withPlayer(player).withMessage(message).withDetails(details)
-        .withVL(addedVL / 50d).build();
+        .withVL(violationLevelIncrease / 50d).build();
       ViolationContext violationContext = plugin.violationProcessor().processViolation(violation);
 
       boolean overrideSetbackSuggestion = violationLevelData.physicsVL > trustFactorSetting("pa-override-threshold", player);
@@ -562,6 +555,9 @@ public final class Physics extends IntaveCheck {
       }
       if (movementData.physicsJumped) {
         tags.add("jump");
+      }
+      if (velocityDetected) {
+        tags.add("velocity?");
       }
 
       debug += " " + String.join(" ", tags);
@@ -816,7 +812,6 @@ public final class Physics extends IntaveCheck {
     }
 
     boolean recentlySentFlying = movementData.recentlyEncounteredFlyingPacket(2);
-    boolean recentlyVelocity = movementData.pastVelocity <= 1;
     double baseMoveSpeed = movementData.baseMoveSpeed();
     boolean inLiquid = (movementData.pastWaterMovement < 20 && movementData.pastPushedByWaterFlow > 5) || movementData.inLava();
 

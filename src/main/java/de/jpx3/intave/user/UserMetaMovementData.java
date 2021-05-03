@@ -162,13 +162,13 @@ public final class UserMetaMovementData {
   }
 
   public void applySizeUpdate() {
-    if(user.meta().clientData().roundEnvironmentNumbers()) {
-      widthRounded = Math.round(width * 500d) / 1000d;
-      heightRounded = Math.round(height * 10000d) / 10000d;
-    } else {
-      widthRounded = Math.round(width * 500000000000000d) / 1000000000000000d;
-      heightRounded = Math.round(height * 100000000000000d) / 100000000000000d;
-    }
+//    if(user.meta().clientData().roundEnvironmentNumbers()) {
+//      widthRounded = Math.round(width * 500d) / 1000d;
+//      heightRounded = Math.round(height * 10000d) / 10000d;
+//    } else {
+    widthRounded = Math.round(width * 500000000000000d) / 1000000000000000d;
+    heightRounded = Math.round(height * 100000000000000d) / 100000000000000d;
+//    }
   }
 
   public void updateWorld() {
