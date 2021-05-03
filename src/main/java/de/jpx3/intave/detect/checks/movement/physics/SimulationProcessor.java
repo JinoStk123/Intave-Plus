@@ -84,7 +84,7 @@ public final class SimulationProcessor {
     ItemStack itemStack = inventoryData.heldItem();
     if (itemStack != null && !InventoryUseItemHelper.isSwordItem(user.player(), itemStack)) {
       boolean hasShield = user.meta().clientData().combatUpdate();
-      int threshold = itemStack.getType() == Material.BOW || hasShield ? 5 : 1;
+      int threshold = itemStack.getType() == Material.BOW || hasShield ? 5 : 3;
       if (movementData.physicsEatingSlotSwitchVL++ > threshold) {
         inventoryData.applySlotSwitch();
       } else {
@@ -248,7 +248,8 @@ public final class SimulationProcessor {
               keyStrafe,
               attackReduce,
               jumped,
-              useItemState
+              useItemState,
+              false
             );
             if (iterativeSimulation.smallestDistance() <= VERIFY_DISTANCE) {
               break SIMULATION;
@@ -268,7 +269,8 @@ public final class SimulationProcessor {
         0,
         false,
         false,
-        false
+        false,
+        true
       );
     }
     return iterativeSimulation;
@@ -307,7 +309,8 @@ public final class SimulationProcessor {
     int keyStrafe,
     boolean attackReduce,
     boolean jumped,
-    boolean handActive
+    boolean handActive,
+    boolean forceApply
   ) {
     MotionVector motionVector = movementData.motionVector;
     float moveForward = keyForward * 0.98f;
@@ -319,7 +322,7 @@ public final class SimulationProcessor {
     );
     MotionVector collisionContext = collisionResult.context();
     double distance = calculateMovementDistance(user, collisionContext);
-    if (inventoryData.handActive() == handActive || distance < 0.001) {
+    if (forceApply || inventoryData.handActive() == handActive || distance < 0.001) {
       result.tryAppendToState(collisionResult, distance, keyForward, keyStrafe, attackReduce, jumped, handActive);
     }
   }

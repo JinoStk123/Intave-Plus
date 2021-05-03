@@ -22,6 +22,7 @@ public final class UserMetaInventoryData {
   public int pastHotBarSlotChange;
   public int awaitingSlotSet = -1;
   public boolean forceInventoryOnClickOpen = true;
+  public volatile int pastSlotSwitch = 100;
 
   public UserMetaInventoryData(Player player) {
     this.player = player;
@@ -82,9 +83,11 @@ public final class UserMetaInventoryData {
       newItemSlot = 7;
     }
     int finalNewItemSlot = newItemSlot;
+    pastSlotSwitch = 0;
     Synchronizer.packetSynchronize(() -> {
-      player.getInventory().setHeldItemSlot(finalNewItemSlot);
+      pastSlotSwitch = 0;
       awaitingSlotSet = previousItemSlot;
+      player.getInventory().setHeldItemSlot(finalNewItemSlot);
     });
   }
 
