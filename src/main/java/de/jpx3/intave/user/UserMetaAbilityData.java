@@ -28,6 +28,9 @@ public final class UserMetaAbilityData {
       this.flying = player.isFlying();
       this.health = (float) player.getHealth();
       setupDefaultGameMode(player.getGameMode());
+
+      this.walkSpeed = player.getWalkSpeed() / 2.0f;
+      this.flySpeed = player.getFlySpeed() / 2.0f;
     } else {
       this.allowFlying = this.flying = false;
       this.health = 20.0f;
