@@ -17,7 +17,7 @@ public final class UserMetaInventoryData {
 
   private boolean foodItem;
   private boolean inventoryOpen;
-  public int handActiveTicks;
+  public int handActiveTicks, pastHandActiveTicks = 100;
   public int pastItemUsageTransition;
   public int pastHotBarSlotChange;
   public int awaitingSlotSet = -1;

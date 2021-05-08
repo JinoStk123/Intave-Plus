@@ -368,7 +368,7 @@ public final class MovementDispatcher implements EventProcessor {
     movementData.lastSprinting = movementData.sprintingAllowed();
     movementData.lastSneaking = movementData.sneaking;
 
-    if (!inventoryData.handActive()) {
+    if (!inventoryData.handActive() && inventoryData.pastHandActiveTicks > 2) {
       movementData.physicsEatingSlotSwitchVL = 0;
     }
 
@@ -381,7 +381,9 @@ public final class MovementDispatcher implements EventProcessor {
 
     if (inventoryData.handActive()) {
       inventoryData.handActiveTicks++;
+      inventoryData.pastHandActiveTicks = 0;
     } else {
+      inventoryData.pastHandActiveTicks++;
       inventoryData.handActiveTicks = 0;
     }
 

@@ -21,6 +21,7 @@ import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.ItemStack;
 
 public final class PlayerInventoryEvaluator implements PacketEventSubscriber, BukkitEventSubscriber {
@@ -39,6 +40,16 @@ public final class PlayerInventoryEvaluator implements PacketEventSubscriber, Bu
       return;
     }
     updatePlayerHandItem((Player) entity, event.getFoodLevel());
+  }
+
+  @BukkitEventSubscription
+  public void itemConsume(PlayerItemConsumeEvent event) {
+    Player player = event.getPlayer();
+    User user = UserRepository.userOf(player);
+    UserMetaInventoryData inventoryData = user.meta().inventoryData();
+    if (inventoryData.pastSlotSwitch < 5) {
+      event.setCancelled(true);
+    }
   }
 
   @BukkitEventSubscription
