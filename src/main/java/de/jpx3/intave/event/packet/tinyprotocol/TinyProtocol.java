@@ -11,7 +11,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerLoginEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.plugin.Plugin;
 
@@ -129,14 +129,17 @@ public class TinyProtocol {
   private void registerBukkitEvents() {
     listener = new Listener() {
       @EventHandler(priority = EventPriority.LOWEST)
-      public final void onPlayerLogin(PlayerLoginEvent login) {
-        if (closed)
+      public final void onPlayerLogin(PlayerJoinEvent join) {
+        if (closed) {
           return;
-        Channel channel = getChannel(login.getPlayer());
-        // Don't inject players that have been explicitly uninjected
-        if (!uninjectedChannels.contains(channel)) {
-          injectPlayer(login.getPlayer());
         }
+        Synchronizer.synchronize(() -> {
+          Channel channel = getChannel(join.getPlayer());
+          // Don't inject players that have been explicitly uninjected
+          if (!uninjectedChannels.contains(channel)) {
+            injectPlayer(join.getPlayer());
+          }
+        });
       }
 
       @EventHandler

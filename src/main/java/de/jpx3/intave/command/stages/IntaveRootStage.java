@@ -16,7 +16,6 @@ import de.jpx3.intave.diagnostics.timings.Timing;
 import de.jpx3.intave.diagnostics.timings.Timings;
 import de.jpx3.intave.tools.MathHelper;
 import de.jpx3.intave.tools.annotate.Native;
-import de.jpx3.intave.tools.annotate.Relocate;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserRepository;
 import de.jpx3.intave.world.blockshape.OCBlockShapeAccess;
@@ -30,7 +29,6 @@ import java.util.stream.Collectors;
 
 import static de.jpx3.intave.diagnostics.BoundingBoxAccessFlowStudy.*;
 
-@Relocate
 public final class IntaveRootStage extends CommandStage {
   private static IntaveRootStage singletonInstance;
   private final IntavePlugin plugin;

@@ -52,7 +52,6 @@ import de.jpx3.intave.world.permission.WorldPermission;
 import de.jpx3.intave.world.raytrace.Raytracer;
 import de.jpx3.intave.world.waterflow.Waterflow;
 import org.bukkit.ChatColor;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.PluginLogger;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -773,11 +772,6 @@ public final class IntavePlugin extends JavaPlugin {
     } catch (Exception ignored) {}
     logger().info("Intave offline");
     logger.shutdown();
-  }
-
-  @Override
-  public FileConfiguration getConfig() {
-    return configurationService().configuration();
   }
 
   public IntaveAccess access() {

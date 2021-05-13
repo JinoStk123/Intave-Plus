@@ -71,7 +71,6 @@ public final class AttackRaytrace extends IntaveMetaCheck<AttackRaytrace.AttackR
       if(validReach(player, entityByIdentifier(user, entityId))) {
         return;
       }
-
       if (attackRaytraceMeta.pendingAttacks.size() < 4) {
         attackRaytraceMeta.pendingAttacks.add(attack);
       }
@@ -171,6 +170,10 @@ public final class AttackRaytrace extends IntaveMetaCheck<AttackRaytrace.AttackR
     User.UserMeta meta = user.meta();
     UserMetaMovementData movementData = meta.movementData();
     UserMetaClientData clientData = meta.clientData();
+
+    if(user.meta().clientData().flyingPacketStream()) {
+      return false;
+    }
 
     double blockReachDistance = reachDistance(player.getGameMode() == GameMode.CREATIVE);
     float lastRotationYaw = movementData.lastRotationYaw % 360;

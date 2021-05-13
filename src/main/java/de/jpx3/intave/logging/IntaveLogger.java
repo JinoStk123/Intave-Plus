@@ -117,7 +117,7 @@ public final class IntaveLogger {
       });
 
       if(compressLogsLater) {
-        performCompression();
+        BackgroundExecutor.execute(this::performCompression);
       }
     } catch (Exception exception) {
       exception.printStackTrace();
