@@ -77,6 +77,11 @@ public class WrappedEntity implements Cloneable {
         throw new IntaveInternalException(exception);
       }
     }
+
+    @Override
+    public String toString() {
+      return "[" + posX + "," + posY + "," + posZ + "]";
+    }
   }
 
   public void onUpdate() {
@@ -298,13 +303,6 @@ public class WrappedEntity implements Cloneable {
 
   public int entityId() {
     return entityId;
-  }
-
-  /**
-   * Returns whether the entity is checkable.
-   */
-  public boolean living() {
-    return isEntityLiving;
   }
 
   /**

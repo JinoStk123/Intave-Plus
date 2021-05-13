@@ -106,32 +106,37 @@ public final class AttackRaytrace extends IntaveMetaCheck<AttackRaytrace.AttackR
         statisticApply(user, CheckStatistics::increaseTotal);
         WrappedEntity entity = entityByIdentifier(user, remainingAttack.entityId());
         boolean invalid = false;
-        if (entity != null && entity.living() && !player.isDead()) {
-          if (clientData.protocolVersion() >= PROTOCOL_VERSION_COMBAT_UPDATE) {
-            // >= 1.9.x
-            if (entity.clientSynchronized
-              && !movementData.recentlyEncounteredFlyingPacket(2)
-              && attackRaytraceMeta.lastFlyPacketCounterReach > 1
-            ) {
-              // 1.9+ beim bewegen
-              invalid = processReachCheck(player, entity, 0.1f);
-            } else {
-              // 1.9+ beim still stehen oder wenn das entity nicht synchronisiert ist
-              invalid = processIterativeReachCheck(player, entity);
+        if (entity != null && !player.isDead()) {
+          if(entity.isEntityLiving) {
+            if (clientData.protocolVersion() >= PROTOCOL_VERSION_COMBAT_UPDATE) {
+              // >= 1.9.x
+              if (entity.clientSynchronized
+                && !movementData.recentlyEncounteredFlyingPacket(2)
+                && attackRaytraceMeta.lastFlyPacketCounterReach > 1
+              ) {
+                // 1.9+ beim bewegen
+                invalid = processReachCheck(player, entity, 0.1f);
+              } else {
+                // 1.9+ beim still stehen oder wenn das entity nicht synchronisiert ist
+                invalid = processIterativeReachCheck(player, entity);
+              }
             }
-          }
-          if (clientData.protocolVersion() <= PROTOCOL_VERSION_BOUNTIFUL_UPDATE) {
-            // <= 1.8.9
-            if (!entity.clientSynchronized) {
-              // 1.8.x wenn das entity nicht synchronisiert ist
-              invalid = processIterativeReachCheck(player, entity);
-            } else if (attackRaytraceMeta.lastFlyPacketCounterReach > 1) {
-              // 1.8.x beim bewegen
-              invalid = processReachCheck(player, entity, 0.1f);
-            } else {
-              // 1.8.x beim still stehen
-              invalid = processReachCheck(player, entity, 0.13f);
+            if (clientData.protocolVersion() <= PROTOCOL_VERSION_BOUNTIFUL_UPDATE) {
+              // <= 1.8.9
+              if (!entity.clientSynchronized) {
+                // 1.8.x wenn das entity nicht synchronisiert ist
+                invalid = processIterativeReachCheck(player, entity);
+              } else if (attackRaytraceMeta.lastFlyPacketCounterReach > 1) {
+                // 1.8.x beim bewegen
+                invalid = processReachCheck(player, entity, 0.1f);
+              } else {
+                // 1.8.x beim still stehen
+                invalid = processReachCheck(player, entity, 0.13f);
+              }
             }
+          } else {
+            // wenn entity tot ist
+            invalid = processIterativeReachCheck(player, entity);
           }
         }
         if (invalid) {

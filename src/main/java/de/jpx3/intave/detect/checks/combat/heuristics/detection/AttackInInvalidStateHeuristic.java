@@ -53,7 +53,7 @@ public final class AttackInInvalidStateHeuristic extends IntaveCheckPart<Heurist
     UserMetaAttackData attackData = user.meta().attackData();
     UserMetaClientData clientData = user.meta().clientData();
     WrappedEntity entity = attackData.lastAttackedEntity();
-    if (entity == null || !entity.clientSynchronized) {
+    if (entity == null || !entity.clientSynchronized || !entity.isEntityLiving) {
       return;
     }
     if (clientData.protocolVersion() != PROTOCOL_VERSION_BOUNTIFUL_UPDATE) {
@@ -61,7 +61,7 @@ public final class AttackInInvalidStateHeuristic extends IntaveCheckPart<Heurist
     }
     EnumWrappers.EntityUseAction action = packet.getEntityUseActions().read(0);
     if (action == EnumWrappers.EntityUseAction.ATTACK && entity.dead) {
-      String description = "attacked a dead entity";
+      String description = "attacked a dead entity " + entity.entityName();
       Anomaly anomaly = Anomaly.anomalyOf("161", Confidence.NONE, Anomaly.Type.KILLAURA, description);
       parentCheck().saveAnomaly(player, anomaly);
     }

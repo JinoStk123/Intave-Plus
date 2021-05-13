@@ -1,6 +1,7 @@
 package de.jpx3.intave.event.service.entity;
 
 import com.comphenix.protocol.events.PacketContainer;
+import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.access.IntaveInternalException;
@@ -18,11 +19,11 @@ import org.bukkit.entity.Entity;
 import java.lang.reflect.Field;
 
 public final class PacketEntityTypeResolver {
-  private static final boolean DATA_WATCHER_ACCESS = !MinecraftVersions.VER1_15_0.atOrAbove();
+  private static final boolean DATA_WATCHER_ACCESS_UNDER_1_15 = !MinecraftVersions.VER1_15_0.atOrAbove();
   private String dataWatcherEntityFieldName;
 
   public PacketEntityTypeResolver(IntavePlugin plugin) {
-    if (DATA_WATCHER_ACCESS) {
+    if (DATA_WATCHER_ACCESS_UNDER_1_15) {
       registerDataWatcherEntityFieldName();
     }
   }
@@ -56,12 +57,79 @@ public final class PacketEntityTypeResolver {
     }
   }
 
-  public String entityNameByBukkitEntity(Entity entity) {
-    return entityNameOf(ReflectiveHandleAccess.handleOf(entity));
+  public EntityTypeData entityTypeDataOfDeadEntity(PacketEvent event) {
+    PacketContainer packet = event.getPacket();
+
+    int entityId = packet.getIntegers().read(0);
+    Entity entity = ClientSideEntityService.serverEntityByIdentifier(event.getPlayer(), entityId);
+
+    if(entity != null) {
+      return entityTypeDataOfBukkitEntity(entity);
+    } else {
+      int deadEntityType = packet.getIntegers().read(9);
+      String name = nameByDeadEntityType(deadEntityType);
+      HitBoxBoundaries boundaries = hitboxBoundariesByDeadEntityType(deadEntityType);
+      EntityTypeData entityTypeData = new EntityTypeData(name, boundaries);
+
+      return entityTypeData;
+    }
   }
 
-  public EntityTypeData spawnInformationOf(PacketContainer packet) {
-    return DATA_WATCHER_ACCESS ? dataWatcherAccess(packet) : typeAccess(packet);
+
+  public EntityTypeData entityTypeDataOfLivingEntity(PacketEvent event) {
+    PacketContainer packet = event.getPacket();
+
+    int entityId = packet.getIntegers().read(0);
+    Entity entity = ClientSideEntityService.serverEntityByIdentifier(event.getPlayer(), entityId);
+
+    if(entity != null) {
+      return entityTypeDataOfBukkitEntity(entity);
+    } else {
+      if(DATA_WATCHER_ACCESS_UNDER_1_15) {
+        WrappedDataWatcher dataWatcher = packet.getDataWatcherModifier().read(0);
+        // Guckt ob das Packet ein Datawatcher hat
+        if (dataWatcher != null) {
+          return entityTypeDataOfDataWatcher(dataWatcher);
+        } else {
+          int entityTypeID = packet.getIntegers().read(1);
+          return entityTypeDataOfEntityType(entityTypeID);
+        }
+      } else {
+        return typeAccess(packet);
+      }
+    }
+  }
+
+  public EntityTypeData entityTypeDataOfEntityMetaData(PacketEvent event, boolean isChild) {
+    PacketContainer packet = event.getPacket();
+    int entityId = packet.getIntegers().read(0);
+    Entity entity = ClientSideEntityService.serverEntityByIdentifier(event.getPlayer(), entityId);
+
+    if(entity != null) {
+      return entityTypeDataOfBukkitEntity(entity);
+    } else {
+      return null;
+      //TODO: aus dem Datawatcher auslesen welches entityType das entity hat und dann die boundingbox dadurch bekommen
+//      EntityTypeData entityTypeData = typeAccess(packet);
+//
+//      if(isChild) {
+//      return convertHitboxBoundariesToBaby(entityTypeData);
+//      } else {
+//      return entityTypeData;
+//      }
+    }
+  }
+
+  private EntityTypeData convertHitboxBoundariesToBaby(EntityTypeData entityTypeData) {
+    HitBoxBoundaries hitBoxBoundaries = HitBoxBoundaries.of(entityTypeData.hitBoxBoundaries().width() * 0.5f, entityTypeData.hitBoxBoundaries().length() * 0.5f);
+    return new EntityTypeData(entityTypeData.entityName(),hitBoxBoundaries);
+  }
+
+  public HitBoxBoundaries hitBoxBoundariesByBukkitEntity(Entity bukkitEntity) {
+    return bukkitEntity.isDead() ? HitBoxBoundaries.zero() : ReflectiveEntityHitBoxAccess.boundariesOf(bukkitEntity);
+  }
+  public String entityNameByBukkitEntity(Entity entity) {
+    return entityNameOf(ReflectiveHandleAccess.handleOf(entity));
   }
 
   //
@@ -77,18 +145,22 @@ public final class PacketEntityTypeResolver {
   // DataWatcher Access
   //
 
-  private EntityTypeData dataWatcherAccess(PacketContainer packet) {
-    Object entity = entityOfDataWatcher(packet.getDataWatcherModifier().read(0));
-    int entityTypeID = packet.getIntegers().read(1);
-    HitBoxBoundaries hitBoxBoundaries;
-    String name;
-    if (entity != null) {
-      name = entityNameOf(entity);
-      hitBoxBoundaries = ReflectiveEntityHitBoxAccess.boundariesOf(entity);
-    } else {
-      name = DualEntityTypeAccess.nameFromID(entityTypeID);
-      hitBoxBoundaries = DualEntityTypeAccess.boundariesFromId(entityTypeID);
-    }
+  public EntityTypeData entityTypeDataOfBukkitEntity(Entity entity) {
+    HitBoxBoundaries hitBoxBoundaries = hitBoxBoundariesByBukkitEntity(entity);
+    String name = entityNameByBukkitEntity(entity);
+    return new EntityTypeData(name, hitBoxBoundaries);
+  }
+
+  public EntityTypeData entityTypeDataOfEntityType(int entityTypeID) {
+    HitBoxBoundaries hitBoxBoundaries = DualEntityTypeAccess.boundariesFromId(entityTypeID);
+    String name = DualEntityTypeAccess.nameFromID(entityTypeID);
+    return new EntityTypeData(name, hitBoxBoundaries);
+  }
+
+  private EntityTypeData entityTypeDataOfDataWatcher(WrappedDataWatcher dataWatcher) {
+    Object entity = entityOfDataWatcher(dataWatcher);
+    HitBoxBoundaries hitBoxBoundaries = ReflectiveEntityHitBoxAccess.boundariesOf(entity);
+    String name = entityNameOf(entity);
     return new EntityTypeData(name, hitBoxBoundaries);
   }
 
@@ -117,5 +189,83 @@ public final class PacketEntityTypeResolver {
     } catch (Exception e) {
       throw new IntaveInternalException(e);
     }
+  }
+
+  private String nameByDeadEntityType(int deadEntityType) {
+    switch (deadEntityType) {
+      case 1:
+        return "EntityBoat";
+      case 2:
+        return "EntityItem";
+      case 10:
+        return "EntityMinecart";
+      case 50:
+        return "EntityTNTPrimed";
+      case 51:
+        return "EntityEnderCrystal";
+      case 61:
+        return "EntitySnowball";
+      case 62:
+        return "EntityEgg";
+      case 63:
+        return "EntityFireball";
+      case 64:
+        return "EntitySmallFireball";
+      case 65:
+        return "EntityEnderPearl";
+      case 66:
+        return "EntityWitherSkull";
+      case 70:
+        return "EntityFallingBlock";
+      case 72:
+        return "EntityEnderEye";
+      case 73:
+        return "EntityPotion";
+      case 75:
+        return "EntityExpBottle";
+      case 76:
+        return "EntityFireworkRocket";
+      case 77:
+        return "EntityLeashKnot";
+      case 78:
+        return "EntityArmorStand";
+      case 90:
+        return "EntityFishHook";
+    }
+    return "null";
+  }
+
+  private HitBoxBoundaries hitboxBoundariesByDeadEntityType(int deadEntityType) {
+    switch (deadEntityType) {
+      case 1:
+        return HitBoxBoundaries.of(1.5F, 0.6F);
+      case 2:
+      case 61:
+      case 62:
+      case 65:
+      case 72:
+      case 73:
+      case 75:
+      case 76:
+      case 90:
+        return HitBoxBoundaries.of(0.25F, 0.25F);
+      case 10:
+        return HitBoxBoundaries.of(0.98F, 0.7F);
+      case 50:
+      case 70:
+        return HitBoxBoundaries.of(0.98F, 0.98F);
+      case 51:
+        return HitBoxBoundaries.of(2.0F, 2.0F);
+      case 63:
+        return HitBoxBoundaries.of(1.0F, 1.0F);
+      case 64:
+      case 66:
+        return HitBoxBoundaries.of(0.3125F, 0.3125F);
+      case 77:
+        return HitBoxBoundaries.of(0.5F, 0.5F);
+      case 78:
+        return HitBoxBoundaries.of(0.5F, 1.975F);
+    }
+    return HitBoxBoundaries.zero();
   }
 }

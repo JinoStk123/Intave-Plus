@@ -101,19 +101,18 @@ public final class InventoryClickDelayAnalyzer extends IntaveMetaCheckPart<Inven
       meta.clickDelayList.add(time);
     }
 
-    if (meta.clickDelayList.size() > 15) {
+    if (meta.clickDelayList.size() > 10) {
       double std = RotationMathHelper.calculateStandardDeviation(meta.clickDelayList) * 100;
-//      player.sendMessage("sdt " + new BigDecimal(std).setScale(6, RoundingMode.HALF_UP).toPlainString());
+//      player.sendMessage("sdt " + MathHelper.formatDouble(std,4));
 
       if (std < 2) {
-//        Violation violation = Violation.builderFor(InventoryClickAnalysis.class)
-//          .withPlayer(player).withDefaultThreshold()
-//          .withMessage("is switching too even between item slots")
-//          .withDetails("moved between slots " + std)
-//          .withVL(time > 0.01 ? 10 : 5).build();
+        Violation violation = Violation.builderFor(InventoryClickAnalysis.class)
+          .withPlayer(player).withDefaultThreshold()
+          .withMessage("is clicking suspiciously on items")
+          .withDetails("standard deviation: " + MathHelper.formatDouble(std,2))
+          .withVL(5).build();
 //
-//        //ViolationContext violationContext =
-//        plugin.violationProcessor().processViolation(violation);
+        plugin.violationProcessor().processViolation(violation);
       }
       meta.clickDelayList.clear();
     }

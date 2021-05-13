@@ -10,7 +10,6 @@ import de.jpx3.intave.adapter.ProtocolLibraryAdapter;
 import de.jpx3.intave.event.packet.*;
 import de.jpx3.intave.fakeplayer.FakePlayer;
 import de.jpx3.intave.reflect.hitbox.HitBoxBoundaries;
-import de.jpx3.intave.reflect.hitbox.ReflectiveEntityHitBoxAccess;
 import de.jpx3.intave.reflect.hitbox.typeaccess.EntityTypeData;
 import de.jpx3.intave.tools.wrapper.WrappedMathHelper;
 import de.jpx3.intave.user.*;
@@ -31,7 +30,7 @@ public final class ClientSideEntityService implements PacketEventSubscriber {
   private final IntavePlugin plugin;
   private final PacketEntityTypeResolver entityTypeResolver;
 
-  private final static boolean NEW_POSITION_PROCESSING = ProtocolLibraryAdapter.serverVersion().isAtLeast(MinecraftVersions.VER1_9_0);
+  private final static boolean NEW_POSITION_PROCESSING_1_9 = ProtocolLibraryAdapter.serverVersion().isAtLeast(MinecraftVersions.VER1_9_0);
   private final static boolean HEALTH_PROCESSING_1_10 = ProtocolLibraryAdapter.serverVersion().isAtLeast(MinecraftVersions.VER1_10_0);
   private final static boolean HEALTH_PROCESSING_1_14 = ProtocolLibraryAdapter.serverVersion().isAtLeast(MinecraftVersions.VER1_14_0);
 
@@ -111,12 +110,13 @@ public final class ClientSideEntityService implements PacketEventSubscriber {
     boolean livingEntity;
     if (packetType == PacketType.Play.Server.SPAWN_ENTITY) {
       // dead entities
-      hitBoxBoundaries = HitBoxBoundaries.of(0, 0);
-      entityName = "DeadEntity";
+      EntityTypeData entityTypeData = entityTypeResolver.entityTypeDataOfDeadEntity(event);
+      entityName = entityTypeData.entityName();
+      hitBoxBoundaries = entityTypeData.hitBoxBoundaries();
       livingEntity = false;
     } else if (packetType == PacketType.Play.Server.SPAWN_ENTITY_LIVING) {
       // entities
-      EntityTypeData entityTypeData = entityTypeResolver.spawnInformationOf(packet);
+      EntityTypeData entityTypeData = entityTypeResolver.entityTypeDataOfLivingEntity(event);
       entityName = entityTypeData.entityName();
       hitBoxBoundaries = entityTypeData.hitBoxBoundaries();
       livingEntity = true;
@@ -205,13 +205,14 @@ public final class ClientSideEntityService implements PacketEventSubscriber {
     int entityId = packet.getIntegers().read(0);
     WrappedEntity entity = entityByIdentifier(user, entityId);
     if (entity == null) {
-      registerEntity(event);
       entity = entityByIdentifier(user, entityId);
-      if (entity == null) {
+    }
+    if(entity == null) {
+      entity = createEntityByMovePacket(event);
+    }
+    if(entity == null) {
 //        IntaveLogger.logger().info("Failed to reference entity (id " + entityId + ")");
 //        throw new NullPointerException("entity could not be created");
-        return;
-      }
     }
     if (entity.isEntityLiving && entity.tracingEnabled()) {
       WrappedEntity finalEntity = entity;
@@ -235,35 +236,28 @@ public final class ClientSideEntityService implements PacketEventSubscriber {
     }
   }
 
-  private void registerEntity(PacketEvent event) {
+
+  private WrappedEntity createEntityByMovePacket(PacketEvent event) {
     Player player = event.getPlayer();
-    PacketContainer packet = event.getPacket();
     User user = UserRepository.userOf(player);
-    int entityId = packet.getIntegers().read(0);
-    WrappedEntity entity = entityByIdentifier(user, entityId);
-    if (entity != null) {
-      return;
-    }
+    int entityId = event.getPacket().getIntegers().read(0);
     Entity serverEntity = serverEntityByIdentifier(player, entityId);
     if (serverEntity != null) {
-      spawnMobByBukkitEntity(user, serverEntity);
+      return spawnMobByBukkitEntity(user, serverEntity);
     }
+    return null;
   }
 
-  private HitBoxBoundaries hitBoxBoundariesByBukkitEntity(Entity bukkitEntity) {
-    return bukkitEntity.isDead() ? HitBoxBoundaries.zero() : ReflectiveEntityHitBoxAccess.boundariesOf(bukkitEntity);
-  }
-
-  private void spawnMobByBukkitEntity(User user, Entity bukkitEntity) {
+  private WrappedEntity spawnMobByBukkitEntity(User user, Entity bukkitEntity) {
     String entityName = entityTypeResolver.entityNameByBukkitEntity(bukkitEntity);
     Location location = bukkitEntity.getLocation();
     boolean isEntityLiving = !bukkitEntity.isDead();
-    HitBoxBoundaries boundaries = hitBoxBoundariesByBukkitEntity(bukkitEntity);
+    HitBoxBoundaries boundaries = entityTypeResolver.hitBoxBoundariesByBukkitEntity(bukkitEntity);
     int entityID = bukkitEntity.getEntityId();
     long serverPosX;
     long serverPosY;
     long serverPosZ;
-    if (NEW_POSITION_PROCESSING) {
+    if (NEW_POSITION_PROCESSING_1_9) {
       serverPosX = WrappedMathHelper.getPositionLong(location.getX());
       serverPosY = WrappedMathHelper.getPositionLong(location.getY());
       serverPosZ = WrappedMathHelper.getPositionLong(location.getZ());
@@ -284,6 +278,8 @@ public final class ClientSideEntityService implements PacketEventSubscriber {
       LivingEntity livingEntity = (LivingEntity) bukkitEntity;
       entity.health = (float) livingEntity.getHealth();
     }
+
+    return entity;
   }
 
   private void processPacketSpawnMob(
@@ -294,7 +290,7 @@ public final class ClientSideEntityService implements PacketEventSubscriber {
   ) {
     Integer entityID = packet.getIntegers().read(0);
 
-    if (NEW_POSITION_PROCESSING) {
+    if (NEW_POSITION_PROCESSING_1_9) {
       double posX = packet.getDoubles().read(0);
       double posY = packet.getDoubles().read(1);
       double posZ = packet.getDoubles().read(2);
@@ -425,15 +421,12 @@ public final class ClientSideEntityService implements PacketEventSubscriber {
 
     List<WrappedWatchableObject> watchableObjects = packet.getWatchableCollectionModifier().read(0);
 
-    if(!NEW_POSITION_PROCESSING) {
-      Integer age = readAgeOf(watchableObjects);
-      if (age != null) {
-        Entity bukkitEntity = serverEntityByIdentifier(player, entityID);
+    Integer age = readAgeOf(watchableObjects);
+    if (age != null) {
+      boolean isChild = age < 0;
 
-        if (bukkitEntity != null) {
-          entity.hitBoxBoundaries = hitBoxBoundariesByBukkitEntity(bukkitEntity);
-        }
-      }
+      EntityTypeData entityTypeData = entityTypeResolver.entityTypeDataOfEntityMetaData(event, isChild);
+      entity.hitBoxBoundaries = entityTypeData.hitBoxBoundaries();
     }
 
     Float health = readHealthOf(watchableObjects);
