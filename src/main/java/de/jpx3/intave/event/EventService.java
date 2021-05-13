@@ -15,9 +15,11 @@ import de.jpx3.intave.event.service.TransactionFeedbackService;
 import de.jpx3.intave.event.service.entity.ClientSideEntityService;
 import de.jpx3.intave.event.service.entity.EntityNoCollisionService;
 import de.jpx3.intave.event.service.entity.LazyEntityCollisionService;
+import de.jpx3.intave.patchy.PatchyLoadingInjector;
 import de.jpx3.intave.permission.BukkitPermissionCheck;
 import de.jpx3.intave.reflect.caller.CallerResolver;
 import de.jpx3.intave.reflect.caller.PluginInvocation;
+import de.jpx3.intave.reflect.hitbox.typeaccess.EntityTypeAccess;
 import de.jpx3.intave.tools.AccessHelper;
 import de.jpx3.intave.tools.DurationTranslator;
 import de.jpx3.intave.tools.GarbageCollector;
@@ -69,6 +71,9 @@ public final class EventService implements BukkitEventSubscriber {
     }
 
     plugin.eventLinker().registerEventsIn(this);
+
+    PatchyLoadingInjector.loadUnloadedClassPatched(IntavePlugin.class.getClassLoader(), "de.jpx3.intave.reflect.hitbox.typeaccess.LegacyEntityBoundariesResolver");
+    EntityTypeAccess.setup();
   }
 
   @BukkitEventSubscription

@@ -12,7 +12,7 @@ import java.lang.reflect.Field;
 public final class ReflectiveAccess {
   final static boolean DATA_WATCHER_NEW_ACCESS_VER = MinecraftVersions.VER1_9_0.atOrAbove();
   private final static String NMS_PACKAGE_NAME = Bukkit.getServer().getClass().getPackage().getName().substring(23);
-  private final static String NMS_PREFIX = "net.minecraft.server." + NMS_PACKAGE_NAME;
+  public final static String NMS_PREFIX = "net.minecraft.server." + NMS_PACKAGE_NAME;
   private final static String CRAFT_BUKKIT_PREFIX = "org.bukkit.craftbukkit." + NMS_PACKAGE_NAME;
 
   public final static Class<?> NMS_WORLD_SERVER_CLASS = lookupServerClass("WorldServer");

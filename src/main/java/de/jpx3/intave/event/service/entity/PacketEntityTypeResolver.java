@@ -13,22 +13,24 @@ import de.jpx3.intave.reflect.ReflectiveAccess;
 import de.jpx3.intave.reflect.ReflectiveHandleAccess;
 import de.jpx3.intave.reflect.hitbox.HitBoxBoundaries;
 import de.jpx3.intave.reflect.hitbox.ReflectiveEntityHitBoxAccess;
-import net.minecraft.server.v1_16_R1.EntitySize;
-import net.minecraft.server.v1_16_R1.EntityTypes;
-import net.minecraft.server.v1_16_R1.IChatBaseComponent;
-import net.minecraft.server.v1_16_R1.IRegistry;
+import net.minecraft.server.v1_14_R1.EntitySize;
+import net.minecraft.server.v1_14_R1.EntityTypes;
+import net.minecraft.server.v1_14_R1.IChatBaseComponent;
+import net.minecraft.server.v1_14_R1.IRegistry;
 import org.bukkit.entity.Entity;
 
 import java.lang.reflect.Field;
 
 public final class PacketEntityTypeResolver {
   private static final boolean DATA_WATCHER = !MinecraftVersions.VER1_15_0.atOrAbove();
+  private static final boolean ENTITY_SIZE_ACCESS = MinecraftVersions.VER1_14_0.atOrAbove();
   private String dataWatcherEntityFieldName;
 
   public PacketEntityTypeResolver(IntavePlugin plugin) {
     if (DATA_WATCHER) {
       registerDataWatcherEntityFieldName();
-    } else {
+    }
+    if (ENTITY_SIZE_ACCESS) {
       loadEntityTypeResolver();
     }
   }
@@ -140,14 +142,57 @@ public final class PacketEntityTypeResolver {
   }
 
   @PatchyAutoTranslation
-  private final static class EntityTypeResolver {
+  public final static class EntityTypeResolver {
+    private final static boolean ENTITY_SIZE = MinecraftVersions.VER1_14_0.atOrAbove();
+    private static Field entitySizeField;
+
+    static {
+      if (ENTITY_SIZE) {
+        lookupField();
+      }
+    }
+
+    private static void lookupField() {
+      try {
+        Class<?> entityTypesClass = ReflectiveAccess.lookupServerClass("EntityTypes");
+        Class<?> entitySizeClass = ReflectiveAccess.lookupServerClass("EntitySize");
+        for (Field field : entityTypesClass.getDeclaredFields()) {
+          if (field.getType() == entitySizeClass) {
+            entitySizeField = field;
+            break;
+          }
+        }
+        if (entitySizeField == null) {
+          throw new IntaveInternalException("EntitySize field does not exist in " + entityTypesClass);
+        }
+        ReflectiveAccess.ensureAccessible(entitySizeField);
+      } catch (Exception e) {
+        throw new IntaveInternalException(e);
+      }
+    }
+
     @PatchyAutoTranslation
     public static EntitySpawn resolveFromId(int type) {
-      EntityTypes<?> entityTypes = IRegistry.ENTITY_TYPE.fromId(type);
-      EntitySize entitySize = entityTypes.l();
-      IChatBaseComponent component = entityTypes.g();
-      HitBoxBoundaries hitBoxBoundaries = HitBoxBoundaries.of(entitySize.width, entitySize.height);
-      return new EntitySpawn(component.getString(), hitBoxBoundaries);
+      try {
+        EntityTypes<?> entityTypes = IRegistry.ENTITY_TYPE.fromId(type);
+        EntitySize entitySize = (EntitySize) entitySizeField.get(entityTypes);
+        IChatBaseComponent component = entityTypes.g();
+        HitBoxBoundaries hitBoxBoundaries = HitBoxBoundaries.of(entitySize.width, entitySize.height);
+        return new EntitySpawn(component.getString(), hitBoxBoundaries);
+      } catch (IllegalAccessException e) {
+        throw new IntaveInternalException(e);
+      }
+    }
+
+    @PatchyAutoTranslation
+    public static HitBoxBoundaries resolveBoundariesOf(int type) {
+      try {
+        EntityTypes<?> entityTypes = IRegistry.ENTITY_TYPE.fromId(type);
+        EntitySize entitySize = (EntitySize) entitySizeField.get(entityTypes);
+        return HitBoxBoundaries.of(entitySize.width, entitySize.height);
+      } catch (IllegalAccessException e) {
+        throw new IntaveInternalException(e);
+      }
     }
   }
 }
