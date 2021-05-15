@@ -90,7 +90,7 @@ public final class User {
   }
 
   public boolean justJoined() {
-    return AccessHelper.now() - birthTimestamp < 2000;
+    return AccessHelper.now() - birthTimestamp < 5000;
   }
 
   public boolean hasOnlinePlayer() {

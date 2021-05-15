@@ -36,13 +36,6 @@ public final class ReflectiveAccess {
     } else {
       PatchyLoadingInjector.loadUnloadedClassPatched(IntavePlugin.class.getClassLoader(), "de.jpx3.intave.reflect.datawatcher.LegacyDataWatcherAccess");
     }
-
-    if (ENTITY_SIZE_ACCESS) {
-      PatchyLoadingInjector.loadUnloadedClassPatched(IntavePlugin.class.getClassLoader(), "de.jpx3.intave.reflect.hitbox.typeaccess.EntityTypeResolverNew");
-    } else {
-      PatchyLoadingInjector.loadUnloadedClassPatched(IntavePlugin.class.getClassLoader(), "de.jpx3.intave.reflect.hitbox.typeaccess.EntityTypeResolverLegacy");
-    }
-    DualEntityTypeAccess.setup();
   }
 
   public static <T> Class<T> classByName(String className) {

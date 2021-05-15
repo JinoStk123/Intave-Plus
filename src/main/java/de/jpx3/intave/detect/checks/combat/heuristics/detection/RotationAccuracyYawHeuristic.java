@@ -98,7 +98,7 @@ public final class RotationAccuracyYawHeuristic extends IntaveMetaCheckPart<Heur
         if (distanceToPerfectYaw == 0) {
           String description = "rotated yaw too precisely (0.0)";
           int options = LIMIT_2 | DELAY_128s | SUGGEST_MINING;
-          Anomaly anomaly = Anomaly.anomalyOf("82", Confidence.LIKELY, Anomaly.Type.KILLAURA, description, options);
+          Anomaly anomaly = Anomaly.anomalyOf("82", Confidence.PROBABLE, Anomaly.Type.KILLAURA, description, options);
           parentCheck().saveAnomaly(player, anomaly);
           user.applyAttackNerfer(AttackNerfStrategy.HT_MEDIUM);
         }
@@ -153,7 +153,7 @@ public final class RotationAccuracyYawHeuristic extends IntaveMetaCheckPart<Heur
       heuristicMeta.bitBoxCornerBalance = (int) MathHelper.minmax(0, heuristicMeta.bitBoxCornerBalance + increase, 100);
       if (heuristicMeta.bitBoxCornerBalance > 30) {
         int options = SUGGEST_MINING | DELAY_16s;
-        Anomaly anomaly = Anomaly.anomalyOf("85", Confidence.LIKELY, Anomaly.Type.KILLAURA, "high accuracy rotation yaw on hit-box corners", options);
+        Anomaly anomaly = Anomaly.anomalyOf("85", Confidence.PROBABLE, Anomaly.Type.KILLAURA, "high accuracy rotation yaw on hit-box corners", options);
         parentCheck().saveAnomaly(player, anomaly);
         heuristicMeta.bitBoxCornerBalance -= 20;
       }
