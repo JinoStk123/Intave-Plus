@@ -6,11 +6,11 @@ import de.jpx3.intave.detect.IntaveMetaCheckPart;
 import de.jpx3.intave.detect.checks.combat.Heuristics;
 import de.jpx3.intave.detect.checks.combat.heuristics.Anomaly;
 import de.jpx3.intave.detect.checks.combat.heuristics.Confidence;
+import de.jpx3.intave.event.entity.WrappedEntity;
 import de.jpx3.intave.event.packet.PacketDescriptor;
 import de.jpx3.intave.event.packet.PacketSubscription;
 import de.jpx3.intave.event.packet.Sender;
-import de.jpx3.intave.event.punishment.AttackNerfStrategy;
-import de.jpx3.intave.event.service.entity.WrappedEntity;
+import de.jpx3.intave.event.violation.AttackNerfStrategy;
 import de.jpx3.intave.user.*;
 import de.jpx3.intave.world.raytrace.Raytracer;
 import org.bukkit.entity.Player;
@@ -55,7 +55,8 @@ public final class RotationModuloResetHeuristic extends IntaveMetaCheckPart<Heur
           int options = Anomaly.AnomalyOption.LIMIT_4 | Anomaly.AnomalyOption.DELAY_128s | Anomaly.AnomalyOption.SUGGEST_MINING;
           Anomaly anomaly = Anomaly.anomalyOf("101", Confidence.PROBABLE, Anomaly.Type.KILLAURA, description, options);
           parentCheck().saveAnomaly(player, anomaly);
-          user.applyAttackNerfer(AttackNerfStrategy.HT_MEDIUM);
+          //dmc20
+          user.applyAttackNerfer(AttackNerfStrategy.HT_MEDIUM, "20");
         }
       }
       heuristicMeta.roundedRotationLooking = false;

@@ -5,7 +5,7 @@ import de.jpx3.intave.detect.IntaveCheck;
 import de.jpx3.intave.detect.checks.world.placementanalysis.PlacementFacingAnalyzer;
 import de.jpx3.intave.detect.checks.world.placementanalysis.PlacementPacketOrderAnalyzer;
 import de.jpx3.intave.detect.checks.world.placementanalysis.PlacementSpeedAnalyzer;
-import de.jpx3.intave.event.punishment.AttackNerfStrategy;
+import de.jpx3.intave.event.violation.AttackNerfStrategy;
 import de.jpx3.intave.user.User;
 
 public final class PlacementAnalysis extends IntaveCheck {
@@ -24,8 +24,8 @@ public final class PlacementAnalysis extends IntaveCheck {
     appendCheckPart(new PlacementPacketOrderAnalyzer(this));
   }
 
-  public void applyPlacementAnalysisDamageCancel(User user) {
-    user.applyAttackNerfer(AttackNerfStrategy.CANCEL_FIRST_HIT);
-    user.applyAttackNerfer(AttackNerfStrategy.HT_MEDIUM);
+  public void applyPlacementAnalysisDamageCancel(User user, String checkId) {
+    user.applyAttackNerfer(AttackNerfStrategy.CANCEL_FIRST_HIT, checkId);
+    user.applyAttackNerfer(AttackNerfStrategy.HT_MEDIUM, checkId);
   }
 }

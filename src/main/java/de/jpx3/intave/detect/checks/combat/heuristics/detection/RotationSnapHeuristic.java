@@ -10,12 +10,12 @@ import de.jpx3.intave.detect.IntaveMetaCheckPart;
 import de.jpx3.intave.detect.checks.combat.Heuristics;
 import de.jpx3.intave.detect.checks.combat.heuristics.Anomaly;
 import de.jpx3.intave.detect.checks.combat.heuristics.Confidence;
+import de.jpx3.intave.event.entity.WrappedEntity;
 import de.jpx3.intave.event.packet.ListenerPriority;
 import de.jpx3.intave.event.packet.PacketDescriptor;
 import de.jpx3.intave.event.packet.PacketSubscription;
 import de.jpx3.intave.event.packet.Sender;
-import de.jpx3.intave.event.punishment.AttackNerfStrategy;
-import de.jpx3.intave.event.service.entity.WrappedEntity;
+import de.jpx3.intave.event.violation.AttackNerfStrategy;
 import de.jpx3.intave.tools.MathHelper;
 import de.jpx3.intave.tools.wrapper.WrappedAxisAlignedBB;
 import de.jpx3.intave.tools.wrapper.WrappedMathHelper;
@@ -247,11 +247,12 @@ public class RotationSnapHeuristic extends IntaveMetaCheckPart<Heuristics, Rotat
       double vl = calculateViolation(valueOfSnap, changedLookToEntity, user, liteFlag);
       liteFlag = false;
 
+      //dmc23
       if (vl >= 40) {
-        user.applyAttackNerfer(AttackNerfStrategy.HT_MEDIUM);
+        user.applyAttackNerfer(AttackNerfStrategy.HT_MEDIUM, "23");
       }
       if(vl > 70) {
-        user.applyAttackNerfer(AttackNerfStrategy.CANCEL_FIRST_HIT);
+        user.applyAttackNerfer(AttackNerfStrategy.CANCEL_FIRST_HIT, "23");
       }
 
       Confidence confidence = Confidence.confidenceFrom((int) (vl + meta.internalViolation));

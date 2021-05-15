@@ -8,12 +8,12 @@ import de.jpx3.intave.detect.IntaveMetaCheckPart;
 import de.jpx3.intave.detect.checks.combat.Heuristics;
 import de.jpx3.intave.detect.checks.combat.heuristics.Anomaly;
 import de.jpx3.intave.detect.checks.combat.heuristics.Confidence;
+import de.jpx3.intave.event.entity.WrappedEntity;
 import de.jpx3.intave.event.packet.ListenerPriority;
 import de.jpx3.intave.event.packet.PacketDescriptor;
 import de.jpx3.intave.event.packet.PacketSubscription;
 import de.jpx3.intave.event.packet.Sender;
-import de.jpx3.intave.event.punishment.AttackNerfStrategy;
-import de.jpx3.intave.event.service.entity.WrappedEntity;
+import de.jpx3.intave.event.violation.AttackNerfStrategy;
 import de.jpx3.intave.tools.AccessHelper;
 import de.jpx3.intave.user.*;
 import de.jpx3.intave.world.raytrace.Raytracer;
@@ -100,8 +100,9 @@ public final class AttackRequiredHeuristic extends IntaveMetaCheckPart<Heuristic
           if (flag) {
             Anomaly anomaly = Anomaly.anomalyOf("151", Confidence.LIKELY, Anomaly.Type.KILLAURA, "missed attack packet vl:" + vl, options);
             parentCheck().saveAnomaly(player, anomaly);
-            user.applyAttackNerfer(AttackNerfStrategy.HT_LIGHT);
-            user.applyAttackNerfer(AttackNerfStrategy.CANCEL_FIRST_HIT);
+            //dmc5
+            user.applyAttackNerfer(AttackNerfStrategy.HT_LIGHT, "5");
+            user.applyAttackNerfer(AttackNerfStrategy.CANCEL_FIRST_HIT, "5");
           }
         }
         meta.lastFlag = AccessHelper.now();

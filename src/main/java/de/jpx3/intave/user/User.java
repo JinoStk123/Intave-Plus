@@ -6,8 +6,8 @@ import de.jpx3.intave.access.IntaveInternalException;
 import de.jpx3.intave.access.player.trust.TrustFactor;
 import de.jpx3.intave.connect.customclient.CustomClientSupport;
 import de.jpx3.intave.connect.shadow.ShadowPacketDataLink;
-import de.jpx3.intave.event.punishment.AttackNerfStrategy;
-import de.jpx3.intave.event.punishment.EntityNoDamageTickChanger;
+import de.jpx3.intave.event.violation.AttackNerfStrategy;
+import de.jpx3.intave.event.violation.EntityNoDamageTickChanger;
 import de.jpx3.intave.fakeplayer.FakePlayer;
 import de.jpx3.intave.permission.BukkitPermissionCache;
 import de.jpx3.intave.permission.BukkitPermissionCheck;
@@ -234,12 +234,12 @@ public final class User {
     return receiveWhitelist.get(channel);
   }
 
-  public void applyAttackNerfer(AttackNerfStrategy strategy) {
+  public void applyAttackNerfer(AttackNerfStrategy strategy, String checkId) {
     if(trustFactor().atLeast(TrustFactor.BYPASS)) {
       return;
     }
     //noinspection deprecation
-    plugin().eventService().combatMitigator().mitigate(this, strategy);
+    plugin().eventService().combatMitigator().mitigate(this, strategy, checkId);
   }
 
   public void removeChannelConstraint(UserMessageChannel channel) {

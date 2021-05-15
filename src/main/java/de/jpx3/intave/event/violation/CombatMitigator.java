@@ -1,4 +1,4 @@
-package de.jpx3.intave.event.punishment;
+package de.jpx3.intave.event.violation;
 
 import de.jpx3.intave.IntaveControl;
 import de.jpx3.intave.IntavePlugin;
@@ -40,21 +40,21 @@ public final class CombatMitigator implements BukkitEventSubscriber {
   }
 
   @Deprecated
-  public void mitigate(User user, AttackNerfStrategy type) {
+  public void mitigate(User user, AttackNerfStrategy type, String checkId) {
     Synchronizer.synchronize(() -> {
       AttackNerfer nerfer = user.meta().punishmentData().nerferOfType(type);
-      notify(user, nerfer);
+      notify(user, nerfer, checkId);
       nerfer.activate();
     });
   }
 
   @Native
-  private void notify(User user, AttackNerfer attackNerfer) {
+  private void notify(User user, AttackNerfer attackNerfer, String checkId) {
     if (attackNerfer.active()) {
       return;
     }
     Player player = user.player();
-    String message = ChatColor.RED + "[DC] Performed " + attackNerfer.name() + " damage cancel on " + player.getName();
+    String message = ChatColor.RED + "[DC] Performed " + attackNerfer.name() + " damage cancel on " + player.getName() + " (" + checkId + ")";
     if (IntaveControl.DEBUG_HEURISTICS && !plugin.sibylIntegrationService().isAuthenticated(player)) {
       player.sendMessage(message);
     }

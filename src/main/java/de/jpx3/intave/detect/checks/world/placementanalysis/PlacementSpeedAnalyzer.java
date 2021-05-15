@@ -10,8 +10,8 @@ import de.jpx3.intave.event.bukkit.BukkitEventSubscription;
 import de.jpx3.intave.event.packet.PacketDescriptor;
 import de.jpx3.intave.event.packet.PacketSubscription;
 import de.jpx3.intave.event.packet.Sender;
-import de.jpx3.intave.event.service.violation.Violation;
-import de.jpx3.intave.event.service.violation.ViolationContext;
+import de.jpx3.intave.event.violation.Violation;
+import de.jpx3.intave.event.violation.ViolationContext;
 import de.jpx3.intave.tools.AccessHelper;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserCustomCheckMeta;
@@ -104,7 +104,8 @@ public final class PlacementSpeedAnalyzer extends IntaveMetaCheckPart<PlacementA
 
           ViolationContext violationContext = plugin.violationProcessor().processViolation(violation);
           if (violationContext.violationLevelAfter() > 20) {
-            parentCheck().applyPlacementAnalysisDamageCancel(user);
+            //dmc1
+            parentCheck().applyPlacementAnalysisDamageCancel(user, "1");
           }
         }
       }

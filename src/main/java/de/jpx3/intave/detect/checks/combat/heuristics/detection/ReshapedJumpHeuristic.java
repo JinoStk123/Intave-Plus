@@ -10,7 +10,7 @@ import de.jpx3.intave.event.packet.ListenerPriority;
 import de.jpx3.intave.event.packet.PacketDescriptor;
 import de.jpx3.intave.event.packet.PacketSubscription;
 import de.jpx3.intave.event.packet.Sender;
-import de.jpx3.intave.event.punishment.AttackNerfStrategy;
+import de.jpx3.intave.event.violation.AttackNerfStrategy;
 import de.jpx3.intave.tools.client.SinusCache;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserCustomCheckMeta;
@@ -67,7 +67,8 @@ public final class ReshapedJumpHeuristic extends IntaveMetaCheckPart<Heuristics,
           int options = Anomaly.AnomalyOption.LIMIT_8 | Anomaly.AnomalyOption.DELAY_128s | Anomaly.AnomalyOption.SUGGEST_MINING;
           Anomaly anomaly = Anomaly.anomalyOf("61", Confidence.PROBABLE, Anomaly.Type.KILLAURA, description, options);
           parentCheck().saveAnomaly(player, anomaly);
-          user.applyAttackNerfer(AttackNerfStrategy.HT_MEDIUM);
+          //dmc15
+          user.applyAttackNerfer(AttackNerfStrategy.HT_MEDIUM, "15");
         }
       } else {
         heuristicMeta.balance -= heuristicMeta.balance > 0 ? 0.2 : 0;

@@ -10,12 +10,12 @@ import de.jpx3.intave.detect.IntaveMetaCheckPart;
 import de.jpx3.intave.detect.checks.combat.Heuristics;
 import de.jpx3.intave.detect.checks.combat.heuristics.Anomaly;
 import de.jpx3.intave.detect.checks.combat.heuristics.Confidence;
+import de.jpx3.intave.event.entity.WrappedEntity;
 import de.jpx3.intave.event.packet.ListenerPriority;
 import de.jpx3.intave.event.packet.PacketDescriptor;
 import de.jpx3.intave.event.packet.PacketSubscription;
 import de.jpx3.intave.event.packet.Sender;
-import de.jpx3.intave.event.punishment.AttackNerfStrategy;
-import de.jpx3.intave.event.service.entity.WrappedEntity;
+import de.jpx3.intave.event.violation.AttackNerfStrategy;
 import de.jpx3.intave.tools.MathHelper;
 import de.jpx3.intave.tools.RotationMathHelper;
 import de.jpx3.intave.user.User;
@@ -105,8 +105,9 @@ public final class PerfectAttackHeuristic extends IntaveMetaCheckPart<Heuristics
         Anomaly anomaly = Anomaly.anomalyOf("51", Confidence.PROBABLE, Anomaly.Type.KILLAURA, description, options);
         parentCheck().saveAnomaly(player, anomaly);
         if (heuristicMeta.vl >= 2) {
-          user.applyAttackNerfer(AttackNerfStrategy.HT_MEDIUM);
-          user.applyAttackNerfer(AttackNerfStrategy.CANCEL_FIRST_HIT);
+          //dmc13
+          user.applyAttackNerfer(AttackNerfStrategy.HT_MEDIUM, "13");
+          user.applyAttackNerfer(AttackNerfStrategy.CANCEL_FIRST_HIT, "13");
         }
       } else if (heuristicMeta.vl > 0) {
         heuristicMeta.vl -= 0.2;

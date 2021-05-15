@@ -12,7 +12,7 @@ import de.jpx3.intave.detect.checks.combat.heuristics.Confidence;
 import de.jpx3.intave.event.packet.PacketDescriptor;
 import de.jpx3.intave.event.packet.PacketSubscription;
 import de.jpx3.intave.event.packet.Sender;
-import de.jpx3.intave.event.punishment.AttackNerfStrategy;
+import de.jpx3.intave.event.violation.AttackNerfStrategy;
 import de.jpx3.intave.reflect.ReflectiveDataWatcherAccess;
 import de.jpx3.intave.tools.AccessHelper;
 import de.jpx3.intave.tools.sync.Synchronizer;
@@ -83,8 +83,9 @@ public final class BlockingHeuristic extends IntaveMetaCheckPart<Heuristics, Blo
           int options = DELAY_128s | LIMIT_2 | SUGGEST_MINING;
           Anomaly anomaly = Anomaly.anomalyOf("143", Confidence.MAYBE, Anomaly.Type.KILLAURA, description, options);
           parentCheck().saveAnomaly(player, anomaly);
-          user.applyAttackNerfer(AttackNerfStrategy.BLOCKING);
-          user.applyAttackNerfer(AttackNerfStrategy.DMG_LIGHT);
+          //dmc6
+          user.applyAttackNerfer(AttackNerfStrategy.BLOCKING, "6");
+          user.applyAttackNerfer(AttackNerfStrategy.DMG_LIGHT, "6");
           punishmentData.timeLastBlockCancel = AccessHelper.now();
           Synchronizer.synchronize(() -> ReflectiveDataWatcherAccess.setDataWatcherFlag(player, ReflectiveDataWatcherAccess.DATA_WATCHER_BLOCKING_ID, false));
         }
@@ -99,8 +100,9 @@ public final class BlockingHeuristic extends IntaveMetaCheckPart<Heuristics, Blo
         int options = DELAY_128s | SUGGEST_MINING;
         Anomaly anomaly = Anomaly.anomalyOf("141", Confidence.CERTAIN, Anomaly.Type.KILLAURA, description, options);
         parentCheck().saveAnomaly(player, anomaly);
-        user.applyAttackNerfer(AttackNerfStrategy.BLOCKING);
-        user.applyAttackNerfer(AttackNerfStrategy.DMG_LIGHT);
+        //dmc7
+        user.applyAttackNerfer(AttackNerfStrategy.BLOCKING, "7");
+        user.applyAttackNerfer(AttackNerfStrategy.DMG_LIGHT, "7");
       }
 
       int clientTicksBetweenBlockingToggle = meta.clientTicksBetweenBlockingToggle;
@@ -119,7 +121,8 @@ public final class BlockingHeuristic extends IntaveMetaCheckPart<Heuristics, Blo
             int options = DELAY_128s | SUGGEST_MINING;
             Anomaly anomaly = Anomaly.anomalyOf("142", Confidence.CERTAIN, Anomaly.Type.KILLAURA, description, options);
             parentCheck().saveAnomaly(player, anomaly);
-            user.applyAttackNerfer(AttackNerfStrategy.BLOCKING);
+            //dmc8
+            user.applyAttackNerfer(AttackNerfStrategy.BLOCKING, "8");
           }
         } else if (meta.acaBlockingVL > 1) {
           meta.acaBlockingVL -= 2;
