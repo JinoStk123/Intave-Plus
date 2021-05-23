@@ -238,8 +238,18 @@ public final class InteractionRaytrace extends IntaveMetaCheck<InteractionRaytra
       interactionMeta.remainingBlockStart--;
     }
 
-    WrappedMovingObjectPosition raycastResult = Raytracer.blockRayTrace(player, playerLocation);
-    WrappedMovingObjectPosition raycastResultmdf = Raytracer.blockRayTrace(player, playerLocationmdf);
+    WrappedMovingObjectPosition raycastResult;
+    WrappedMovingObjectPosition raycastResultmdf;
+    try {
+      raycastResult = Raytracer.blockRayTrace(player, playerLocation);
+      raycastResultmdf = Raytracer.blockRayTrace(player, playerLocationmdf);
+    } catch (Exception exception) {
+//      exception.printStackTrace();
+      if(interaction.targetBlock.toLocation(world).distance(player.getLocation()) < 6) {
+        emulatePacket(interaction, null, interaction.targetBlock.toLocation(world), interaction.targetBlock.toLocation(world), false, false, false);
+      }
+      return;
+    }
     boolean estimateMouseDelayFix = interactionMeta.estimateMouseDelayFix;
 
     // first raytrace check
@@ -327,8 +337,15 @@ public final class InteractionRaytrace extends IntaveMetaCheck<InteractionRaytra
     World world = interaction.world();
     Player player = interaction.player();
     InteractionMeta interactionMeta = metaOf(player);
-    WrappedMovingObjectPosition raycastResult = Raytracer.blockRayTrace(player, playerLocation);
-    WrappedMovingObjectPosition raycastResultmdf = Raytracer.blockRayTrace(player, playerLocationmdf);
+    WrappedMovingObjectPosition raycastResult;
+    WrappedMovingObjectPosition raycastResultmdf;
+    try {
+      raycastResult = Raytracer.blockRayTrace(player, playerLocation);
+      raycastResultmdf = Raytracer.blockRayTrace(player, playerLocationmdf);
+    } catch (Exception exception) {
+      exception.printStackTrace();
+      return interaction.targetBlock.toLocation(world).distance(player.getLocation()) < 6;
+    }
     boolean estimateMouseDelayFix = interactionMeta.estimateMouseDelayFix;
 
     // first raytrace check
@@ -726,19 +743,9 @@ public final class InteractionRaytrace extends IntaveMetaCheck<InteractionRaytra
 
   @Override
   public boolean enabled() {
-    this.enabled = false;//super.enabled();
+    this.enabled = super.enabled();
     return true;
   }
-
-//  private Vector resolveLocationWithoutKeyPress(User user) {
-//    ComplexColliderSimulationResult result = simulationProcessor.simulateMovementWithLastKeys(user);
-//    return resolvePositionMotion(user, result.context());
-//  }
-//
-//  private Vector resolvePositionWithLastKeys(User user) {
-//    ComplexColliderSimulationResult result = simulationProcessor.simulateMovementWithLastKeys(user);
-//    return resolvePositionMotion(user, result.context());
-//  }
 
   private final static boolean BLOCK_DATA_WRAPPED_IN_MOVING_OBJECT_POSITION = MinecraftVersions.VER1_13_0.atOrAbove();
 

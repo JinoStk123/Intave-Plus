@@ -16,13 +16,17 @@ public final class BukkitPermissionCheck {
       }
       return playerPermissionCheck((Player) permissible, permission);
     } else {
-      return permissible.hasPermission(permission);
+      // non-player can not inherit sibyl permissions, never
+      if(permission.equalsIgnoreCase("sibyl")) {
+        return false;
+      }
+      return nativePermissionCheck(permissible, permission);
     }
   }
 
   private static boolean playerPermissionCheck(Player player, String permission) {
     if(!UserRepository.hasUser(player)) {
-      return player.hasPermission(permission);
+      return nativePermissionCheck(player, permission);
     }
     User user = UserRepository.userOf(player);
     if(!user.hasOnlinePlayer()) {
@@ -32,9 +36,13 @@ public final class BukkitPermissionCheck {
     if(permissionCache.inCache(permission)) {
       return permissionCache.permissionCheck(permission);
     } else {
-      boolean access = player.hasPermission(permission);
+      boolean access = nativePermissionCheck(player, permission);
       permissionCache.permissionSave(permission, access);
       return access;
     }
+  }
+
+  private static boolean nativePermissionCheck(Permissible permissible, String permission) {
+    return permissible.hasPermission(permission);
   }
 }

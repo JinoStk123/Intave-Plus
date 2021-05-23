@@ -20,7 +20,7 @@ import static de.jpx3.intave.IntaveControl.DISABLE_BLOCK_CACHING_ENTIRELY;
 
 public final class MultiChunkKeyOCBlockShapeAccess implements OCBlockShapeAccess {
   private final Player player;
-  private final BoundingBoxResolvePipeline resolver;
+  private final BoundingBoxResolvePipeline boundingBoxResolver;
   private final Map<Long, BlockShape> blockCache = new ConcurrentHashMap<>(4096);
   private final Map<Location, BlockShape> locatedReplacements = new ConcurrentHashMap<>(64);
   private final Map<Long, BlockShape> indexedReplacements = new ConcurrentHashMap<>(64);
@@ -31,7 +31,7 @@ public final class MultiChunkKeyOCBlockShapeAccess implements OCBlockShapeAccess
 
   public MultiChunkKeyOCBlockShapeAccess(Player player, BoundingBoxResolvePipeline resolver) {
     this.player = player;
-    this.resolver = resolver;
+    this.boundingBoxResolver = resolver;
   }
 
   @Override
@@ -160,7 +160,7 @@ public final class MultiChunkKeyOCBlockShapeAccess implements OCBlockShapeAccess
     } else {
       BoundingBoxAccessFlowStudy.incremLookups();
       int data = BlockDataAccess.dataIndexOf(block);
-      List<WrappedAxisAlignedBB> boundingBoxes = resolver.customResolve(world, player, type, data, posX, posY, posZ);
+      List<WrappedAxisAlignedBB> boundingBoxes = boundingBoxResolver.customResolve(world, player, type, data, posX, posY, posZ);
       return new BlockShape(boundingBoxes, type, data);
     }
   }
@@ -231,7 +231,7 @@ public final class MultiChunkKeyOCBlockShapeAccess implements OCBlockShapeAccess
   @Override
   public List<WrappedAxisAlignedBB> constructBlock(World world, int posX, int posY, int posZ, Material type, int blockState) {
     BoundingBoxAccessFlowStudy.incremLookups();
-    return resolver.customResolve(world, player, type, blockState, posX, posY, posZ);
+    return boundingBoxResolver.customResolve(world, player, type, blockState, posX, posY, posZ);
   }
 
   @Override

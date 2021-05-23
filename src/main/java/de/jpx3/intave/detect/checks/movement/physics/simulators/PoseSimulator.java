@@ -28,7 +28,7 @@ public abstract class PoseSimulator {
     return physics;
   }
 
-  public boolean requiresKeyCalculation() {
+  public boolean affectedByMovementKeys() {
     return true;
   }
 }

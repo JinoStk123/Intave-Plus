@@ -181,7 +181,7 @@ public final class NewComplexColliderProcessor implements ComplexColliderProcess
     WrappedAxisAlignedBB boundingBox = movementData.boundingBox();
     double motionX = context.motionX;
     double motionZ = context.motionZ;
-    while (motionX != 0.0D && Collision.hasNoCollisions(player, boundingBox.offset(motionX, -length, 0.0D))) {
+    while (motionX != 0.0D && Collision.isNotInsideBlocks(player, boundingBox.offset(motionX, -length, 0.0D))) {
       if (motionX < 0.05D && motionX >= -0.05D) {
         motionX = 0.0D;
       } else if (motionX > 0.0D) {
@@ -190,7 +190,7 @@ public final class NewComplexColliderProcessor implements ComplexColliderProcess
         motionX += 0.05D;
       }
     }
-    while (motionZ != 0.0D && Collision.hasNoCollisions(player, boundingBox.offset(0.0D, -length, motionZ))) {
+    while (motionZ != 0.0D && Collision.isNotInsideBlocks(player, boundingBox.offset(0.0D, -length, motionZ))) {
       if (motionZ < 0.05D && motionZ >= -0.05D) {
         motionZ = 0.0D;
       } else if (motionZ > 0.0D) {
@@ -199,7 +199,7 @@ public final class NewComplexColliderProcessor implements ComplexColliderProcess
         motionZ += 0.05D;
       }
     }
-    while (motionX != 0.0D && motionZ != 0.0D && Collision.hasNoCollisions(player, boundingBox.offset(motionX, -length, motionZ))) {
+    while (motionX != 0.0D && motionZ != 0.0D && Collision.isNotInsideBlocks(player, boundingBox.offset(motionX, -length, motionZ))) {
       if (motionX < 0.05D && motionX >= -0.05D) {
         motionX = 0.0D;
       } else if (motionX > 0.0D) {

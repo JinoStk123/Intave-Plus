@@ -1,5 +1,6 @@
 package de.jpx3.intave.user;
 
+import de.jpx3.intave.access.IntaveInternalException;
 import de.jpx3.intave.event.dispatch.PlayerAbilityEvaluator;
 import de.jpx3.intave.tools.annotate.Relocate;
 import org.bukkit.GameMode;
@@ -38,6 +39,9 @@ public final class UserMetaAbilityData {
   }
 
   private void setupDefaultGameMode(GameMode gameMode) {
+    if(gameMode == null) {
+      throw new IntaveInternalException("Player gameMode reference is null?");
+    }
     int gameModeValue = gameMode.getValue();
     this.gameMode = Arrays.stream(PlayerAbilityEvaluator.GameMode.values())
       .filter(mode -> mode.id() == gameModeValue)

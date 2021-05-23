@@ -47,6 +47,14 @@ public enum TrustFactor implements Comparable<TrustFactor> {
     return factor;
   }
 
+  public String baseName() {
+    return name().toLowerCase().replace("_", "");
+  }
+
+  public String coloredBaseName() {
+    return chatColor() + baseName();
+  }
+
   public ChatColor chatColor() {
     return chatColor;
   }

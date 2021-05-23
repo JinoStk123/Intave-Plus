@@ -395,6 +395,10 @@ public final class UserMetaMovementData {
     return motionZ;
   }
 
+  public MotionVector motion() {
+    return new MotionVector(motionX, motionY, motionZ);
+  }
+
   public WrappedAxisAlignedBB boundingBox() {
     return boundingBox;
   }

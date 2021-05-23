@@ -23,7 +23,7 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 
 import java.util.Set;
 
-public final class TeleportPositionObserver implements PacketEventSubscriber {
+public final class TeleportApplyEnforcer implements PacketEventSubscriber {
   private final static boolean TELEPORTATION_DEBUG = false;
   final static boolean NEW_TELEPORTATION = ProtocolLibraryAdapter.serverVersion().isAtLeast(MinecraftVersions.VER1_9_0);
 
@@ -84,12 +84,14 @@ public final class TeleportPositionObserver implements PacketEventSubscriber {
     double positionY = movementData.positionY;
     double positionZ = movementData.positionZ;
     Location teleportLocation = movementData.teleportLocation;
-    double positionDeviation = MathHelper.resolveDistance(
+    double positionDeviation = MathHelper.distanceOf(
       positionX, positionY, positionZ,
       teleportLocation.getX(), teleportLocation.getY(), teleportLocation.getZ()
     );
     if (TELEPORTATION_DEBUG) {
-      Bukkit.broadcastMessage("[Intave] Checking potential legacy teleportation accept of " + player.getName() + ": " + MathHelper.formatPosition(positionX, positionY, positionZ));
+      Synchronizer.synchronize(() -> {
+        Bukkit.broadcastMessage("[Intave] Checking potential legacy teleportation accept of " + player.getName() + ": " + MathHelper.formatPosition(positionX, positionY, positionZ));
+      });
     }
     boolean validPosition = positionDeviation < 0.00001;
 //    boolean validRotation = validTeleportRotation(teleportLocation, movementData.rotationYaw, movementData.rotationPitch);
@@ -97,7 +99,9 @@ public final class TeleportPositionObserver implements PacketEventSubscriber {
       releaseAwaitTeleportLock(player);
       applyPositionConfirmationUpdate(player, positionX, positionY, positionZ);
       if (TELEPORTATION_DEBUG) {
-        Bukkit.broadcastMessage("[Intave] " + player.getName() + " accepted teleportation request");
+        Synchronizer.synchronize(() -> {
+          Bukkit.broadcastMessage("[Intave] " + player.getName() + " accepted teleportation request");
+        });
       }
 
       double teleportLength = MathHelper.resolveHorizontalDistance(
@@ -110,7 +114,9 @@ public final class TeleportPositionObserver implements PacketEventSubscriber {
 
     } else {
       if (TELEPORTATION_DEBUG) {
-        Bukkit.broadcastMessage("[Intave] Potential teleportation requested of " + player.getName() + "was evaluated as invalid");
+        Synchronizer.synchronize(() -> {
+          Bukkit.broadcastMessage("[Intave] Potential teleportation requested of " + player.getName() + "was evaluated as invalid");
+        });
       }
     }
   }
@@ -182,10 +188,18 @@ public final class TeleportPositionObserver implements PacketEventSubscriber {
     Double positionY = doubles.read(1);
     Double positionZ = doubles.read(2);
 
-    boolean relative = flagsModifier.contains(TeleportPositionFlagsHelper.PlayerTeleportFlag.X);
-    if (relative) {
+    // das geht nicht so wirklich, nein
+
+    boolean relativeX = flagsModifier.contains(TeleportPositionFlagsHelper.PlayerTeleportFlag.X);
+    boolean relativeY = flagsModifier.contains(TeleportPositionFlagsHelper.PlayerTeleportFlag.Y);
+    boolean relativeZ = flagsModifier.contains(TeleportPositionFlagsHelper.PlayerTeleportFlag.Z);
+    if (relativeX) {
       positionX += movementData.positionX;
+    }
+    if(relativeY) {
       positionY += movementData.positionY;
+    }
+    if(relativeZ) {
       positionZ += movementData.positionZ;
     }
 
@@ -231,13 +245,7 @@ public final class TeleportPositionObserver implements PacketEventSubscriber {
     movementData.physicsMotionZ = 0.0;
 
     movementData.lastOnGround = false;
-
-    Location teleportLocation = movementData.teleportLocation;
-    double teleportLocationX = teleportLocation.getX();
-    double teleportLocationY = teleportLocation.getY();
-    double teleportLocationZ = teleportLocation.getZ();
-    WrappedAxisAlignedBB boundingBox = WrappedAxisAlignedBB.createFromPosition(user, teleportLocationX, teleportLocationY, teleportLocationZ);
-    movementData.setBoundingBox(boundingBox);
+    movementData.setBoundingBox(WrappedAxisAlignedBB.createFromPosition(user, movementData.teleportLocation));
   }
 
   private static final class TeleportPositionFlagsHelper {

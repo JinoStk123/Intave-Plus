@@ -36,7 +36,7 @@ import static de.jpx3.intave.user.UserMetaClientData.PROTOCOL_VERSION_COMBAT_UPD
 
 @Relocate
 public final class MovementDispatcher implements EventProcessor {
-  private final TeleportPositionObserver teleportPositionObserver = new TeleportPositionObserver();
+  private final TeleportApplyEnforcer teleportApplyEnforcer = new TeleportApplyEnforcer();
 
   private final IntavePlugin plugin;
   private final Physics physicsCheck;
@@ -55,7 +55,7 @@ public final class MovementDispatcher implements EventProcessor {
 
   private void linkTeleportObserver(IntavePlugin plugin) {
     PacketSubscriptionLinker subscriptionLinker = plugin.packetSubscriptionLinker();
-    subscriptionLinker.linkSubscriptionsIn(teleportPositionObserver);
+    subscriptionLinker.linkSubscriptionsIn(teleportApplyEnforcer);
   }
 
   @BukkitEventSubscription
@@ -77,6 +77,19 @@ public final class MovementDispatcher implements EventProcessor {
     User.UserMeta meta = user.meta();
     UserMetaMovementData movementData = meta.movementData();
     movementData.artificialFallDistance = 0;
+  }
+
+  @BukkitEventSubscription(priority = EventPriority.MONITOR)
+  public void postShift(PlayerRespawnEvent respawn) {
+    Player player = respawn.getPlayer();
+    User user = UserRepository.userOf(player);
+    Location respawnLocation = respawn.getRespawnLocation().clone();
+    WrappedAxisAlignedBB bb = WrappedAxisAlignedBB.createFromPosition(user, respawnLocation);
+    while (respawnLocation.getY() < 256 && Collision.isInsideBlocks(player, bb)) {
+      respawnLocation.add(0, 1, 0);
+      bb = WrappedAxisAlignedBB.createFromPosition(user, respawnLocation);
+    }
+    respawn.setRespawnLocation(respawnLocation);
   }
 
   @BukkitEventSubscription
@@ -196,14 +209,14 @@ public final class MovementDispatcher implements EventProcessor {
     boolean hasRotation = vehicleMove || packet.getBooleans().read(2);
 
     movementData.updateMovement(packet, hasMovement, hasRotation);
-    teleportPositionObserver.receiveMovement(event);
+    teleportApplyEnforcer.receiveMovement(event);
 
     if (movementData.awaitTeleport || movementData.awaitOutgoingTeleport) {
       event.setCancelled(true);
       return;
     }
 
-    double distance = MathHelper.resolveDistance(
+    double distance = MathHelper.distanceOf(
       movementData.verifiedPositionX, movementData.verifiedPositionY, movementData.verifiedPositionZ,
       movementData.positionX, movementData.positionY, movementData.positionZ
     );

@@ -12,7 +12,7 @@ import java.util.UUID;
 
 public final class Violation {
   private final Class<? extends IntaveCheck> checkClass;
-  private final UUID playerid;
+  private final UUID id;
   private final String baseMessage;
   private final String details;
   private final String threshold;
@@ -21,7 +21,7 @@ public final class Violation {
 
   private Violation(
     Class<? extends IntaveCheck> checkClass,
-    UUID playerid,
+    UUID id,
     String baseMessage,
     String details,
     String threshold,
@@ -29,7 +29,7 @@ public final class Violation {
     int optionFlags
   ) {
     this.checkClass = checkClass;
-    this.playerid = playerid;
+    this.id = id;
     this.baseMessage = baseMessage;
     this.details = details;
     this.threshold = threshold;
@@ -45,13 +45,13 @@ public final class Violation {
     return checkClass;
   }
 
-  public Optional<Player> player() {
-    Player player = Bukkit.getPlayer(playerid);
+  public Optional<Player> findPlayer() {
+    Player player = Bukkit.getPlayer(id);
     return AccessHelper.isOnline(player) ? Optional.of(player) : Optional.empty();
   }
 
   public UUID playerId() {
-    return playerid;
+    return id;
   }
 
   public String message() {
@@ -146,7 +146,7 @@ public final class Violation {
       Preconditions.checkNotNull(checkClass);
       Preconditions.checkNotNull(playerid);
       Preconditions.checkNotNull(baseMessage);
-      if(details == null || details.isEmpty()) {
+      if(details == null) {
         details = "";
       }
       baseMessage = baseMessage.trim();
@@ -157,7 +157,6 @@ public final class Violation {
       if(threshold == null) {
         withDefaultThreshold();
       }
-      constructed = true;
       return new Violation(checkClass, playerid, baseMessage, details, threshold, addedViolationPoints, optionFlags);
     }
   }

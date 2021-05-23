@@ -59,7 +59,7 @@ public final class Physics extends IntaveCheck {
   private final IntavePlugin plugin;
   private final CheckViolationLevelDecrementer decrementer;
   private MethodHandle fallDamageInvokeMethod;
-  private final SimulationProcessor simulationService;
+  private final SimulationProcessor simulationProcessor;
 
   private final boolean highToleranceMode;
 
@@ -67,7 +67,7 @@ public final class Physics extends IntaveCheck {
     super("Physics", "physics");
     this.plugin = plugin;
     this.decrementer = new CheckViolationLevelDecrementer(this, VL_DECREMENT_PER_VALID_MOVE * 20);
-    this.simulationService = new SimulationProcessor();
+    this.simulationProcessor = new SimulationProcessor();
 
     highToleranceMode = configuration().settings().boolBy("high-tolerance", false);
 
@@ -147,7 +147,7 @@ public final class Physics extends IntaveCheck {
     Timings.CHECK_PHYSICS_PROC_TOT.start();
     predictFlyingPacketBeforeVelocity(user);
 
-    ComplexColliderSimulationResult predictedMovement = simulationService.simulate(user, movementData.movementPoseType());
+    ComplexColliderSimulationResult predictedMovement = simulationProcessor.simulate(user, movementData.movementPoseType());
     movementData.onGround = predictedMovement.onGround();
     movementData.collidedHorizontally = predictedMovement.collidedHorizontally();
     movementData.collidedVertically = predictedMovement.collidedVertically();
@@ -316,7 +316,7 @@ public final class Physics extends IntaveCheck {
     double differenceX = predictedX - receivedMotionX;
     double differenceY = predictedY - receivedMotionY;
     double differenceZ = predictedZ - receivedMotionZ;
-    double distance = MathHelper.resolveDistance(differenceX, differenceY, differenceZ);
+    double distance = MathHelper.hypot3d(differenceX, differenceY, differenceZ);
 
     boolean onLadderCurrent = MovementContextHelper.isOnLadder(user, positionX, positionY, positionZ);
     boolean onLadder = onLadderCurrent | movementData.onLadderLast;
@@ -358,7 +358,7 @@ public final class Physics extends IntaveCheck {
     double violationLevelIncrease = horizontalViolationIncrease + verticalViolationIncrease;
     if (distance > 1e-3) {
       movementData.suspiciousMovement = true;
-      ComplexColliderSimulationResult entityCollisionResult = simulationService.simulateMovementWithoutKeyPress(user);
+      ComplexColliderSimulationResult entityCollisionResult = simulationProcessor.simulateMovementWithoutKeyPress(user);
       MotionVector setbackMotion = entityCollisionResult.context();
       predictedX = setbackMotion.motionX;
       predictedY = setbackMotion.motionY;
@@ -375,11 +375,14 @@ public final class Physics extends IntaveCheck {
     }
 
     Location verifiedLocation = movementData.verifiedLocation();
-    List<WrappedAxisAlignedBB> intersectionBoundingBoxesLast = Collision.resolve(user.player(), WrappedAxisAlignedBB.createFromPosition(user, verifiedLocation.getX(), verifiedLocation.getY(), verifiedLocation.getZ()));
-    WrappedAxisAlignedBB currentBoundingBox = WrappedAxisAlignedBB.createFromPosition(user, receivedPositionX, receivedPositionY, receivedPositionZ);
-    List<WrappedAxisAlignedBB> intersectionBoundingBoxesCurrent = Collision.resolve(user.player(), currentBoundingBox);
+    WrappedAxisAlignedBB verifiedBoundingBox = WrappedAxisAlignedBB.createFromPosition(user, verifiedLocation);
 
-    boolean boundingBoxIntersectionLast = !intersectionBoundingBoxesLast.isEmpty();
+    WrappedAxisAlignedBB currentBoundingBox = WrappedAxisAlignedBB.createFromPosition(
+      user, receivedPositionX, receivedPositionY, receivedPositionZ
+    );
+
+    boolean boundingBoxIntersectionLast = Collision.isInsideBlocks(user.player(), verifiedBoundingBox);
+    List<WrappedAxisAlignedBB> intersectionBoundingBoxesCurrent = Collision.resolve(user.player(), currentBoundingBox);
     boolean boundingBoxIntersectionCurrent = !intersectionBoundingBoxesCurrent.isEmpty();
     boolean movedIntoBlock = !boundingBoxIntersectionLast && boundingBoxIntersectionCurrent;
 
@@ -395,7 +398,13 @@ public final class Physics extends IntaveCheck {
         Block block = BukkitBlockAccess.blockAccess(player.getWorld(), blockPositionX, blockPositionY, blockPositionZ);
         boolean currentlyInOverride = blockShapeAccess.currentlyInOverride(WrappedMathHelper.floor(blockPositionX), WrappedMathHelper.floor(blockPositionY), WrappedMathHelper.floor(blockPositionZ));
 
-        String message = "moved into " + (currentlyInOverride ? "emulated " : "") + shortenTypeName(block.getType()) + " block";
+        String colliderName;
+        if(Collision.blockOutsideBorder(player.getWorld(), blockPositionX, blockPositionZ)) {
+          colliderName = "world border";
+        } else {
+          colliderName = (currentlyInOverride ? "emulated " : "") + shortenTypeName(block.getType()) + " block";
+        }
+        String message = "moved into " + colliderName;
         boolean multipleBoxes = intersectionBoundingBoxesCurrent.size() > 1;
         String details = (multipleBoxes ? intersectionBoundingBoxesCurrent.size() : "one") + " box" + (multipleBoxes ? "es" : "");
 
@@ -474,18 +483,17 @@ public final class Physics extends IntaveCheck {
     if (!spectator && violationLevelData.physicsVL > 50 && violationLevelIncrease > 0) {
       String received = formatPosition(receivedMotionX, receivedMotionY, receivedMotionZ);
       String expected = formatPosition(predictedX, predictedY, predictedZ);
-
-      Vector emulationMotion = new Vector(predictedX, predictedY, predictedZ);
       String message = "moved incorrectly";
-      String details = received + " pred: " + expected;
+      String details = received + " predict: " + expected;
 
       if (velocityDetected) {
-        details += ", velocity";
+        details += ", strict";
       }
 
+      double vl = violationLevelIncrease / (highToleranceMode ? 75d : 50d);
+
       Violation violation = Violation.builderFor(Physics.class)
-        .forPlayer(player).withMessage(message).withDetails(details)
-        .withVL(violationLevelIncrease / (highToleranceMode ? 75d : 50d)).build();
+        .forPlayer(player).withMessage(message).withDetails(details).withVL(vl).build();
       ViolationContext violationContext = plugin.violationProcessor().processViolation(violation);
 
       boolean deepPitchViolationOverflow = violationContext.shouldCounterThreat();
@@ -497,12 +505,8 @@ public final class Physics extends IntaveCheck {
       }
 
       if (setback) {
-        int setbackTicks;
-        if (movementData.pastExternalVelocity <= 8) {
-          setbackTicks = 8;
-        } else {
-          setbackTicks = violationLevelData.physicsVL > 50 ? 3 : 2;
-        }
+        Vector emulationMotion = new Vector(predictedX, predictedY, predictedZ);
+        int setbackTicks = (movementData.pastExternalVelocity <= 8) ? 8 : ((violationLevelData.physicsVL > 50) ? 3 : 2);
         plugin.eventService().emulationEngine().emulationSetBack(player, emulationMotion, setbackTicks, true);
         movementData.invalidMovement = true;
       }
@@ -652,7 +656,7 @@ public final class Physics extends IntaveCheck {
 
     //TODO: Bad fix
     if (clientData.applyNewEntityCollisions() && Math.abs(differenceY - 0.2) < 1e-5 && movementData.lastOnGround && !movementData.onGround) {
-      if (!Collision.hasNoCollisions(player, movementData.boundingBox().addCoord(movementData.motionX(), 0.201, movementData.motionZ()))) {
+      if (!Collision.isNotInsideBlocks(player, movementData.boundingBox().addCoord(movementData.motionX(), 0.201, movementData.motionZ()))) {
         differenceY = 0;
       }
     }
@@ -903,7 +907,7 @@ public final class Physics extends IntaveCheck {
   }
 
   public SimulationProcessor simulationService() {
-    return simulationService;
+    return simulationProcessor;
   }
 
   @Override

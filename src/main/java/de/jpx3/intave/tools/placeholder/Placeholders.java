@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Map;
 
 public final class Placeholders {
-
   public static final PluginContext PLUGIN_CONTEXT = new PluginContext();
   public static final ServerContext SERVER_CONTEXT = new ServerContext();
 

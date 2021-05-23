@@ -22,43 +22,33 @@ import static de.jpx3.intave.reflect.ReflectiveDataWatcherAccess.DATA_WATCHER_BL
 
 @Relocate
 public final class SimulationProcessor {
-  private final static double VERIFY_DISTANCE = 0.001;
+  private final static double REQUIRED_ACCURACY_FOR_BIAS = 0.001;
 
   public ComplexColliderSimulationResult simulate(User user, Pose pose) {
     PoseSimulator simulator = pose.simulator();
-    boolean keyCalculation = simulator.requiresKeyCalculation();
-    return keyCalculation ? performKeySimulation(user) : simulateMovementWithoutKeyPress(user);
+    boolean keyDependent = simulator.affectedByMovementKeys();
+    return keyDependent ? performKeySimulation(user) : simulateMovementWithoutKeyPress(user);
   }
 
   private ComplexColliderSimulationResult performKeySimulation(User user) {
-    User.UserMeta meta = user.meta();
-    UserMetaInventoryData inventoryData = meta.inventoryData();
-    boolean forceBiased = inventoryData.inventoryOpen();
-    ComplexColliderSimulationResult predictedMovement;
-    Timings.CHECK_PHYSICS_PROC_BIA.start();
+    UserMetaMovementData movementData = user.meta().movementData();
     //
-    // Perform biased simulation
+    // try biased simulation
     //
-    predictedMovement = simulateMovementBiased(user);
-    double movementDistance = compareReceivedMotionWithMotion(user, predictedMovement.context());
-    Timings.CHECK_PHYSICS_PROC_BIA.stop();
+    ComplexColliderSimulationResult simulation = simulateMovementBiased(user);
+    double simulationAccuracy = simulation.accuracy(movementData.motion());
     //
-    // Perform iterative simulation if biased fails
+    // perform iterative simulation procedure
     //
-    if (!forceBiased && movementDistance > VERIFY_DISTANCE) {
-      Timings.CHECK_PHYSICS_PROC_ITR.start();
+    boolean biasedSimulationFailed = simulationAccuracy > REQUIRED_ACCURACY_FOR_BIAS;
+    boolean iterativeAllowed = !user.meta().inventoryData().inventoryOpen();
+    if (biasedSimulationFailed && iterativeAllowed) {
       IterativeSimulationContext iterativeSimulationContext = simulateMovementIterative(user);
-      predictedMovement = iterativeSimulationContext.collisionResult();
+      simulation = iterativeSimulationContext.bestSimulation();
       applyIterativeSimulationTo(user, iterativeSimulationContext);
-      Timings.CHECK_PHYSICS_PROC_ITR.stop();
-      // enter iterative keys
-      KeyPressStudy.enterKeyPress(iterativeSimulationContext.forward, iterativeSimulationContext.strafe);
-    } else {
-      UserMetaMovementData movementData = user.meta().movementData();
-      // enter bias keys
-      KeyPressStudy.enterKeyPress(movementData.keyForward, movementData.keyStrafe);
     }
-    return predictedMovement;
+    KeyPressStudy.enterKeyPress(movementData.keyForward, movementData.keyStrafe);
+    return simulation;
   }
 
   private void applyIterativeSimulationTo(User user, IterativeSimulationContext iterativeResult) {
@@ -96,19 +86,8 @@ public final class SimulationProcessor {
     }
   }
 
-  public ComplexColliderSimulationResult simulateMovementWithoutKeyPress(User user) {
-    return simulateMovementWithoutKeyPress(user, 0, 0);
-  }
-
-  public ComplexColliderSimulationResult simulateMovementWithLastKeys(User user) {
-    UserMetaMovementData movementData = user.meta().movementData();
-    return simulateMovementWithoutKeyPress(user, movementData.keyForward, movementData.keyStrafe);
-  }
-
-  private ComplexColliderSimulationResult simulateMovementWithoutKeyPress(
-    User user,
-    int keyForward,
-    int keyStrafe
+  public ComplexColliderSimulationResult simulateMovementWithoutKeyPress(
+    User user
   ) {
     User.UserMeta meta = user.meta();
     UserMetaMovementData movementData = meta.movementData();
@@ -117,12 +96,13 @@ public final class SimulationProcessor {
     motionVector.resetTo(movementData);
     return movementPoseType.simulator().performSimulation(
       user, motionVector,
-      keyForward, keyStrafe, false, false,
+      0, 0, false, false,
       meta.inventoryData().handActive()
     );
   }
 
   private ComplexColliderSimulationResult simulateMovementBiased(User user) {
+    Timings.CHECK_PHYSICS_PROC_BIA.start();
     UserMetaMovementData movementData = user.meta().movementData();
     UserMetaInventoryData inventoryData = user.meta().inventoryData();
     Pose movementPoseType = movementData.movementPoseType();
@@ -139,7 +119,7 @@ public final class SimulationProcessor {
         lastMotionZ += movementData.yawCosine() * 0.2f;
       }
     }
-    if (movementData.inWater) {
+    if (movementData.inWater && !movementData.denyJump()) {
       jumped = movementData.motionY() > 0.0;
     }
     double differenceX = movementData.motionX() - lastMotionX;
@@ -164,7 +144,9 @@ public final class SimulationProcessor {
     motionVector.resetTo(movementData);
     movementData.keyForward = keyForward;
     movementData.keyStrafe = keyStrafe;
-    return simulator.performSimulation(user, motionVector, moveForward, moveStrafe, attackReduce, jumped, handActive);
+    ComplexColliderSimulationResult simulationResult = simulator.performSimulation(user, motionVector, moveForward, moveStrafe, attackReduce, jumped, handActive);
+    Timings.CHECK_PHYSICS_PROC_BIA.stop();
+    return simulationResult;
   }
 
   private int directionFrom(double differenceX, double differenceZ, float yaw) {
@@ -196,9 +178,10 @@ public final class SimulationProcessor {
   private final static boolean[] BOOLEAN_STATES_TF = new boolean[]{true, false};
   private final static boolean[] BOOLEAN_STATES_FT = new boolean[]{false, true};
 
-  private final static int[][] SORTED_KEYS = {{1, 0}, {1, -1}, {1, 1}, {0, 0}, {0, -1}, {0, 1}, {-1, -1}, {-1, 0}, {-1, 1}};
+  private final static int[][] KEYS_USAGE_ORDERED = {{1, 0}, {1, -1}, {1, 1}, {0, 0}, {0, -1}, {0, 1}, {-1, -1}, {-1, 0}, {-1, 1}};
 
   private IterativeSimulationContext simulateMovementIterative(User user) {
+    Timings.CHECK_PHYSICS_PROC_ITR.start();
     User.UserMeta meta = user.meta();
     UserMetaInventoryData inventoryData = meta.inventoryData();
     UserMetaMovementData movementData = meta.movementData();
@@ -232,7 +215,7 @@ public final class SimulationProcessor {
             continue;
           }
           for (int i = 0; i < 9; i++) {
-            int[] keyPair = SORTED_KEYS[i];
+            int[] keyPair = KEYS_USAGE_ORDERED[i];
             int keyForward = keyPair[0];
             int keyStrafe = keyPair[1];
             if (movementData.sprinting && keyForward != 1) {
@@ -251,7 +234,7 @@ public final class SimulationProcessor {
               useItemState,
               false
             );
-            if (iterativeSimulation.smallestDistance() <= VERIFY_DISTANCE) {
+            if (iterativeSimulation.smallestDistance() <= REQUIRED_ACCURACY_FOR_BIAS) {
               break SIMULATION;
             }
           }
@@ -273,6 +256,7 @@ public final class SimulationProcessor {
         true
       );
     }
+    Timings.CHECK_PHYSICS_PROC_ITR.stop();
     return iterativeSimulation;
   }
 
@@ -293,7 +277,7 @@ public final class SimulationProcessor {
 
   private double compareReceivedMotionWithMotion(User user, MotionVector context) {
     UserMetaMovementData movementData = user.meta().movementData();
-    return MathHelper.resolveDistance(
+    return MathHelper.distanceOf(
       context.motionX, context.motionY, context.motionZ,
       movementData.motionX(), movementData.motionY(), movementData.motionZ()
     );
@@ -387,7 +371,7 @@ public final class SimulationProcessor {
       return this.smallestDistance == DEFAULT_DISTANCE;
     }
 
-    public ComplexColliderSimulationResult collisionResult() {
+    public ComplexColliderSimulationResult bestSimulation() {
       return collisionResult;
     }
 

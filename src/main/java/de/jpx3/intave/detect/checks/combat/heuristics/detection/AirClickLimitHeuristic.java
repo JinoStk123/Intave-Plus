@@ -154,8 +154,18 @@ public class AirClickLimitHeuristic extends IntaveMetaCheckPart<Heuristics, AirC
       Location playerLocation = new Location(world, movementData.lastPositionX, movementData.lastPositionY, movementData.lastPositionZ);
       playerLocation.setYaw(movementData.rotationYaw);
       playerLocation.setPitch(movementData.rotationPitch);
-      WrappedMovingObjectPosition raycastResult = Raytracer.blockRayTrace(player, playerLocation);
-      if (raycastResult != null && raycastResult.hitVec != WrappedVector.ZERO) {
+
+      boolean error = false;
+      WrappedMovingObjectPosition raycastResult;
+      try {
+        raycastResult = Raytracer.blockRayTrace(player, playerLocation);
+      } catch (Exception exception) {
+//        exception.printStackTrace();
+        raycastResult = null;
+        error = true;
+      }
+
+      if (error || (raycastResult != null && raycastResult.hitVec != WrappedVector.ZERO)) {
         // TODO: check if meta.lastDiggedBlock is the same as from the raycastResult (geht nur wenn man den mc bug fixt der für 5 ticks flaggt wenn man ein block abgebaut hat)
 
 //        player.sendMessage("Is digging client side but not server side");

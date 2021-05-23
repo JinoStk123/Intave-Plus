@@ -35,15 +35,10 @@ public final class TrustFactorService implements BukkitEventSubscriber {
     Synchronizer.synchronize(() -> BackgroundExecutor.execute(this::resolveTrustFactorForAll));
   }
 
-  @BukkitEventSubscription(priority = EventPriority.MONITOR)
+  @BukkitEventSubscription(priority = EventPriority.NORMAL)
   public void on(PlayerJoinEvent join) {
     Player player = join.getPlayer();
-    Synchronizer.synchronize(() -> {
-      if(!player.isOnline()) {
-        return;
-      }
-      BackgroundExecutor.execute(() -> resolveTrustFactorFor(player));
-    });
+    BackgroundExecutor.execute(() -> resolveTrustFactorFor(player));
   }
 
   private void resolveTrustFactorForAll() {
@@ -56,7 +51,7 @@ public final class TrustFactorService implements BukkitEventSubscriber {
     User user = UserRepository.userOf(player);
     user.setTrustFactor(defaultTrustFactor);
 
-    if(IntaveControl.APPLY_LOWEST_TRUSTFACTOR) {
+    if(IntaveControl.APPLY_GLOBAL_LOW_TRUSTFACTOR) {
       user.setTrustFactor(TrustFactor.RED);
       return;
     }

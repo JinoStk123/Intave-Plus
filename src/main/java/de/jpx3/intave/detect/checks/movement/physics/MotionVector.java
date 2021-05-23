@@ -3,7 +3,7 @@ package de.jpx3.intave.detect.checks.movement.physics;
 import de.jpx3.intave.user.UserMetaMovementData;
 import org.bukkit.util.Vector;
 
-public final class MotionVector {
+public class MotionVector {
   public double motionX;
   public double motionY;
   public double motionZ;

@@ -83,7 +83,7 @@ public final class ElytraPoseSimulator extends DefaultPoseSimulator {
   }
 
   @Override
-  public boolean requiresKeyCalculation() {
+  public boolean affectedByMovementKeys() {
     return false;
   }
 }

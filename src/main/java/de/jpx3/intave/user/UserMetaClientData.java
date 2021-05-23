@@ -32,7 +32,7 @@ public final class UserMetaClientData {
 
   private String versionAsString() {
     if(protocolVersion < 0)
-      return "0.0.0";
+      return "unknown";
     if (protocolVersion <= 47)
       return "1.8.x";
     if (protocolVersion <= 107)
@@ -88,7 +88,7 @@ public final class UserMetaClientData {
     if (protocolVersion <= 754)
       return "1.16.4/5";
 
-    return "NA";
+    return "Newer than 1.16.5";
   }
 
   public int protocolVersion() {

@@ -12,6 +12,7 @@ import de.jpx3.intave.event.packet.PacketDescriptor;
 import de.jpx3.intave.event.packet.PacketSubscription;
 import de.jpx3.intave.event.packet.Sender;
 import de.jpx3.intave.event.violation.AttackNerfStrategy;
+import de.jpx3.intave.tools.AccessHelper;
 import de.jpx3.intave.tools.MathHelper;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserCustomCheckMeta;
@@ -156,10 +157,13 @@ public final class RotationAccuracyYawHeuristic extends IntaveMetaCheckPart<Heur
       double increase = MathHelper.minmax(-0.2, (1 - deviation) * 4, 4);
       heuristicMeta.bitBoxCornerBalance = (int) MathHelper.minmax(0, heuristicMeta.bitBoxCornerBalance + increase, 100);
       if (heuristicMeta.bitBoxCornerBalance > 30) {
+        long lastDetection = AccessHelper.now() - heuristicMeta.lastHARYAnomaly;
         int options = SUGGEST_MINING | DELAY_16s;
-        Anomaly anomaly = Anomaly.anomalyOf("85", Confidence.LIKELY, Anomaly.Type.KILLAURA, "high accuracy rotation yaw on hit-box corners", options);
+        Confidence confidence = lastDetection < 20 * 1000 ? Confidence.LIKELY : Confidence.PROBABLE;
+        Anomaly anomaly = Anomaly.anomalyOf("85", confidence, Anomaly.Type.KILLAURA, "high accuracy rotation yaw on hit-box corners", options);
         parentCheck().saveAnomaly(player, anomaly);
         heuristicMeta.bitBoxCornerBalance -= 20;
+        heuristicMeta.lastHARYAnomaly = AccessHelper.now();
       }
     }
 
@@ -173,6 +177,8 @@ public final class RotationAccuracyYawHeuristic extends IntaveMetaCheckPart<Heur
     private double rotationAccuracyVL;
     private double followBalance;
     private double snapVL;
+
+    private long lastHARYAnomaly;
 
     private int lastBodyDirection;
     private int bitBoxCornerBalance;

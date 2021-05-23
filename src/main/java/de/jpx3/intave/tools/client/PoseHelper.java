@@ -14,7 +14,7 @@ public final class PoseHelper {
   private final static boolean ELYTRA_ENABLED = ProtocolLibraryAdapter.serverVersion().isAtLeast(MinecraftVersions.VER1_9_0);
 
   public static boolean flyingWithElytra(Player player) {
-    return ELYTRA_ENABLED && player.isGliding();
+    return ELYTRA_ENABLED && player.isGliding(); // TODO: 05/23/21 isGliding is not properly synchronized
   }
 
   public static boolean isSwimming(Player player) {

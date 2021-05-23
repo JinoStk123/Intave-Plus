@@ -17,7 +17,7 @@ public final class MessageFormatter {
       messageLayout,
       Placeholders.PLUGIN_CONTEXT,
       Placeholders.SERVER_CONTEXT,
-      user.placeholderContext(),
+      user.userPlaceholderContext(),
       violationPlaceholderContext
     );
     output = ChatColor.translateAlternateColorCodes('&', output);
@@ -44,7 +44,7 @@ public final class MessageFormatter {
       command,
       Placeholders.PLUGIN_CONTEXT,
       Placeholders.SERVER_CONTEXT,
-      user.placeholderContext(),
+      user.userPlaceholderContext(),
       violationPlaceholderContext
     );
     output = ChatColor.translateAlternateColorCodes('&', output);

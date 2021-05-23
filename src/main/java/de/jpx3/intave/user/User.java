@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 
 @Relocate
 public final class User {
@@ -43,7 +44,7 @@ public final class User {
   private final ComplexColliderProcessor colliderProcessor;
   private final boolean hasPlayer;
   private final List<UserMessageChannel> receivingUserChannels = new ArrayList<>();
-  private final Map<UserMessageChannel, UserMessageChannelPlayerConstraint> receiveWhitelist = Maps.newEnumMap(UserMessageChannel.class);
+  private final Map<UserMessageChannel, Predicate<Player>> receiveWhitelist = Maps.newEnumMap(UserMessageChannel.class);
   private OCBlockShapeAccess blockShapeAccess;
   private boolean ignoreNextPacket;
   private boolean ignoreNextOutboundPacket;
@@ -222,7 +223,7 @@ public final class User {
     }
   }
 
-  public void setChannelConstraint(UserMessageChannel channel, UserMessageChannelPlayerConstraint constraint) {
+  public void setChannelConstraint(UserMessageChannel channel, Predicate<Player> constraint) {
     receiveWhitelist.put(channel, constraint);
   }
 
@@ -230,7 +231,7 @@ public final class User {
     return receiveWhitelist.containsKey(channel);
   }
 
-  public UserMessageChannelPlayerConstraint channelPlayerConstraint(UserMessageChannel channel) {
+  public Predicate<Player> channelPlayerConstraint(UserMessageChannel channel) {
     return receiveWhitelist.get(channel);
   }
 
@@ -254,7 +255,7 @@ public final class User {
     return meta().connectionData().latencyJitter;
   }
 
-  public PlayerContext placeholderContext() {
+  public PlayerContext userPlaceholderContext() {
     return playerPlaceholderContext;
   }
 

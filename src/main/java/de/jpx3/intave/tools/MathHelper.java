@@ -1,5 +1,6 @@
 package de.jpx3.intave.tools;
 
+import de.jpx3.intave.detect.checks.movement.physics.MotionVector;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 
@@ -75,15 +76,34 @@ public final class MathHelper {
     return (int) x + "," + (int) y + "," + (int) z;
   }
 
-  public static double resolveDistance(double differenceX, double differenceY, double differenceZ) {
+  public static double hypot3d(double differenceX, double differenceY, double differenceZ) {
     return Math.sqrt(differenceX * differenceX + differenceY * differenceY + differenceZ * differenceZ);
   }
 
-  public static double resolveDistance(
+  public static double distanceOf(
+    MotionVector motionVectorA, MotionVector motionVectorB
+  ) {
+    return distanceOf(
+      motionVectorA.motionX, motionVectorA.motionY, motionVectorA.motionZ,
+      motionVectorB.motionX, motionVectorB.motionY, motionVectorB.motionZ
+    );
+  }
+
+  public static double distanceOf(
+    MotionVector motionVector,
+    double motionX, double motionY, double motionZ
+  ) {
+    return distanceOf(
+      motionVector.motionX, motionVector.motionY, motionVector.motionZ,
+      motionX, motionY, motionZ
+    );
+  }
+
+  public static double distanceOf(
     double x1, double y1, double z1,
     double x2, double y2, double z2
   ) {
-    return resolveDistance(x1 - x2, y1 - y2, z1 - z2);
+    return hypot3d(x1 - x2, y1 - y2, z1 - z2);
   }
 
   public static double resolveHorizontalDistance(double x1, double z1, double x2, double z2) {

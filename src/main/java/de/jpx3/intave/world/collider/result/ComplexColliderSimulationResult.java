@@ -1,6 +1,7 @@
 package de.jpx3.intave.world.collider.result;
 
 import de.jpx3.intave.detect.checks.movement.physics.MotionVector;
+import de.jpx3.intave.tools.MathHelper;
 
 public final class ComplexColliderSimulationResult {
   private final MotionVector context;
@@ -23,6 +24,10 @@ public final class ComplexColliderSimulationResult {
     this.resetMotionX = resetMotionX;
     this.resetMotionZ = resetMotionZ;
     this.step = step;
+  }
+
+  public double accuracy(MotionVector motionVector) {
+    return MathHelper.distanceOf(context, motionVector);
   }
 
   public MotionVector context() {

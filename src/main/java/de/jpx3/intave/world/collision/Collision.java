@@ -163,7 +163,7 @@ public final class Collision {
     return resolvedBoundingBoxes;
   }
 
-  private static boolean blockOutsideBorder(World world, double positionX, double positionZ) {
+  public static boolean blockOutsideBorder(World world, double positionX, double positionZ) {
     WorldBorder worldBorder = world.getWorldBorder();
     Location center = worldBorder.getCenter();
     double radians = worldBorder.getSize() / 2.0;
@@ -209,7 +209,11 @@ public final class Collision {
     return boundingBoxes.stream().anyMatch(playerBox::intersectsWith);
   }
 
-  public static boolean hasNoCollisions(Player player, WrappedAxisAlignedBB playerBoundingBox) {
+  public static boolean isInsideBlocks(Player player, WrappedAxisAlignedBB playerBoundingBox) {
+    return !isNotInsideBlocks(player, playerBoundingBox);
+  }
+
+  public static boolean isNotInsideBlocks(Player player, WrappedAxisAlignedBB playerBoundingBox) {
     return resolve(player, playerBoundingBox).isEmpty();
   }
 

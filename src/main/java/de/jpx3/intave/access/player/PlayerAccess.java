@@ -6,35 +6,38 @@ import de.jpx3.intave.access.player.trust.TrustFactor;
 public interface PlayerAccess {
   int protocolVersion();
 
-  default double violationLevel(String check) {
-    return violationLevel(check, "thresholds");
-  }
-  double violationLevel(String check, String threshold);
-
   default double violationLevel(Check check) {
     return violationLevel(check, "thresholds");
   }
-  double violationLevel(Check check, String threshold);
-
-  default void addViolationPoints(String check, double amount) {
-    addViolationPoints(check, "thresholds", amount);
+  default double violationLevel(String check) {
+    return violationLevel(check, "thresholds");
   }
-  void addViolationPoints(String check, String threshold, double amount);
+  default double violationLevel(Check check, String threshold) {
+    return violationLevel(check.typeName(), threshold);
+  }
+  double violationLevel(String check, String threshold);
 
   default void addViolationPoints(Check check, double amount) {
     addViolationPoints(check, "thresholds", amount);
   }
-  void addViolationPoints(Check check, String threshold, double amount);
-
-  default void resetViolationLevel(String check) {
-    resetViolationLevel(check, "thresholds");
+  default void addViolationPoints(String check, double amount) {
+    addViolationPoints(check, "thresholds", amount);
   }
-  void resetViolationLevel(String check, String threshold);
+  default void addViolationPoints(Check check, String threshold, double amount) {
+    addViolationPoints(check.typeName(), threshold, amount);
+  }
+  void addViolationPoints(String check, String threshold, double amount);
 
   default void resetViolationLevel(Check check) {
     resetViolationLevel(check, "thresholds");
   }
-  void resetViolationLevel(Check check, String threshold);
+  default void resetViolationLevel(String check) {
+    resetViolationLevel(check, "thresholds");
+  }
+  default void resetViolationLevel(Check check, String threshold) {
+    resetViolationLevel(check.typeName(), threshold);
+  }
+  void resetViolationLevel(String check, String threshold);
 
   TrustFactor trustFactor();
   @Deprecated

@@ -23,9 +23,8 @@ public final class PlayerContext extends PlaceholderContext {
     ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
 
     TrustFactor trustFactor = user.trustFactor();
-    String trustFactorName = trustFactor.name().toLowerCase().replace("_", "");
-    builder.put("trust", trustFactorName);
-    builder.put("trust-color", trustFactor.chatColor() + trustFactorName);
+    builder.put("trust", trustFactor.baseName());
+    builder.put("trust-color", trustFactor.coloredBaseName());
 
     builder.put("latency", String.valueOf(user.latency()));
     builder.put("jitter", String.valueOf(user.latencyJitter()));

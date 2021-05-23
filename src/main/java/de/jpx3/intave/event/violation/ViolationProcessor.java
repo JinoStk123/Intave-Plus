@@ -22,6 +22,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.*;
+import java.util.function.Predicate;
 
 import static de.jpx3.intave.event.violation.Violation.ViolationFlags;
 
@@ -35,16 +36,13 @@ public final class ViolationProcessor {
   public ViolationContext processViolation(Violation violation) {
     ViolationContext violationContext = ViolationContext.newOf(violation);
 
-    Optional<Player> optionalPlayer = violation.player();
-    if(!optionalPlayer.isPresent()) {
+    Optional<Player> playerSearch = violation.findPlayer();
+    if(!playerSearch.isPresent()) {
       return violationContext.counterThreatBecause("Player is not reachable").complete();
     }
 
-    Player player = optionalPlayer.get();
+    Player player = playerSearch.get();
     User user = UserRepository.userOf(player);
-    if(user.justJoined() || !user.hasOnlinePlayer()) {
-      return violationContext.counterThreatBecause("Player is not reachable").complete();
-    }
 
     if(user.trustFactor().atLeast(TrustFactor.BYPASS)) {
       return violationContext.ignoreThreatBecause("Player has bypass trust factor").complete();
@@ -53,6 +51,10 @@ public final class ViolationProcessor {
     IntaveCheck check = violation.check();
     if(!check.enabled()) {
       return violationContext.ignoreThreatBecause("Check is disabled").complete();
+    }
+
+    if(user.justJoined() || !user.hasOnlinePlayer()) {
+      return violationContext.counterThreatBecause("Player is not reachable").complete();
     }
 
     fillInVLContext(violationContext);
@@ -80,7 +82,7 @@ public final class ViolationProcessor {
       return;
     }
     Violation violation = violationContext.violation();
-    Player player = violation.player().orElseThrow(IllegalStateException::new);
+    Player player = violation.findPlayer().orElseThrow(IllegalStateException::new);
     String checkName = violation.check().name().toLowerCase(Locale.ROOT).toLowerCase(Locale.ROOT);
     String thresholdsKey = violation.threshold();
     double violationLevelAdded = violation.addedViolationPoints();
@@ -100,7 +102,7 @@ public final class ViolationProcessor {
       return;
     }
     Violation violation = violationContext.violation();
-    Player player = violation.player().orElseThrow(IllegalStateException::new);
+    Player player = violation.findPlayer().orElseThrow(IllegalStateException::new);
 
     String checkName = violation.check().name().toLowerCase(Locale.ROOT);
     String message = violation.message();
@@ -136,7 +138,7 @@ public final class ViolationProcessor {
     if(ignoreVioStat) {
       return;
     }
-    User user = UserRepository.userOf(violationContext.violation().player().orElseThrow(IllegalStateException::new));
+    User user = UserRepository.userOf(violationContext.violation().findPlayer().orElseThrow(IllegalStateException::new));
     IntaveCheck check = violationContext.violation().check();
     check.statisticApply(user, CheckStatistics::increaseViolations);
   }
@@ -151,7 +153,7 @@ public final class ViolationProcessor {
       return;
     }
     Violation violation = violationContext.violation();
-    Player player = violation.player().orElseThrow(IllegalStateException::new);
+    Player player = violation.findPlayer().orElseThrow(IllegalStateException::new);
     User user = UserRepository.userOf(player);
     String checkName = violation.check().name().toLowerCase(Locale.ROOT);
 
@@ -181,7 +183,7 @@ public final class ViolationProcessor {
     // hehehe fix fix
     try {
       Violation violation = violationContext.violation();
-      Player player = violation.player().orElseThrow(IllegalStateException::new);
+      Player player = violation.findPlayer().orElseThrow(IllegalStateException::new);
       String checkName = violation.check().name().toLowerCase(Locale.ROOT);
       String threshold = violation.threshold();
       double violationLevelAfter = violationContext.violationLevelAfter();
@@ -217,10 +219,10 @@ public final class ViolationProcessor {
     if (violationContext.completed() || violationContext.commands().isEmpty()) {
       return;
     }
-    Player player = violationContext.violation().player().orElseThrow(IllegalStateException::new);
+    Player player = violationContext.violation().findPlayer().orElseThrow(IllegalStateException::new);
     List<String> newCommands = new ArrayList<>();
     for (String command : violationContext.commands()) {
-      ViolationPlaceholderContext placeholderContext = violationContext.placeholderContextOf(DetailScope.FULL /* automaticallly striped with not enterprise */);
+      ViolationPlaceholderContext placeholderContext = violationContext.placeholderContextOf(DetailScope.FULL /* automaticallly striped when not enterprise */);
       String executedCommand = MessageFormatter.resolveCommandReplacements(player, command, placeholderContext);
       IntaveCommandExecutionEvent commandTriggerEvent = plugin.customEventService().invokeEvent(
         IntaveCommandExecutionEvent.class,
@@ -244,7 +246,7 @@ public final class ViolationProcessor {
 
   private void executeCommand(ViolationContext violationContext, String command) {
     Violation violation = violationContext.violation();
-    Player player = violation.player().orElseThrow(IllegalStateException::new);
+    Player player = violation.findPlayer().orElseThrow(IllegalStateException::new);
     String checkName = violation.check().name().toLowerCase(Locale.ROOT);
 
     Synchronizer.synchronize(() -> {
@@ -295,15 +297,13 @@ public final class ViolationProcessor {
     String message
   ) {
     for (Player allPlayers : Bukkit.getOnlinePlayers()) {
-      User user = UserRepository.userOf(allPlayers);
-      if(user.receives(channel)) {
-        if(user.hasChannelConstraint(channel)) {
-          if(user.channelPlayerConstraint(channel).appliesTo(target)) {
-            synchronizedMessage(allPlayers, message);
-          }
-        } else {
-          synchronizedMessage(allPlayers, message);
-        }
+      User allUsers = UserRepository.userOf(allPlayers);
+      if (!allUsers.receives(channel)) {
+        continue;
+      }
+      Predicate<Player> constraint = allUsers.channelPlayerConstraint(channel);
+      if(constraint == null || constraint.test(target)) {
+        synchronizedMessage(allPlayers, message);
       }
     }
   }

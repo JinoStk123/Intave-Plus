@@ -7,6 +7,7 @@ import de.jpx3.intave.logging.IntaveLogger;
 import de.jpx3.intave.tools.sync.Synchronizer;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
@@ -23,7 +24,7 @@ public final class UserRepositoryEventListener implements BukkitEventSubscriber 
       .forEach(UserRepository::registerUser);
   }
 
-  @BukkitEventSubscription
+  @BukkitEventSubscription(priority = EventPriority.LOWEST)
   public void receiveJoin(PlayerJoinEvent event) {
     Player player = event.getPlayer();
     UserRepository.registerUser(player);
@@ -34,7 +35,7 @@ public final class UserRepositoryEventListener implements BukkitEventSubscriber 
     }, 10);
   }
 
-  @BukkitEventSubscription
+  @BukkitEventSubscription(priority = EventPriority.HIGHEST)
   public void receiveQuit(PlayerQuitEvent event) {
     Player player = event.getPlayer();
     UserRepository.unregisterUser(player);

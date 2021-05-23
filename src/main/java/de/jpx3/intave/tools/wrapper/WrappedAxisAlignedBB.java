@@ -447,7 +447,7 @@ public class WrappedAxisAlignedBB {
     return new WrappedAxisAlignedBB(
       positionX - width, positionY, positionZ - width,
       positionX + width, newYMax, positionZ + width
-    );
+      );
   }
 
   @Deprecated

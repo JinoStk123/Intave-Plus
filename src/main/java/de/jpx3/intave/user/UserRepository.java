@@ -18,7 +18,6 @@ public final class UserRepository {
   private final static Lock lock = new ReentrantLock();
   private static boolean closed;
 
-
   // used to load the class on startup
   public static void setup() {
 
@@ -45,14 +44,14 @@ public final class UserRepository {
 
   public static User userOf(Player player) {
     User user = userRepository.get(player.getUniqueId());
-    if(user == null) {
-      if(closed) {
+    if (user == null) {
+      if (closed) {
         return deadUser;
       }
       // check if player is offline
       boolean isOnline = AccessHelper.isOnline(player);
       // online -> recreate user object
-      if(isOnline) {
+      if (isOnline) {
         registerUser(player);
         return userRepository.get(player.getUniqueId());
       } else {

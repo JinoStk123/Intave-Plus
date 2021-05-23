@@ -81,6 +81,7 @@ public final class CustomClientSupportService implements EventProcessor {
         IntaveLogger.logger().pushPrintln("[Intave] " + player.getName() + " has sent a custom client configuration (client has special Intave support)");
       }
     } catch (RuntimeException exception) {
+      exception.printStackTrace();
       Synchronizer.synchronize(() -> player.kickPlayer("Invalid Intave client support payload packet"));
     } finally {
       bytes.resetReaderIndex();

@@ -38,7 +38,6 @@ final class PatchyTranslator {
 //    IntaveLogger.logger().globalPrintLn("Translating methods..");
     processMethods(selectedMethodsIn(classNode));
 
-
     if(IntaveControl.OUTPUT_PATCHY_RESULT) {
       IntaveLogger.logger().pushPrintln(classNode.name + " " + classNode.superName);
       IntaveLogger.logger().pushPrintln(classNode.name + " " + classNode.superName);

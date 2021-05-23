@@ -62,7 +62,7 @@ public class DefaultPoseSimulator extends PoseSimulator {
     }
     if (jumped) {
       boolean allowJumpInWater = false;
-      if (clientData.waterUpdate()) {
+      if (clientData.waterUpdate() && inWater) {
         // Geht nicht anders
         Material material = BukkitBlockAccess.cacheAppliedTypeAccess(
           user, user.player().getWorld(),
@@ -102,7 +102,7 @@ public class DefaultPoseSimulator extends PoseSimulator {
     if (inWater) {
       performSimulationInWaterOfState(user, context, forward, strafe, yawSine, yawCosine);
     } else if (inLava) {
-      performLavaSimulationOfState(context, forward, strafe, yawSine, yawCosine);
+      performLavaSimulationOfState(user, context, forward, strafe, yawSine, yawCosine);
     } else {
       performDefaultMoveSimulationOfState(user, context, forward, strafe, yawSine, yawCosine);
     }
@@ -151,6 +151,7 @@ public class DefaultPoseSimulator extends PoseSimulator {
   }
 
   private void performLavaSimulationOfState(
+    User user,
     MotionVector context,
     float moveForward, float moveStrafe,
     float yawSine, float yawCosine

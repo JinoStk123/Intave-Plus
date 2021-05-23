@@ -2,7 +2,6 @@ package de.jpx3.intave.world.blockaccess;
 
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.event.bukkit.BukkitEventSubscriber;
-import de.jpx3.intave.event.bukkit.BukkitEventSubscription;
 import de.jpx3.intave.tools.annotate.Relocate;
 import de.jpx3.intave.tools.wrapper.WrappedBlockPosition;
 import de.jpx3.intave.tools.wrapper.WrappedMathHelper;
@@ -12,24 +11,10 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.event.world.WorldLoadEvent;
-
-import java.util.Map;
-import java.util.WeakHashMap;
 
 @Relocate
 public final class BukkitBlockAccess implements BukkitEventSubscriber {
-  private static final Map<World, Block> invalidRequestBlockMap = new WeakHashMap<>();
-
-  @BukkitEventSubscription
-  public void onWorldLoad(WorldLoadEvent event) {
-    World world = event.getWorld();
-    Block block = world.getBlockAt(0, -1, 0);
-    invalidRequestBlockMap.put(world, block);
-  }
-
   public static void setup() {
-    Bukkit.getWorlds().forEach(world -> invalidRequestBlockMap.put(world, world.getBlockAt(0, -1, 0)));
     IntavePlugin.singletonInstance().eventLinker().registerEventsIn(new BukkitBlockAccess());
   }
 
@@ -41,14 +26,14 @@ public final class BukkitBlockAccess implements BukkitEventSubscriber {
     if (isInLoadedChunk(blockAccess, x, z) || Bukkit.isPrimaryThread()) {
       return blockAccess.getBlockAt(x, y, z);
     }
-    return invalidRequestBlockMap.get(blockAccess);
+    return fallbackBlock(blockAccess);
   }
 
   public static Material cacheAppliedTypeAccess(User user, World blockAccess, int blockX, int blockY, int blockZ) {
     if (isInLoadedChunk(blockAccess, blockX, blockZ) || Bukkit.isPrimaryThread()) {
       return user.blockShapeAccess().resolveType(blockX >> 4, blockZ >> 4, blockX, blockY, blockZ);
     }
-    return invalidRequestBlockMap.get(blockAccess).getType();
+    return Material.AIR;
   }
 
   public static Material cacheAppliedTypeAccess(User user, World blockAccess, double x, double y, double z) {
@@ -58,14 +43,14 @@ public final class BukkitBlockAccess implements BukkitEventSubscriber {
     if (isInLoadedChunk(blockAccess, blockX, blockZ) || Bukkit.isPrimaryThread()) {
       return user.blockShapeAccess().resolveType(blockX >> 4, blockZ >> 4,blockX, blockY, blockZ);
     }
-    return invalidRequestBlockMap.get(blockAccess).getType();
+    return Material.AIR;
   }
 
   public static int cacheAppliedDataAccess(User user, World blockAccess, int blockX, int blockY, int blockZ) {
     if (isInLoadedChunk(blockAccess, blockX, blockZ) || Bukkit.isPrimaryThread()) {
       return user.blockShapeAccess().resolveData(blockX >> 4, blockZ >> 4, blockX, blockY, blockZ);
     }
-    return BlockDataAccess.dataIndexOf(invalidRequestBlockMap.get(blockAccess));
+    return BlockDataAccess.dataIndexOf(fallbackBlock(blockAccess));
   }
 
   public static int cacheAppliedDataAccess(User user, World blockAccess, double x, double y, double z) {
@@ -75,7 +60,12 @@ public final class BukkitBlockAccess implements BukkitEventSubscriber {
     if (isInLoadedChunk(blockAccess, blockX, blockZ) || Bukkit.isPrimaryThread()) {
       return user.blockShapeAccess().resolveData(blockX >> 4, blockZ >> 4, blockX, blockY, blockZ);
     }
-    return BlockDataAccess.dataIndexOf(invalidRequestBlockMap.get(blockAccess));
+    return BlockDataAccess.dataIndexOf(fallbackBlock(blockAccess));
+  }
+
+  private static Block fallbackBlock(World world) {
+    Location spawnLocation = world.getSpawnLocation();
+    return world.getBlockAt(spawnLocation.getBlockX(), -1, spawnLocation.getBlockZ());
   }
 
   public static Material cacheAppliedTypeAccess(User user, Location location) {
