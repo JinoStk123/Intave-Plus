@@ -710,7 +710,7 @@ public final class Physics extends IntaveCheck {
       if (clientData.waterUpdate()) {
         liquidPositionY = receivedMotionY + 0.6f - movementData.positionY + movementData.verifiedPositionY;
       } else {
-        liquidPositionY = receivedMotionY + 0.6f;
+        liquidPositionY = receivedMotionY + 0.3f;
       }
       boolean offsetPositionInLiquid = MovementContextHelper.isOffsetPositionInLiquid(
         player, movementData.boundingBox(), receivedMotionX, liquidPositionY, receivedMotionZ
