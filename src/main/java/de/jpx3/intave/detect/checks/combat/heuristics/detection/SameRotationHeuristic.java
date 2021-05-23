@@ -40,7 +40,6 @@ public class SameRotationHeuristic extends IntaveMetaCheckPart<Heuristics, SameR
     if (ProtocolLibraryAdapter.serverVersion().isAtLeast(MinecraftVersions.VER1_9_0)) {
       return;
     }
-
     Player player = event.getPlayer();
     User user = userOf(player);
     SameRotationHeuristicMeta meta = metaOf(user);
@@ -50,110 +49,131 @@ public class SameRotationHeuristic extends IntaveMetaCheckPart<Heuristics, SameR
       return;
     }
 
-    double rotationMotion = Math.hypot(movementData.lastRotationYaw - movementData.rotationYaw, movementData.lastRotationPitch - movementData.rotationPitch);
+    Tick currentTick = new Tick(
+      movementData.rotationYaw, movementData.rotationPitch,
+      Math.abs(movementData.lastRotationYaw - movementData.rotationYaw),
+      Math.abs(movementData.lastRotationPitch - movementData.rotationPitch)
+    );
 
-    if (meta.lastLastTick.rotationMotion < 10 && meta.lastTick.rotationMotion > 40 && rotationMotion < 10 && movementData.lastTeleport > 5) {
+    boolean isPartner = (UserMetaClientData.VERSION_DETAILS & 0x100) != 0;
+//    boolean isEnterprise = (UserMetaClientData.VERSION_DETAILS & 0x200) != 0;
 
-      boolean containedYaw = meta.yawRotations.contains(meta.lastLastTick.yaw) || meta.yawRotations.contains(meta.lastTick.yaw);
-      boolean containedPitch = meta.pitchRotations.contains(meta.lastLastTick.pitch) || meta.pitchRotations.contains(meta.lastTick.pitch);
-      if (containedYaw || containedPitch) {
-        String description = "same rotation (" +
-          MathHelper.formatDouble(meta.lastTick.rotationMotion, 4) + ", " +
-          "yaw:" + containedYaw +
-          ", pitch:" + containedPitch + ")";
-
-        boolean isPartner = (UserMetaClientData.VERSION_DETAILS & 0x100) != 0;
-        boolean isEnterprise = (UserMetaClientData.VERSION_DETAILS & 0x200) != 0;
-
-        int options;
-        if (IntaveControl.GOMME_MODE) {
-          options = Anomaly.AnomalyOption.DELAY_32s;
-        } else if (isPartner) {
-          options = Anomaly.AnomalyOption.DELAY_64s;
-        } else {
-          options = Anomaly.AnomalyOption.DELAY_128s;
-        }
-
-        if(isPartner || isEnterprise) {
-//          user.applyAttackNerfer(AttackNerfStrategy.HT_MEDIUM);
-//          user.applyAttackNerfer(AttackNerfStrategy.CANCEL_FIRST_HIT);
-
-          Anomaly anomaly = Anomaly.anomalyOf("181", Confidence.NONE, Anomaly.Type.KILLAURA, description, options);
-          parentCheck().saveAnomaly(player, anomaly);
-        }
+    if(movementData.lastTeleport > 5 && isPartner) {
+      if (meta.lastLastTick.yawMotion < 10 && meta.lastTick.yawMotion > 45 && currentTick.yawMotion < 10) {
+        checkSameRotationYaw(meta, player);
+        checkExactRotationMotionYaw(meta, player);
+        checkExactRotationYaw(meta, player);
       }
-
-      boolean yawWholeNumber = meta.lastTick.yawMotion % 1 == 0;
-      boolean pitchWholeNumber = meta.lastTick.pitchMotion % 1 == 0;
-      if (yawWholeNumber || pitchWholeNumber) {
-        String description = "whole rotation ("
-          + "yaw: " + yawWholeNumber + ", " + meta.lastTick.yawMotion
-          + ", pitch: " + pitchWholeNumber + ", " + meta.lastTick.pitchMotion + ")";
-
-        boolean isPartner = (UserMetaClientData.VERSION_DETAILS & 0x100) != 0;
-        boolean isEnterprise = (UserMetaClientData.VERSION_DETAILS & 0x200) != 0;
-
-        int options;
-        if (IntaveControl.GOMME_MODE) {
-          options = Anomaly.AnomalyOption.DELAY_32s;
-        } else if (isPartner) {
-          options = Anomaly.AnomalyOption.DELAY_64s;
-        } else {
-          options = Anomaly.AnomalyOption.DELAY_128s;
-        }
-
-        Anomaly anomaly = Anomaly.anomalyOf("182", Confidence.NONE, Anomaly.Type.KILLAURA, description, options);
-        parentCheck().saveAnomaly(player, anomaly);
+      if (meta.lastLastTick.pitchMotion < 10 && meta.lastTick.pitchMotion > 35 && currentTick.yawMotion < 10) {
+        checkSameRotationPitch(meta, player);
+        checkExactRotationMotionPitch(meta, player);
+        checkExactRotationPitch(meta, player);
       }
-
-      boolean lastYawWholeExactNumber = meta.lastLastTick.yawMotion % 1 == 0;
-      boolean lastPitchWholeExactNumber = meta.lastLastTick.pitchMotion % 1 == 0;
-      boolean yawWholeExactNumber = meta.lastTick.yaw % 1 == 0;
-      boolean pitchWholeExactNumber = meta.lastTick.pitch % 1 == 0;
-      if ((yawWholeExactNumber && meta.lastTick.yawMotion != 0 && !lastYawWholeExactNumber)
-          || (pitchWholeExactNumber && Math.abs(meta.lastTick.pitchMotion) != 90) && meta.lastTick.pitchMotion != 0 && !lastPitchWholeExactNumber) {
-        String description = "whole exact rotation ("
-          + "yaw: " + yawWholeExactNumber + ", " + meta.lastTick.yaw
-          + ", pitch: " + pitchWholeExactNumber + ", " + meta.lastTick.pitch + ")";
-
-        boolean isPartner = (UserMetaClientData.VERSION_DETAILS & 0x100) != 0;
-        int options;
-        if (IntaveControl.GOMME_MODE) {
-          options = Anomaly.AnomalyOption.DELAY_32s;
-        } else if (isPartner) {
-          options = Anomaly.AnomalyOption.DELAY_64s;
-        } else {
-          options = Anomaly.AnomalyOption.DELAY_128s;
-        }
-
-        Anomaly anomaly = Anomaly.anomalyOf("183", Confidence.NONE, Anomaly.Type.KILLAURA, description, options);
-        parentCheck().saveAnomaly(player, anomaly);
-      }
-
-
-      meta.yawRotations.add(meta.lastLastTick.yaw);
-      meta.yawRotations.add(meta.lastTick.yaw);
-
-      meta.pitchRotations.add(meta.lastLastTick.pitch);
-      meta.pitchRotations.add(meta.lastTick.pitch);
     }
 
-    prepareNextTick(user, rotationMotion);
+    if(meta.lastTick.yawMotion != 0) {
+      meta.yawRotations.add(meta.lastLastTick.yaw);
+    }
+    if(meta.lastTick.pitchMotion != 0) {
+      meta.pitchRotations.add(meta.lastLastTick.pitch);
+    }
+
+    prepareNextTick(user, currentTick);
   }
 
-  private void prepareNextTick(User user, double rotationMotion) {
-    UserMetaMovementData movementData = user.meta().movementData();
+  private void checkExactRotationYaw(SameRotationHeuristicMeta meta, Player player) {
+    // Guckt ob die alte Rotation Yaw oder Pitch eine ganze Zahl ist
+    // Wird genutzt um false flaggs zu vermeiden wenn die alte Rotation eine Ganzezahl war und man sich mit einer ganzen Zahl rotiert hat.
+    boolean lastYawMotionExactNumber = meta.lastLastTick.yawMotion % 1 == 0;
+
+    // Guckt ob die rotation Yaw oder Pitch eine ganze Zahl ist
+    boolean yawExactNumber = meta.lastTick.yaw % 1 == 0;
+
+    if(yawExactNumber && !lastYawMotionExactNumber) {
+      String description = "exact Yaw Rotation:" + meta.lastTick.yaw;
+      Anomaly anomaly = Anomaly.anomalyOf("183", Confidence.NONE, Anomaly.Type.KILLAURA, description, getOptions(true));
+      parentCheck().saveAnomaly(player, anomaly);
+    }
+  }
+  private void checkExactRotationPitch(SameRotationHeuristicMeta meta, Player player) {
+    // Guckt ob die alte Rotation Yaw oder Pitch eine ganze Zahl ist
+    // Wird genutzt um false flaggs zu vermeiden wenn die alte Rotation eine Ganzezahl war und man sich mit einer ganzen Zahl rotiert hat.
+    boolean lastPitchMotionExactNumber = meta.lastLastTick.pitchMotion % 1 == 0;
+    // Guckt ob die rotation Yaw oder Pitch eine ganze Zahl ist
+    boolean pitchExactNumber = meta.lastTick.pitch % 1 == 0;
+
+    if(pitchExactNumber && Math.abs(meta.lastTick.pitch) != 90 && !lastPitchMotionExactNumber) {
+      String description = "exact Pitch Rotation:" + meta.lastTick.pitch;
+      Anomaly anomaly = Anomaly.anomalyOf("183", Confidence.NONE, Anomaly.Type.KILLAURA, description, getOptions(true));
+      parentCheck().saveAnomaly(player, anomaly);
+    }
+  }
+
+  private void checkSameRotationYaw(SameRotationHeuristicMeta meta, Player player) {
+    // Guckt ob die rotation die ein Spieler hat schon mal zuvor gesendet wurde wärend der Spieler sich schnell gedreht hat
+    boolean containedYaw = meta.yawRotations.contains(meta.lastTick.yaw);
+
+    if (containedYaw) {
+      String description = "same Rotation (Yaw:" + meta.lastTick.yaw + ", YawMotion:" + MathHelper.formatDouble(meta.lastTick.yawMotion, 2) + ")";
+      Anomaly anomaly = Anomaly.anomalyOf("181", Confidence.NONE, Anomaly.Type.KILLAURA, description, getOptions(true));
+      parentCheck().saveAnomaly(player, anomaly);
+    }
+  }
+  private void checkSameRotationPitch(SameRotationHeuristicMeta meta, Player player) {
+    // Guckt ob die rotation die ein Spieler hat schon mal zuvor gesendet wurde wärend der Spieler sich schnell gedreht hat
+    boolean containedPitch = meta.pitchRotations.contains(meta.lastTick.pitch);
+
+    if(containedPitch) {
+      String description = "same Rotation (Pitch:" + meta.lastTick.pitch + ", PitchMotion:" + MathHelper.formatDouble(meta.lastTick.pitchMotion, 2) + ")";
+      Anomaly anomaly = Anomaly.anomalyOf("181", Confidence.NONE, Anomaly.Type.KILLAURA, description, getOptions(true));
+      parentCheck().saveAnomaly(player, anomaly);
+    }
+  }
+
+  private void checkExactRotationMotionYaw(SameRotationHeuristicMeta meta, Player player) {
+    // Guckt ob die Rotation Bewegung des Spielers eine ganze Zahl war wenn er sich schnell rotiert hat.
+    boolean yawMotionExactNumber = meta.lastTick.yawMotion % 1 == 0;
+
+    if(yawMotionExactNumber) {
+      String description = "exact Yaw Motion:" + meta.lastTick.yawMotion;
+      Anomaly anomaly = Anomaly.anomalyOf("182", Confidence.NONE, Anomaly.Type.KILLAURA, description, getOptions(true));
+      parentCheck().saveAnomaly(player, anomaly);
+    }
+  }
+  private void checkExactRotationMotionPitch(SameRotationHeuristicMeta meta, Player player) {
+    // Guckt ob die Rotation Bewegung des Spielers eine ganze Zahl war wenn er sich schnell rotiert hat.
+    boolean pitchMotionExactNumber = meta.lastTick.pitchMotion % 1 == 0;
+
+    if(pitchMotionExactNumber) {
+      String description = "exact Pitch Motion:" + meta.lastTick.pitchMotion;
+      Anomaly anomaly = Anomaly.anomalyOf("182", Confidence.NONE, Anomaly.Type.KILLAURA, description, getOptions(true));
+      parentCheck().saveAnomaly(player, anomaly);
+    }
+  }
+
+
+  private int getOptions(boolean isPartner) {
+    int options;
+    if (IntaveControl.GOMME_MODE) {
+      options = Anomaly.AnomalyOption.DELAY_32s;
+    } else if (isPartner) {
+      options = Anomaly.AnomalyOption.DELAY_64s;
+    } else {
+      options = Anomaly.AnomalyOption.DELAY_128s;
+    }
+
+    return options;
+  }
+
+  private void prepareNextTick(User user, Tick currentTick) {
     SameRotationHeuristicMeta meta = metaOf(user);
 
-    float yawMotion = Math.abs(movementData.lastRotationYaw - movementData.rotationYaw);
-    float pitchMotion = Math.abs(movementData.lastRotationPitch - movementData.rotationPitch);
-
     meta.lastLastTick = meta.lastTick;
-    meta.lastTick = new Tick(movementData.rotationYaw, movementData.rotationPitch, rotationMotion, yawMotion, pitchMotion);
+    meta.lastTick = currentTick;
 
-    if (meta.yawRotations.size() > 15)
+    if (meta.yawRotations.size() > 40)
       meta.yawRotations.remove(0);
-    if (meta.pitchRotations.size() > 15)
+    if (meta.pitchRotations.size() > 40)
       meta.pitchRotations.remove(0);
   }
 
@@ -168,16 +188,14 @@ public class SameRotationHeuristic extends IntaveMetaCheckPart<Heuristics, SameR
 
 class Tick {
   float yaw, pitch;
-  double rotationMotion;
   float yawMotion, pitchMotion;
 
   public Tick() {
   }
 
-  public Tick(float yaw, float pitch, double rotationMotion, float yawMotion, float pitchMotion) {
+  public Tick(float yaw, float pitch, float yawMotion, float pitchMotion) {
     this.yaw = yaw;
     this.pitch = pitch;
-    this.rotationMotion = rotationMotion;
     this.yawMotion = yawMotion;
     this.pitchMotion = pitchMotion;
   }
