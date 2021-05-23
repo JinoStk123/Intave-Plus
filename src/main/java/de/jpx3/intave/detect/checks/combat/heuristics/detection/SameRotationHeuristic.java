@@ -12,6 +12,7 @@ import de.jpx3.intave.event.packet.ListenerPriority;
 import de.jpx3.intave.event.packet.PacketDescriptor;
 import de.jpx3.intave.event.packet.PacketSubscription;
 import de.jpx3.intave.event.packet.Sender;
+import de.jpx3.intave.tools.MathHelper;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserCustomCheckMeta;
 import de.jpx3.intave.user.UserMetaClientData;
@@ -58,22 +59,23 @@ public class SameRotationHeuristic extends IntaveMetaCheckPart<Heuristics, SameR
 //    boolean isEnterprise = (UserMetaClientData.VERSION_DETAILS & 0x200) != 0;
 
     if(movementData.lastTeleport > 5 && isPartner) {
-      if (meta.lastLastTick.yawMotion < 10 && meta.lastTick.yawMotion > 40 && currentTick.yawMotion < 10) {
+      if (meta.lastLastTick.yawMotion < 10 && meta.lastTick.yawMotion > 45 && currentTick.yawMotion < 10) {
         checkSameRotationYaw(meta, player);
         checkExactRotationMotionYaw(meta, player);
         checkExactRotationYaw(meta, player);
-
-        meta.yawRotations.add(meta.lastLastTick.yaw);
-        meta.yawRotations.add(meta.lastTick.yaw);
       }
-      if (meta.lastLastTick.pitchMotion < 10 && meta.lastTick.pitchMotion > 40 && currentTick.yawMotion < 10) {
+      if (meta.lastLastTick.pitchMotion < 10 && meta.lastTick.pitchMotion > 35 && currentTick.yawMotion < 10) {
         checkSameRotationPitch(meta, player);
         checkExactRotationMotionPitch(meta, player);
         checkExactRotationPitch(meta, player);
-
-        meta.pitchRotations.add(meta.lastLastTick.pitch);
-        meta.pitchRotations.add(meta.lastTick.pitch);
       }
+    }
+
+    if(meta.lastTick.yawMotion != 0) {
+      meta.yawRotations.add(meta.lastLastTick.yaw);
+    }
+    if(meta.lastTick.pitchMotion != 0) {
+      meta.pitchRotations.add(meta.lastLastTick.pitch);
     }
 
     prepareNextTick(user, currentTick);
@@ -112,7 +114,7 @@ public class SameRotationHeuristic extends IntaveMetaCheckPart<Heuristics, SameR
     boolean containedYaw = meta.yawRotations.contains(meta.lastTick.yaw);
 
     if (containedYaw) {
-      String description = "same Rotation (Yaw:" + meta.lastTick.yaw + ")";
+      String description = "same Rotation (Yaw:" + meta.lastTick.yaw + ", YawMotion:" + MathHelper.formatDouble(meta.lastTick.yawMotion, 2) + ")";
       Anomaly anomaly = Anomaly.anomalyOf("181", Confidence.NONE, Anomaly.Type.KILLAURA, description, getOptions(true));
       parentCheck().saveAnomaly(player, anomaly);
     }
@@ -122,7 +124,7 @@ public class SameRotationHeuristic extends IntaveMetaCheckPart<Heuristics, SameR
     boolean containedPitch = meta.pitchRotations.contains(meta.lastTick.pitch);
 
     if(containedPitch) {
-      String description = "same Rotation (Pitch:" + meta.lastTick.pitch + ")";
+      String description = "same Rotation (Pitch:" + meta.lastTick.pitch + ", PitchMotion:" + MathHelper.formatDouble(meta.lastTick.pitchMotion, 2) + ")";
       Anomaly anomaly = Anomaly.anomalyOf("181", Confidence.NONE, Anomaly.Type.KILLAURA, description, getOptions(true));
       parentCheck().saveAnomaly(player, anomaly);
     }
@@ -169,9 +171,9 @@ public class SameRotationHeuristic extends IntaveMetaCheckPart<Heuristics, SameR
     meta.lastLastTick = meta.lastTick;
     meta.lastTick = currentTick;
 
-    if (meta.yawRotations.size() > 15)
+    if (meta.yawRotations.size() > 40)
       meta.yawRotations.remove(0);
-    if (meta.pitchRotations.size() > 15)
+    if (meta.pitchRotations.size() > 40)
       meta.pitchRotations.remove(0);
   }
 
