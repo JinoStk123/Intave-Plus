@@ -10,6 +10,7 @@ import de.jpx3.intave.reflect.ReflectiveAccess;
 import de.jpx3.intave.reflect.caller.CallerResolver;
 import de.jpx3.intave.reflect.caller.PluginInvocation;
 import de.jpx3.intave.tools.MathHelper;
+import de.jpx3.intave.tools.client.EffectLogic;
 import de.jpx3.intave.tools.client.MovementContextHelper;
 import de.jpx3.intave.tools.sync.Synchronizer;
 import de.jpx3.intave.tools.wrapper.WrappedAxisAlignedBB;
@@ -295,7 +296,14 @@ public final class MovementEmulationEngine {
           motionY = lastMotion.getY() * 0.8f;
           motionY -= 0.02;
         } else {
-          motionY = (lastMotion.getY() - movementData.gravity) * 0.98f;
+          if (EffectLogic.isPotionLevitationActive(player)) {
+            int levitationAmplifier = EffectLogic.effectAmplifier(player, EffectLogic.EFFECT_LEVITATION);
+            motionY += (0.05D * (double) (levitationAmplifier + 1) - motionY) * 0.2D;
+            user.meta().movementData().artificialFallDistance = 0f;
+          } else {
+            motionY -= movementData.gravity;
+          }
+          motionY *= 0.98f;
         }
       }
     }
