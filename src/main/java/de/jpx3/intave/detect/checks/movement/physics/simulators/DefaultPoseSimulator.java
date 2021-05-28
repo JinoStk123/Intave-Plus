@@ -48,7 +48,7 @@ public class DefaultPoseSimulator extends PoseSimulator {
     boolean inLava = movementData.inLava();
     boolean swimming = movementData.swimming;
     boolean waterUpdate = clientData.waterUpdate();
-    boolean ignoreSneakingInput = inWater && clientData.beeUpdate();
+    boolean ignoreSneakingInput = swimming && clientData.beeUpdate();
     if (movementData.actualSneaking() && !ignoreSneakingInput) {
       strafe = (float) ((double) strafe * 0.3);
       forward = (float) ((double) forward * 0.3);
