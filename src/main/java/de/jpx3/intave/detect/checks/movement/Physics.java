@@ -521,7 +521,7 @@ public final class Physics extends IntaveCheck {
 
     violationLevelData.physicsVL = MathHelper.minmax(0, violationLevelData.physicsVL, 100);
 
-    if (movementData.onLadderLast || movementData.elytraFlying) {
+    if (movementData.onLadderLast || movementData.elytraFlying || flying) {
       movementData.artificialFallDistance = 0;
     }
 
