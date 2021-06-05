@@ -246,6 +246,15 @@ public final class ClientSideEntityService implements PacketEventSubscriber {
     if (attackData.lastAttackedEntity() != null && attackData.lastAttackedEntityID() == entityId) {
       attackData.nullifyLastAttackedEntity();
     }
+    if(NEW_POSITION_PROCESSING_1_9) {
+      for (WrappedEntity wrappedEntity : synchronizedEntityMap.values()) {
+        if(wrappedEntity.mountedEntity() != null) {
+          if(wrappedEntity.mountedEntity().entityId() == entityId) {
+            wrappedEntity.unmountFromEntity();
+          }
+        }
+      }
+    }
   }
 
   @PacketSubscription(
