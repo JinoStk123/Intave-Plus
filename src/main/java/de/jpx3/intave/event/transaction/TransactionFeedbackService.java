@@ -38,20 +38,35 @@ public final class TransactionFeedbackService implements PacketEventSubscriber {
     responseLocker = new TransactionResponseEnforcingProcessor(plugin);
   }
 
-  public <T> void doubleSynchronize(Player player, PacketEvent event, T target, TFCallback<T> firstCallback, TFCallback<T> secondCallback) {
+  public <T> void doubleSynchronize(
+    Player player, PacketEvent event, T target,
+    TFCallback<T> firstCallback, TFCallback<T> secondCallback
+  ) {
     doubleSynchronize(player, event, target, firstCallback, secondCallback, 0);
   }
 
-  public <T> void doubleSynchronize(Player player, PacketEvent event, T target, TFCallback<T> firstCallback, TFCallback<T> secondCallback, int options) {
+  public <T> void doubleSynchronize(
+    Player player, PacketEvent event, T target,
+    TFCallback<T> firstCallback, TFCallback<T> secondCallback,
+    int options
+  ) {
     doubleSynchronize(player, event.getPacket(), target, firstCallback, secondCallback, options);
     event.setCancelled(true);
   }
 
-  public <T> void doubleSynchronize(Player player, PacketContainer encapsulate, T target, TFCallback<T> firstCallback, TFCallback<T> secondCallback) {
+  public <T> void doubleSynchronize(
+    Player player, PacketContainer encapsulate,
+    T target, TFCallback<T> firstCallback, TFCallback<T> secondCallback
+  ) {
     doubleSynchronize(player, encapsulate, target, firstCallback, secondCallback, 0);
   }
 
-  public <T> void doubleSynchronize(Player player, PacketContainer encapsulate, T target, TFCallback<T> firstCallback, TFCallback<T> secondCallback, int options) {
+  public <T> void doubleSynchronize(
+    Player player,
+    PacketContainer encapsulate, T target,
+    TFCallback<T> firstCallback, TFCallback<T> secondCallback,
+    int options
+  ) {
     User user = UserRepository.userOf(player);
     if (user == null || !user.hasOnlinePlayer()) {
       return;
@@ -62,11 +77,15 @@ public final class TransactionFeedbackService implements PacketEventSubscriber {
     singleSynchronize(player, target, secondCallback, options);
   }
 
-  public <T> void singleSynchronize(Player player, T target, TFCallback<T> callback) {
+  public <T> void singleSynchronize(
+    Player player, T target, TFCallback<T> callback
+  ) {
     singleSynchronize(player, target, callback, 0);
   }
 
-  public <T> void singleSynchronize(Player player, T target, TFCallback<T> callback, int options) {
+  public <T> void singleSynchronize(
+    Player player, T target, TFCallback<T> callback, int options
+  ) {
     if (!Bukkit.isPrimaryThread()) {
       if (TransactionOptions.matches(SELF_SYNCHRONIZATION, options)) {
         Synchronizer.synchronize(() -> singleSynchronize(player, target, callback, options));
@@ -91,10 +110,7 @@ public final class TransactionFeedbackService implements PacketEventSubscriber {
           return;
         }
       }
-      Short id = acquireNewId(player, target, callback);
-      if (id != null) {
-        sendTransactionPacket(player, id);
-      }
+      sendTransactionPacket(player, acquireNewId(player, target, callback));
     } finally {
       connectionData.transactionLock.unlock();
     }
@@ -102,13 +118,17 @@ public final class TransactionFeedbackService implements PacketEventSubscriber {
 
   private final static Object FALLBACK_OBJECT = new Object();
 
-  private <T> void appendRequestToContext(Player player, T obj, TFCallback<T> callback) {
+  private <T> void appendRequestToContext(
+    Player player, T obj, TFCallback<T> callback
+  ) {
     User user = UserRepository.userOf(player);
     if (user == null || !user.hasOnlinePlayer()) {
       return;
     }
     UserMetaConnectionData synchronizeData = user.meta().connectionData();
-    Queue<TFRequest<?>> queue = synchronizeData.transactionAppendixMap().computeIfAbsent(synchronizeData.transactionNumCounter, aLong -> new LinkedBlockingDeque<>());
+    Queue<TFRequest<?>> queue = synchronizeData
+      .transactionAppendixMap()
+      .computeIfAbsent(synchronizeData.transactionNumCounter, aLong -> new LinkedBlockingDeque<>());
     if (obj == null) {
       //noinspection unchecked
       obj = (T) FALLBACK_OBJECT;
@@ -116,11 +136,10 @@ public final class TransactionFeedbackService implements PacketEventSubscriber {
     queue.add(new TFRequest<>(callback, obj, (short) -1, -1));
   }
 
-  private /* synchronized (is already always sync) */ <T> Short acquireNewId(Player player, T obj, TFCallback<T> callback) {
+  private /* synchronized (is already always sync) */ <T> short acquireNewId(
+    Player player, T obj, TFCallback<T> callback
+  ) {
     User user = UserRepository.userOf(player);
-    if (user == null || !user.hasOnlinePlayer()) {
-      return null;
-    }
     UserMetaConnectionData synchronizeData = user.meta().connectionData();
     short transactionKey = findAvailableTransactionIdFor(player);
     if (transactionKey >= TRANSACTION_MAX_CODE) {
