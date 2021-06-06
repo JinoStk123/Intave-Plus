@@ -176,6 +176,7 @@ public final class ClientSideEntityService implements PacketEventSubscriber {
      *   which could cause a too many packets kick
      */
 //    plugin.eventService().transactionFeedbackService().requestPong(event.getPlayer(), event, this::processEntitySpawn);
+    Thread.dumpStack();
     processEntitySpawn(event.getPlayer(), event);
   }
 
@@ -470,6 +471,9 @@ public final class ClientSideEntityService implements PacketEventSubscriber {
   public void receiveEntityStatus(PacketEvent event) {
     Player player = event.getPlayer();
     User user = UserRepository.userOf(player);
+    if (user == null || !user.hasOnlinePlayer()) {
+      return;
+    }
     PacketContainer packet = event.getPacket();
     Integer entityID = packet.getIntegers().read(0);
     Byte type = packet.getBytes().read(0);
