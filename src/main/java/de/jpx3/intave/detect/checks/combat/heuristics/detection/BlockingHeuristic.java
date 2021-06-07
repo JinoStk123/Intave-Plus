@@ -17,6 +17,7 @@ import de.jpx3.intave.reflect.ReflectiveDataWatcherAccess;
 import de.jpx3.intave.tools.AccessHelper;
 import de.jpx3.intave.tools.sync.Synchronizer;
 import de.jpx3.intave.user.*;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -167,18 +168,24 @@ public final class BlockingHeuristic extends IntaveMetaCheckPart<Heuristics, Blo
     }
     // checks if the client version is above 1.8 for disabling the check if the player is standing still
     if (!movementData.recentlyEncounteredFlyingPacket(2) || clientData.protocolVersion() < PROTOCOL_VERSION_COMBAT_UPDATE) {
-      if (meta.heldItemOperations > 1) {
+      if (meta.heldItemOperations > 0) {
         if (meta.blocksPlacedThisTick == 0 || meta.heldItemOperations > 2) {
           String description = "sent too many item operations (operations: " + meta.heldItemOperations + ")";
           description += " (version " + user.meta().clientData().versionString() + ")";
           Anomaly anomaly = Anomaly.anomalyOf("144", Confidence.NONE, Anomaly.Type.KILLAURA, description, 0);
           parentCheck().saveAnomaly(player, anomaly);
-        } else {
-          PacketContainer packetContainer = meta.unsendPackets.get(0);
-          receiveExcludedPacket(player, packetContainer);
+//          if(meta.unsendPackets.size() != meta.heldItemOperations) {
+//            Bukkit.broadcastMessage("flag " + meta.heldItemOperations + " " + meta.blocksPlacedThisTick);
+//          }
+          meta.unsendPackets.clear();
         }
-        meta.unsendPackets.clear();
       }
+    }
+
+    if(meta.unsendPackets.size() != 0) {
+      PacketContainer packetContainer = meta.unsendPackets.get(0);
+      receiveExcludedPacket(player, packetContainer);
+      meta.unsendPackets.clear();
     }
 
     meta.blocksPlacedThisTick = 0;
@@ -225,14 +232,18 @@ public final class BlockingHeuristic extends IntaveMetaCheckPart<Heuristics, Blo
     Player player = event.getPlayer();
     User user = userOf(player);
     BlockingMeta meta = metaOf(player);
+    UserMetaMovementData movementData = user.meta().movementData();
+    UserMetaClientData clientData = user.meta().clientData();
     if (user.meta().abilityData().ignoringMovementPackets()) {
       return;
     }
 
-    if (meta.heldItemOperations > 0) {
-      PacketContainer clonedPacket = event.getPacket().deepClone();
-      meta.unsendPackets.add(clonedPacket);
-      event.setCancelled(true);
+    if(!movementData.recentlyEncounteredFlyingPacket(2) || clientData.protocolVersion() < PROTOCOL_VERSION_COMBAT_UPDATE) {
+      if (meta.heldItemOperations > 0) {
+        PacketContainer clonedPacket = event.getPacket().deepClone();
+        meta.unsendPackets.add(clonedPacket);
+        event.setCancelled(true);
+      }
     }
 
     meta.heldItemOperations++;
