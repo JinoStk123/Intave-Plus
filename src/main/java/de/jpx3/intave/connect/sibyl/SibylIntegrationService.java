@@ -36,11 +36,11 @@ public final class SibylIntegrationService implements BukkitEventSubscriber {
 
   @BukkitEventSubscription
   public void on(PlayerJoinEvent join) {
-    Synchronizer.synchronizeDelayed(() -> k(join.getPlayer()), 20);
+    Synchronizer.synchronizeDelayed(() -> authenticatePlayer(join.getPlayer()), 20);
   }
 
   @Native
-  public void k(Player player) {
+  public void authenticatePlayer(Player player) {
     if (!authentication.isAuthenticated(player)) {
       authentication.sendMessageToClient(player, "MC|Brand", "INTAVE", null);
     }
