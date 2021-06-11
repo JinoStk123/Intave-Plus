@@ -356,7 +356,7 @@ public final class Physics extends IntaveCheck {
     }
 
     double violationLevelIncrease = horizontalViolationIncrease + verticalViolationIncrease;
-    if (movementData.movementPoseType() == Pose.HORSE) {
+    if (movementData.movementPoseType() == Pose.HORSE && !IntaveControl.GOMME_MODE) {
       violationLevelIncrease = 0;
     }
     if (distance > 1e-3) {

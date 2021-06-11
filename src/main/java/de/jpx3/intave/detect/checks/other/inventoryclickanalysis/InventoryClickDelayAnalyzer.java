@@ -143,7 +143,7 @@ public final class InventoryClickDelayAnalyzer extends IntaveMetaCheckPart<Inven
     double std = RotationMathHelper.calculateStandardDeviation(meta.clickDelayList) * 100;
 
     double averageMovementPacketTimestamp = user.meta().connectionData().averageMovementPacketTimestamp();
-    if (std < 2 && averageMovementPacketTimestamp < 50) {
+    if (std < 2 && Math.abs(averageMovementPacketTimestamp - 50) < 40) {
       Violation violation = Violation.builderFor(InventoryClickAnalysis.class)
         .forPlayer(player).withDefaultThreshold()
         .withMessage("is clicking suspiciously on items")
