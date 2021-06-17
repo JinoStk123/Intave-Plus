@@ -88,10 +88,10 @@ public final class SprintOnAttackHeuristic extends IntaveMetaCheckPart<Heuristic
       meta.attacksWithSprintChange = 0;
     }
 
-    prepateNextTick(meta);
+    prepareNextTick(meta);
   }
 
-  private void prepateNextTick(SprintOnAttackHeuristicMeta meta) {
+  private void prepareNextTick(SprintOnAttackHeuristicMeta meta) {
     meta.attacksThisTick = 0;
     meta.sprintPacketsThisTick = 0;
   }

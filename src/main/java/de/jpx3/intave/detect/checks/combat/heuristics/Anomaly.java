@@ -5,7 +5,7 @@ import de.jpx3.intave.tools.AccessHelper;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-public class Anomaly {
+public final class Anomaly {
   private final String key;
   private final long added;
   private final String description;

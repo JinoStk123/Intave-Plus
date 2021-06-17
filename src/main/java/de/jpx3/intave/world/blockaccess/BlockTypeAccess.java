@@ -35,7 +35,7 @@ public final class BlockTypeAccess {
 
   private static final TypeTranslator translator;
   static {
-    translator = TypeTranslator.fromStream(BlockTypeAccess.class.getResourceAsStream("/mappings/block-backwards-mappings"));
+    translator = VERTRAFileTypeTranslator.fromStream(BlockTypeAccess.class.getResourceAsStream("/mappings/block-backwards-mappings"));
   }
 
   public static void setupTranslationsFor(User user) {
