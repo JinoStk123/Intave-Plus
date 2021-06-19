@@ -16,7 +16,6 @@ import de.jpx3.intave.tools.AccessHelper;
 import de.jpx3.intave.user.*;
 import de.jpx3.intave.world.raytrace.Raytracer;
 import org.bukkit.GameMode;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -60,6 +59,25 @@ public final class AttackRequiredHeuristic extends IntaveMetaCheckPart<Heuristic
   }
 
   @PacketSubscription(
+    priority = ListenerPriority.HIGH,
+    packetsIn = {
+      HELD_ITEM_SLOT
+    }
+  )
+  public void receiveSlotSwitch(PacketEvent event) {
+    Player player = event.getPlayer();
+    VentolotlMeta meta = metaOf(player);
+    PacketContainer packet = event.getPacket();
+    Integer slot = packet.getIntegers().read(0);
+
+    ItemStack item = player.getInventory().getItem(slot);
+    if (item == null) {
+      return;
+    }
+    meta.ticksSinceFishingRodItemSwitch = 0;
+  }
+
+  @PacketSubscription(
     priority = ListenerPriority.NORMAL,
     packetsIn = {
       FLYING, LOOK, POSITION, POSITION_LOOK, VEHICLE_MOVE
@@ -83,16 +101,12 @@ public final class AttackRequiredHeuristic extends IntaveMetaCheckPart<Heuristic
     if (dead) {
       return;
     }
+    VentolotlMeta meta = metaOf(player);
 
     // FishingRod overrides onItemRightClick and sends an arm-animation packet
-    UserMetaInventoryData inventoryData = user.meta().inventoryData();
-    ItemStack itemStack = inventoryData.heldItem();
-    if (itemStack != null && itemStack.getType() == Material.FISHING_ROD) {
-      return;
-    }
+    boolean recentlyUsedRot = meta.ticksSinceFishingRodItemSwitch < 5;
 
-    VentolotlMeta meta = metaOf(player);
-    if (meta.didSwing && !meta.didAttack) {
+    if (!recentlyUsedRot && meta.didSwing && !meta.didAttack) {
       // Raytrace if cursor is upon entity
       boolean cursorUponEntity = cursorUponEntity(player, user, entity);
       if (cursorUponEntity) {
@@ -116,6 +130,8 @@ public final class AttackRequiredHeuristic extends IntaveMetaCheckPart<Heuristic
     if (meta.didSwing && meta.didAttack && meta.vl > 0) {
       meta.vl--;
     }
+
+    meta.ticksSinceFishingRodItemSwitch++;
 
     meta.expectedAttack = false;
     meta.didAttack = false;
@@ -169,5 +185,6 @@ public final class AttackRequiredHeuristic extends IntaveMetaCheckPart<Heuristic
     public boolean didAttack, didSwing;
     public long lastFlag;
     public int vl;
+    public int ticksSinceFishingRodItemSwitch;
   }
 }
