@@ -39,6 +39,7 @@ task compileIntave(dependsOn: build) {
 }
 
 jar {
+  duplicatesStrategy(DuplicatesStrategy.INCLUDE)
   baseName fileName
   archiveName = "${jar.baseName}.${jar.extension}"
   manifest {
@@ -52,6 +53,7 @@ jar {
 }
 
 processResources {
-  from "src/main/resources/plugin.yml"
+  duplicatesStrategy(DuplicatesStrategy.INCLUDE)
+  from ("src/main/resources/plugin.yml")
   filter(ReplaceTokens, tokens: ['VERSION': project.version, 'DESCRIPTION': project.description])
 }
