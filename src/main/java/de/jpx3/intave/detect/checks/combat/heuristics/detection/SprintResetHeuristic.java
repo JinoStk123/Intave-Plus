@@ -111,7 +111,16 @@ public final class SprintResetHeuristic extends IntaveMetaCheckPart<Heuristics, 
     UserMetaMovementData movementData = user.meta().movementData();
 
     // can false flag if a player collides with a wall some times
-    if(meta.lastAttack != 0
+
+    UserMetaClientData clientData = user.meta().clientData();
+    boolean attacked;
+    if (clientData.protocolVersion() >= UserMetaClientData.VER_1_8) {
+      attacked = meta.lastAttack == 0;
+    } else {
+      attacked = meta.lastAttack == 1;
+    }
+
+    if(attacked
       && meta.sprintingTicksLeft != 0
       && !useItem
       && movementData.lastTeleport != 0
@@ -127,7 +136,7 @@ public final class SprintResetHeuristic extends IntaveMetaCheckPart<Heuristics, 
         collided = canCollideHorizontally(user, movementData);
       }
       if(!collided) {
-        String details = "unsprinted while still pressing W";
+        String details = "unsprinted and pressed W " + clientData.versionString();
         Anomaly anomaly = Anomaly.anomalyOf("210",
           Confidence.NONE,
           Anomaly.Type.KILLAURA,
