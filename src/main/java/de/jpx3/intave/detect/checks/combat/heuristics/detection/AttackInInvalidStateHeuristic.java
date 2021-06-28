@@ -17,6 +17,7 @@ import de.jpx3.intave.event.packet.ListenerPriority;
 import de.jpx3.intave.event.packet.PacketSubscription;
 import de.jpx3.intave.event.violation.AttackNerfStrategy;
 import de.jpx3.intave.tools.AccessHelper;
+import de.jpx3.intave.tools.sync.Synchronizer;
 import de.jpx3.intave.user.*;
 import org.bukkit.entity.Player;
 
@@ -78,7 +79,7 @@ public final class AttackInInvalidStateHeuristic extends IntaveMetaCheckPart<Heu
         exception.printStackTrace();
       }
     }
-    player.updateInventory();
+    Synchronizer.synchronize(player::updateInventory);
   }
 
   private void updatePlayerHandItem(Player player) {

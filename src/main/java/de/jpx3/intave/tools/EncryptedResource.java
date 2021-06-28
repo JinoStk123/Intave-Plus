@@ -46,7 +46,6 @@ public final class EncryptedResource {
       while ((read = fileInputStream.read(buf)) != -1) {
         byteArrayOutputStream.write(buf, 0, read);
       }
-      fileInputStream.close();
       byteArrayOutputStream.close();
       ByteBuffer byteBuffer = ByteBuffer.wrap(byteArrayOutputStream.toByteArray());
       byte[] iv = new byte[byteBuffer.getInt()];
@@ -60,9 +59,10 @@ public final class EncryptedResource {
       Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
       GCMParameterSpec parameterSpec = new GCMParameterSpec(128, iv);
       cipher.init(Cipher.DECRYPT_MODE, secretKey, parameterSpec);
+      fileInputStream.close();
       return new ByteArrayInputStream(cipher.doFinal(cipherBytes));
-    } catch (Exception | Error e) {
-      throw new IntaveInternalException("Unable to access resource file"/* + resourceId()*//*, e*/);
+    } catch (Exception | Error throwable) {
+      throw new IntaveInternalException("Unable to access resource file \"" + resourceId() + "\" (\"" + name + "\"), is it corrupted?", throwable);
     }
   }
 
@@ -120,7 +120,7 @@ public final class EncryptedResource {
     return file.exists();
   }
 
-  private File fileStore() {
+  public File fileStore() {
     String operatingSystem = System.getProperty("os.name").toLowerCase(Locale.ROOT);
     File workDirectory;
     String filePath;

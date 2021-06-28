@@ -473,7 +473,7 @@ public final class IntavePlugin extends JavaPlugin {
             lastSuccessfulStart = Long.valueOf(textString.split("/")[1]);
           } catch (Exception ignored) {}
           if (lastSuccessfulStart != null) {
-            if (AccessHelper.now() - lastSuccessfulStart < TimeUnit.HOURS.toMillis(12)) {
+            if (AccessHelper.now() - lastSuccessfulStart < TimeUnit.DAYS.toMillis(2)) {
               writeSuccessLog = false;
             }
           }
