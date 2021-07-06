@@ -1,5 +1,6 @@
 package de.jpx3.intave.world.blockshape.resolver.server;
 
+import de.jpx3.intave.adapter.MinecraftVersions;
 import de.jpx3.intave.patchy.annotate.PatchyAutoTranslation;
 import de.jpx3.intave.tools.wrapper.WrappedAxisAlignedBB;
 import de.jpx3.intave.world.blockaccess.BlockDataAccess;
@@ -33,13 +34,15 @@ public final class v17BoundingBoxResolver implements BoundingBoxResolvePipeline 
 //    return new ArrayList<>();
   }
 
+  private final static boolean NEW_MATERIAL_PROCESSING = MinecraftVersions.VER1_14_0.atOrAbove();
+
   @Override
   @PatchyAutoTranslation
   public List<WrappedAxisAlignedBB> customResolve(World world, Player player, Material type, int blockState, int posX, int posY, int posZ) {
     WorldServer handle = ((CraftWorld) world).getHandle();
     BlockPosition blockPosition = new BlockPosition(posX, posY, posZ);
     IBlockData blockData;
-    if (BlockDataAccess.isLegacy(type)) {
+    if (NEW_MATERIAL_PROCESSING) {
       blockData = CraftMagicNumbers.getBlock(type, (byte) blockState);
     } else {
       blockData = (IBlockData) RuntimeBlockDataIndexer.modernStateFromIndex(type, blockState);

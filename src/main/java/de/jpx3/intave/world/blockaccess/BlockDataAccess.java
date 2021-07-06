@@ -80,7 +80,7 @@ public final class BlockDataAccess {
 
   public static int dataAccess(Block block) {
     Material type = BlockTypeAccess.typeAccess(block);
-    if (isLegacy(type)) {
+    if (!MODERN_MATERIAL_PROCESSING) {
       return block.getData();
     } else {
       return RuntimeBlockDataIndexer.indexOfModernState(type, nativeBlockDataOf(block));
@@ -91,8 +91,9 @@ public final class BlockDataAccess {
     if(!MODERN_MATERIAL_PROCESSING) {
       return wrappedBlockData.getData();
     }
+    Material type = wrappedBlockData.getType();
     Object handle = wrappedBlockData.getHandle();
-    return RuntimeBlockDataIndexer.indexOfModernState(wrappedBlockData.getType(), handle);
+    return RuntimeBlockDataIndexer.indexOfModernState(type, handle);
   }
 
   public static Object nativeBlockDataOf(Block bukkitBlock) {
@@ -116,7 +117,7 @@ public final class BlockDataAccess {
   }
 
   public static boolean isLegacy(Material type) {
-    return !MODERN_MATERIAL_PROCESSING || legacyMaterials.contains(type);
+    return !MODERN_MATERIAL_PROCESSING && legacyMaterials.contains(type);
   }
 
   public static boolean isClickable(Material type) {

@@ -15,7 +15,6 @@ import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 
 public final class RuntimeBlockDataIndexer {
@@ -34,13 +33,13 @@ public final class RuntimeBlockDataIndexer {
     Arrays.stream(Material.values())
       .filter(Material::isBlock)
       .forEach(type -> Indexer.index(type, blockDataIndex::put, blockDataRegister::put));
-    AtomicInteger blocks = new AtomicInteger(), artificialIds = new AtomicInteger();
-    blockDataIndex.forEach((material, objectIntegerMap) -> {
-      blocks.incrementAndGet();
-      artificialIds.addAndGet(objectIntegerMap.size());
-    });
-    String message = "Indexed " + artificialIds.get() + " new block-data keys for " + blocks.get() + " blocks";
-    IntaveLogger.logger().info(message);
+//    AtomicInteger blocks = new AtomicInteger(), artificialIds = new AtomicInteger();
+//    blockDataIndex.forEach((material, objectIntegerMap) -> {
+//      blocks.incrementAndGet();
+//      artificialIds.addAndGet(objectIntegerMap.size());
+//    });
+//    String message = "Indexed " + artificialIds.get() + " block-data keys for " + blocks.get() + " blocks";
+//    IntaveLogger.logger().info(message);
   }
 
   public static int indexOfModernState(Material type, Object rawBlockData) {
