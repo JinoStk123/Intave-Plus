@@ -154,6 +154,12 @@ public final class IntavePlugin extends JavaPlugin {
       componentLoader = new ComponentLoader(this);
       componentLoader.loadComponents();
 
+      ProtocolLibraryAdapter.checkIfOutdated();
+//      ProtocolLibraryAdapter.setup();
+
+      // version mambo jumbo
+      // stage 5
+
       SinusCache.setup();
       TpsResolver.setup();
       Synchronizer.setup();
@@ -161,18 +167,13 @@ public final class IntavePlugin extends JavaPlugin {
       DualEntityTypeAccess.setup();
 
       trustFactorService = new TrustFactorService(this);
-      // version mambo jumbo
-      // stage 5
+
+      // stage 6
 
       // we need to put this here
       BackgroundExecutor.start();
 
       packetSubscriptionLinker = new PacketSubscriptionLinker(this);
-
-      // stage 6
-
-      ProtocolLibraryAdapter.checkIfOutdated();
-      ProtocolLibraryAdapter.setup();
 
       // stage 7
       configurationService = new ConfigurationService(this);

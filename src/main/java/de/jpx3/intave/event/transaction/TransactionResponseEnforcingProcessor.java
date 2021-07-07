@@ -88,7 +88,6 @@ public final class TransactionResponseEnforcingProcessor implements PacketEventS
     UserMetaConnectionData synchronizeData = user.meta().connectionData();
     synchronizeData.lastSynchronization = transactionResponse.requested();
     synchronizeData.lastReceivedTransactionNum = transactionResponse.num();
-    transactionResponse.callback().success(player, convertInstanceOfObject(transactionResponse.lock()));
     Map<Long, Queue<TFRequest<?>>> appendixMap = synchronizeData.transactionAppendixMap();
     Queue<TFRequest<?>> appendixRequests = appendixMap.get(transactionResponse.num());
     if (appendixRequests != null && !appendixRequests.isEmpty()) {
@@ -97,6 +96,7 @@ public final class TransactionResponseEnforcingProcessor implements PacketEventS
       }
       appendixMap.remove(transactionResponse.num());
     }
+    transactionResponse.callback().success(player, convertInstanceOfObject(transactionResponse.lock()));
   }
 
   private <T> T convertInstanceOfObject(Object o) {

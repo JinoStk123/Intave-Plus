@@ -109,7 +109,7 @@ public final class TransactionFeedbackService implements PacketEventSubscriber {
       append = tooManyPending || sentTooManyRecently;
     }
     if (TransactionOptions.matches(APPEND, options)) {
-      append = pendingTransactions(userOf(player)) > 0;
+      append = true;//pendingTransactions(userOf(player)) > 0;
     }
     if (append) {
       appendRequestToContext(player, target, callback);
@@ -174,7 +174,7 @@ public final class TransactionFeedbackService implements PacketEventSubscriber {
     connectionData.transactionPacketCounter++;
 
     if (AccessHelper.now() - connectionData.transactionPacketCounterReset > 3000) {
-      System.out.println(connectionData.transactionPacketCounter + " transactions last 3 seconds");
+//      System.out.println(connectionData.transactionPacketCounter + " transactions last 3 seconds");
       connectionData.transactionPacketCounter = 0;
       connectionData.transactionPacketCounterReset = AccessHelper.now();
     }
