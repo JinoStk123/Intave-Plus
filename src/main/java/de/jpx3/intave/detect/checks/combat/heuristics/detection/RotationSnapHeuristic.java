@@ -9,6 +9,7 @@ import de.jpx3.intave.detect.IntaveMetaCheckPart;
 import de.jpx3.intave.detect.checks.combat.Heuristics;
 import de.jpx3.intave.detect.checks.combat.heuristics.Anomaly;
 import de.jpx3.intave.detect.checks.combat.heuristics.Confidence;
+import de.jpx3.intave.event.entity.DeadWrappedEntity;
 import de.jpx3.intave.event.entity.WrappedEntity;
 import de.jpx3.intave.event.packet.ListenerPriority;
 import de.jpx3.intave.event.packet.PacketSubscription;
@@ -174,7 +175,7 @@ public final class RotationSnapHeuristic extends IntaveMetaCheckPart<Heuristics,
 
       for (Map.Entry<Integer, WrappedEntity> entry : user.meta().connectionData().synchronizedEntityMap().entrySet()) {
         WrappedEntity value = entry.getValue();
-        if (value != null) {
+        if (value != null && !(value instanceof DeadWrappedEntity)) {
           meta.entityPositions.put(entry.getKey(), value.positionHistory.get(Math.max(value.positionHistory.size() - 1, 0)));
         }
       }
