@@ -12,48 +12,24 @@ AxisAlignedBB -> {
   }
 }
 
-Vec3D -> {
-  17 -> "net/minecraft/world/phys/Vec3d"
-  fields {
-    17 -> {
-      "x" -> "b"
-      "y" -> "c"
-      "z" -> "d"
-    }
-  }
+Block -> {
+  17 -> "net/minecraft/world/level/block/Block"
 }
 
-IRegistry -> {
-  17 -> "net/minecraft/core/IRegistry"
-  fields {
-    17 -> {
-      "ENTITY_TYPE" -> "Y"
-    }
-  }
+BlockStateInteger -> {
+  17 -> "net/minecraft/world/level/block/state/properties/BlockStateInteger"
+}
+
+BlockStateBoolean -> {
+  17 -> "net/minecraft/world/level/block/state/properties/BlockStateBoolean"
+}
+
+BlockStateList -> {
+  17 -> "net/minecraft/world/level/block/state/BlockStateList"
 }
 
 BlockPosition -> {
   17 -> "net/minecraft/core/BlockPosition"
-}
-
-RegistryBlocks -> {
-  17 -> "net/minecraft/core/RegistryBlocks"
-}
-
-IChatBaseComponent -> {
-  17 -> "net/minecraft/network/chat/IChatBaseComponent"
-}
-
-MovingObjectPosition -> {
-  17 -> "net/minecraft/world/phys/MovingObjectPosition"
-}
-
-MovingObjectPositionEntity -> {
-  17 -> "net/minecraft/world/phys/MovingObjectPositionEntity"
-}
-
-MovingObjectPositionBlock -> {
-  17 -> "net/minecraft/world/phys/MovingObjectPositionBlock"
 }
 
 DataWatcher -> {
@@ -64,8 +40,8 @@ DataWatcherObject -> {
   17 -> "net/minecraft/network/syncher/DataWatcherObject"
 }
 
-PacketDataSerializer -> {
-  17 -> "net/minecraft/network/PacketDataSerializer"
+DamageSource -> {
+  17 -> "net/minecraft/world/damagesource/DamageSource"
 }
 
 Entity -> {
@@ -97,16 +73,104 @@ EntityLiving -> {
   17 -> "net/minecraft/world/entity/EntityLiving"
 }
 
+EntityPlayer -> {
+  17 -> "net/minecraft/server/level/EntityPlayer"
+  fields {
+    17 -> {
+      "playerConnection" -> "b"
+    }
+  }
+}
+
 EnumMainHand -> {
   17 -> "net/minecraft/world/entity/EnumMainHand"
+}
+
+IBlockData -> {
+  17 -> "net/minecraft/world/level/block/state/IBlockData"
+}
+
+IBlockState -> {
+  17 -> "net/minecraft/world/level/block/state/properties/IBlockState"
+}
+
+IChatBaseComponent -> {
+  17 -> "net/minecraft/network/chat/IChatBaseComponent"
 }
 
 InventoryClickType -> {
   17 -> "net/minecraft/world/inventory/InventoryClickType"
 }
 
+IRegistry -> {
+  17 -> "net/minecraft/core/IRegistry"
+  fields {
+    17 -> {
+      "ENTITY_TYPE" -> "Y"
+    }
+  }
+}
+
+MinecraftServer -> {
+  17 -> "net/minecraft/server/MinecraftServer"
+}
+
+MovingObjectPosition -> {
+  17 -> "net/minecraft/world/phys/MovingObjectPosition"
+}
+
+MovingObjectPositionEntity -> {
+  17 -> "net/minecraft/world/phys/MovingObjectPositionEntity"
+}
+
+MovingObjectPositionBlock -> {
+  17 -> "net/minecraft/world/phys/MovingObjectPositionBlock"
+}
+
+NetworkManager -> {
+  17 -> "net/minecraft/network/NetworkManager"
+}
+
+Packet -> {
+  17 -> "net/minecraft/network/protocol/Packet"
+}
+
+PacketDataSerializer -> {
+  17 -> "net/minecraft/network/PacketDataSerializer"
+}
+
+PacketLoginInStart -> {
+  17 -> "net/minecraft/network/protocol/login/PacketLoginInStart"
+}
+
+PacketPlayOutScoreboardTeam -> {
+  17 -> "net/minecraft/network/protocol/game/PacketPlayOutScoreboardTeam"
+}
+
+PacketPlayOutPosition$EnumPlayerTeleportFlags -> {
+  17 -> "net/minecraft/network/protocol/game/PacketPlayOutPosition$EnumPlayerTeleportFlags"
+  fields {
+    17 -> {
+      "X_ROT" -> "d"
+      "Y_ROT" -> "e"
+    }
+  }
+}
+
+PacketPlayInEntityAction$EnumPlayerAction -> {
+  17 -> "net/minecraft/network/protocol/game/PacketPlayInEntityAction$EnumPlayerAction"
+}
+
+PacketPlayOutGameStateChange$a -> {
+  17 -> "net/minecraft/network/protocol/game/PacketPlayOutGameStateChange$a"
+}
+
 PlayerConnection -> {
   17 -> "net/minecraft/server/network/PlayerConnection"
+}
+
+RegistryBlocks -> {
+  17 -> "net/minecraft/core/RegistryBlocks"
 }
 
 Scoreboard -> {
@@ -129,89 +193,25 @@ ScoreboardTeamBase$EnumNameTagVisibility -> {
   }
 }
 
+ServerConnection -> {
+  17 -> "net/minecraft/server/network/ServerConnection"
+}
+
 TagsFluid -> {
   17 -> "net/minecraft/tags/TagsFluid"
 }
 
-EntityPlayer -> {
-  17 -> "net/minecraft/server/level/EntityPlayer"
+Vec3D -> {
+  17 -> "net/minecraft/world/phys/Vec3d"
   fields {
     17 -> {
-      "playerConnection" -> "b"
+      "x" -> "b"
+      "y" -> "c"
+      "z" -> "d"
     }
   }
 }
 
 WorldServer -> {
   17 -> "net/minecraft/server/level/WorldServer"
-}
-
-MinecraftServer -> {
-  17 -> "net/minecraft/server/MinecraftServer"
-}
-
-DamageSource -> {
-  17 -> "net/minecraft/world/damagesource/DamageSource"
-}
-
-Block -> {
-  17 -> "net/minecraft/world/level/block/Block"
-}
-
-IBlockData -> {
-  17 -> "net/minecraft/world/level/block/state/IBlockData"
-}
-
-IBlockState -> {
-  17 -> "net/minecraft/world/level/block/state/properties/IBlockState"
-}
-
-BlockStateInteger -> {
-  17 -> "net/minecraft/world/level/block/state/properties/BlockStateInteger"
-}
-
-BlockStateBoolean -> {
-  17 -> "net/minecraft/world/level/block/state/properties/BlockStateBoolean"
-}
-
-BlockStateList -> {
-  17 -> "net/minecraft/world/level/block/state/BlockStateList"
-}
-
-ServerConnection -> {
-  17 -> "net/minecraft/server/network/ServerConnection"
-}
-
-NetworkManager -> {
-  17 -> "net/minecraft/network/NetworkManager"
-}
-
-Packet -> {
-  17 -> "net/minecraft/network/protocol/Packet"
-}
-
-PacketLoginInStart -> {
-  17 -> "net/minecraft/network/protocol/login/PacketLoginInStart"
-}
-
-PacketPlayOutScoreboardTeam -> {
-  17 -> "net/minecraft/network/protocol/game/PacketPlayOutScoreboardTeam"
-}
-
-PacketPlayOutPosition$EnumPlayerTeleportFlags -> {
-  17 -> "net/minecraft/network/protocol/game/PacketPlayOutPosition$EnumPlayerTeleportFlags"
-  fields {
-    17 -> {
-      "X_ROT" -> "d"
-      "Y_ROT" -> "e"
-    }
-  }
-}
-g
-PacketPlayInEntityAction$EnumPlayerAction -> {
-  17 -> "net/minecraft/network/protocol/game/PacketPlayInEntityAction$EnumPlayerAction"
-}
-
-PacketPlayOutGameStateChange$a -> {
-  17 -> "net/minecraft/network/protocol/game/PacketPlayOutGameStateChange$a"
 }
