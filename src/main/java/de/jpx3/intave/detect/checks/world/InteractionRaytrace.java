@@ -605,7 +605,6 @@ public final class InteractionRaytrace extends IntaveMetaCheck<InteractionRaytra
 
   public static class InteractionMeta extends UserCustomCheckMeta {
     final List<Interaction> interactionList = new CopyOnWriteArrayList<>();
-    public long lastPlacement;
     public boolean estimateMouseDelayFix = false;
     public boolean isBreakingBlock = false;
     public long remainingBlockStart = 0;
