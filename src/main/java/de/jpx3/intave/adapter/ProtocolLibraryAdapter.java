@@ -7,12 +7,17 @@ import com.comphenix.protocol.utility.MinecraftVersion;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import de.jpx3.intave.access.InvalidDependencyException;
 import de.jpx3.intave.logging.IntaveLogger;
+import org.bukkit.Bukkit;
 
 import java.util.Arrays;
 
 public final class ProtocolLibraryAdapter {
   public static MinecraftVersion serverVersion() {
     return ProtocolLibrary.getProtocolManager().getMinecraftVersion();
+  }
+
+  public static boolean protocolLibAlreadyAvailable() {
+    return Bukkit.getPluginManager().getPlugin("ProtocolLib") != null;
   }
 
   public static void checkIfOutdated() {
@@ -34,6 +39,12 @@ public final class ProtocolLibraryAdapter {
     if (MinecraftVersions.VER1_14_0.atOrAbove()) {
       if (!methodExistsInClassHierarchy("com.comphenix.protocol.events.PacketContainer", "getMovingBlockPositions")) {
         throw new InvalidDependencyException("Your version of ProtocolLib is outdated (missing moving-object-position packet access)");
+      }
+    }
+
+    if (MinecraftVersions.VER1_17_0.atOrAbove()) {
+      if (!methodExistsInClassHierarchy(PacketContainer.class.getName(), "getEnumEntityUseActions")) {
+        throw new InvalidDependencyException("Your version of ProtocolLib is outdated (missing enum entity use action access)");
       }
     }
 

@@ -2,6 +2,7 @@ package de.jpx3.intave.logging;
 
 import de.jpx3.intave.IntaveControl;
 import de.jpx3.intave.IntavePlugin;
+import de.jpx3.intave.adapter.MinecraftVersions;
 import de.jpx3.intave.executor.BackgroundExecutor;
 import de.jpx3.intave.tools.AccessHelper;
 import de.jpx3.intave.tools.JavaVersion;
@@ -22,7 +23,7 @@ public final class IntaveLogger {
 
   public static boolean FILE_OUTPUT = true;
   public static final boolean VIOLATION_CONSOLE_OUTPUT = IntaveControl.GOMME_MODE;
-  public static final boolean DISABLE_COLOR_OUTPUT = IntaveControl.GOMME_MODE || JavaVersion.current() > 8;
+  public static boolean DISABLE_COLOR_OUTPUT = IntaveControl.GOMME_MODE || JavaVersion.current() > 8;
 
   private final static String LOG_PATH = "plugins" + File.separator + "Intave" + File.separator + "logs";
   private final IntavePlugin plugin;
@@ -39,6 +40,12 @@ public final class IntaveLogger {
     this.archiver = new FileArchiver();
 //    outputStreams.add(System.out);
     setup();
+  }
+
+  public void protocolLibSetup() {
+    if (JavaVersion.current() > 8 && MinecraftVersions.VER1_16_2.atOrAbove() && !IntaveControl.GOMME_MODE) {
+      DISABLE_COLOR_OUTPUT = false;
+    }
   }
 
   public void info(String infoMessage) {

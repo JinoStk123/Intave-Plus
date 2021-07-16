@@ -134,6 +134,10 @@ public final class IntavePlugin extends JavaPlugin {
   @Native
   @Override
   public void onEnable() {
+    if (ProtocolLibraryAdapter.protocolLibAlreadyAvailable()) {
+      IntaveLogger.logger().protocolLibSetup();
+    }
+
     logger.info("Please stand by..");
     // stage 4
 
@@ -159,6 +163,7 @@ public final class IntavePlugin extends JavaPlugin {
       ProtocolLibraryAdapter.checkIfOutdated();
 //      ProtocolLibraryAdapter.setup();
 
+      IntaveLogger.logger().protocolLibSetup();
       // version mambo jumbo
       // stage 5
 

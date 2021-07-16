@@ -2,6 +2,7 @@ package de.jpx3.intave.adapter;
 
 import de.jpx3.intave.IntavePlugin;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.plugin.InvalidDescriptionException;
 import org.bukkit.plugin.InvalidPluginException;
 import org.bukkit.plugin.Plugin;
@@ -26,7 +27,7 @@ public final class ComponentLoader {
   }
 
   public boolean loadComponents() {
-    essentialComponents.put("ProtocolLib", "https://intave.de/cnd/global/ProtocolLib-4-6-0.jar");
+    essentialComponents.put("ProtocolLib", "https://intave.de/cnd/global/ProtocolLib-4-7-0.jar");
     return essentialComponents.keySet().stream().allMatch(this::loadComponent);
   }
 
@@ -56,7 +57,7 @@ public final class ComponentLoader {
     URL website = new URL(downloadURL);
     try (InputStream in = website.openStream()) {
       download(in, componentPluginFile.toPath());
-      plugin.logger().info("Downloaded " + componentName);
+      plugin.logger().info(ChatColor.GREEN + "Downloaded " + componentName);
       Plugin compPlug = plugin.getServer().getPluginManager().loadPlugin(componentPluginFile);
       compPlug.onLoad();
       plugin.getServer().getPluginManager().enablePlugin(compPlug);
