@@ -241,7 +241,7 @@ public class DefaultPoseSimulator extends PoseSimulator {
 
       if (!flyingPacket(diffX, diffY, diffZ) && !jump) {
         break;
-      } else if (jump && flyingPacket(diffX * 0.15, 0.0, diffZ * 0.15) && !movementData.denyJump()) {
+      } else if (jump && flyingPacket(diffX * 0.05, 0.0, diffZ * 0.05) && !movementData.denyJump()) {
         context.motionY = jumpUpwardsMotion;
         movementData.artificialFallDistance = 0f;
         movementData.physicsPacketRelinkFlyVL = 0;
