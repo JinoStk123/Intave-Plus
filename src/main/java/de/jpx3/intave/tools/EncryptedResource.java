@@ -2,6 +2,8 @@ package de.jpx3.intave.tools;
 
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.access.IntaveInternalException;
+import de.jpx3.intave.reflect.caller.CallerResolver;
+import de.jpx3.intave.reflect.caller.PluginInvocation;
 import de.jpx3.intave.security.ContextSecrets;
 import de.jpx3.intave.security.HashAccess;
 import de.jpx3.intave.tools.annotate.Native;
@@ -46,8 +48,11 @@ public final class EncryptedResource {
       throw new IllegalStateException();
     }
     fileStore().setLastModified(AccessHelper.now());
+    PluginInvocation pluginInvocation = CallerResolver.callerPluginInfo();
+    if (pluginInvocation == null || !pluginInvocation.pluginName().equals("Intave")) {
+      throw new IllegalStateException("Unable to access resource file \"" + resourceId() + "\", is it corrupted?");
+    }
     try {
-
       FileChannel fileInputStream = acquireInputFileChannel();//new FileInputStream(fileStore());
       ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
       fileInputStream.transferTo(0, Long.MAX_VALUE, Channels.newChannel(byteArrayOutputStream));
@@ -82,6 +87,10 @@ public final class EncryptedResource {
     } catch (IOException exception) {
       exception.printStackTrace();
       return false;
+    }
+    PluginInvocation pluginInvocation = CallerResolver.callerPluginInfo();
+    if (pluginInvocation == null || !pluginInvocation.pluginName().equals("Intave")) {
+      throw new IllegalStateException("Unable to access resource file \"" + resourceId() + "\", is it corrupted?");
     }
     try {
       // lock file early

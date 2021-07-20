@@ -521,25 +521,32 @@ public final class Physics extends IntaveCheck {
       ViolationContext violationContext = plugin.violationProcessor().processViolation(violation);
 
       // a few helpful states
-      boolean isMidAir = !expectedMovement.onGround() && !expectedMovement.collidedHorizontally() && !expectedMovement.collidedVertically();
-      boolean isOnGround = expectedMovement.onGround();
+      boolean isMidAir = !movementData.onGround && !movementData.collidedHorizontally && !movementData.collidedVertically;
+      boolean isOnGround = movementData.onGround;
+      double distanceMoved = MathHelper.hypot3d(movementData.motionX(), movementData.motionY(), movementData.motionZ());
+
+      boolean deepPitchViolationOverflow = violationContext.shouldCounterThreat();
+      boolean highPitchViolationOverflow = violationLevelData.physicsVL > trustFactorSetting("pa-override-threshold", player);
+      boolean highPitchAggressiveViolationOverflow = violationLevelData.physicsVL >= 100;
+
+      double violationLevelBefore = violationContext.violationLevelBefore();
+      double violationLevelAfter = violationContext.violationLevelAfter();
+
       MitigationStrategy mitigationStrategy = mitigationStrategy();
 
       boolean setback = false;
       double manualOverrideDistance = 0;
       switch (mitigationStrategy) {
         case AGGRESSIVE:
-          boolean deepPitchViolationOverflow = violationContext.shouldCounterThreat();
-          boolean highPitchViolationOverflow = violationLevelData.physicsVL > trustFactorSetting("pa-override-threshold", player);
           setback = deepPitchViolationOverflow || (!highToleranceMode && highPitchViolationOverflow);
           manualOverrideDistance = 0.75;
           break;
         case CAREFUL:
-          setback = violationLevelData.physicsVL >= 100;
+          setback = deepPitchViolationOverflow && highPitchAggressiveViolationOverflow && violationLevelAfter > 30;
           manualOverrideDistance = 0.75;
           break;
         case LENIENT:
-          setback = MathHelper.hypot3d(movementData.motionX(), movementData.motionY(), movementData.motionZ()) > 0.4 && violationLevelData.physicsVL >= 100;
+          setback = (distanceMoved > (violationLevelAfter > 30 ? 0.4 : 0.6) || violationLevelAfter > 200) && deepPitchViolationOverflow && highPitchAggressiveViolationOverflow;
           manualOverrideDistance = 0.9;
           break;
         case SILENT:
