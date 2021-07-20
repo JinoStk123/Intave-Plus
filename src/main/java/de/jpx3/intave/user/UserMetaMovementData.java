@@ -413,7 +413,7 @@ public final class UserMetaMovementData {
     if (lastSprinting) {
       jumpMovementFactor = (float) ((double) jumpMovementFactor + (double) 0.02f * 0.3d);
     }
-    if (abilityData.flying()) {
+    if (abilityData.probablyFlying()) {
       this.jumpMovementFactor = abilityData.flySpeed() * (float) (lastSprinting ? 2 : 1);
     }
     friction = MovementContext.resolveFriction(user, verifiedPositionX, verifiedPositionY, verifiedPositionZ);

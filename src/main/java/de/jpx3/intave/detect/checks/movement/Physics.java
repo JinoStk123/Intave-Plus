@@ -306,7 +306,7 @@ public final class Physics extends IntaveCheck {
     int keyForward = movementData.keyForward;
     int keyStrafe = movementData.keyStrafe;
 
-    boolean flying = abilityData.flying() || abilityData.allowFlying();
+    boolean flying = abilityData.probablyFlying() || abilityData.allowFlying();
     String key = resolveKeysFromInput(keyForward, keyStrafe);
 
     double receivedMotionX = movementData.motionX();

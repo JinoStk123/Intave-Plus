@@ -10,6 +10,7 @@ import java.util.Arrays;
 
 @Relocate
 public final class UserMetaAbilityData {
+  private final Player player;
   private boolean flying;
   private boolean allowFlying;
 
@@ -24,6 +25,7 @@ public final class UserMetaAbilityData {
   public boolean hasViewEntity;
 
   public UserMetaAbilityData(Player player) {
+    this.player = player;
     boolean hasPlayer = (player != null);
     if (hasPlayer) {
       this.allowFlying = player.getAllowFlight();
@@ -69,8 +71,8 @@ public final class UserMetaAbilityData {
     return this.gameMode == gameMode;
   }
 
-  public boolean flying() {
-    return flying;
+  public boolean probablyFlying() {
+    return flying || player.getAllowFlight();
   }
 
   public boolean allowFlying() {
