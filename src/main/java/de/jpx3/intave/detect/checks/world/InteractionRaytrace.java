@@ -35,10 +35,7 @@ import de.jpx3.intave.world.blockaccess.BukkitBlockAccess;
 import de.jpx3.intave.world.blockshape.OCBlockShapeAccess;
 import de.jpx3.intave.world.collision.Collision;
 import de.jpx3.intave.world.raytrace.Raytracing;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -101,7 +98,7 @@ public final class InteractionRaytrace extends IntaveMetaCheck<InteractionRaytra
       heldItemType, handSlot, null
     );
 
-    boolean mustPostValidate = interactionMeta.remainingBlockStart > 0 || interactionMeta.isBreakingBlock || movementData.awaitTeleport;
+    boolean mustPostValidate = interactionMeta.remainingBlockStart > 0;
     if (!mustPostValidate && preprocessInteraction(interaction)) {
       interactionEmulator.emulate(interaction);
     } else {
@@ -152,7 +149,7 @@ public final class InteractionRaytrace extends IntaveMetaCheck<InteractionRaytra
       user.meta().inventoryData().heldItemType(), EnumWrappers.Hand.MAIN_HAND, playerDigType
     );
 
-    boolean mustPostValidate = interactionMeta.remainingBlockStart > 0 || interactionMeta.isBreakingBlock || movementData.awaitTeleport;
+    boolean mustPostValidate = interactionMeta.remainingBlockStart > 0;
     if (!mustPostValidate && preprocessInteraction(interaction)) {
       interactionEmulator.emulate(interaction);
     } else {
