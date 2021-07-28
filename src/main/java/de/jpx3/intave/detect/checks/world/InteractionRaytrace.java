@@ -139,7 +139,8 @@ public final class InteractionRaytrace extends IntaveMetaCheck<InteractionRaytra
     boolean instantBreak = blockDamage == Float.POSITIVE_INFINITY || blockDamage >= 1.0f || user.meta().abilityData().inGameMode(PlayerAbilityEvaluator.GameMode.CREATIVE);
     boolean breakBlock = instantBreak || playerDigType == STOP_DESTROY_BLOCK;
 
-    int enumDirection = packet.getDirections().read(0).ordinal();
+    EnumWrappers.Direction direction = packet.getDirections().readSafely(0);
+    int enumDirection = direction == null ? 0 : direction.ordinal();
     boolean blocking = blockPosition.getX() == 0 && blockPosition.getY() == 0 &&  blockPosition.getZ() == 0 && enumDirection == 0;
     if (enumDirection == 255 || blocking) {
       return;

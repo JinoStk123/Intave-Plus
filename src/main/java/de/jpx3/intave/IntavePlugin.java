@@ -18,6 +18,7 @@ import de.jpx3.intave.diagnostics.report.RuntimeDiagnostics;
 import de.jpx3.intave.event.CustomEventService;
 import de.jpx3.intave.event.EventService;
 import de.jpx3.intave.event.bukkit.BukkitEventLinker;
+import de.jpx3.intave.event.entity.WrappedEntity;
 import de.jpx3.intave.event.packet.PacketSubscriptionLinker;
 import de.jpx3.intave.event.violation.ViolationProcessor;
 import de.jpx3.intave.executor.BackgroundExecutor;
@@ -492,6 +493,7 @@ public final class IntavePlugin extends JavaPlugin {
       SSLConnectionVerifier.setup();
       RuntimeBlockDataIndexer.prepareIndex();
 
+      WrappedEntity.setup();
       ReflectiveAccess.setup();
       UserRepository.setup();
       WrapperLinkage.setup();

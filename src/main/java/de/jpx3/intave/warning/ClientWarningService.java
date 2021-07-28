@@ -7,6 +7,8 @@ import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.event.packet.PacketEventSubscriber;
 import de.jpx3.intave.event.packet.PacketSubscription;
 import de.jpx3.intave.reflect.ReflectiveAccess;
+import de.jpx3.intave.tools.AccessHelper;
+import de.jpx3.intave.tools.GarbageCollector;
 import de.jpx3.intave.tools.annotate.Native;
 import de.jpx3.intave.tools.sync.Synchronizer;
 import io.netty.buffer.ByteBuf;
@@ -14,13 +16,17 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
+import java.util.UUID;
 
 import static de.jpx3.intave.event.packet.PacketId.Client.CUSTOM_PAYLOAD;
 
 public final class ClientWarningService implements PacketEventSubscriber {
   private final IntavePlugin plugin;
   private ClientDataList clientDatas;
+  private final Map<UUID, Long> lastInformationPrinted = GarbageCollector.watch(new HashMap<>());
 
   public ClientWarningService(IntavePlugin plugin) {
     this.plugin = plugin;
@@ -77,6 +83,12 @@ public final class ClientWarningService implements PacketEventSubscriber {
 
   @Native
   private void warn(Player player, ClientData clientData) {
+    Long lastInformation = lastInformationPrinted.computeIfAbsent(player.getUniqueId(), uuid -> 0L);
+    if (AccessHelper.now() - lastInformation < 1000) {
+      return;
+    }
+    lastInformationPrinted.put(player.getUniqueId(), AccessHelper.now());
+
     String message = ChatColor.RED + "[CW] " + player.getName() + " joined with " + clientData.name();
     for (Player authenticatedPlayer : Bukkit.getOnlinePlayers()) {
       if (plugin.sibylIntegrationService().isAuthenticated(authenticatedPlayer)) {

@@ -214,7 +214,7 @@ public final class AirClickLimitHeuristic extends IntaveMetaCheckPart<Heuristics
         );
         parentCheck().saveAnomaly(player, anomaly);
 
-        if (meta.flaggCounter > 20 && meta.maxCPS > 18) {
+        if (meta.flaggCounter > 20) {
           //dmc27
           user.applyAttackNerfer(AttackNerfStrategy.GARBAGE_HITS, "27");
           user.applyAttackNerfer(AttackNerfStrategy.BLOCKING, "27");

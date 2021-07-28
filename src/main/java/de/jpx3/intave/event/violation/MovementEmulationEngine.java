@@ -191,7 +191,6 @@ public final class MovementEmulationEngine {
 
     Vector emulationVelocity = movementData.emulationVelocity;
     if (emulationVelocity != null) {
-//      Bukkit.broadcastMessage(player.getName() + ": velocity midair apply " + emulationVelocity);
       motion = motionProceed(emulationVelocity, user, boundingBox, true);
       movementData.emulationVelocity = null;
     } else {
@@ -247,7 +246,7 @@ public final class MovementEmulationEngine {
       }
       //   s += " @" + movementData.entityBoundingBox();
 
-      Vector finalMotion = motion;
+      Vector finalMotion = motion.clone();
       Synchronizer.synchronizeDelayed(() -> proceedEmulationTick(player, finalMotion, ticks - 1, startingTicks, cancellable), 1);
 
       // velocity
@@ -377,9 +376,13 @@ public final class MovementEmulationEngine {
   private void teleport(Player player, Location teleportLocation) {
     User user = UserRepository.userOf(player);
     UserMetaMovementData movementData = user.meta().movementData();
+
     WrappedAxisAlignedBB entityBoundingBox = WrappedAxisAlignedBB.createFromPosition(
       user, teleportLocation.getX(), teleportLocation.getY(), teleportLocation.getZ()
     );
+    if (Collision.isInsideBlocks(player, entityBoundingBox)) {
+      return;
+    }
     movementData.setBoundingBox(entityBoundingBox);
     movementData.setVerifiedLocation(teleportLocation.clone(), "Emulation-Setback");
 //    player.teleport(teleportLocation);
