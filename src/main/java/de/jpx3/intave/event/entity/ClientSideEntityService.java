@@ -287,8 +287,14 @@ public final class ClientSideEntityService implements PacketEventSubscriber {
     UserMetaAttackData attackData = user.meta().attackData();
     UserMetaConnectionData synchronizeData = user.meta().connectionData();
     Map<Integer, WrappedEntity> synchronizedEntityMap = synchronizeData.synchronizedEntityMap();
-//    synchronizedEntityMap.remove(entityId);
+    UserMetaMovementData movementData = user.meta().movementData();
+
+    WrappedEntity entity = synchronizedEntityMap.get(entityId);
+    if (entity != null && movementData.ridingEntity() == entity) {
+      movementData.dismountRidingEntity();
+    }
     synchronizedEntityMap.put(entityId, WrappedEntity.deadEntity());
+
     if (attackData.lastAttackedEntity() != null && attackData.lastAttackedEntityID() == entityId) {
       attackData.nullifyLastAttackedEntity();
     }
