@@ -378,7 +378,7 @@ public final class User {
   public void unregister() {
     FakePlayer fakePlayer = meta().attackData.fakePlayer();
     if (fakePlayer != null) {
-      fakePlayer.despawn();
+      fakePlayer.despawnAndTerminate();
     }
     EntityNoDamageTickChanger.removeNoDamageTickChangeOf(this);
     if (hasPlayer) {

@@ -22,6 +22,7 @@ import de.jpx3.intave.event.packet.PacketSubscription;
 import de.jpx3.intave.event.packet.PacketSubscriptionLinker;
 import de.jpx3.intave.event.packet.PrioritySlot;
 import de.jpx3.intave.event.violation.Violation;
+import de.jpx3.intave.fakeplayer.FakePlayer;
 import de.jpx3.intave.tools.AccessHelper;
 import de.jpx3.intave.tools.MathHelper;
 import de.jpx3.intave.tools.annotate.Relocate;
@@ -103,6 +104,10 @@ public final class MovementDispatcher implements EventProcessor {
     UserMetaMovementData movementData = meta.movementData();
     movementData.artificialFallDistance = 0;
     movementData.dismountRidingEntity();
+    FakePlayer fakePlayer = meta.attackData().fakePlayer();
+    if (fakePlayer != null) {
+      fakePlayer.respawnBot();
+    }
   }
 
   @BukkitEventSubscription(priority = EventPriority.MONITOR)

@@ -35,6 +35,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
+import static de.jpx3.intave.fakeplayer.movement.LocationUtils.distanceBetweenLocations;
+
 public final class FakePlayer implements TickTaskScheduler {
   public final static float SPAWN_HEALTH_STATE = 20.0f;
   private final static IntavePlugin plugin = IntavePlugin.singletonInstance();
@@ -124,8 +126,18 @@ public final class FakePlayer implements TickTaskScheduler {
   private final static boolean SPAWN_DOUBLE_COORDINATES = MinecraftVersions.VER1_9_0.atOrAbove();
   private final static boolean SPAWN_HAS_CURRENT_ITEM_FLAG = !MinecraftVersions.VER1_9_0.atOrAbove();
 
-  public void syncSpawn(Location location) {
-    Synchronizer.synchronize(() -> spawn(location));
+  public void respawnBot() {
+    Synchronizer.synchronize(() -> {
+      despawn();
+      spawn(LocationUtils.locationBehind(parentPlayer.getLocation(), ThreadLocalRandom.current().nextDouble(10)));
+    });
+  }
+
+  public void spawnAndStart(Location location) {
+    Synchronizer.synchronize(() -> {
+      spawn(location);
+      startTickScheduler();
+    });
   }
 
   @Deprecated
@@ -203,7 +215,6 @@ public final class FakePlayer implements TickTaskScheduler {
 
     PlayerMetaDataHelper.updateHealthFor(parentPlayer, this, SPAWN_HEALTH_STATE);
     applyDisplayName();
-    startTickScheduler();
     sendLatency(0);
   }
 
@@ -266,21 +277,25 @@ public final class FakePlayer implements TickTaskScheduler {
     return nextLatency;
   }
 
-  public void despawn() {
-    stopTickScheduler();
+  private void despawn() {
+    if (this.visibleInTablist) {
+      TabListHelper.removeFromTabList(this.parentPlayer, this.wrappedGameProfile);
+    }
+    PacketContainer packet = protocolManager.createPacket(PacketType.Play.Server.ENTITY_DESTROY);
+    packet.getIntegerArrays().write(0, new int[]{this.fakePlayerID});
+    try {
+      protocolManager.sendServerPacket(this.parentPlayer, packet);
+    } catch (InvocationTargetException e) {
+      e.printStackTrace();
+    }
+  }
+
+  public void despawnAndTerminate() {
     Synchronizer.synchronize(() -> {
-      if (this.visibleInTablist) {
-        TabListHelper.removeFromTabList(this.parentPlayer, this.wrappedGameProfile);
-      }
-      PacketContainer packet = protocolManager.createPacket(PacketType.Play.Server.ENTITY_DESTROY);
-      packet.getIntegerArrays().write(0, new int[]{this.fakePlayerID});
-      try {
-        protocolManager.sendServerPacket(this.parentPlayer, packet);
-      } catch (InvocationTargetException e) {
-        e.printStackTrace();
-      }
+      stopTickScheduler();
+      despawn();
+      user.meta().attackData().setFakePlayer(null);
     });
-    user.meta().attackData().setFakePlayer(null);
   }
 
   private void onTick() {
@@ -375,7 +390,7 @@ public final class FakePlayer implements TickTaskScheduler {
     Location location = this.movement.location;
     Location prevLocation = this.movement.prevLocation;
     if (prevLocation != null) {
-      boolean shouldTeleport = LocationUtils.needTeleport(location, prevLocation);
+      boolean shouldTeleport = teleportRequired(location, prevLocation);
       boolean onGround = this.movement.onGround;
       if (shouldTeleport) {
         sendTeleport(location, onGround);
@@ -385,14 +400,22 @@ public final class FakePlayer implements TickTaskScheduler {
     }
   }
 
+  private final static double MAX_RELATIVE_MOVE_DIST = 3.5;
+
+  public static boolean teleportRequired(Location location1, Location location2) {
+    if (location1.getWorld() != location2.getWorld()) {
+      return true;
+    }
+    return distanceBetweenLocations(location1, location2) > MAX_RELATIVE_MOVE_DIST;
+  }
 
   private void sendRelativeMovement(
     Location to,
     Location from,
     boolean onGround
   ) {
-    boolean move = LocationUtils.distanceBetweenLocations(to, from) != 0;
-    boolean look = !LocationUtils.equalRotations(to, from);
+    boolean move = distanceBetweenLocations(to, from) != 0;
+    boolean look = !equalRotations(to, from);
     if (move && look) {
       PacketContainer packet = protocolManager.createPacket(PacketType.Play.Server.REL_ENTITY_MOVE_LOOK);
       packet.getIntegers().write(0, this.fakePlayerID);
@@ -465,6 +488,12 @@ public final class FakePlayer implements TickTaskScheduler {
         attackData.fakePlayerLastReportedY = target.getY();
         attackData.fakePlayerLastReportedZ = target.getZ();
       });
+  }
+
+  public static boolean equalRotations(Location location1, Location location2) {
+    boolean equalYaw = location1.getYaw() == location2.getYaw();
+    boolean equalPitch = location1.getPitch() == location2.getPitch();
+    return equalYaw && equalPitch;
   }
 
   private final static double POSITION_CONVERT_FACTOR = 32.0D;

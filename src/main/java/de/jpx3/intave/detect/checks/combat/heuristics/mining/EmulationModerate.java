@@ -37,7 +37,7 @@ public final class EmulationModerate extends MiningStrategyExecutor{
         .withParentPlayer(user().player())
         .withAttackSubscriber(() -> saveAnomalyWithID(2))
         .build();
-      fakePlayer.syncSpawn(locationBehind(user(), ThreadLocalRandom.current().nextInt(1, 2)));
+      fakePlayer.spawnAndStart(locationBehind(user(), ThreadLocalRandom.current().nextInt(1, 2)));
     });
   }
 
@@ -46,7 +46,7 @@ public final class EmulationModerate extends MiningStrategyExecutor{
     UserMetaAttackData attackData = user().meta().attackData();
     FakePlayer fakePlayer = attackData.fakePlayer();
     if (fakePlayer != null) {
-      fakePlayer.despawn();
+      fakePlayer.despawnAndTerminate();
     }
   }
 
