@@ -118,11 +118,9 @@ public final class FakePlayer extends FakePlayerBody {
   private void applyActions() {
     int attributes = attributes();
     if (hasAttribute(attributes, ARMORED)) {
-//      findAndProcessAction(this.actions, ActionType.EQUIPMENT);
       immediateActionPerform(EquipmentArmorAction.class);
     }
     if (hasAttribute(attributes, ITEM_IN_HAND)) {
-//      findAndProcessAction(this.actions, ActionType.HELD_ITEM_CHANGE);
       immediateActionPerform(EquipmentHeldItemAction.class);
     }
   }
