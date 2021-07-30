@@ -2,7 +2,7 @@ package de.jpx3.intave.detect.checks.other.inventoryclickanalysis;
 
 import com.comphenix.protocol.events.PacketEvent;
 import de.jpx3.intave.IntavePlugin;
-import de.jpx3.intave.detect.IntaveMetaCheckPart;
+import de.jpx3.intave.detect.MetaCheckPart;
 import de.jpx3.intave.detect.checks.other.InventoryClickAnalysis;
 import de.jpx3.intave.event.packet.PacketSubscription;
 import de.jpx3.intave.tools.AccessHelper;
@@ -16,7 +16,7 @@ import org.bukkit.entity.Player;
 
 import static de.jpx3.intave.event.packet.PacketId.Client.*;
 
-public final class InventoryClickPacketDelayAnalyzer extends IntaveMetaCheckPart<InventoryClickAnalysis, InventoryClickPacketDelayAnalyzer.TimingData> {
+public final class InventoryClickPacketDelayAnalyzer extends MetaCheckPart<InventoryClickAnalysis, InventoryClickPacketDelayAnalyzer.TimingData> {
   public InventoryClickPacketDelayAnalyzer(InventoryClickAnalysis parentCheck) {
     super(parentCheck, TimingData.class);
   }

@@ -3,7 +3,7 @@ package de.jpx3.intave.detect.checks.combat.heuristics.detection;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.EnumWrappers;
-import de.jpx3.intave.detect.IntaveMetaCheckPart;
+import de.jpx3.intave.detect.MetaCheckPart;
 import de.jpx3.intave.detect.checks.combat.Heuristics;
 import de.jpx3.intave.detect.checks.combat.heuristics.Anomaly;
 import de.jpx3.intave.detect.checks.combat.heuristics.Confidence;
@@ -17,7 +17,7 @@ import org.bukkit.entity.Player;
 
 import static de.jpx3.intave.event.packet.PacketId.Client.*;
 
-public final class NoSwingHeuristic extends IntaveMetaCheckPart<Heuristics, NoSwingHeuristic.NoSwingMeta> {
+public final class NoSwingHeuristic extends MetaCheckPart<Heuristics, NoSwingHeuristic.NoSwingMeta> {
 
   public NoSwingHeuristic(Heuristics parentCheck) {
     super(parentCheck, NoSwingMeta.class);

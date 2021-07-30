@@ -6,6 +6,7 @@ import de.jpx3.intave.detect.checks.movement.physics.*;
 import de.jpx3.intave.event.entity.WrappedEntity;
 import de.jpx3.intave.reflect.ReflectiveDataWatcherAccess;
 import de.jpx3.intave.reflect.ReflectiveHandleAccess;
+import de.jpx3.intave.tools.annotate.DispatchTarget;
 import de.jpx3.intave.tools.annotate.Nullable;
 import de.jpx3.intave.tools.client.*;
 import de.jpx3.intave.tools.wrapper.WrappedAxisAlignedBB;
@@ -206,6 +207,7 @@ public final class UserMetaMovementData {
     nmsWorld = new WeakReference<>(ReflectiveHandleAccess.handleOf(player.getWorld()));
   }
 
+  @DispatchTarget
   public void updateMovement(
     PacketContainer packet,
     boolean hasMovement, boolean hasRotation
@@ -396,6 +398,7 @@ public final class UserMetaMovementData {
     }
   }
 
+  @DispatchTarget
   public void applyGroundInformationToPacket(PacketContainer packet) {
     packet.getBooleans().write(0, onGround);
   }

@@ -1,0 +1,204 @@
+package de.jpx3.intave.command.stages;
+
+import de.jpx3.intave.IntaveControl;
+import de.jpx3.intave.IntavePlugin;
+import de.jpx3.intave.command.CommandStage;
+import de.jpx3.intave.command.Forward;
+import de.jpx3.intave.command.Optional;
+import de.jpx3.intave.command.SubCommand;
+import de.jpx3.intave.permission.BukkitPermissionCheck;
+import de.jpx3.intave.security.LicenseVerification;
+import de.jpx3.intave.tools.AccessHelper;
+import de.jpx3.intave.tools.DurationTranslator;
+import de.jpx3.intave.tools.annotate.Native;
+import de.jpx3.intave.update.Version;
+import de.jpx3.intave.user.User;
+import de.jpx3.intave.user.UserMessageChannel;
+import de.jpx3.intave.user.UserMetaClientData;
+import org.bukkit.ChatColor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+public final class BaseStage extends CommandStage {
+  private static BaseStage singletonInstance;
+
+  private BaseStage() {
+    super(null, "/intave");
+  }
+
+  @SubCommand(
+    selectors = "verbose",
+    usage = "[<player...>]",
+    description = "Toggle verbose messages",
+    permission = "intave.command.verbose"
+  )
+  public void verboseCommand(User user, @Optional Player[] selectedPlayers) {
+    Player player = user.player();
+    boolean receivesVerbose = user.receives(UserMessageChannel.VERBOSE);
+
+    if (user.receives(UserMessageChannel.VERBOSE)) {
+      if (selectedPlayers != null && !user.hasChannelConstraint(UserMessageChannel.VERBOSE)) {
+        List<UUID> uniqueIds = Arrays.stream(selectedPlayers).map(Entity::getUniqueId).distinct().collect(Collectors.toList());
+        String names = Arrays.stream(selectedPlayers).map(Entity::getName).map(s -> s + " ").collect(Collectors.joining()).trim();
+        user.setChannelConstraint(UserMessageChannel.VERBOSE, player1 -> uniqueIds.contains(player1.getUniqueId()));
+        String target = ChatColor.RED + names;
+        player.sendMessage(IntavePlugin.prefix() + "You have specified verbose output to " + target);
+        return;
+      }
+    }
+
+    user.toggleReceive(UserMessageChannel.VERBOSE);
+
+    if (receivesVerbose) {
+      player.sendMessage(IntavePlugin.prefix() + "You are " + ChatColor.RED + "no longer " + IntavePlugin.defaultColor() + "receiving verbose output");
+    } else {
+      if (selectedPlayers == null) {
+        String target = ChatColor.RED + "everyone";
+        player.sendMessage(IntavePlugin.prefix() + "You are " + ChatColor.GREEN + "now " + IntavePlugin.defaultColor() + "receiving verbose output for " + target);
+      } else {
+        List<UUID> uniqueIds = Arrays.stream(selectedPlayers).map(Entity::getUniqueId).distinct().collect(Collectors.toList());
+        String names = Arrays.stream(selectedPlayers).map(Entity::getName).map(s -> s + " ").collect(Collectors.joining()).trim();
+        user.setChannelConstraint(UserMessageChannel.VERBOSE, player1 -> uniqueIds.contains(player1.getUniqueId()));
+        String target = ChatColor.RED + names;
+        player.sendMessage(IntavePlugin.prefix() + "You are " + ChatColor.GREEN + "now " + IntavePlugin.defaultColor() + "receiving verbose output for: " + target);
+      }
+    }
+  }
+
+  @SubCommand(
+    selectors = "notify",
+    usage = "",
+    description = "Toggle notifications",
+    permission = "intave.command.notify"
+  )
+  public void notifyCommand(User user) {
+    Player player = user.player();
+
+    boolean receiveNotify = user.receives(UserMessageChannel.NOTIFY);
+    user.toggleReceive(UserMessageChannel.NOTIFY);
+
+    if (receiveNotify) {
+      player.sendMessage(IntavePlugin.prefix() + "You are " + ChatColor.RED + "no longer " + IntavePlugin.defaultColor() + "receiving notifications");
+    } else {
+      player.sendMessage(IntavePlugin.prefix() + "You are " + ChatColor.GREEN + "now " + IntavePlugin.defaultColor() + "receiving notifications");
+    }
+  }
+
+  @SubCommand(
+    selectors = "version",
+    usage = "",
+    description = "Show version info"
+  )
+  public void versionCommand(CommandSender commandSender) {
+    sendVersionMessage(commandSender);
+  }
+
+  @SubCommand(
+    selectors = "proxy",
+    usage = "",
+    description = "Access proxy related features",
+    permission = "intave.command.proxy"
+  )
+  @Forward(
+    target = ProxyStage.class
+  )
+  public void proxyCommand(CommandSender sender) {}
+
+  @SubCommand(
+    selectors = "root",
+    usage = "",
+    description = "",
+    permission = "sibyl",
+    hideInHelp = true
+  )
+  @Forward(
+    target = RootStage.class
+  )
+  public void rootCommand(User user) {}
+
+  @SubCommand(
+    selectors = "diagnostics",
+    usage = "",
+    description = "Runtime and performance data output",
+    permission = "intave.command.diagnostics.*"
+  )
+  @Forward(
+    target = DiagnosticsStage.class
+  )
+  public void diagnosticsCommand(CommandSender commandSender) {}
+
+  @SubCommand(
+    selectors = "internals",
+    usage = "",
+    description = "Console-reserved commands",
+    permission = "intave.command.internals.*"
+  )
+  @Forward(
+    target = InternalsStage.class
+  )
+  public void internalCommand(User user) {}
+
+  @Override
+  protected void showAllCommands(CommandSender sender) {
+    boolean hasIntavePermission = BukkitPermissionCheck.permissionCheck(sender, "intave.command");
+
+    if (hasIntavePermission) {
+      super.showAllCommands(sender);
+    } else {
+      sendVersionMessage(sender);
+    }
+  }
+
+  @Native
+  private void sendVersionMessage(CommandSender player) {
+    boolean hasVersionViewPermission = BukkitPermissionCheck.permissionCheck(player, "intave.command");
+
+    Version versionInformation = IntavePlugin.singletonInstance().versionList().versionInformation(IntavePlugin.version());
+    String version;
+
+    if (!hasVersionViewPermission) {
+      version = "(version hidden)";
+    } else if (versionInformation != null) {
+      version = IntavePlugin.version() + " (" + DurationTranslator.translateDuration(AccessHelper.now() - versionInformation.release()) + " old";
+      if (versionInformation.typeClassifier() == Version.Status.OUTDATED) {
+        version += " and outdated";
+      }
+      version += ")";
+    } else {
+      version = IntavePlugin.version() + " (unlisted)";
+    }
+
+    boolean enterprise = (UserMetaClientData.VERSION_DETAILS & 0x200) != 0;
+    boolean partner = (UserMetaClientData.VERSION_DETAILS & 0x100) != 0;
+
+    String prefix = IntavePlugin.prefix();
+    player.sendMessage(new String[]{
+      prefix + "Running Intave " + version,
+      prefix + "Made in Germany by the Intave development team",
+      prefix + "Visit our website for a full list of contributors"
+    });
+
+    if (IntaveControl.GOMME_MODE) {
+      player.sendMessage(prefix + "Certified for GommeHDnet (verified)");
+    } else if (IntavePlugin.isInOfflineMode()) {
+      player.sendMessage(prefix + "Unable to verify certificate " + LicenseVerification.licenseKey() + ". Intave servers down?");
+    } else if (LicenseVerification.network().equals("~bypass")){
+      player.sendMessage(prefix + "This self-issued version does not require certification");
+    } else {
+      player.sendMessage(prefix + "Certified for " + LicenseVerification.network() + (enterprise || partner ? " (verified)" : /*" (not verified)"*/""));
+    }
+  }
+
+  public static BaseStage singletonInstance() {
+    if (singletonInstance == null) {
+      singletonInstance = new BaseStage();
+    }
+    return singletonInstance;
+  }
+}

@@ -2,7 +2,7 @@ package de.jpx3.intave.detect.checks.world.placementanalysis;
 
 import com.comphenix.protocol.events.PacketEvent;
 import de.jpx3.intave.IntavePlugin;
-import de.jpx3.intave.detect.IntaveMetaCheckPart;
+import de.jpx3.intave.detect.MetaCheckPart;
 import de.jpx3.intave.detect.checks.world.PlacementAnalysis;
 import de.jpx3.intave.event.bukkit.BukkitEventSubscription;
 import de.jpx3.intave.event.packet.ListenerPriority;
@@ -25,7 +25,7 @@ import static de.jpx3.intave.detect.checks.world.PlacementAnalysis.COMMON_FLAG_M
 import static de.jpx3.intave.event.packet.PacketId.Client.LOOK;
 import static de.jpx3.intave.event.packet.PacketId.Client.POSITION_LOOK;
 
-public final class PlacementRotationSpeedAnalyzer extends IntaveMetaCheckPart<PlacementAnalysis, PlacementRotationSpeedAnalyzer.RotationSpeedMeta> {
+public final class PlacementRotationSpeedAnalyzer extends MetaCheckPart<PlacementAnalysis, PlacementRotationSpeedAnalyzer.RotationSpeedMeta> {
   private final IntavePlugin plugin;
 
   public PlacementRotationSpeedAnalyzer(PlacementAnalysis parentCheck) {

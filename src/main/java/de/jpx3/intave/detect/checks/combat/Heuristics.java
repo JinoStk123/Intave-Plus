@@ -6,7 +6,7 @@ import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.google.common.collect.Lists;
 import de.jpx3.intave.IntaveControl;
 import de.jpx3.intave.IntavePlugin;
-import de.jpx3.intave.detect.IntaveMetaCheck;
+import de.jpx3.intave.detect.MetaCheck;
 import de.jpx3.intave.detect.checks.combat.heuristics.Anomaly;
 import de.jpx3.intave.detect.checks.combat.heuristics.Confidence;
 import de.jpx3.intave.detect.checks.combat.heuristics.MiningStrategy;
@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 
 import static de.jpx3.intave.event.packet.PacketId.Client.*;
 
-public final class Heuristics extends IntaveMetaCheck<Heuristics.HeuristicMeta> {
+public final class Heuristics extends MetaCheck<Heuristics.HeuristicMeta> {
   private final IntavePlugin plugin;
 
   public Heuristics(IntavePlugin plugin) {

@@ -20,7 +20,7 @@ public final class Filters {
     setup(EquipmentFilter.class);
     setup(HealthFilter.class);
 //    setup(ChatWordFilter.class);
-    setup(VanishedPlayerInfoFilter.class);
+    setup(VanishFilter.class);
 
     linkEnabled();
   }

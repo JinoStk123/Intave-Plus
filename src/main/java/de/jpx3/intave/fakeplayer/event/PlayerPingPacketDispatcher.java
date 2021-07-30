@@ -59,7 +59,7 @@ public final class PlayerPingPacketDispatcher implements PacketEventSubscriber {
     PacketContainer packet
   ) {
     int latency = fakePlayer.nextLatency();
-    WrappedGameProfile profile = fakePlayer.wrappedGameProfile();
+    WrappedGameProfile profile = fakePlayer.gameprofile();
     String name = profile.getName();
     WrappedChatComponent wrappedChatComponent = WrappedChatComponent.fromText(name);
     PlayerInfoData playerInfoData = new PlayerInfoData(profile, latency, fakePlayer.gameMode(), wrappedChatComponent);

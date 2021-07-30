@@ -5,7 +5,7 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import de.jpx3.intave.IntavePlugin;
-import de.jpx3.intave.detect.IntaveMetaCheckPart;
+import de.jpx3.intave.detect.MetaCheckPart;
 import de.jpx3.intave.detect.checks.combat.Heuristics;
 import de.jpx3.intave.detect.checks.combat.heuristics.Anomaly;
 import de.jpx3.intave.detect.checks.combat.heuristics.Confidence;
@@ -18,7 +18,7 @@ import org.bukkit.entity.Player;
 import static de.jpx3.intave.event.packet.PacketId.Client.ARM_ANIMATION;
 import static de.jpx3.intave.event.packet.PacketId.Client.USE_ENTITY;
 
-public final class LongTermClickAccuracyHeuristic extends IntaveMetaCheckPart<Heuristics, LongTermClickAccuracyHeuristic.ClickAccuracyMeta> {
+public final class LongTermClickAccuracyHeuristic extends MetaCheckPart<Heuristics, LongTermClickAccuracyHeuristic.ClickAccuracyMeta> {
   private final IntavePlugin plugin;
 
   public LongTermClickAccuracyHeuristic(Heuristics parentCheck) {

@@ -13,7 +13,7 @@ import de.jpx3.intave.event.packet.PacketSubscription;
 import de.jpx3.intave.logging.IntaveLogger;
 import de.jpx3.intave.reflect.ReflectiveAccess;
 import de.jpx3.intave.tools.MathHelper;
-import de.jpx3.intave.tools.annotate.DispatchCrossCall;
+import de.jpx3.intave.tools.annotate.DispatchTarget;
 import de.jpx3.intave.tools.annotate.KeepEnumInternalNames;
 import de.jpx3.intave.tools.sync.Synchronizer;
 import de.jpx3.intave.tools.wrapper.WrappedAxisAlignedBB;
@@ -53,7 +53,7 @@ public final class TeleportApplyEnforcer implements PacketEventSubscriber {
     }
   }
 
-  @DispatchCrossCall
+  @DispatchTarget
   void receiveMovement(PacketEvent event) {
     Player player = event.getPlayer();
     User user = UserRepository.userOf(player);

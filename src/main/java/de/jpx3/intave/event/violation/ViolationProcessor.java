@@ -5,8 +5,8 @@ import de.jpx3.intave.access.check.event.IntaveCommandExecutionEvent;
 import de.jpx3.intave.access.check.event.IntaveViolationEvent;
 import de.jpx3.intave.access.player.trust.TrustFactor;
 import de.jpx3.intave.connect.proxy.protocol.packets.IntavePacketOutKicked;
+import de.jpx3.intave.detect.Check;
 import de.jpx3.intave.detect.CheckStatistics;
-import de.jpx3.intave.detect.IntaveCheck;
 import de.jpx3.intave.tools.AccessHelper;
 import de.jpx3.intave.tools.MathHelper;
 import de.jpx3.intave.tools.annotate.Native;
@@ -45,7 +45,7 @@ public final class ViolationProcessor {
       return violationContext.ignoreThreatBecause("Player has bypass trust factor").complete();
     }
 
-    IntaveCheck check = violation.check();
+    Check check = violation.check();
     if (!check.enabled()) {
       return violationContext.ignoreThreatBecause("Check is disabled").complete();
     }
@@ -162,7 +162,7 @@ public final class ViolationProcessor {
       return;
     }
     User user = UserRepository.userOf(violationContext.violation().findPlayer().orElseThrow(IllegalStateException::new));
-    IntaveCheck check = violationContext.violation().check();
+    Check check = violationContext.violation().check();
     check.statisticApply(user, CheckStatistics::increaseViolations);
   }
 
@@ -219,7 +219,7 @@ public final class ViolationProcessor {
       return;
     }
     Violation violation = violationContext.violation();
-    IntaveCheck check = violation.check();
+    Check check = violation.check();
     String threshold = violation.threshold();
 
     double oldVl = violationContext.violationLevelBefore();

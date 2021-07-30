@@ -1,6 +1,6 @@
 package de.jpx3.intave.tools;
 
-import de.jpx3.intave.agent.IntaveAgentAccessor;
+import de.jpx3.intave.agent.AgentAccessor;
 import de.jpx3.intave.executor.BackgroundExecutor;
 
 import java.lang.reflect.Field;
@@ -36,7 +36,7 @@ public final class MemoryWatchdog {
       return 0;
     }
     identifiedObjects.add(object);
-    long memoryUsage = IntaveAgentAccessor.instrumentation().getObjectSize(object);
+    long memoryUsage = AgentAccessor.instrumentation().getObjectSize(object);
 //    if (object instanceof Map) {
 //      for (Object o : ((Map<?, ?>) object).keySet()) {
 //        memoryUsage += memoryTraceOf(o, trace, identifiedObjects);
@@ -70,7 +70,7 @@ public final class MemoryWatchdog {
       return 0;
     }
     identifiedObjects.add(object);
-    long memoryUsage = IntaveAgentAccessor.instrumentation().getObjectSize(object);
+    long memoryUsage = AgentAccessor.instrumentation().getObjectSize(object);
     if (object instanceof Map) {
       for (Object o : ((Map<?, ?>) object).keySet()) {
         memoryUsage += memoryUsageOf(o, identifiedObjects);
@@ -97,6 +97,6 @@ public final class MemoryWatchdog {
   }
 
   public static boolean supported() {
-    return IntaveAgentAccessor.agentAvailable();
+    return AgentAccessor.agentAvailable();
   }
 }

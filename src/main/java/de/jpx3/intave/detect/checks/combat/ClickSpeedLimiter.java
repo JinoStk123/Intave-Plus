@@ -5,7 +5,7 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import de.jpx3.intave.IntavePlugin;
-import de.jpx3.intave.detect.IntaveMetaCheck;
+import de.jpx3.intave.detect.MetaCheck;
 import de.jpx3.intave.event.packet.ListenerPriority;
 import de.jpx3.intave.event.packet.PacketSubscription;
 import de.jpx3.intave.event.violation.Violation;
@@ -22,7 +22,7 @@ import java.util.List;
 
 import static de.jpx3.intave.event.packet.PacketId.Client.*;
 
-public final class ClickSpeedLimiter extends IntaveMetaCheck<ClickSpeedLimiter.ClickSpeedLimiterMeta> {
+public final class ClickSpeedLimiter extends MetaCheck<ClickSpeedLimiter.ClickSpeedLimiterMeta> {
   private final IntavePlugin plugin;
   private final int maxCPS;
 

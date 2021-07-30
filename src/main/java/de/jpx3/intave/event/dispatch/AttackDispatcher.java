@@ -15,7 +15,6 @@ import de.jpx3.intave.event.entity.WrappedEntity;
 import de.jpx3.intave.event.packet.ListenerPriority;
 import de.jpx3.intave.event.packet.PacketSubscription;
 import de.jpx3.intave.fakeplayer.FakePlayer;
-import de.jpx3.intave.fakeplayer.FakePlayerAttackSubscriber;
 import de.jpx3.intave.tools.sync.Synchronizer;
 import de.jpx3.intave.user.*;
 import org.bukkit.Bukkit;
@@ -32,12 +31,15 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static de.jpx3.intave.event.packet.PacketId.Client.USE_ENTITY;
 import static de.jpx3.intave.event.packet.PacketId.Server.RESPAWN;
 import static de.jpx3.intave.event.packet.PacketId.Server.SET_SLOT;
 
 public final class AttackDispatcher implements EventProcessor {
+  private final static int[] ROMAN_STEPS = {1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1};
+  private final static String[] ROMAN_LITERALS = {"M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"};
   public static boolean REDUCING_DISABLED;
 
   public AttackDispatcher(IntavePlugin plugin) {
@@ -97,8 +99,8 @@ public final class AttackDispatcher implements EventProcessor {
       FakePlayer fakePlayer = attackData.fakePlayer();
       if (fakePlayer != null) {
         fakePlayer.onAttack();
-        if (fakePlayer.fakePlayerEntityId() == entityId) {
-          FakePlayerAttackSubscriber attackSubscriber = fakePlayer.attackSubscriber();
+        if (fakePlayer.identifier() == entityId) {
+          Consumer<FakePlayer> attackSubscriber = fakePlayer.attackSubscriber();
           Vector location = fakePlayer.movement().location.toVector();
           Vector actualLocation = new Vector(
             attackData.fakePlayerLastReportedX,
@@ -106,7 +108,7 @@ public final class AttackDispatcher implements EventProcessor {
             attackData.fakePlayerLastReportedZ
           );
           if (location.distance(actualLocation) < 0.1) {
-            attackSubscriber.receive();
+            attackSubscriber.accept(fakePlayer);
           }
         }
       }
@@ -145,7 +147,7 @@ public final class AttackDispatcher implements EventProcessor {
         }
         if (!itemMeta.hasEnchants()) {
           itemMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-          itemMeta.addEnchant(Enchantment.DURABILITY, 0,true);
+          itemMeta.addEnchant(Enchantment.DURABILITY, 0, true);
         }
         item.setItemMeta(itemMeta);
       }
@@ -169,9 +171,6 @@ public final class AttackDispatcher implements EventProcessor {
 //    }
     packet.getItemModifier().write(0, item);
   }
-
-  private final static int[] ROMAN_STEPS = {1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1};
-  private final static String[] ROMAN_LITERALS = {"M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"};
 
   private String toRoman(int number) {
     StringBuilder roman = new StringBuilder();

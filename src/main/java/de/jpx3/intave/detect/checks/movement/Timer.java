@@ -4,7 +4,7 @@ import com.comphenix.protocol.events.PacketEvent;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.detect.CheckStatistics;
 import de.jpx3.intave.detect.CheckViolationLevelDecrementer;
-import de.jpx3.intave.detect.IntaveMetaCheck;
+import de.jpx3.intave.detect.MetaCheck;
 import de.jpx3.intave.detect.checks.movement.physics.SimulationProcessor;
 import de.jpx3.intave.event.bukkit.BukkitEventSubscription;
 import de.jpx3.intave.event.packet.PacketSubscription;
@@ -13,7 +13,7 @@ import de.jpx3.intave.event.violation.ViolationContext;
 import de.jpx3.intave.logging.IntaveLogger;
 import de.jpx3.intave.tools.AccessHelper;
 import de.jpx3.intave.tools.MathHelper;
-import de.jpx3.intave.tools.annotate.DispatchCrossCall;
+import de.jpx3.intave.tools.annotate.DispatchTarget;
 import de.jpx3.intave.tools.sync.Synchronizer;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserCustomCheckMeta;
@@ -33,7 +33,7 @@ import java.util.Map;
 import static de.jpx3.intave.event.packet.PacketId.Server.POSITION;
 import static de.jpx3.intave.event.packet.PacketId.Server.RESPAWN;
 
-public final class Timer extends IntaveMetaCheck<Timer.TimerData> {
+public final class Timer extends MetaCheck<Timer.TimerData> {
   private final IntavePlugin plugin;
   private final CheckViolationLevelDecrementer decrementer;
   private final SimulationProcessor simulationProcessor;
@@ -75,7 +75,7 @@ public final class Timer extends IntaveMetaCheck<Timer.TimerData> {
     timerData.lastFlyingPacket = AccessHelper.now();
   }
 
-  @DispatchCrossCall
+  @DispatchTarget
   public void receiveMovement(PacketEvent event) {
     Player player = event.getPlayer();
     if (player == null) {

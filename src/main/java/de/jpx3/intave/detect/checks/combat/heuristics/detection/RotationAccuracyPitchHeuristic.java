@@ -1,7 +1,7 @@
 package de.jpx3.intave.detect.checks.combat.heuristics.detection;
 
 import com.comphenix.protocol.events.PacketEvent;
-import de.jpx3.intave.detect.IntaveMetaCheckPart;
+import de.jpx3.intave.detect.MetaCheckPart;
 import de.jpx3.intave.detect.checks.combat.Heuristics;
 import de.jpx3.intave.detect.checks.combat.heuristics.Anomaly;
 import de.jpx3.intave.detect.checks.combat.heuristics.Confidence;
@@ -19,7 +19,7 @@ import static de.jpx3.intave.detect.checks.combat.heuristics.Anomaly.AnomalyOpti
 import static de.jpx3.intave.event.packet.PacketId.Client.LOOK;
 import static de.jpx3.intave.event.packet.PacketId.Client.POSITION_LOOK;
 
-public final class RotationAccuracyPitchHeuristic extends IntaveMetaCheckPart<Heuristics, RotationAccuracyPitchHeuristic.RotationAccuracyHeuristicMeta> {
+public final class RotationAccuracyPitchHeuristic extends MetaCheckPart<Heuristics, RotationAccuracyPitchHeuristic.RotationAccuracyHeuristicMeta> {
   public RotationAccuracyPitchHeuristic(Heuristics parentCheck) {
     super(parentCheck, RotationAccuracyPitchHeuristic.RotationAccuracyHeuristicMeta.class);
   }

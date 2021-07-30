@@ -2,7 +2,7 @@ package de.jpx3.intave.detect.checks.combat.heuristics.detection;
 
 import com.comphenix.protocol.events.PacketEvent;
 import de.jpx3.intave.IntavePlugin;
-import de.jpx3.intave.detect.IntaveMetaCheckPart;
+import de.jpx3.intave.detect.MetaCheckPart;
 import de.jpx3.intave.detect.checks.combat.Heuristics;
 import de.jpx3.intave.detect.checks.combat.heuristics.Anomaly;
 import de.jpx3.intave.detect.checks.combat.heuristics.Confidence;
@@ -19,7 +19,7 @@ import static de.jpx3.intave.event.packet.PacketId.Client.POSITION;
 import static de.jpx3.intave.event.packet.PacketId.Client.POSITION_LOOK;
 import static de.jpx3.intave.user.UserMetaClientData.VER_1_17;
 
-public final class AttackReduceIgnoreHeuristic extends IntaveMetaCheckPart<Heuristics, AttackReduceIgnoreHeuristic.AttackReduceMeta> {
+public final class AttackReduceIgnoreHeuristic extends MetaCheckPart<Heuristics, AttackReduceIgnoreHeuristic.AttackReduceMeta> {
   private final IntavePlugin plugin;
 
   public AttackReduceIgnoreHeuristic(Heuristics parentCheck) {

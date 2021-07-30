@@ -2,7 +2,7 @@ package de.jpx3.intave.detect.checks.combat.heuristics.detection;
 
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.EnumWrappers;
-import de.jpx3.intave.detect.IntaveMetaCheckPart;
+import de.jpx3.intave.detect.MetaCheckPart;
 import de.jpx3.intave.detect.checks.combat.Heuristics;
 import de.jpx3.intave.event.packet.ListenerPriority;
 import de.jpx3.intave.event.packet.PacketSubscription;
@@ -22,7 +22,7 @@ import java.util.concurrent.Executors;
 
 import static de.jpx3.intave.event.packet.PacketId.Client.*;
 
-public final class LinearRegressionHeuristic extends IntaveMetaCheckPart<Heuristics, LinearRegressionHeuristic.LinearRegressionHeuristicMeta> {
+public final class LinearRegressionHeuristic extends MetaCheckPart<Heuristics, LinearRegressionHeuristic.LinearRegressionHeuristicMeta> {
   private final ExecutorService executorService = Executors.newSingleThreadExecutor(IntaveThreadFactory.ofLowestPriority());
 
   public LinearRegressionHeuristic(Heuristics parentCheck) {

@@ -6,7 +6,7 @@ import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.google.common.collect.Lists;
 import de.jpx3.intave.IntavePlugin;
-import de.jpx3.intave.detect.IntaveMetaCheckPart;
+import de.jpx3.intave.detect.MetaCheckPart;
 import de.jpx3.intave.detect.checks.combat.Heuristics;
 import de.jpx3.intave.detect.checks.combat.heuristics.Anomaly;
 import de.jpx3.intave.detect.checks.combat.heuristics.Confidence;
@@ -27,7 +27,7 @@ import java.util.List;
 import static de.jpx3.intave.detect.checks.combat.heuristics.Anomaly.AnomalyOption.*;
 import static de.jpx3.intave.event.packet.PacketId.Client.*;
 
-public final class PerfectAttackHeuristic extends IntaveMetaCheckPart<Heuristics, PerfectAttackHeuristic.PerfectAttackMeta> {
+public final class PerfectAttackHeuristic extends MetaCheckPart<Heuristics, PerfectAttackHeuristic.PerfectAttackMeta> {
   private final IntavePlugin plugin;
 
   public PerfectAttackHeuristic(Heuristics parentCheck) {

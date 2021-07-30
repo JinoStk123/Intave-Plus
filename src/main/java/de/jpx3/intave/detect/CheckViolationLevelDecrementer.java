@@ -9,20 +9,20 @@ import java.util.HashMap;
 import java.util.Map;
 
 public final class CheckViolationLevelDecrementer {
-  private final IntaveCheck check;
+  private final Check check;
   private final String checkName;
   private final String thresholdKey;
   private final double limitPerSecond;
 
   public CheckViolationLevelDecrementer(
-    IntaveCheck check,
+    Check check,
     double limitPerSecond
   ) {
     this(check, "thresholds", limitPerSecond);
   }
 
   public CheckViolationLevelDecrementer(
-    IntaveCheck check,
+    Check check,
     String thresholdKey,
     double limitPerSecond
   ) {

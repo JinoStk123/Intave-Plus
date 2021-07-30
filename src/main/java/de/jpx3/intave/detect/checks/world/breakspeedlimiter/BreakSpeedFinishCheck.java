@@ -8,7 +8,7 @@ import com.comphenix.protocol.wrappers.BlockPosition;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.comphenix.protocol.wrappers.WrappedBlockData;
 import de.jpx3.intave.IntavePlugin;
-import de.jpx3.intave.detect.IntaveMetaCheckPart;
+import de.jpx3.intave.detect.MetaCheckPart;
 import de.jpx3.intave.detect.checks.world.BreakSpeedLimiter;
 import de.jpx3.intave.event.packet.ListenerPriority;
 import de.jpx3.intave.event.packet.PacketSubscription;
@@ -31,7 +31,7 @@ import java.lang.reflect.InvocationTargetException;
 
 import static de.jpx3.intave.event.packet.PacketId.Client.*;
 
-public final class BreakSpeedFinishCheck extends IntaveMetaCheckPart<BreakSpeedLimiter, BreakSpeedFinishCheck.BreakSpeedFinishMeta> {
+public final class BreakSpeedFinishCheck extends MetaCheckPart<BreakSpeedLimiter, BreakSpeedFinishCheck.BreakSpeedFinishMeta> {
   public BreakSpeedFinishCheck(BreakSpeedLimiter parentCheck) {
     super(parentCheck, BreakSpeedFinishMeta.class);
   }

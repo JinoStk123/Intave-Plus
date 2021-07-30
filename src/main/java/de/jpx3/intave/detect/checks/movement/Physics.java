@@ -6,16 +6,16 @@ import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.access.check.MitigationStrategy;
 import de.jpx3.intave.access.player.trust.TrustFactor;
 import de.jpx3.intave.adapter.MinecraftVersions;
+import de.jpx3.intave.detect.Check;
 import de.jpx3.intave.detect.CheckStatistics;
 import de.jpx3.intave.detect.CheckViolationLevelDecrementer;
-import de.jpx3.intave.detect.IntaveCheck;
 import de.jpx3.intave.detect.checks.movement.physics.*;
 import de.jpx3.intave.diagnostics.timings.Timings;
 import de.jpx3.intave.event.violation.Violation;
 import de.jpx3.intave.event.violation.ViolationContext;
 import de.jpx3.intave.reflect.ReflectiveAccess;
 import de.jpx3.intave.tools.MathHelper;
-import de.jpx3.intave.tools.annotate.DispatchCrossCall;
+import de.jpx3.intave.tools.annotate.DispatchTarget;
 import de.jpx3.intave.tools.annotate.Relocate;
 import de.jpx3.intave.tools.client.MovementContext;
 import de.jpx3.intave.tools.sync.Synchronizer;
@@ -49,7 +49,7 @@ import static de.jpx3.intave.tools.MathHelper.formatDouble;
 import static de.jpx3.intave.tools.MathHelper.formatPosition;
 
 @Relocate
-public final class Physics extends IntaveCheck {
+public final class Physics extends Check {
   private final static double VL_DECREMENT_PER_VALID_MOVE = 0.05;
   private final static double VELOCITY_VL_THRESHOLD = 6;
 
@@ -141,7 +141,7 @@ public final class Physics extends IntaveCheck {
     }
   }
 
-  @DispatchCrossCall
+  @DispatchTarget
   public void receiveMovement(User user) {
     User.UserMeta meta = user.meta();
     UserMetaMovementData movementData = meta.movementData();
@@ -189,7 +189,7 @@ public final class Physics extends IntaveCheck {
     return Simulators.PLAYER;
   }
 
-  @DispatchCrossCall
+  @DispatchTarget
   public void endMovement(User user, boolean hasMovement) {
     UserMetaMovementData movementData = user.meta().movementData();
     double motionX = movementData.motionX();
@@ -208,7 +208,7 @@ public final class Physics extends IntaveCheck {
     }
   }
 
-  @DispatchCrossCall
+  @DispatchTarget
   public void updateOnGroundIfFlying(User user) {
     UserMetaMovementData movementData = user.meta().movementData();
     double physicsMotionX = movementData.physicsMotionX;
@@ -587,7 +587,7 @@ public final class Physics extends IntaveCheck {
 
     if (IntaveControl.DEBUG_MOVEMENT) {
       ChatColor chatColor = violationLevelIncrease == 0 ? ChatColor.GRAY : ChatColor.YELLOW;
-      String motion = movementData.pose().name() + " ";//MathHelper.formatPositionAsInt(positionX, positionY, positionZ);
+      String motion = movementData.pose().name() + " ";
       String displayPhysicsVL = formatDouble(violationLevelData.physicsVL, 4);
       String displayHorizontalVL = formatDouble(horizontalViolationIncrease, 3);
       String displayVerticalVL = formatDouble(verticalViolationIncrease, 3);

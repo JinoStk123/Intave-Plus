@@ -2,15 +2,14 @@ package de.jpx3.intave.detect.checks.combat.heuristics.mining;
 
 import de.jpx3.intave.detect.checks.combat.heuristics.MiningStrategy;
 import de.jpx3.intave.executor.BackgroundExecutor;
-import de.jpx3.intave.fakeplayer.EntityIdentifierPrefetch;
 import de.jpx3.intave.fakeplayer.FakePlayer;
-import de.jpx3.intave.fakeplayer.movement.types.ConvertEntityMovement;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserMetaAttackData;
 
 import java.util.concurrent.ThreadLocalRandom;
 
 import static de.jpx3.intave.detect.checks.combat.heuristics.mining.EmulationLight.locationBehind;
+import static de.jpx3.intave.fakeplayer.FakePlayerAttribute.*;
 
 public final class EmulationModerate extends MiningStrategyExecutor{
   public EmulationModerate(User user) {
@@ -24,20 +23,14 @@ public final class EmulationModerate extends MiningStrategyExecutor{
     if (attackData.fakePlayer() != null) {
       return;
     }
-    int entityID = EntityIdentifierPrefetch.acquireEntityId();
     BackgroundExecutor.execute(() -> {
       FakePlayer fakePlayer = FakePlayer
-        .builder()
-        .withEntityID(entityID)
-        .withMovement(new ConvertEntityMovement())
-        .visible()
-        .visibleInTabList()
-        .equipArmor()
-        .equipHeldItem()
-        .withParentPlayer(user().player())
-        .withAttackSubscriber(() -> saveAnomalyWithID(2))
+        .builderFor(user().player())
+        .floating()
+        .acceptAttributes(ARMORED | IN_TABLIST | ITEM_IN_HAND)
+        .attackSubscribe(x -> saveAnomalyWithID(2))
         .build();
-      fakePlayer.spawnAndStart(locationBehind(user(), ThreadLocalRandom.current().nextInt(1, 2)));
+      fakePlayer.create(locationBehind(user(), ThreadLocalRandom.current().nextInt(1, 2)));
     });
   }
 
@@ -46,7 +39,7 @@ public final class EmulationModerate extends MiningStrategyExecutor{
     UserMetaAttackData attackData = user().meta().attackData();
     FakePlayer fakePlayer = attackData.fakePlayer();
     if (fakePlayer != null) {
-      fakePlayer.despawnAndTerminate();
+      fakePlayer.remove();
     }
   }
 

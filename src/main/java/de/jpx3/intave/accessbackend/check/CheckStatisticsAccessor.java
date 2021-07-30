@@ -5,7 +5,7 @@ import com.google.common.collect.Maps;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.access.check.CheckStatisticsAccess;
 import de.jpx3.intave.access.check.UnknownCheckException;
-import de.jpx3.intave.detect.IntaveCheck;
+import de.jpx3.intave.detect.Check;
 
 import java.util.Map;
 
@@ -25,7 +25,7 @@ public final class CheckStatisticsAccessor {
     return statisticAccessCache.computeIfAbsent(name, x -> newStatisticsMirror(tryGetCheck(name)));
   }
 
-  private IntaveCheck tryGetCheck(String name) {
+  private Check tryGetCheck(String name) {
     try {
       return plugin.checkService().searchCheck(name);
     } catch (NullPointerException nullptr) {
@@ -33,26 +33,26 @@ public final class CheckStatisticsAccessor {
     }
   }
 
-  private CheckStatisticsAccess newStatisticsMirror(IntaveCheck intaveCheck) {
+  private CheckStatisticsAccess newStatisticsMirror(Check check) {
     return new CheckStatisticsAccess() {
       @Override
       public final long totalViolations() {
-        return intaveCheck.baseStatistics().totalViolations();
+        return check.baseStatistics().totalViolations();
       }
 
       @Override
       public long totalPasses() {
-        return intaveCheck.baseStatistics().totalPasses();
+        return check.baseStatistics().totalPasses();
       }
 
       @Override
       public long totalProcesses() {
-        return intaveCheck.baseStatistics().totalProcessed();
+        return check.baseStatistics().totalProcessed();
       }
 
       @Override
       public long totalFails() {
-        return intaveCheck.baseStatistics().totalFails();
+        return check.baseStatistics().totalFails();
       }
     };
   }

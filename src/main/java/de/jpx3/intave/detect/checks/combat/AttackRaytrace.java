@@ -8,7 +8,7 @@ import de.jpx3.intave.IntaveControl;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.detect.CheckStatistics;
 import de.jpx3.intave.detect.CheckViolationLevelDecrementer;
-import de.jpx3.intave.detect.IntaveMetaCheck;
+import de.jpx3.intave.detect.MetaCheck;
 import de.jpx3.intave.event.entity.DeadWrappedEntity;
 import de.jpx3.intave.event.entity.WrappedEntity;
 import de.jpx3.intave.event.packet.ListenerPriority;
@@ -34,7 +34,7 @@ import static de.jpx3.intave.event.packet.PacketId.Client.*;
 import static de.jpx3.intave.event.violation.Violation.ViolationFlags.DONT_PROCESS_VIOSTAT;
 import static de.jpx3.intave.user.UserMetaClientData.VER_1_9;
 
-public final class AttackRaytrace extends IntaveMetaCheck<AttackRaytrace.AttackRaytraceMeta> {
+public final class AttackRaytrace extends MetaCheck<AttackRaytrace.AttackRaytraceMeta> {
   private final IntavePlugin plugin;
   private final CheckViolationLevelDecrementer hitboxDecrementer, reachDecrementer;
 

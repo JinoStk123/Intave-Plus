@@ -4,7 +4,7 @@ import com.comphenix.protocol.events.PacketEvent;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.adapter.MinecraftVersions;
 import de.jpx3.intave.adapter.ProtocolLibraryAdapter;
-import de.jpx3.intave.detect.IntaveMetaCheckPart;
+import de.jpx3.intave.detect.MetaCheckPart;
 import de.jpx3.intave.detect.checks.other.InventoryClickAnalysis;
 import de.jpx3.intave.event.packet.ListenerPriority;
 import de.jpx3.intave.event.packet.PacketSubscription;
@@ -27,7 +27,7 @@ import java.util.List;
 
 import static de.jpx3.intave.event.packet.PacketId.Client.WINDOW_CLICK;
 
-public final class InventoryClickDelayAnalyzer extends IntaveMetaCheckPart<InventoryClickAnalysis, InventoryClickDelayAnalyzer.ClickDelayMeta> {
+public final class InventoryClickDelayAnalyzer extends MetaCheckPart<InventoryClickAnalysis, InventoryClickDelayAnalyzer.ClickDelayMeta> {
   private final IntavePlugin plugin;
   private final boolean newWindowClickVersion;
   Class<?> clickType;

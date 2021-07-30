@@ -12,7 +12,7 @@ import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.access.player.trust.TrustFactor;
 import de.jpx3.intave.adapter.MinecraftVersions;
 import de.jpx3.intave.detect.CheckViolationLevelDecrementer;
-import de.jpx3.intave.detect.IntaveMetaCheck;
+import de.jpx3.intave.detect.MetaCheck;
 import de.jpx3.intave.detect.checks.world.interaction.Interaction;
 import de.jpx3.intave.detect.checks.world.interaction.InteractionEmulator;
 import de.jpx3.intave.detect.checks.world.interaction.InteractionType;
@@ -21,14 +21,11 @@ import de.jpx3.intave.event.packet.ListenerPriority;
 import de.jpx3.intave.event.packet.PacketSubscription;
 import de.jpx3.intave.event.violation.Violation;
 import de.jpx3.intave.event.violation.ViolationContext;
-import de.jpx3.intave.tools.annotate.DispatchCrossCall;
+import de.jpx3.intave.tools.annotate.DispatchTarget;
 import de.jpx3.intave.tools.items.InventoryUseItemHelper;
 import de.jpx3.intave.tools.sync.Synchronizer;
 import de.jpx3.intave.tools.wrapper.*;
-import de.jpx3.intave.user.User;
-import de.jpx3.intave.user.UserCustomCheckMeta;
-import de.jpx3.intave.user.UserMetaInventoryData;
-import de.jpx3.intave.user.UserMetaMovementData;
+import de.jpx3.intave.user.*;
 import de.jpx3.intave.world.blockaccess.BlockDataAccess;
 import de.jpx3.intave.world.blockaccess.BlockTypeAccess;
 import de.jpx3.intave.world.blockaccess.BukkitBlockAccess;
@@ -50,7 +47,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import static com.comphenix.protocol.wrappers.EnumWrappers.PlayerDigType.*;
 import static de.jpx3.intave.event.packet.PacketId.Client.*;
 
-public final class InteractionRaytrace extends IntaveMetaCheck<InteractionRaytrace.InteractionMeta> {
+public final class InteractionRaytrace extends MetaCheck<InteractionRaytrace.InteractionMeta> {
   private final IntavePlugin plugin;
   private final CheckViolationLevelDecrementer decrementer;
   private final InteractionEmulator interactionEmulator;
@@ -75,6 +72,7 @@ public final class InteractionRaytrace extends IntaveMetaCheck<InteractionRaytra
     User user = userOf(player);
     InteractionMeta interactionMeta = metaOf(user);
     UserMetaMovementData movementData = user.meta().movementData();
+    UserMetaAbilityData userMetaAbilityData = user.meta().abilityData();
     PacketContainer packet = event.getPacket();
     BlockPosition blockPosition = readBlockPositionFrom(packet);
 
@@ -90,7 +88,7 @@ public final class InteractionRaytrace extends IntaveMetaCheck<InteractionRaytra
     Material clickedType = BukkitBlockAccess.blockAccess(blockPosition.toLocation(player.getWorld())).getType();
     boolean clickableInteraction = BlockDataAccess.isClickable(clickedType);
     Material heldItemType = user.meta().inventoryData().heldItemType();
-    boolean interactionIsPlacement = heldItemType != Material.AIR && heldItemType.isBlock() && !clickableInteraction;
+    boolean interactionIsPlacement = heldItemType != Material.AIR && heldItemType.isBlock() && !clickableInteraction && !userMetaAbilityData.inGameMode(GameMode.ADVENTURE);
 
     EnumWrappers.Hand handSlot = packet.getHands().readSafely(0);
     handSlot = handSlot == null ? EnumWrappers.Hand.MAIN_HAND : handSlot;
@@ -119,7 +117,7 @@ public final class InteractionRaytrace extends IntaveMetaCheck<InteractionRaytra
   public void receiveBreak(PacketEvent event) {
     Player player = event.getPlayer();
     User user = userOf(player);
-    UserMetaMovementData movementData = user.meta().movementData();
+    UserMetaAbilityData abilityData = user.meta().abilityData();
     UserMetaInventoryData inventoryData = user.meta().inventoryData();
     PacketContainer packet = event.getPacket();
     BlockPosition blockPosition = packet.getBlockPositionModifier().readSafely(0);
@@ -136,7 +134,7 @@ public final class InteractionRaytrace extends IntaveMetaCheck<InteractionRaytra
 
     EnumWrappers.PlayerDigType playerDigType = packet.getPlayerDigTypes().readSafely(0);
     float blockDamage = BlockDataAccess.blockDamage(player, user.meta().inventoryData().heldItem(), blockPosition);
-    boolean instantBreak = blockDamage == Float.POSITIVE_INFINITY || blockDamage >= 1.0f || user.meta().abilityData().inGameMode(PlayerAbilityEvaluator.GameMode.CREATIVE);
+    boolean instantBreak = blockDamage >= 1.0f || abilityData.inGameMode(PlayerAbilityEvaluator.GameMode.CREATIVE);
     boolean breakBlock = instantBreak || playerDigType == STOP_DESTROY_BLOCK;
 
     EnumWrappers.Direction direction = packet.getDirections().readSafely(0);
@@ -171,7 +169,7 @@ public final class InteractionRaytrace extends IntaveMetaCheck<InteractionRaytra
     }
   }
 
-  @DispatchCrossCall
+  @DispatchTarget
   public void receiveMovement(PacketEvent event) {
     Player player = event.getPlayer();
     World world = player.getWorld();

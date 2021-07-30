@@ -2,7 +2,7 @@ package de.jpx3.intave.detect.checks.combat.heuristics.detection;
 
 import com.comphenix.protocol.events.PacketEvent;
 import com.google.common.collect.Lists;
-import de.jpx3.intave.detect.IntaveMetaCheckPart;
+import de.jpx3.intave.detect.MetaCheckPart;
 import de.jpx3.intave.detect.checks.combat.Heuristics;
 import de.jpx3.intave.detect.checks.combat.heuristics.Anomaly;
 import de.jpx3.intave.detect.checks.combat.heuristics.Confidence;
@@ -22,7 +22,7 @@ import static de.jpx3.intave.event.packet.PacketId.Client.LOOK;
 import static de.jpx3.intave.event.packet.PacketId.Client.POSITION_LOOK;
 import static de.jpx3.intave.tools.Rotation.averageOf;
 
-public final class RotationUnlikelyAccuracyHeuristic extends IntaveMetaCheckPart<Heuristics, RotationUnlikelyAccuracyHeuristic.ULMeta> {
+public final class RotationUnlikelyAccuracyHeuristic extends MetaCheckPart<Heuristics, RotationUnlikelyAccuracyHeuristic.ULMeta> {
   public RotationUnlikelyAccuracyHeuristic(Heuristics parentCheck) {
     super(parentCheck, ULMeta.class);
   }

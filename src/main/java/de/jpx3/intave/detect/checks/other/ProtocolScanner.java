@@ -4,7 +4,7 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.adapter.MinecraftVersions;
-import de.jpx3.intave.detect.IntaveMetaCheck;
+import de.jpx3.intave.detect.MetaCheck;
 import de.jpx3.intave.event.packet.PacketSubscription;
 import de.jpx3.intave.event.violation.Violation;
 import de.jpx3.intave.reflect.ReflectiveAccess;
@@ -19,7 +19,7 @@ import org.bukkit.inventory.MainHand;
 
 import static de.jpx3.intave.event.packet.PacketId.Client.*;
 
-public final class ProtocolScanner extends IntaveMetaCheck<ProtocolScanner.ProtocolScannerMeta> {
+public final class ProtocolScanner extends MetaCheck<ProtocolScanner.ProtocolScannerMeta> {
   private final IntavePlugin plugin;
 
   public ProtocolScanner(IntavePlugin plugin) {

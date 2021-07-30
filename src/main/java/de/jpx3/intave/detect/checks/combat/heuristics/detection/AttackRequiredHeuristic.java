@@ -4,7 +4,7 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import de.jpx3.intave.IntavePlugin;
-import de.jpx3.intave.detect.IntaveMetaCheckPart;
+import de.jpx3.intave.detect.MetaCheckPart;
 import de.jpx3.intave.detect.checks.combat.Heuristics;
 import de.jpx3.intave.detect.checks.combat.heuristics.Anomaly;
 import de.jpx3.intave.detect.checks.combat.heuristics.Confidence;
@@ -22,7 +22,7 @@ import org.bukkit.inventory.ItemStack;
 import static de.jpx3.intave.event.packet.PacketId.Client.*;
 import static de.jpx3.intave.user.UserMetaClientData.VER_1_8;
 
-public final class AttackRequiredHeuristic extends IntaveMetaCheckPart<Heuristics, AttackRequiredHeuristic.AttackRequiredMeta> {
+public final class AttackRequiredHeuristic extends MetaCheckPart<Heuristics, AttackRequiredHeuristic.AttackRequiredMeta> {
   private final IntavePlugin plugin;
 
   public AttackRequiredHeuristic(Heuristics parentCheck) {

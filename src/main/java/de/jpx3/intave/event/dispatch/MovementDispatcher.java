@@ -107,7 +107,7 @@ public final class MovementDispatcher implements EventProcessor {
     movementData.dismountRidingEntity();
     FakePlayer fakePlayer = meta.attackData().fakePlayer();
     if (fakePlayer != null) {
-      fakePlayer.respawnBot();
+      fakePlayer.respawn();
     }
   }
 

@@ -7,7 +7,7 @@ import com.comphenix.protocol.wrappers.EnumWrappers;
 import de.jpx3.intave.IntaveControl;
 import de.jpx3.intave.adapter.MinecraftVersions;
 import de.jpx3.intave.adapter.ProtocolLibraryAdapter;
-import de.jpx3.intave.detect.IntaveMetaCheckPart;
+import de.jpx3.intave.detect.MetaCheckPart;
 import de.jpx3.intave.detect.checks.combat.Heuristics;
 import de.jpx3.intave.detect.checks.combat.heuristics.Anomaly;
 import de.jpx3.intave.detect.checks.combat.heuristics.Confidence;
@@ -31,7 +31,7 @@ import org.bukkit.entity.Player;
 
 import static de.jpx3.intave.event.packet.PacketId.Client.*;
 
-public final class AirClickLimitHeuristic extends IntaveMetaCheckPart<Heuristics, AirClickLimitHeuristic.AirClickLimitHeuristicMeta> {
+public final class AirClickLimitHeuristic extends MetaCheckPart<Heuristics, AirClickLimitHeuristic.AirClickLimitHeuristicMeta> {
 
   public AirClickLimitHeuristic(Heuristics parentCheck) {
     super(parentCheck, AirClickLimitHeuristic.AirClickLimitHeuristicMeta.class);

@@ -5,7 +5,7 @@ import com.comphenix.protocol.events.PacketEvent;
 import de.jpx3.intave.IntaveControl;
 import de.jpx3.intave.adapter.MinecraftVersions;
 import de.jpx3.intave.adapter.ProtocolLibraryAdapter;
-import de.jpx3.intave.detect.IntaveMetaCheckPart;
+import de.jpx3.intave.detect.MetaCheckPart;
 import de.jpx3.intave.detect.checks.combat.Heuristics;
 import de.jpx3.intave.detect.checks.combat.heuristics.Anomaly;
 import de.jpx3.intave.detect.checks.combat.heuristics.Confidence;
@@ -21,7 +21,7 @@ import java.util.List;
 
 import static de.jpx3.intave.event.packet.PacketId.Client.*;
 
-public final class SameRotationHeuristic extends IntaveMetaCheckPart<Heuristics, SameRotationHeuristic.SameRotationHeuristicMeta> {
+public final class SameRotationHeuristic extends MetaCheckPart<Heuristics, SameRotationHeuristic.SameRotationHeuristicMeta> {
   public SameRotationHeuristic(Heuristics parentCheck) {
     super(parentCheck, SameRotationHeuristicMeta.class);
   }

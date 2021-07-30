@@ -2,7 +2,7 @@ package de.jpx3.intave.event.violation;
 
 import com.google.common.base.Preconditions;
 import de.jpx3.intave.IntavePlugin;
-import de.jpx3.intave.detect.IntaveCheck;
+import de.jpx3.intave.detect.Check;
 import de.jpx3.intave.tools.AccessHelper;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -11,7 +11,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public final class Violation {
-  private final Class<? extends IntaveCheck> checkClass;
+  private final Class<? extends Check> checkClass;
   private final UUID id;
   private final String baseMessage;
   private final String details;
@@ -20,7 +20,7 @@ public final class Violation {
   private final int optionFlags;
 
   private Violation(
-    Class<? extends IntaveCheck> checkClass,
+    Class<? extends Check> checkClass,
     UUID id,
     String baseMessage,
     String details,
@@ -37,11 +37,11 @@ public final class Violation {
     this.optionFlags = optionFlags;
   }
 
-  public IntaveCheck check() {
+  public Check check() {
     return IntavePlugin.singletonInstance().checkService().searchCheck(checkClass);
   }
 
-  public Class<? extends IntaveCheck> checkClass() {
+  public Class<? extends Check> checkClass() {
     return checkClass;
   }
 
@@ -74,12 +74,12 @@ public final class Violation {
     return ViolationFlags.matches(optionFlags, flag);
   }
 
-  public static Builder builderFor(Class<? extends IntaveCheck> checkClass) {
+  public static Builder builderFor(Class<? extends Check> checkClass) {
     return new Builder(checkClass);
   }
 
   public static class Builder {
-    private final Class<? extends IntaveCheck> checkClass;
+    private final Class<? extends Check> checkClass;
     private UUID playerid;
     private String baseMessage;
     private String details;
@@ -89,7 +89,7 @@ public final class Violation {
 
     private boolean constructed;
 
-    public Builder(Class<? extends IntaveCheck> checkClass) {
+    public Builder(Class<? extends Check> checkClass) {
       this.checkClass = checkClass;
     }
 

@@ -4,7 +4,7 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.EnumWrappers;
-import de.jpx3.intave.detect.IntaveMetaCheckPart;
+import de.jpx3.intave.detect.MetaCheckPart;
 import de.jpx3.intave.detect.checks.combat.Heuristics;
 import de.jpx3.intave.detect.checks.combat.heuristics.Anomaly;
 import de.jpx3.intave.detect.checks.combat.heuristics.Confidence;
@@ -22,7 +22,7 @@ import java.util.List;
 
 import static de.jpx3.intave.event.packet.PacketId.Client.*;
 
-public final class SprintResetHeuristic extends IntaveMetaCheckPart<Heuristics, SprintResetHeuristic.SprintResetHeuristicMeta> {
+public final class SprintResetHeuristic extends MetaCheckPart<Heuristics, SprintResetHeuristic.SprintResetHeuristicMeta> {
   /*
   What the check does:
   The player will receive a flag when he unsprints without releasing the W key while he doesn't sneak, attack, useItem or collide with a block.

@@ -4,7 +4,7 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import de.jpx3.intave.IntavePlugin;
-import de.jpx3.intave.detect.IntaveMetaCheckPart;
+import de.jpx3.intave.detect.MetaCheckPart;
 import de.jpx3.intave.detect.checks.world.BreakSpeedLimiter;
 import de.jpx3.intave.event.packet.ListenerPriority;
 import de.jpx3.intave.event.packet.PacketSubscription;
@@ -19,7 +19,7 @@ import org.bukkit.entity.Player;
 
 import static de.jpx3.intave.event.packet.PacketId.Client.*;
 
-public final class BreakSpeedStartCheck extends IntaveMetaCheckPart<BreakSpeedLimiter, BreakSpeedStartCheck.BreakSpeedStartMeta> {
+public final class BreakSpeedStartCheck extends MetaCheckPart<BreakSpeedLimiter, BreakSpeedStartCheck.BreakSpeedStartMeta> {
   public BreakSpeedStartCheck(BreakSpeedLimiter parentCheck) {
     super(parentCheck, BreakSpeedStartCheck.BreakSpeedStartMeta.class);
   }

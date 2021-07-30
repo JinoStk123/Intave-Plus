@@ -221,7 +221,7 @@ public final class ClientSideEntityService implements PacketEventSubscriber {
       // player
       FakePlayer fakePlayer = attackData.fakePlayer();
       String entityName;
-      if (fakePlayer != null && fakePlayer.fakePlayerEntityId() == entityId) {
+      if (fakePlayer != null && fakePlayer.identifier() == entityId) {
         entityName = "Intave-Bot";
       } else {
         entityName = "Player";

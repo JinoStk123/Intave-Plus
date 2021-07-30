@@ -1,7 +1,7 @@
 package de.jpx3.intave.detect.checks.other.inventoryclickanalysis;
 
 import de.jpx3.intave.IntavePlugin;
-import de.jpx3.intave.detect.IntaveCheckPart;
+import de.jpx3.intave.detect.CheckPart;
 import de.jpx3.intave.detect.checks.movement.physics.Simulators;
 import de.jpx3.intave.detect.checks.other.InventoryClickAnalysis;
 import de.jpx3.intave.event.bukkit.BukkitEventSubscription;
@@ -14,7 +14,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 
-public final class InventoryClickOnMoveCheck extends IntaveCheckPart<InventoryClickAnalysis> {
+public final class InventoryClickOnMoveCheck extends CheckPart<InventoryClickAnalysis> {
   private final IntavePlugin plugin;
 
   public InventoryClickOnMoveCheck(InventoryClickAnalysis parentCheck) {

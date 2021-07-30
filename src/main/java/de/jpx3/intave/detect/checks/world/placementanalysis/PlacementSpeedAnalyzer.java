@@ -4,7 +4,7 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import de.jpx3.intave.IntavePlugin;
-import de.jpx3.intave.detect.IntaveMetaCheckPart;
+import de.jpx3.intave.detect.MetaCheckPart;
 import de.jpx3.intave.detect.checks.world.PlacementAnalysis;
 import de.jpx3.intave.event.bukkit.BukkitEventSubscription;
 import de.jpx3.intave.event.packet.PacketSubscription;
@@ -30,7 +30,7 @@ import static de.jpx3.intave.detect.checks.world.PlacementAnalysis.COMMON_FLAG_M
 import static de.jpx3.intave.event.packet.PacketId.Client.BLOCK_PLACE;
 import static de.jpx3.intave.event.packet.PacketId.Client.USE_ITEM;
 
-public final class PlacementSpeedAnalyzer extends IntaveMetaCheckPart<PlacementAnalysis, PlacementSpeedAnalyzer.PlacementSpeedMeta> {
+public final class PlacementSpeedAnalyzer extends MetaCheckPart<PlacementAnalysis, PlacementSpeedAnalyzer.PlacementSpeedMeta> {
   private final static int CHECK_LENGTH = 8;
   private final static int DIRECTION_EVAL_LENGTH = 5;
 

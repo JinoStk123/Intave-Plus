@@ -11,14 +11,14 @@ import org.bukkit.configuration.InvalidConfigurationException;
 import java.util.*;
 
 public final class CheckConfiguration {
-  private final IntaveCheck check;
+  private final Check check;
   private volatile CheckSettings settingsAccess;
 
-  public CheckConfiguration(IntaveCheck check) {
+  public CheckConfiguration(Check check) {
     this.check = check;
   }
 
-  public IntaveCheck check() {
+  public Check check() {
     return check;
   }
 

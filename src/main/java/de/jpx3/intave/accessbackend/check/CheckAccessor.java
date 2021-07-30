@@ -8,7 +8,7 @@ import de.jpx3.intave.access.check.CheckStatisticsAccess;
 import de.jpx3.intave.access.check.MitigationStrategy;
 import de.jpx3.intave.access.check.UnknownCheckException;
 import de.jpx3.intave.access.player.UnknownPlayerException;
-import de.jpx3.intave.detect.IntaveCheck;
+import de.jpx3.intave.detect.Check;
 import de.jpx3.intave.user.UserRepository;
 import org.bukkit.entity.Player;
 
@@ -31,7 +31,7 @@ public final class CheckAccessor {
     return checkAccessCache.computeIfAbsent(name, x -> newCheckMirrorOf(tryGetCheck(name)));
   }
 
-  private IntaveCheck tryGetCheck(String name) {
+  private Check tryGetCheck(String name) {
     try {
       return plugin.checkService().searchCheck(name);
     } catch (NullPointerException nullptr) {
@@ -41,7 +41,7 @@ public final class CheckAccessor {
 
   private final static Map<String, Double> DEFAULT_RETURN = new HashMap<>();
 
-  private CheckAccess newCheckMirrorOf(IntaveCheck check) {
+  private CheckAccess newCheckMirrorOf(Check check) {
     return new CheckAccess() {
 
       @Override

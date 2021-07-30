@@ -3,7 +3,7 @@ package de.jpx3.intave.detect.checks.combat.heuristics.detection;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import de.jpx3.intave.IntavePlugin;
-import de.jpx3.intave.detect.IntaveMetaCheckPart;
+import de.jpx3.intave.detect.MetaCheckPart;
 import de.jpx3.intave.detect.checks.combat.Heuristics;
 import de.jpx3.intave.detect.checks.combat.heuristics.Anomaly;
 import de.jpx3.intave.detect.checks.combat.heuristics.Confidence;
@@ -20,7 +20,7 @@ import org.bukkit.entity.Player;
 import static de.jpx3.intave.event.packet.PacketId.Client.*;
 import static de.jpx3.intave.reflect.ReflectiveDataWatcherAccess.WATCHER_SNEAK_ID;
 
-public final class PacketPlayerActionToggleHeuristic extends IntaveMetaCheckPart<Heuristics, PacketPlayerActionToggleHeuristic.PacketSprintToggleHeuristicMeta> {
+public final class PacketPlayerActionToggleHeuristic extends MetaCheckPart<Heuristics, PacketPlayerActionToggleHeuristic.PacketSprintToggleHeuristicMeta> {
   private final IntavePlugin plugin;
   private boolean enabled;
 

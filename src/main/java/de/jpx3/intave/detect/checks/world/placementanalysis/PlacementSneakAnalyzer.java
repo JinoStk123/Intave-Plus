@@ -1,7 +1,7 @@
 package de.jpx3.intave.detect.checks.world.placementanalysis;
 
 import de.jpx3.intave.IntavePlugin;
-import de.jpx3.intave.detect.IntaveMetaCheckPart;
+import de.jpx3.intave.detect.MetaCheckPart;
 import de.jpx3.intave.detect.checks.world.PlacementAnalysis;
 import de.jpx3.intave.event.bukkit.BukkitEventSubscription;
 import de.jpx3.intave.event.violation.Violation;
@@ -23,7 +23,7 @@ import java.util.List;
 
 import static de.jpx3.intave.detect.checks.world.PlacementAnalysis.COMMON_FLAG_MESSAGE;
 
-public final class PlacementSneakAnalyzer extends IntaveMetaCheckPart<PlacementAnalysis, PlacementSneakAnalyzer.SneakMeta> {
+public final class PlacementSneakAnalyzer extends MetaCheckPart<PlacementAnalysis, PlacementSneakAnalyzer.SneakMeta> {
   private final static int CHECK_LENGTH = 24;
 
   private final IntavePlugin plugin;

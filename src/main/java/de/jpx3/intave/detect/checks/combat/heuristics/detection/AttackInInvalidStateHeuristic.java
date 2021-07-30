@@ -8,7 +8,7 @@ import com.comphenix.protocol.wrappers.BlockPosition;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import de.jpx3.intave.adapter.MinecraftVersions;
 import de.jpx3.intave.adapter.ProtocolLibraryAdapter;
-import de.jpx3.intave.detect.IntaveMetaCheckPart;
+import de.jpx3.intave.detect.MetaCheckPart;
 import de.jpx3.intave.detect.checks.combat.Heuristics;
 import de.jpx3.intave.detect.checks.combat.heuristics.Anomaly;
 import de.jpx3.intave.detect.checks.combat.heuristics.Confidence;
@@ -26,7 +26,7 @@ import java.lang.reflect.InvocationTargetException;
 import static de.jpx3.intave.event.packet.PacketId.Client.USE_ENTITY;
 import static de.jpx3.intave.user.UserMetaClientData.VER_1_8;
 
-public final class AttackInInvalidStateHeuristic extends IntaveMetaCheckPart<Heuristics, AttackInInvalidStateHeuristic.AttackInInvalidStateMeta> {
+public final class AttackInInvalidStateHeuristic extends MetaCheckPart<Heuristics, AttackInInvalidStateHeuristic.AttackInInvalidStateMeta> {
   public AttackInInvalidStateHeuristic(Heuristics heuristics) {
     super(heuristics, AttackInInvalidStateMeta.class);
   }

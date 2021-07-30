@@ -6,7 +6,7 @@ import de.jpx3.intave.event.entity.WrappedEntity;
 import de.jpx3.intave.event.feedback.Request;
 import de.jpx3.intave.tools.AccessHelper;
 import de.jpx3.intave.tools.Rotation;
-import de.jpx3.intave.tools.annotate.DispatchCrossCall;
+import de.jpx3.intave.tools.annotate.DispatchTarget;
 import de.jpx3.intave.tools.annotate.Relocate;
 import org.bukkit.entity.Player;
 
@@ -48,7 +48,7 @@ public final class UserMetaConnectionData {
     this.player = player;
   }
 
-  @DispatchCrossCall
+  @DispatchTarget
   public void receiveMovement() {
     long now = AccessHelper.now();
     if (this.lastMovementTimestamps != 0) {

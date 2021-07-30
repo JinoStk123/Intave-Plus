@@ -6,7 +6,7 @@ import de.jpx3.intave.accessbackend.IntaveAccessService;
 import de.jpx3.intave.adapter.ComponentLoader;
 import de.jpx3.intave.adapter.ProtocolLibraryAdapter;
 import de.jpx3.intave.adapter.ViaVersionAdapter;
-import de.jpx3.intave.agent.IntaveAgentAccessor;
+import de.jpx3.intave.agent.AgentAccessor;
 import de.jpx3.intave.command.CommandProcessor;
 import de.jpx3.intave.config.ConfigurationService;
 import de.jpx3.intave.connect.customclient.CustomClientSupportService;
@@ -139,7 +139,7 @@ public final class IntavePlugin extends JavaPlugin {
     logger.info("Please stand by..");
     // stage 4
 
-    if (IntaveAgentAccessor.agentAvailable()) {
+    if (AgentAccessor.agentAvailable()) {
       logger.info("Using agent :{~"+"-"+"~}:");
     }
 

@@ -25,10 +25,10 @@ import java.util.*;
 @Relocate
 public final class CheckService {
   private final IntavePlugin plugin;
-  private List<IntaveCheck> checks = new ArrayList<>();
+  private List<Check> checks = new ArrayList<>();
   private List<String> checkNames = new ArrayList<>();
-  private Map<Class<?>, IntaveCheck> classRequestCache = new HashMap<>();
-  private Map<String, IntaveCheck> nameRequestCache = new HashMap<>();
+  private Map<Class<?>, Check> classRequestCache = new HashMap<>();
+  private Map<String, Check> nameRequestCache = new HashMap<>();
 
   public CheckService(IntavePlugin plugin) {
     this.plugin = plugin;
@@ -62,9 +62,9 @@ public final class CheckService {
     removePacketEventSubscriptions();
   }
 
-  public void addCheck(Class<? extends IntaveCheck> checkClass) {
+  public void addCheck(Class<? extends Check> checkClass) {
     try {
-      IntaveCheck check;
+      Check check;
       try {
         checkClass.getConstructor(IntavePlugin.class);
         check = checkClass.getConstructor(IntavePlugin.class).newInstance(plugin);
@@ -77,7 +77,7 @@ public final class CheckService {
     }
   }
 
-  public void addCheck(IntaveCheck check) {
+  public void addCheck(Check check) {
     checks.add(check);
   }
 
@@ -85,7 +85,7 @@ public final class CheckService {
     classRequestCache = new HashMap<>();
     nameRequestCache = new HashMap<>();
     checkNames = new ArrayList<>();
-    for (IntaveCheck check : checks) {
+    for (Check check : checks) {
       checkNames.add(check.name());
       classRequestCache.put(check.getClass(), check);
       nameRequestCache.put(check.name().toLowerCase(Locale.ROOT), check);
@@ -104,11 +104,11 @@ public final class CheckService {
 
   public void linkPacketEventSubscriptions() {
     PacketSubscriptionLinker packetSubscriptionLinker = plugin.packetSubscriptionLinker();
-    for (IntaveCheck check : checks) {
+    for (Check check : checks) {
       if (check.enabled()) {
         packetSubscriptionLinker.linkSubscriptionsIn(check);
       }
-      for (IntaveCheckPart<?> checkPart : check.checkParts()) {
+      for (CheckPart<?> checkPart : check.checkParts()) {
         if (checkPart.enabled()) {
           packetSubscriptionLinker.linkSubscriptionsIn(checkPart);
         }
@@ -118,11 +118,11 @@ public final class CheckService {
 
   public void removePacketEventSubscriptions() {
     PacketSubscriptionLinker packetSubscriptionLinker = plugin.packetSubscriptionLinker();
-    for (IntaveCheck check : checks) {
+    for (Check check : checks) {
       if (check.enabled()) {
         packetSubscriptionLinker.removeSubscriptionsOf(check);
       }
-      for (IntaveCheckPart<?> checkPart : check.checkParts()) {
+      for (CheckPart<?> checkPart : check.checkParts()) {
         if (checkPart.enabled()) {
           packetSubscriptionLinker.removeSubscriptionsOf(checkPart);
         }
@@ -132,11 +132,11 @@ public final class CheckService {
 
   public void linkBukkitEventSubscriptions() {
     BukkitEventLinker bukkitEventLinker = plugin.eventLinker();
-    for (IntaveCheck check : checks) {
+    for (Check check : checks) {
       if (check.enabled()) {
         bukkitEventLinker.registerEventsIn(check);
       }
-      for (IntaveCheckPart<?> checkPart : check.checkParts()) {
+      for (CheckPart<?> checkPart : check.checkParts()) {
         if (checkPart.enabled()) {
           bukkitEventLinker.registerEventsIn(checkPart);
         }
@@ -146,11 +146,11 @@ public final class CheckService {
 
   public void removeBukkitEventSubscriptions() {
     BukkitEventLinker bukkitEventLinker = plugin.eventLinker();
-    for (IntaveCheck check : checks) {
+    for (Check check : checks) {
       if (check.enabled()) {
         bukkitEventLinker.unregisterEventsIn(check);
       }
-      for (IntaveCheckPart<?> checkPart : check.checkParts()) {
+      for (CheckPart<?> checkPart : check.checkParts()) {
         if (checkPart.enabled()) {
           bukkitEventLinker.unregisterEventsIn(checkPart);
         }
@@ -158,10 +158,10 @@ public final class CheckService {
     }
   }
 
-  public <T extends IntaveCheck> T searchCheck(Class<T> checkClass) {
-    IntaveCheck check = classRequestCache.get(checkClass);
+  public <T extends Check> T searchCheck(Class<T> checkClass) {
+    Check check = classRequestCache.get(checkClass);
     if (check == null) {
-      for (IntaveCheck intaveCheck : checks) {
+      for (Check intaveCheck : checks) {
         if (intaveCheck.getClass() == checkClass) {
           //noinspection unchecked
           return (T) intaveCheck;
@@ -173,10 +173,10 @@ public final class CheckService {
     return (T) check;
   }
 
-  public <T extends IntaveCheck> T searchCheck(String checkName) {
-    IntaveCheck check = nameRequestCache.get(checkName.toLowerCase());
+  public <T extends Check> T searchCheck(String checkName) {
+    Check check = nameRequestCache.get(checkName.toLowerCase());
     if (check == null) {
-      for (IntaveCheck intaveCheck : checks) {
+      for (Check intaveCheck : checks) {
         if (intaveCheck.name().equalsIgnoreCase(checkName)) {
           //noinspection unchecked
           return (T) intaveCheck;
@@ -212,7 +212,7 @@ public final class CheckService {
     return checkNames;
   }
 
-  public List<IntaveCheck> checks() {
+  public List<Check> checks() {
     return checks;
   }
 }

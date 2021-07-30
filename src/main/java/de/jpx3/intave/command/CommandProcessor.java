@@ -15,15 +15,15 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public final class CommandProcessor implements CommandExecutor, TabCompleter {
-  private final CommandStage rootCommandStage = IntaveCommandStage.singletonInstance();
+  private final CommandStage rootCommandStage = BaseStage.singletonInstance();
 
   static {
-    IntaveCommandStage.singletonInstance();
-    IntaveInternalsStage.singletonInstance();
-    IntaveBotStage.singletonInstance();
-    IntaveRootStage.singletonInstance();
-    IntaveDiagnosticsStage.singletonInstance();
-    IntaveProxyStage.singletonInstance();
+    BaseStage.singletonInstance();
+    InternalsStage.singletonInstance();
+    BotStage.singletonInstance();
+    RootStage.singletonInstance();
+    DiagnosticsStage.singletonInstance();
+    ProxyStage.singletonInstance();
   }
 
   @Override

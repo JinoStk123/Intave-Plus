@@ -2,7 +2,7 @@ package de.jpx3.intave.detect.checks.combat.heuristics.detection;
 
 import com.comphenix.protocol.events.PacketEvent;
 import de.jpx3.intave.IntavePlugin;
-import de.jpx3.intave.detect.IntaveMetaCheckPart;
+import de.jpx3.intave.detect.MetaCheckPart;
 import de.jpx3.intave.detect.checks.combat.Heuristics;
 import de.jpx3.intave.detect.checks.combat.heuristics.Anomaly;
 import de.jpx3.intave.detect.checks.combat.heuristics.Confidence;
@@ -18,7 +18,7 @@ import org.bukkit.util.Vector;
 
 import static de.jpx3.intave.event.packet.PacketId.Client.*;
 
-public final class ReshapedJumpHeuristic extends IntaveMetaCheckPart<Heuristics, ReshapedJumpHeuristic.ReshapedJumpHeuristicMeta> {
+public final class ReshapedJumpHeuristic extends MetaCheckPart<Heuristics, ReshapedJumpHeuristic.ReshapedJumpHeuristicMeta> {
   private final IntavePlugin plugin;
 
   public ReshapedJumpHeuristic(Heuristics parentCheck) {
