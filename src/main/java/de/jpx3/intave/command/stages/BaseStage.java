@@ -165,11 +165,8 @@ public final class BaseStage extends CommandStage {
     if (!hasVersionViewPermission) {
       version = "(version hidden)";
     } else if (versionInformation != null) {
-      version = IntavePlugin.version() + " (" + DurationTranslator.translateDuration(AccessHelper.now() - versionInformation.release()) + " old";
-      if (versionInformation.typeClassifier() == Version.Status.OUTDATED) {
-        version += " and outdated";
-      }
-      version += ")";
+      boolean outdated = versionInformation.typeClassifier() == Version.Status.OUTDATED;
+      version = IntavePlugin.version() + " (" + (outdated ? "outdated, " : "") + DurationTranslator.translateDuration(AccessHelper.now() - versionInformation.release()) + " old)";
     } else {
       version = IntavePlugin.version() + " (unlisted)";
     }

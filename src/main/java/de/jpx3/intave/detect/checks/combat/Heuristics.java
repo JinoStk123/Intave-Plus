@@ -207,8 +207,9 @@ public final class Heuristics extends MetaCheck<Heuristics.HeuristicMeta> {
   }
 
   public List<Anomaly> catchAnomaliesOf(User user, boolean delay) {
-    List<Anomaly> anomalies = new ArrayList<>(metaOf(user).anomalies);
+    List<Anomaly> anomalies = metaOf(user).anomalies;
     anomalies.removeIf(Anomaly::expired);
+    anomalies = new ArrayList<>(anomalies);
     if (delay) {
       // filter non active (delay)
       anomalies.removeIf(anomaly -> !anomaly.active());

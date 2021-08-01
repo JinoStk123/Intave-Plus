@@ -19,7 +19,7 @@ public final class WalkingMovement extends Movement {
     } else {
       expectedLocation.add(this.velocityX, 0.0, this.velocityZ);
     }
-    double distance = this.location.distance(expectedLocation);
+    double distance = safeDistance(location, expectedLocation);//this.location.distance(expectedLocation);
     if (this.prevLocation != null) {
       calculateMovement(expectedLocation, distance);
     }

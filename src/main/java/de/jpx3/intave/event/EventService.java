@@ -89,7 +89,8 @@ public final class EventService implements BukkitEventSubscriber {
         String durationAsString = DurationTranslator.translateDuration(duration);
 
         sendPrefixedMessage(ChatColor.RED + "This server is running an outdated version of Intave ("+durationAsString+" old)", player);
-        sendPrefixedMessage(ChatColor.RED + "I hope you know why updating your *security* software might be important.", player);
+        sendPrefixedMessage(ChatColor.RED + "Too lazy? Use IntaveBootstrap instead and stay up-to-date", player);
+        sendPrefixedMessage(ChatColor.RED + "We hope you understand why updating your *security* software might be important.", player);
       }
     }
   }

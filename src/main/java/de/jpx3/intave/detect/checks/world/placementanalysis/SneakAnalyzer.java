@@ -11,6 +11,7 @@ import de.jpx3.intave.tools.GarbageCollector;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserCustomCheckMeta;
 import de.jpx3.intave.user.UserMetaMovementData;
+import de.jpx3.intave.user.UserMetaPotionData;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -38,7 +39,9 @@ public final class SneakAnalyzer extends MetaCheckPart<PlacementAnalysis, SneakA
     Player player = place.getPlayer();
     User user = userOf(player);
     SneakMeta meta = metaOf(user);
-    UserMetaMovementData movementData = user.meta().movementData();
+    User.UserMeta userMeta = user.meta();
+    UserMetaMovementData movementData = userMeta.movementData();
+    UserMetaPotionData potionData = userMeta.potionData();
     Block block = place.getBlockPlaced();
     Block blockAgainst = place.getBlockAgainst();
     if (blockUnderPlayer(block, player) && blockCollisions(block) < 2) {
@@ -56,7 +59,13 @@ public final class SneakAnalyzer extends MetaCheckPart<PlacementAnalysis, SneakA
         double average = placementSpeedHistory.stream().mapToDouble(value -> value).average().orElse(500);
         boolean inOneLine = isOneLine(meta.placementHistory);
         boolean noSneaking = AccessHelper.now() - movementData.lastSneakingTimestamps > 8000;
-        if (average < 500 && inOneLine && noSneaking) {
+
+        double limit = 500;
+
+        int speedAmplifier = potionData.potionEffectSpeedAmplifier();
+        limit /= 0.15 * speedAmplifier * speedAmplifier + 1;
+
+        if (average < limit && inOneLine && noSneaking) {
           Violation violation = Violation.builderFor(PlacementAnalysis.class)
             .forPlayer(player).withDefaultThreshold()
             .withMessage(COMMON_FLAG_MESSAGE)
