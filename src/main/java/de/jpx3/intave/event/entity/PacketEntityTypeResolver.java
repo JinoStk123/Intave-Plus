@@ -17,8 +17,10 @@ import de.jpx3.intave.reflect.hitbox.HitBoxBoundaries;
 import de.jpx3.intave.reflect.hitbox.ReflectiveEntityHitBoxAccess;
 import de.jpx3.intave.reflect.hitbox.typeaccess.DualEntityTypeAccess;
 import de.jpx3.intave.reflect.hitbox.typeaccess.EntityTypeData;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Zombie;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -223,6 +225,16 @@ public final class PacketEntityTypeResolver {
   public EntityTypeData entityTypeDataOfBukkitEntity(Entity entity) {
     HitBoxBoundaries hitBoxBoundaries = hitBoxBoundariesByBukkitEntity(entity);
     String name = entityNameByBukkitEntity(entity);
+
+    if(entity.getType() == EntityType.ZOMBIE || entity.getType() == EntityType.PIG_ZOMBIE) {
+      Zombie zombie = (Zombie) entity;
+      if(zombie.isBaby()) {
+        Bukkit.broadcastMessage("baby zombie");
+        // setting the hitbox of the zombie to a normal zombie hitbox which is the same as a player hitbox
+        hitBoxBoundaries = HitBoxBoundaries.player();
+      }
+    }
+
     return new EntityTypeData(name, hitBoxBoundaries, entity.getType().getTypeId(), !entity.isDead());
   }
 
