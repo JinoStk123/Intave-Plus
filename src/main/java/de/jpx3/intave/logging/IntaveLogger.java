@@ -182,8 +182,8 @@ public final class IntaveLogger {
         printWriter.close();
       }
       this.printWriter = new PrintWriter(new FileWriter(activeFile, true));
-    } catch (IOException e) {
-      e.printStackTrace();
+    } catch (IOException exception) {
+      throw new IllegalStateException("Unable to create log file " + activeFileName, exception);
     }
   }
 

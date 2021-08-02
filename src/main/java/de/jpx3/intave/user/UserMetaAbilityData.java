@@ -1,15 +1,26 @@
 package de.jpx3.intave.user;
 
+import com.comphenix.protocol.PacketType;
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.events.PacketContainer;
+import com.comphenix.protocol.wrappers.WrappedAttribute;
+import com.comphenix.protocol.wrappers.WrappedAttributeModifier;
 import de.jpx3.intave.access.IntaveInternalException;
 import de.jpx3.intave.event.dispatch.PlayerAbilityEvaluator;
 import de.jpx3.intave.tools.annotate.Relocate;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 
-import java.util.Arrays;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Predicate;
 
 @Relocate
 public final class UserMetaAbilityData {
+  private static final UUID SPEED_MODIFIER_SPRINTING_UUID = UUID.fromString("662A6B8D-DA3E-4C1C-8813-96EA6097278D");
+  public final static Predicate<WrappedAttributeModifier> EXCLUDE_SPRINT_MODIFIER = modifier -> !modifier.getUUID().equals(SPEED_MODIFIER_SPRINTING_UUID);
+
   private final Player player;
   private boolean flying;
   private boolean allowFlying;
@@ -19,6 +30,9 @@ public final class UserMetaAbilityData {
 
   private float flySpeed = 0.05f;
   private float walkSpeed = 0.1f;
+
+  private final Map<WrappedAttribute, List<WrappedAttributeModifier>> attributeModifiers = new ConcurrentHashMap<>();
+
   public float unsynchronizedHealth;
   public float health;
   public int ticksToLastHealthUpdate;
@@ -36,6 +50,8 @@ public final class UserMetaAbilityData {
 
       this.walkSpeed = player.getWalkSpeed() / 2.0f;
       this.flySpeed = player.getFlySpeed() / 2.0f;
+
+      setupAttributes();
     } else {
       this.allowFlying = this.flying = false;
       this.health = 20.0f;
@@ -53,6 +69,55 @@ public final class UserMetaAbilityData {
       .findFirst()
       .orElse(PlayerAbilityEvaluator.GameMode.NOT_SET);
     this.pendingGameMode = this.gameMode;
+  }
+
+  public void setupAttributes() {
+    PacketContainer packet = ProtocolLibrary.getProtocolManager().createPacket(PacketType.Play.Server.UPDATE_ATTRIBUTES);
+    attributeModifiers.put(WrappedAttribute.newBuilder().attributeKey("generic.movementSpeed").baseValue(0.1).packet(packet).build(), new CopyOnWriteArrayList<>());
+  }
+
+  public double attributeValue(String key) {
+    return attributeValue(key, x -> true);
+  }
+
+  public double attributeValue(String key, Predicate<WrappedAttributeModifier> filter) {
+    for (Map.Entry<WrappedAttribute, List<WrappedAttributeModifier>> wrappedAttributeListEntry : attributeModifiers.entrySet()) {
+      WrappedAttribute attribute = wrappedAttributeListEntry.getKey();
+      if (attribute.getAttributeKey().equals(key)) {
+        List<WrappedAttributeModifier> modifiers = wrappedAttributeListEntry.getValue();
+        if (!modifiers.isEmpty()) {
+          modifiers = new ArrayList<>(modifiers);
+          modifiers.removeIf(filter.negate());
+          attribute = attribute.withModifiers(modifiers);
+        }
+        return attribute.getFinalValue();
+      }
+    }
+    return Double.NaN;
+  }
+
+  public List<WrappedAttributeModifier> modifiersOf(WrappedAttribute attribute) {
+    attribute = attribute.withModifiers(Collections.emptyList());
+    return attributeModifiers.computeIfAbsent(attribute, x -> new CopyOnWriteArrayList<>());
+  }
+
+  public WrappedAttribute findAttribute(String key) {
+    for (WrappedAttribute wrappedAttribute : attributeModifiers.keySet()) {
+      if (wrappedAttribute.getAttributeKey().equals(key)) {
+        return wrappedAttribute;
+      }
+    }
+    return null;
+  }
+
+  public void modifyBaseValue(String key, double baseValue) {
+    WrappedAttribute attribute = findAttribute(key);
+    if (attribute != null) {
+      List<WrappedAttributeModifier> modifiers = modifiersOf(attribute);
+      attributeModifiers.remove(attribute);
+      attribute = WrappedAttribute.newBuilder(attribute).baseValue(baseValue).build();
+      attributeModifiers.put(attribute, modifiers);
+    }
   }
 
   public boolean inGameModeIncludePending(PlayerAbilityEvaluator.GameMode gameMode) {
@@ -79,10 +144,6 @@ public final class UserMetaAbilityData {
     return allowFlying;
   }
 
-  public float walkSpeed() {
-    return walkSpeed;
-  }
-
   public float flySpeed() {
     return flySpeed;
   }
@@ -96,7 +157,7 @@ public final class UserMetaAbilityData {
   }
 
   public void setWalkSpeed(float walkSpeed) {
-    this.walkSpeed = walkSpeed;
+    modifyBaseValue("generic.movementSpeed", walkSpeed);
   }
 
   public void setFlySpeed(float flySpeed) {

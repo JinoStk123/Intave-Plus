@@ -90,7 +90,14 @@ public final class Heuristics extends MetaCheck<Heuristics.HeuristicMeta> {
   }
 
   public void saveAnomaly(Player player, Anomaly anomaly) {
-    metaOf(player).anomalies.add(anomaly);
+    if (anomaly.confidence().level() > Confidence.NONE.level()) {
+      HeuristicMeta meta = metaOf(player);
+      int limit = anomaly.limit();
+      int betterFound = (int) meta.anomalies.stream().filter(anomaly1 -> anomaly1.key().equals(anomaly.key())).filter(anomaly1 -> anomaly1.confidence().atLeast(anomaly.confidence())).count();
+      if (betterFound <= limit) {
+        meta.anomalies.add(anomaly);
+      }
+    }
     Synchronizer.synchronize(() -> debug(player, anomaly));
   }
 
@@ -219,6 +226,8 @@ public final class Heuristics extends MetaCheck<Heuristics.HeuristicMeta> {
   }
 
   public List<Confidence> resolveConfidencesOf(List<Anomaly> anomalies) {
+    anomalies.sort(Comparator.comparingDouble(value -> value.confidence().level()));
+    Collections.reverse(anomalies);
     Map<String, Integer> types = new HashMap<>();
     List<Confidence> allConfidences = new ArrayList<>();
     for (Anomaly existingAnomaly : anomalies) {

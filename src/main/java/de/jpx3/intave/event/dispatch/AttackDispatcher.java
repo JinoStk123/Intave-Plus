@@ -88,6 +88,12 @@ public final class AttackDispatcher implements EventProcessor {
 
     if (action == EnumWrappers.EntityUseAction.ATTACK) {
       attackData.setLastAttackedEntityID(entityId);
+
+//      if (entity.isEntityLiving) {
+//        movementData.sprintReset();
+//        movementData.setSprinting(false);
+//      }
+
       if (entity.player) {
         movementData.pastPlayerAttackPhysics = 0;
         if (knockbackEnchantment) {

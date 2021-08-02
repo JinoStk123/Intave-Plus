@@ -93,7 +93,7 @@ public final class FakePlayer extends FakePlayerBody {
   }
 
   public void startTicking() {
-    this.taskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, this::tick, 0, 1);
+    this.taskId = Bukkit.getScheduler().scheduleAsyncRepeatingTask(plugin, this::tick, 0, 1);
   }
 
   public void stopTicking() {

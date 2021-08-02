@@ -54,6 +54,7 @@ public final class EventService implements BukkitEventSubscriber {
     this.reconDelayLimiter = new ReconDelayLimiter(plugin);
     new UserRepositoryEventListener(plugin);
     new AttackDispatcher(plugin);
+    new AttributeDispatcher(plugin);
     new BlockActionDispatcher(plugin);
     new MovementDispatcher(plugin);
     new PotionEffectEvaluator(plugin);

@@ -91,7 +91,7 @@ public final class RotationSensitivityHeuristic extends MetaCheckPart<Heuristics
               "113",
               Confidence.NONE,
               Anomaly.Type.KILLAURA,
-              "rotation speeds have too few decimals, vl:" + (heuristicMeta.decimalSpeedVL / 200.0),
+              "rotations have too few decimals, vl:" + (heuristicMeta.decimalSpeedVL / 200.0),
               LIMIT_2 | DELAY_16s | SUGGEST_MINING
             )
           );
@@ -137,15 +137,15 @@ public final class RotationSensitivityHeuristic extends MetaCheckPart<Heuristics
       if (pitchDifference > 1.0) {
         heuristicMeta.sensitivityVL += pitchDifference > 5 ? 10 : 5;
       }
-      if (heuristicMeta.sensitivityVL % 100 == 0 && heuristicMeta.sensitivityVL > 0) {
+      if ((int) Math.round(heuristicMeta.sensitivityVL / 2d) % 50 == 0 && heuristicMeta.sensitivityVL > 0) {
         parentCheck().saveAnomaly(
           player,
           Anomaly.anomalyOf(
             "112",
-            Confidence.NONE,
+            heuristicMeta.sensitivityVL >= 400 ? Confidence.PROBABLE : Confidence.NONE,
             Anomaly.Type.KILLAURA,
-            "gcd vl:" + heuristicMeta.sensitivityVL,
-            SUGGEST_MINING
+            "rotations are out of sync (gcd vl:" + heuristicMeta.sensitivityVL + ")",
+            SUGGEST_MINING | LIMIT_2
           )
         );
         if (heuristicMeta.sensitivityVL > 300) {

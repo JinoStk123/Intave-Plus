@@ -42,7 +42,7 @@ public final class MovementContext {
         WrappedMathHelper.floor(positionZ)
       );
       float slipperiness = currentSlipperiness(user, location);
-      float var4 = 0.16277136f / (slipperiness * slipperiness * slipperiness);
+      float var4 = movementData.frictionMultiplier() / (slipperiness * slipperiness * slipperiness);
       speed = movementData.aiMoveSpeed() * var4;
     } else {
       speed = movementData.jumpMovementFactor();

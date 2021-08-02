@@ -317,6 +317,9 @@ public abstract class FakePlayerBody extends FakePlayerIdentity {
   }
 
   private void send(PacketContainer packet) {
+    if (threadEscape(() -> send(packet))) {
+      return;
+    }
     try {
       ProtocolLibrary.getProtocolManager().sendServerPacket(this.observer, packet);
     } catch (InvocationTargetException e) {

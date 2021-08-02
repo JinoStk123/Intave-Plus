@@ -125,7 +125,8 @@ public final class Timer extends MetaCheck<Timer.TimerData> {
       if (violationContext.shouldCounterThreat()) {
         UserMetaMovementData movementData = user.meta().movementData();
         movementData.invalidMovement = true;
-        plugin.eventService().emulationEngine().emulationSetBack(player, new Vector(movementData.physicsMotionX, movementData.physicsMotionY, movementData.physicsMotionZ), 12, false);
+        Vector setback = new Vector(movementData.physicsMotionX, movementData.physicsMotionY, movementData.physicsMotionZ);
+        plugin.eventService().emulationEngine().emulationSetBack(player, setback, 12, false);
       }
       timerData.lastTimerFlag = AccessHelper.now();
       timerData.timerBalance -= highToleranceMode || timerData.timerBalance > overflowLimit ? 2.5 : 0.5;

@@ -1,12 +1,16 @@
 package de.jpx3.intave.event.entity;
 
+import com.comphenix.protocol.events.InternalStructure;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
+import com.comphenix.protocol.reflect.StructureModifier;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.adapter.MinecraftVersions;
 import de.jpx3.intave.event.packet.ListenerPriority;
 import de.jpx3.intave.event.packet.PacketEventSubscriber;
 import de.jpx3.intave.event.packet.PacketSubscription;
+
+import java.util.Optional;
 
 import static de.jpx3.intave.event.packet.PacketId.Server.SCOREBOARD_TEAM;
 
@@ -51,6 +55,8 @@ public final class EntityNoCollisionService implements PacketEventSubscriber {
 //    disableCollisions(player, packet.getUUIDs().read(0).toString());
 //  }
 
+  private static final boolean INDIRECT_SCOREBOARD_ACCESS = MinecraftVersions.VER1_17_0.atOrAbove();
+
   @PacketSubscription(
     priority = ListenerPriority.HIGHEST,
     packetsOut = {
@@ -59,10 +65,15 @@ public final class EntityNoCollisionService implements PacketEventSubscriber {
   )
   public void receiveScoreboardUpdate(PacketEvent event) {
     PacketContainer packet = event.getPacket();
-    packet.getStrings().write(COLLISION_RULE_FIELD, "never");
+    if (INDIRECT_SCOREBOARD_ACCESS) {
+      Optional<InternalStructure> optionalStructure = packet.getOptionalStructures().read(0);
+      optionalStructure.ifPresent(internalStructure -> applyNoCollisionRule(internalStructure.getStrings()));
+    } else {
+      applyNoCollisionRule(packet.getStrings());
+    }
   }
 
-//  private void disableCollisions(Player player, String entityScoreboardName) {
-//    Synchronizer.synchronize(() -> ReflectiveScoreboardAccess.applyNoCollisionRule(player, SCOREBOARD_NAME, entityScoreboardName));
-//  }
+  private void applyNoCollisionRule(StructureModifier<String> strings) {
+    strings.write(COLLISION_RULE_FIELD, "never");
+  }
 }

@@ -4,8 +4,6 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.reflect.StructureModifier;
-import com.comphenix.protocol.wrappers.WrappedAttribute;
-import com.comphenix.protocol.wrappers.WrappedAttributeModifier;
 import com.comphenix.protocol.wrappers.WrappedWatchableObject;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.adapter.MinecraftVersions;
@@ -43,7 +41,6 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.util.Vector;
 
 import java.util.List;
-import java.util.UUID;
 
 import static de.jpx3.intave.event.packet.PacketId.Client.POSITION;
 import static de.jpx3.intave.event.packet.PacketId.Client.VEHICLE_MOVE;
@@ -160,49 +157,6 @@ public final class MovementDispatcher implements EventProcessor {
     movementData.rotationPitch = location.getPitch();
   }
 
-  private final static UUID ATTRIBUTE_UUID = UUID.fromString("87f46a96-686f-4796-b035-22e16ee9e038");
-
-  @PacketSubscription(
-    priority = ListenerPriority.HIGH,
-    packetsOut = {
-      UPDATE_ATTRIBUTES
-    }
-  )
-  public void sentAttributes(PacketEvent event) {
-    Player player = event.getPlayer();
-    User user = UserRepository.userOf(player);
-    UserMetaMovementData movementData = user.meta().movementData();
-    WrappedAttribute attribute = genericMovementSpeedAttributeOf(event.getPacket());
-    PacketContainer packet = event.getPacket();
-    Integer entityID = packet.getIntegers().read(0);
-    if (attribute == null || entityID != player.getEntityId()) {
-      return;
-    }
-    boolean found = false;
-    for (WrappedAttributeModifier modifier : attribute.getModifiers()) {
-      UUID uuid = modifier.getUUID();
-      if (uuid.equals(ATTRIBUTE_UUID)) {
-        Callback<Object> callback = (player1, target) -> movementData.genericMovementSpeedAttribute = (float) modifier.getAmount();
-        plugin.eventService().feedback().singleSynchronize(player, new Object(), callback);
-        found = true;
-      }
-    }
-    if (!found) {
-      Callback<Object> callback = (player1, target) -> movementData.genericMovementSpeedAttribute = 0;
-      plugin.eventService().feedback().singleSynchronize(player, new Object(), callback);
-    }
-  }
-
-  private WrappedAttribute genericMovementSpeedAttributeOf(PacketContainer packet) {
-    List<WrappedAttribute> attributes = packet.getAttributeCollectionModifier().read(0);
-    for (WrappedAttribute attribute : attributes) {
-      if (attribute.getAttributeKey().equals("generic.movement_speed")) {
-        return attribute;
-      }
-    }
-    return null;
-  }
-
   @PacketSubscription(
     priority = ListenerPriority.HIGH,
     packetsOut = {
@@ -232,7 +186,7 @@ public final class MovementDispatcher implements EventProcessor {
       .feedback()
       .singleSynchronize(player, user.meta().movementData(), (p, movementData) -> {
         movementData.sneaking = false;
-        movementData.sprinting = false;
+        movementData.setSprinting(false);
         movementData.physicsMotionX = 0;
         movementData.physicsMotionY = 0;
         movementData.physicsMotionZ = 0;
@@ -701,11 +655,11 @@ public final class MovementDispatcher implements EventProcessor {
     switch (playerAction) {
       case START_SPRINTING:
         if (allowSprinting(player)) {
-          movementData.sprinting = true;
+          movementData.setSprinting(true);
         }
         break;
       case STOP_SPRINTING:
-        movementData.sprinting = false;
+        movementData.setSprinting(false);
         break;
       case PRESS_SHIFT_KEY:
       case START_SNEAKING:

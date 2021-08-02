@@ -143,7 +143,7 @@ public final class RotationAccuracyYawHeuristic extends MetaCheckPart<Heuristics
       heuristicMeta.bitBoxCornerBalance = (int) MathHelper.minmax(0, heuristicMeta.bitBoxCornerBalance + increase, 100);
       if (heuristicMeta.bitBoxCornerBalance > 30) {
         long lastDetection = AccessHelper.now() - heuristicMeta.lastHARYAnomaly;
-        int options = SUGGEST_MINING | DELAY_16s;
+        int options = SUGGEST_MINING | DELAY_16s | LIMIT_2;
         Confidence confidence = lastDetection < 2000 ? Confidence.LIKELY : Confidence.PROBABLE;
         Anomaly anomaly = Anomaly.anomalyOf("85", confidence, Anomaly.Type.KILLAURA, "high accuracy rotation yaw on hit-box corners", options);
         parentCheck().saveAnomaly(player, anomaly);

@@ -71,6 +71,18 @@ public final class FeedbackService implements PacketEventSubscriber {
     Callback<T> firstCallback, Callback<T> secondCallback,
     int options
   ) {
+    if (!Bukkit.isPrimaryThread()) {
+      if (TransactionOptions.matches(SELF_SYNCHRONIZATION, options)) {
+        Synchronizer.synchronize(() -> doubleSynchronize(player, encapsulate, target, firstCallback, secondCallback, options));
+      } else {
+        IntaveLogger.logger().error("Can't perform tick-validation off main thread");
+        IntaveLogger.logger().error("Please check if you sent a packet / performed a bukkit player action asynchronously in the following trace:");
+        Thread.dumpStack();
+        firstCallback.success(player, target);
+        secondCallback.success(player, target);
+      }
+      return;
+    }
     User user = UserRepository.userOf(player);
     if (user == null || !user.hasOnlinePlayer()) {
       return;

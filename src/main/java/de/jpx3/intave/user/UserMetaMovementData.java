@@ -86,6 +86,7 @@ public final class UserMetaMovementData {
   private double jumpMotion;
   private int pastClientFlyingPacket, pastFlyingPacketAccurate;
   private float aiMoveSpeed, jumpMovementFactor;
+  public float frictionMultiplier;
   public float genericMovementSpeedAttribute;
   @Nullable
   public WrappedFluid interactingFluid;
@@ -165,9 +166,11 @@ public final class UserMetaMovementData {
 
   private void setupDefaults() {
     UserMetaClientData clientData = user.meta().clientData();
-    this.resetMotion = clientData.protocolVersion() <= 47 ? 0.005 : 0.003;
-    this.frictionPosSubtraction = clientData.protocolVersion() <= VER_1_15 ? 1.0 : 0.5000001;
-    this.hasJumpFactor = clientData.protocolVersion() >= VER_1_15;
+    int version = clientData.protocolVersion();
+    this.resetMotion = version <= 47 ? 0.005 : 0.003;
+    this.frictionMultiplier = version <= VER_1_15 ? 0.16277136f : 0.16277137F;
+    this.frictionPosSubtraction = version <= VER_1_15 ? 1.0 : 0.5000001;
+    this.hasJumpFactor = version >= VER_1_15;
     Location location = player.getLocation();
     boundingBox = WrappedAxisAlignedBB.createFromPosition(user, location.getX(), location.getY(), location.getZ());
     boundingBoxSetup = true;
@@ -404,19 +407,23 @@ public final class UserMetaMovementData {
   }
 
   private void updateMovementMetaData() {
-    UserMetaAbilityData abilityData = user.meta().abilityData();
-    UserMetaPotionData potionData = user.meta().potionData();
+    User.UserMeta meta = user.meta();
+    UserMetaAbilityData abilityData = meta.abilityData();
+//    UserMetaPotionData potionData = meta.potionData();
 
-    aiMoveSpeed = abilityData.walkSpeed();
+//    aiMoveSpeed = abilityData.walkSpeed();
     jumpMovementFactor = 0.02f;
-    float slowdownAmplifier = potionData.potionEffectSlownessAmplifier();
-    float speedAmplifier = potionData.potionEffectSpeedAmplifier();
-    aiMoveSpeed *= 1f + (-0.15f * slowdownAmplifier);
-    aiMoveSpeed *= 1f + (0.2f * speedAmplifier);
-    aiMoveSpeed += genericMovementSpeedAttribute;
+//    float slowdownAmplifier = potionData.potionEffectSlownessAmplifier();
+//    float speedAmplifier = potionData.potionEffectSpeedAmplifier();
+//    aiMoveSpeed *= 1f + (-0.15f * slowdownAmplifier);
+//    aiMoveSpeed *= 1f + (0.2f * speedAmplifier);
+//    aiMoveSpeed += genericMovementSpeedAttribute;
+    aiMoveSpeed = (float) abilityData.attributeValue("generic.movementSpeed", UserMetaAbilityData.EXCLUDE_SPRINT_MODIFIER);
+    // handle sprinting externally
     if (sprintingAllowed) {
       aiMoveSpeed *= 1.3f;
     }
+
     if (lastSprinting) {
       jumpMovementFactor = (float) ((double) jumpMovementFactor + (double) 0.02f * 0.3d);
     }
@@ -496,11 +503,33 @@ public final class UserMetaMovementData {
 
   public void sprintReset() {
     UserMetaInventoryData inventoryData = user.meta().inventoryData();
+    // really required
     if (player.getFoodLevel() >= 6 && !inventoryData.inventoryOpen()) {
       ReflectiveDataWatcherAccess.setDataWatcherFlag(player, ReflectiveDataWatcherAccess.WATCHER_SPRINT_ID, false);
       sprintResetNextTick = true;
     }
   }
+
+  public void setSprinting(boolean sprinting) {
+    this.sprinting = sprinting;
+//    applySprintingAttribute(user, sprinting);
+  }
+
+//  private static final UUID SPEED_MODIFIER_SPRINTING_UUID = UUID.fromString("662A6B8D-DA3E-4C1C-8813-96EA6097278D");
+//  private final static WrappedAttributeModifier SPEED_MODIFIER_SPRINTING = WrappedAttributeModifier.newBuilder(SPEED_MODIFIER_SPRINTING_UUID).name("Sprinting speed boost").amount(0.3F).operation(WrappedAttributeModifier.Operation.ADD_PERCENTAGE).build();
+//
+//  private void applySprintingAttribute(User user, boolean sprintToggle) {
+//    UserMetaAbilityData abilityData = user.meta().abilityData();
+//    WrappedAttribute attribute = abilityData.findAttribute("generic.movementSpeed");
+//    player.sendMessage("Manual attribute update");
+//    if (attribute != null) {
+//      List<WrappedAttributeModifier> attributeModifiers = abilityData.modifiersOf(attribute);
+//      attributeModifiers.removeIf(attributeModifier -> attributeModifier.getUUID().equals(SPEED_MODIFIER_SPRINTING_UUID));
+//      if (sprintToggle) {
+//        attributeModifiers.add(SPEED_MODIFIER_SPRINTING);
+//      }
+//    }
+//  }
 
   public void dismountRidingEntity() {
     if (!hasRidingEntity()) {
@@ -607,6 +636,10 @@ public final class UserMetaMovementData {
 
   public float friction() {
     return friction;
+  }
+
+  public float frictionMultiplier() {
+    return frictionMultiplier;
   }
 
   public float yawSine() {

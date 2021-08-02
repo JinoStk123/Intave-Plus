@@ -499,6 +499,7 @@ public final class Physics extends Check {
       if (!IntaveControl.IGNORE_CACHE_REFRESH_ON_SIMULATION_FAULT) {
         blockShapeAccess.identityInvalidate();
       }
+      // resend attributes
       statisticApply(user, CheckStatistics::increaseFails);
     } else {
       violationLevelData.physicsInvalidMovementsInRow = 0;
@@ -607,6 +608,7 @@ public final class Physics extends Check {
       debug += "(" + key + ")";
       debug += " " + violationLevelInfo;
 
+      debug += " (sprint " + movementData.sprinting + ")";
 //      debug += " (sneak " + movementData.sneaking + "/"+movementData.actualSneaking()+")";
 //      debug += " (size:" + movementData.width + "," + movementData.height + ")";
 //      debug += "handActive=" + inventoryData.handActive();
@@ -633,7 +635,7 @@ public final class Physics extends Check {
       if (velocityDetected) {
         tags.add("velocity?");
       }
-      tags.add("riding:" + movementData.hasRidingEntity());
+//      tags.add("riding:" + movementData.hasRidingEntity());
 
       debug += " " + String.join(" ", tags);
       String finalDebug = debug;
