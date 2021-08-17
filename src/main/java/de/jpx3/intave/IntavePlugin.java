@@ -18,7 +18,6 @@ import de.jpx3.intave.detect.CheckService;
 import de.jpx3.intave.diagnostics.report.RuntimeDiagnostics;
 import de.jpx3.intave.event.CustomEventService;
 import de.jpx3.intave.event.EventService;
-import de.jpx3.intave.event.violation.ViolationProcessor;
 import de.jpx3.intave.executor.BackgroundExecutor;
 import de.jpx3.intave.executor.Synchronizer;
 import de.jpx3.intave.fakeplayer.event.FakePlayerEventService;
@@ -36,6 +35,7 @@ import de.jpx3.intave.reflect.locate.Locator;
 import de.jpx3.intave.resource.EncryptedResource;
 import de.jpx3.intave.security.*;
 import de.jpx3.intave.security.blacklist.BlackListService;
+import de.jpx3.intave.security.letis.Letis;
 import de.jpx3.intave.tools.Shutdown;
 import de.jpx3.intave.tools.*;
 import de.jpx3.intave.tools.client.SinusCache;
@@ -45,6 +45,7 @@ import de.jpx3.intave.tools.version.Version;
 import de.jpx3.intave.tools.version.VersionList;
 import de.jpx3.intave.trustfactor.TrustFactorService;
 import de.jpx3.intave.user.UserRepository;
+import de.jpx3.intave.violation.ViolationProcessor;
 import de.jpx3.intave.world.blockaccess.*;
 import de.jpx3.intave.world.blockphysic.BlockPhysics;
 import de.jpx3.intave.world.blockphysic.BlockProperties;
@@ -251,7 +252,7 @@ public final class IntavePlugin extends JavaPlugin {
           connection.addRequestProperty("B", idKey);
           connection.addRequestProperty("C", HWIDVerification.publicHardwareIdentifier());
           connection.addRequestProperty("D", configurationKey);
-          connection.addRequestProperty("E", LicenseVerification.rawLicense());
+          connection.addRequestProperty("E", LicenseAccess.rawLicense());
           connection.addRequestProperty("F", requestedId);
           connection.setConnectTimeout(2000);
           connection.setReadTimeout(2000);
@@ -855,7 +856,6 @@ public final class IntavePlugin extends JavaPlugin {
     return modules().packetSubscriptionLinker();
   }
 
-  @Deprecated
   public ViolationProcessor violationProcessor() {
     return this.violationProcessor;
   }

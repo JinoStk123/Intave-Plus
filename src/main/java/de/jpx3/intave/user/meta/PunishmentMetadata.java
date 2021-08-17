@@ -2,8 +2,8 @@ package de.jpx3.intave.user.meta;
 
 import com.google.common.collect.Lists;
 import de.jpx3.intave.annotate.Relocate;
-import de.jpx3.intave.event.violation.AttackNerfStrategy;
-import de.jpx3.intave.event.violation.EntityNoDamageTickChanger;
+import de.jpx3.intave.event.mitigate.AttackNerfStrategy;
+import de.jpx3.intave.event.mitigate.EntityNoDamageTickChanger;
 import de.jpx3.intave.tools.AccessHelper;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;

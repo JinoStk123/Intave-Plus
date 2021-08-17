@@ -1,4 +1,4 @@
-package de.jpx3.intave.event.violation;
+package de.jpx3.intave.event.mitigate;
 
 public enum AttackNerfStrategy {
   CANCEL("cancel"),

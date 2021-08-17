@@ -6,7 +6,7 @@ import de.jpx3.intave.access.IntaveBootFailureException;
 import de.jpx3.intave.annotate.Native;
 import de.jpx3.intave.resource.EncryptedResource;
 import de.jpx3.intave.security.ContextSecrets;
-import de.jpx3.intave.security.LicenseVerification;
+import de.jpx3.intave.security.LicenseAccess;
 import de.jpx3.intave.security.SSLConnectionVerifier;
 import de.jpx3.intave.tools.AccessHelper;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -191,7 +191,7 @@ public final class ConfigurationLoader {
         urlConnection.addRequestProperty("Cache-Control", "no-cache, no-store, must-revalidate");
         urlConnection.setUseCaches(false);
         urlConnection.addRequestProperty("Pragma", "no-cache");
-        urlConnection.addRequestProperty("Identifier", LicenseVerification.rawLicense());
+        urlConnection.addRequestProperty("Identifier", LicenseAccess.rawLicense());
         urlConnection.addRequestProperty("ConfigKey", configurationKey);
         urlConnection.setConnectTimeout(3000);
         urlConnection.setReadTimeout(3000);

@@ -1,4 +1,4 @@
-package de.jpx3.intave.security;
+package de.jpx3.intave.security.letis;
 
 import de.jpx3.intave.IntavePlugin;
 

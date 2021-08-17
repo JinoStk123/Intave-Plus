@@ -5,13 +5,13 @@ import com.comphenix.protocol.events.PacketEvent;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.detect.MetaCheckPart;
 import de.jpx3.intave.detect.checks.world.PlacementAnalysis;
-import de.jpx3.intave.event.violation.Violation;
-import de.jpx3.intave.event.violation.ViolationContext;
 import de.jpx3.intave.module.linker.packet.PacketSubscription;
 import de.jpx3.intave.tools.AccessHelper;
 import de.jpx3.intave.tools.RotationUtilities;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.meta.CheckCustomMetadata;
+import de.jpx3.intave.violation.Violation;
+import de.jpx3.intave.violation.ViolationContext;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;

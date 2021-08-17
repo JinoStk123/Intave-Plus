@@ -8,7 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class Locator {
   private final static ClassAndFieldLocationFileCompiler fileCompiler = new ClassAndFieldLocationFileCompiler();
-  private final static ClassAndFieldLocations CLASS_AND_FIELD_LOCATIONS = fileCompiler.fromResource("/mappings/locate").reduced();
+  private final static ClassAndFieldLocations CLASS_AND_FIELD_LOCATIONS = fileCompiler.fromPath("/mappings/locate").reduced();
   private final static ClassLocations classLocation = CLASS_AND_FIELD_LOCATIONS.classLocations();
   private final static FieldLocations fieldLocations = CLASS_AND_FIELD_LOCATIONS.fieldLocations();
   private final static Map<String, ClassLocation> keyClassAccessCache = new ConcurrentHashMap<>();

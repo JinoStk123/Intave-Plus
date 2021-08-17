@@ -1,9 +1,9 @@
-package de.jpx3.intave.event.violation;
+package de.jpx3.intave.event.mitigate;
 
 import de.jpx3.intave.IntavePlugin;
-import de.jpx3.intave.placeholder.Placeholders;
-import de.jpx3.intave.placeholder.TextContext;
-import de.jpx3.intave.placeholder.ViolationPlaceholderContext;
+import de.jpx3.intave.event.mitigate.placeholder.Placeholders;
+import de.jpx3.intave.event.mitigate.placeholder.TextContext;
+import de.jpx3.intave.event.mitigate.placeholder.ViolationPlaceholderContext;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserRepository;
 import org.bukkit.ChatColor;

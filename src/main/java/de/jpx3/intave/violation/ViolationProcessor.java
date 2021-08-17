@@ -1,4 +1,4 @@
-package de.jpx3.intave.event.violation;
+package de.jpx3.intave.violation;
 
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.access.check.event.IntaveCommandExecutionEvent;
@@ -8,10 +8,11 @@ import de.jpx3.intave.annotate.Native;
 import de.jpx3.intave.connect.proxy.protocol.packets.IntavePacketOutKicked;
 import de.jpx3.intave.detect.Check;
 import de.jpx3.intave.detect.CheckStatistics;
+import de.jpx3.intave.event.mitigate.MessageFormatter;
+import de.jpx3.intave.event.mitigate.placeholder.TextContext;
+import de.jpx3.intave.event.mitigate.placeholder.ViolationPlaceholderContext;
+import de.jpx3.intave.event.mitigate.placeholder.ViolationPlaceholderContext.DetailScope;
 import de.jpx3.intave.executor.Synchronizer;
-import de.jpx3.intave.placeholder.TextContext;
-import de.jpx3.intave.placeholder.ViolationPlaceholderContext;
-import de.jpx3.intave.placeholder.ViolationPlaceholderContext.DetailScope;
 import de.jpx3.intave.tools.AccessHelper;
 import de.jpx3.intave.tools.MathHelper;
 import de.jpx3.intave.user.MessageChannel;
@@ -26,7 +27,7 @@ import org.bukkit.entity.Player;
 import java.util.*;
 import java.util.function.Predicate;
 
-import static de.jpx3.intave.event.violation.Violation.ViolationFlags;
+import static de.jpx3.intave.violation.Violation.ViolationFlags;
 
 public final class ViolationProcessor {
   private final IntavePlugin plugin;

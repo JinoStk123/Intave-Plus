@@ -30,7 +30,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import static de.jpx3.intave.IntaveControl.GOMME_MODE;
 
-public final class EncryptedResource {
+public final class EncryptedResource implements Resource {
   private final static int CLASS_VERSION = 4;
   private final String name;
   private final boolean versionDependent;

@@ -4,7 +4,7 @@ import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.annotate.Native;
 import de.jpx3.intave.detect.Check;
 import de.jpx3.intave.detect.checks.world.placementanalysis.*;
-import de.jpx3.intave.event.violation.AttackNerfStrategy;
+import de.jpx3.intave.event.mitigate.AttackNerfStrategy;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.meta.ProtocolMetadata;
 

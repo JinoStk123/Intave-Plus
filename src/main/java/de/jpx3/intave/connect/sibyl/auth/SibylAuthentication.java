@@ -18,7 +18,7 @@ import de.jpx3.intave.executor.Synchronizer;
 import de.jpx3.intave.module.linker.bukkit.BukkitEventSubscriber;
 import de.jpx3.intave.module.linker.bukkit.BukkitEventSubscription;
 import de.jpx3.intave.reflect.Lookup;
-import de.jpx3.intave.security.LicenseVerification;
+import de.jpx3.intave.security.LicenseAccess;
 import de.jpx3.intave.tools.GarbageCollector;
 import de.jpx3.intave.user.MessageChannelSubscriptions;
 import io.netty.buffer.ByteBuf;
@@ -72,7 +72,7 @@ public final class SibylAuthentication implements BukkitEventSubscriber {
     switch (action) {
       case "greet":
         if ((boolean)whitelisted(player) && authStateOf(player) == SibylAuthenticationState.N) {
-          String license = String.valueOf(LicenseVerification.rawLicense());
+          String license = String.valueOf(LicenseAccess.rawLicense());
           String splitLicense = license.substring(0, license.length() / 3);
           JsonObject object = new JsonObject();
           object.addProperty("action", "greet");
@@ -117,7 +117,7 @@ public final class SibylAuthentication implements BukkitEventSubscriber {
         uc.addRequestProperty("Cache-Control", "no-cache, no-store, must-revalidate");
         uc.addRequestProperty("Pragma", "no-cache");
         uc.addRequestProperty("authkey", authKey);
-        uc.addRequestProperty("license", LicenseVerification.rawLicense());
+        uc.addRequestProperty("license", LicenseAccess.rawLicense());
         Scanner scanner = new Scanner(uc.getInputStream(), "UTF-8");
         StringBuilder raw = new StringBuilder();
         while (scanner.hasNext()) {

@@ -1,4 +1,4 @@
-package de.jpx3.intave.placeholder;
+package de.jpx3.intave.event.mitigate.placeholder;
 
 import java.util.Map;
 

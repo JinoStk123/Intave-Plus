@@ -10,9 +10,7 @@ import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.detect.CheckStatistics;
 import de.jpx3.intave.detect.CheckViolationLevelDecrementer;
 import de.jpx3.intave.detect.MetaCheck;
-import de.jpx3.intave.event.violation.AttackNerfStrategy;
-import de.jpx3.intave.event.violation.Violation;
-import de.jpx3.intave.event.violation.ViolationContext;
+import de.jpx3.intave.event.mitigate.AttackNerfStrategy;
 import de.jpx3.intave.module.linker.packet.ListenerPriority;
 import de.jpx3.intave.module.linker.packet.PacketSubscription;
 import de.jpx3.intave.module.tracker.entity.DeadWrappedEntity;
@@ -20,6 +18,8 @@ import de.jpx3.intave.module.tracker.entity.WrappedEntity;
 import de.jpx3.intave.tools.MathHelper;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.meta.*;
+import de.jpx3.intave.violation.Violation;
+import de.jpx3.intave.violation.ViolationContext;
 import de.jpx3.intave.world.raytrace.Raytracing;
 import de.jpx3.intave.world.wrapper.WrappedVector;
 import org.bukkit.ChatColor;
@@ -30,10 +30,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import static de.jpx3.intave.event.violation.Violation.ViolationFlags.DONT_PROCESS_VIOSTAT;
 import static de.jpx3.intave.module.linker.packet.PacketId.Client.*;
 import static de.jpx3.intave.module.tracker.entity.ClientEntityTracker.entityByIdentifier;
 import static de.jpx3.intave.user.meta.ProtocolMetadata.VER_1_9;
+import static de.jpx3.intave.violation.Violation.ViolationFlags.DONT_PROCESS_VIOSTAT;
 
 public final class AttackRaytrace extends MetaCheck<AttackRaytrace.AttackRaytraceMeta> {
   private final IntavePlugin plugin;

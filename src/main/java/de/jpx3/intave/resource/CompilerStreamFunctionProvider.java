@@ -14,7 +14,11 @@ public interface CompilerStreamFunctionProvider<O> extends Function<List<String>
     return fromStream(new FileInputStream(file));
   }
 
-  default O fromResource(String path) {
+  default O fromResource(Resource resource) {
+    return fromStream(resource.read());
+  }
+
+  default O fromPath(String path) {
     return fromStream(CompilerStreamFunctionProvider.class.getResourceAsStream(path));
   }
 

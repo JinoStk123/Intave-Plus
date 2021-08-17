@@ -7,7 +7,7 @@ import de.jpx3.intave.annotate.Native;
 import java.io.InputStream;
 import java.util.Scanner;
 
-public final class LicenseVerification {
+public final class LicenseAccess {
   private static String licenseName;
   private static String networkName;
 
@@ -28,7 +28,7 @@ public final class LicenseVerification {
       if (IntaveControl.DISABLE_LICENSE_CHECK) {
         licenseName = "TkxzRWpMdE1NVmdCUUdOMjdmNmdTdz09yB1f45kTpS5yiTeuw6DrRQ==";// Intavede
       } else {
-        InputStream resourceAsStream = LicenseVerification.class.getResourceAsStream("/5ee6db6d-6751-4081-9cbf-28eb0f6cc055");
+        InputStream resourceAsStream = LicenseAccess.class.getResourceAsStream("/5ee6db6d-6751-4081-9cbf-28eb0f6cc055");
         if (resourceAsStream == null) {
           throw new IntaveInternalException("Failed to locate identification file");
         }

@@ -29,7 +29,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import static de.jpx3.intave.IntaveControl.GOMME_MODE;
 
 @SuppressWarnings({"UnusedReturnValue", "ResultOfMethodCallIgnored"})
-public final class CachedResource {
+public final class CachedResource implements Resource {
   private final static String KEY = "AES/GCM/NoPadding";
 
   private final String name;

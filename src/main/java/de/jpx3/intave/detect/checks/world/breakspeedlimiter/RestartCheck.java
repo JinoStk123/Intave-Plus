@@ -6,15 +6,15 @@ import com.comphenix.protocol.wrappers.EnumWrappers;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.detect.MetaCheckPart;
 import de.jpx3.intave.detect.checks.world.BreakSpeedLimiter;
-import de.jpx3.intave.event.violation.Violation;
-import de.jpx3.intave.event.violation.ViolationContext;
-import de.jpx3.intave.event.violation.ViolationProcessor;
 import de.jpx3.intave.module.linker.packet.ListenerPriority;
 import de.jpx3.intave.module.linker.packet.PacketSubscription;
 import de.jpx3.intave.tools.AccessHelper;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.meta.CheckCustomMetadata;
 import de.jpx3.intave.user.meta.ProtocolMetadata;
+import de.jpx3.intave.violation.Violation;
+import de.jpx3.intave.violation.ViolationContext;
+import de.jpx3.intave.violation.ViolationProcessor;
 import org.bukkit.entity.Player;
 
 import static de.jpx3.intave.module.linker.packet.PacketId.Client.*;

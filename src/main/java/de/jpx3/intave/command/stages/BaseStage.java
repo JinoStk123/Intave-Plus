@@ -7,7 +7,7 @@ import de.jpx3.intave.command.CommandStage;
 import de.jpx3.intave.command.Forward;
 import de.jpx3.intave.command.Optional;
 import de.jpx3.intave.command.SubCommand;
-import de.jpx3.intave.security.LicenseVerification;
+import de.jpx3.intave.security.LicenseAccess;
 import de.jpx3.intave.tools.AccessHelper;
 import de.jpx3.intave.tools.version.DurationTranslator;
 import de.jpx3.intave.tools.version.Version;
@@ -187,10 +187,10 @@ public final class BaseStage extends CommandStage {
       player.sendMessage(prefix + "Certified for GommeHDnet (trusted)");
     } else if (IntavePlugin.isInOfflineMode()) {
       player.sendMessage(prefix + "Certification failed, Intave servers down?");
-    } else if (LicenseVerification.network().equals("~bypass")) {
+    } else if (LicenseAccess.network().equals("~bypass")) {
       player.sendMessage(prefix + "Certification disabled, trust release");
     } else {
-      player.sendMessage(prefix + "Certified for " + LicenseVerification.network() + (enterprise && !partner ? " (verified)" : (partner ? " (trusted)" : "")));
+      player.sendMessage(prefix + "Certified for " + LicenseAccess.network() + (enterprise && !partner ? " (verified)" : (partner ? " (trusted)" : "")));
     }
   }
 

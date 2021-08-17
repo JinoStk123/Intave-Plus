@@ -1,10 +1,10 @@
-package de.jpx3.intave.event.violation;
+package de.jpx3.intave.event.mitigate;
 
 import de.jpx3.intave.IntavePlugin;
+import de.jpx3.intave.event.mitigate.placeholder.Placeholders;
+import de.jpx3.intave.event.mitigate.placeholder.PlayerIdentificationContext;
 import de.jpx3.intave.module.linker.bukkit.BukkitEventSubscriber;
 import de.jpx3.intave.module.linker.bukkit.BukkitEventSubscription;
-import de.jpx3.intave.placeholder.Placeholders;
-import de.jpx3.intave.placeholder.PlayerIdentificationContext;
 import de.jpx3.intave.tools.AccessHelper;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.YamlConfiguration;

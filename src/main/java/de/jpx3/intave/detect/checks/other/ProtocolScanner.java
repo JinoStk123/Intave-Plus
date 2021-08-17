@@ -6,7 +6,6 @@ import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.adapter.MinecraftVersions;
 import de.jpx3.intave.annotate.KeepEnumInternalNames;
 import de.jpx3.intave.detect.MetaCheck;
-import de.jpx3.intave.event.violation.Violation;
 import de.jpx3.intave.module.linker.packet.PacketSubscription;
 import de.jpx3.intave.reflect.Lookup;
 import de.jpx3.intave.tools.MathHelper;
@@ -14,6 +13,7 @@ import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.meta.CheckCustomMetadata;
 import de.jpx3.intave.user.meta.MovementMetadata;
 import de.jpx3.intave.user.meta.ProtocolMetadata;
+import de.jpx3.intave.violation.Violation;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.MainHand;
 
