@@ -67,7 +67,7 @@ public final class RotationUnlikelyAccuracyHeuristic extends MetaCheckPart<Heuri
         parentCheck().saveAnomaly(player, anomaly);
       }
       if (yawAverage >= 3.5 && maxDistanceToPerfectYaw <= 12.5 && averageRatio > 1) {
-        String descriptor = "precise rotation yaw (" + yawAverage + ")";
+        String descriptor = "precise rotation yaw (" + MathHelper.formatDouble(yawAverage, 4) + ")";
         int options = Anomaly.AnomalyOption.LIMIT_4 | Anomaly.AnomalyOption.SUGGEST_MINING;
         Anomaly anomaly = Anomaly.anomalyOf("92", Confidence.MAYBE, Anomaly.Type.KILLAURA, descriptor, options);
         parentCheck().saveAnomaly(player, anomaly);
