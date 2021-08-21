@@ -43,16 +43,16 @@ public final class BlockDataAccess {
 
   /**
    * This method performs a direct type lookup, which will be quite heavy if the underlying chunk has not been loaded yet.
-   * To avoid this performance-bottleneck, use {@link BukkitBlockAccess#cacheAppliedDataAccess(User, World, double, double, double)} instead,
+   * To avoid this performance-bottleneck, use {@link BukkitBlockAccess#cacheAppliedVariantAccess(User, World, double, double, double)} instead,
    * providing fast performance, a robust cache implementation and stable chunk fallback
    */
   @Deprecated
   public static int dataAccess(Block block) {
     Material type = BlockTypeAccess.typeAccess(block);
     if (!MODERN_MATERIAL_PROCESSING) {
-      return BlockAccessProvider.blockAccessor().dataAccess(block);
+      return BlockAccessProvider.accessor().dataAccess(block);
     } else {
-      int index = RuntimeBlockDataIndexer.indexOfModernState(type, nativeBlockDataOf(block));
+      int index = RuntimeBlockVariantIndexer.indexOfModernState(type, nativeBlockDataOf(block));
       return Math.max(index, 0);
     }
   }
@@ -63,7 +63,7 @@ public final class BlockDataAccess {
     }
     Material type = wrappedBlockData.getType();
     Object handle = wrappedBlockData.getHandle();
-    int index = RuntimeBlockDataIndexer.indexOfModernState(type, handle);
+    int index = RuntimeBlockVariantIndexer.indexOfModernState(type, handle);
     if (index < 0) {
       throw new IllegalStateException("Invalid block data update: " + type + "/" + handle);
     }

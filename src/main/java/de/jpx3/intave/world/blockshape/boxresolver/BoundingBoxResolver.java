@@ -2,9 +2,32 @@ package de.jpx3.intave.world.blockshape.boxresolver;
 
 import de.jpx3.intave.access.IntaveInternalException;
 import de.jpx3.intave.reflect.patchy.PatchyClassSwitchLoader;
+import de.jpx3.intave.world.blockshape.MultiChunkKeyOCBlockShapeAccess;
+import de.jpx3.intave.world.blockshape.OCBlockShapeAccess;
+import de.jpx3.intave.world.blockshape.boxresolver.drill.AbstractBoundingBoxDrill;
 
 import static de.jpx3.intave.adapter.MinecraftVersions.*;
 
+/**
+ * The {@link BoundingBoxResolver} is a factory object that constructs the main bounding box resolver pipeline.
+ * <br>
+ * The pipeline consists of
+ * <ul>
+ *   <li>{@link PatcherReshaperPipe}</li>
+ *   <li>{@link CubeMemoryPipe}</li>
+ *   <li>{@link EmptyPrefetchPipe}</li>
+ *   <li>{@link CorruptedFilteringPipe}</li>
+ *   <li>{@link VariantCachePipe} (only on 1.14+)</li>
+ *   <li>{@link AbstractBoundingBoxDrill} (generic, version specified)</li>
+ * </ul>
+ * in the given order.
+ * <br>
+ * Use {@link BoundingBoxResolver#pipelineHead()} to retrieve the pipelines head.
+ *
+ * @see ResolverPipeline
+ * @see OCBlockShapeAccess
+ * @see MultiChunkKeyOCBlockShapeAccess
+ */
 public final class BoundingBoxResolver {
   private static ResolverPipeline resolver;
 

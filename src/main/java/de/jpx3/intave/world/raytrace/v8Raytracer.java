@@ -157,7 +157,7 @@ public final class v8Raytracer implements Raytracer {
     OCBlockShapeAccess blockShapeAccess = UserRepository.userOf(player).blockShapeAccess();
     BlockShape shape = blockShapeAccess.overrideOf(blockPosition.getX(), blockPosition.getY(), blockPosition.getZ());
     if (shape != null) {
-      return Block.getById(shape.type().getId()).fromLegacyData(shape.data());
+      return Block.getById(shape.type().getId()).fromLegacyData(shape.variant());
     } else {
       return world.getType(blockPosition);
     }

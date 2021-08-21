@@ -147,7 +147,7 @@ public final class v9Raytracer implements Raytracer {
   private IBlockData typeOf(Player player, WorldServer world, BlockPosition blockPosition) {
     OCBlockShapeAccess blockShapeAccess = UserRepository.userOf(player).blockShapeAccess();
     BlockShape shape = blockShapeAccess.overrideOf(blockPosition.getX(), blockPosition.getY(), blockPosition.getZ());
-    return shape != null ? Block.getById(shape.type().getId()).fromLegacyData(shape.data()) : world.getType(blockPosition);
+    return shape != null ? Block.getById(shape.type().getId()).fromLegacyData(shape.variant()) : world.getType(blockPosition);
   }
 
   private boolean includesInvalidCoordinate(WrappedVector wrappedVector) {

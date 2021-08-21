@@ -33,7 +33,7 @@ public final class BlockAccessProvider {
     }
   }
 
-  static BlockAccessor blockAccessor() {
+  static BlockAccessor accessor() {
     return blockAccessor;
   }
 }

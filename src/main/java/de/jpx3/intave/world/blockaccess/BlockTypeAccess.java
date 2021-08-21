@@ -58,7 +58,7 @@ public final class BlockTypeAccess {
   public static Material typeAccess(Block block) {
     try {
       SERVICE_TYPE_LOOKUP.start();
-      return BlockAccessProvider.blockAccessor().typeAccess(block);
+      return BlockAccessProvider.accessor().typeAccess(block);
     } finally {
       SERVICE_TYPE_LOOKUP.stop();
     }

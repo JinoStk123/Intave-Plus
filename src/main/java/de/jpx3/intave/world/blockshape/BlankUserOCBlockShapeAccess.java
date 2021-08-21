@@ -21,7 +21,7 @@ public final class BlankUserOCBlockShapeAccess implements OCBlockShapeAccess {
   }
 
   @Override
-  public int resolveData(int chunkX, int chunkZ, int posX, int posY, int posZ) {
+  public int resolveVariant(int chunkX, int chunkZ, int posX, int posY, int posZ) {
     return 0;
   }
 

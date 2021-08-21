@@ -9,6 +9,11 @@ import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.function.Function;
 
+/**
+ * A {@link Map} delegate wrapping its values in soft or weak references
+ * @param <K> the map key
+ * @param <V> the map value
+ */
 public final class ReferenceMap<K, V> implements Map<K, V> {
   private final Map<K, Reference<V>> map;
   private final Function<V, Reference<V>> referencer;
@@ -23,17 +28,19 @@ public final class ReferenceMap<K, V> implements Map<K, V> {
 
   @Override
   public int size() {
+    cleanup();
     return map.size();
   }
 
   @Override
   public boolean isEmpty() {
+    cleanup();
     return map.isEmpty();
   }
 
   @Override
   public boolean containsKey(Object key) {
-    return map.containsKey(key);
+    return get(key) != null;
   }
 
   @Override
@@ -85,6 +92,7 @@ public final class ReferenceMap<K, V> implements Map<K, V> {
   @NotNull
   @Override
   public Collection<V> values() {
+    cleanup();
     Collection<Reference<V>> values = map.values();
     List<V> newValues = new ArrayList<>(values.size());
     for (Reference<V> value : values) {
@@ -96,6 +104,7 @@ public final class ReferenceMap<K, V> implements Map<K, V> {
   @NotNull
   @Override
   public Set<Entry<K, V>> entrySet() {
+    cleanup();
     Set<Entry<K, Reference<V>>> entries = map.entrySet();
     Set<Entry<K, V>> newEntries = new HashSet<>();
     for (Entry<K, Reference<V>> entry : entries) {
@@ -118,6 +127,12 @@ public final class ReferenceMap<K, V> implements Map<K, V> {
       });
     }
     return newEntries;
+  }
+
+  private void cleanup() {
+    map.entrySet()
+    .removeIf(entry -> entry != null && entry.getValue() != null && entry.getValue().get() == null
+    );
   }
 
   public static <K, V> ReferenceMap<K, V> soft(Map<K, Reference<V>> map) {

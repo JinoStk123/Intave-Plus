@@ -30,14 +30,14 @@ final class DoorBlockPatch extends BoundingBoxPatch {
     User user = UserRepository.userOf(player);
     boolean isUpper = (upperData & 8) != 0;
     if (isUpper) {
-      lowerData = BukkitBlockAccess.cacheAppliedDataAccess(user, world, posX, posY - 1, posZ);
+      lowerData = BukkitBlockAccess.cacheAppliedVariantAccess(user, world, posX, posY - 1, posZ);
     } else {
       lowerData = upperData;
       if (topAcquire.get()) {
         upperData = 0;
       } else {
         topAcquire.set(true);
-        upperData = BukkitBlockAccess.cacheAppliedDataAccess(user, world, posX, posY + 1, posZ);
+        upperData = BukkitBlockAccess.cacheAppliedVariantAccess(user, world, posX, posY + 1, posZ);
         topAcquire.set(false);
       }
     }

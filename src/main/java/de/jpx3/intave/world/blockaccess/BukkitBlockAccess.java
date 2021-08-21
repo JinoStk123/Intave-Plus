@@ -14,7 +14,6 @@ import org.bukkit.block.Block;
 @Relocate
 public final class BukkitBlockAccess implements BukkitEventSubscriber {
   public static void setup() {
-//    IntavePlugin.singletonInstance().eventLinker().registerEventsIn(new BukkitBlockAccess());
   }
 
   @Deprecated
@@ -47,19 +46,19 @@ public final class BukkitBlockAccess implements BukkitEventSubscriber {
     return Material.AIR;
   }
 
-  public static int cacheAppliedDataAccess(User user, World blockAccess, int blockX, int blockY, int blockZ) {
+  public static int cacheAppliedVariantAccess(User user, World blockAccess, int blockX, int blockY, int blockZ) {
     if (isInLoadedChunk(blockAccess, blockX, blockZ) || Bukkit.isPrimaryThread()) {
-      return user.blockShapeAccess().resolveData(blockX >> 4, blockZ >> 4, blockX, blockY, blockZ);
+      return user.blockShapeAccess().resolveVariant(blockX >> 4, blockZ >> 4, blockX, blockY, blockZ);
     }
     return 0;
   }
 
-  public static int cacheAppliedDataAccess(User user, World blockAccess, double x, double y, double z) {
+  public static int cacheAppliedVariantAccess(User user, World blockAccess, double x, double y, double z) {
     int blockX = WrappedMathHelper.floor(x);
     int blockY = WrappedMathHelper.floor(y);
     int blockZ = WrappedMathHelper.floor(z);
     if (isInLoadedChunk(blockAccess, blockX, blockZ) || Bukkit.isPrimaryThread()) {
-      return user.blockShapeAccess().resolveData(blockX >> 4, blockZ >> 4, blockX, blockY, blockZ);
+      return user.blockShapeAccess().resolveVariant(blockX >> 4, blockZ >> 4, blockX, blockY, blockZ);
     }
     return BlockDataAccess.dataAccess(fallbackBlock(blockAccess));
   }

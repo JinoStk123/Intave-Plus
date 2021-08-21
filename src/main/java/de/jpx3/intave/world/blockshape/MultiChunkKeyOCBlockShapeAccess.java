@@ -106,7 +106,7 @@ public final class MultiChunkKeyOCBlockShapeAccess implements OCBlockShapeAccess
   }
 
   @Override
-  public int resolveData(int chunkX, int chunkZ, int posX, int posY, int posZ) {
+  public int resolveVariant(int chunkX, int chunkZ, int posX, int posY, int posZ) {
     if (posY < 0 || 255 < posY) {
       return 0;
     }
@@ -125,7 +125,7 @@ public final class MultiChunkKeyOCBlockShapeAccess implements OCBlockShapeAccess
     long key = bigKey(posX, posY, posZ);
     BlockShape blockShape = indexedReplacements.get(key);
     if (blockShape != null) {
-      return blockShape.data();
+      return blockShape.variant();
     }
     blockShape = blockCache.get(key);
     if (blockShape == null) {
@@ -136,7 +136,7 @@ public final class MultiChunkKeyOCBlockShapeAccess implements OCBlockShapeAccess
         blockCache.put(key, blockShape);
       }
     }
-    return blockShape.data();
+    return blockShape.variant();
   }
 
   private final static BlockShape EMPTY_CACHE_ENTRY = new BlockShape(Collections.emptyList(), Material.AIR, 0);

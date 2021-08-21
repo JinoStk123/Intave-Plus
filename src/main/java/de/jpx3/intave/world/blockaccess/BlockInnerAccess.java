@@ -32,11 +32,11 @@ public final class BlockInnerAccess {
   }
 
   public static float blockDamage(Player player, ItemStack itemInHand, BlockPosition blockPosition) {
-    return BlockAccessProvider.blockAccessor().blockDamage(player, itemInHand, blockPosition);
+    return BlockAccessProvider.accessor().blockDamage(player, itemInHand, blockPosition);
   }
 
   public static boolean replacementPlace(World world, Player player, BlockPosition blockPosition) {
-    return BlockAccessProvider.blockAccessor().replacementPlace(world, player, blockPosition);
+    return BlockAccessProvider.accessor().replacementPlace(world, player, blockPosition);
   }
 
   private static void loadMaterials() {

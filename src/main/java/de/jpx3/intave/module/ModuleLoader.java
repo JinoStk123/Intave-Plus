@@ -21,7 +21,7 @@ public final class ModuleLoader {
   @Native
   public void setup() {
     prepareModule(BukkitEventSubscriptionLinker.class, ModuleSettings.builder().bootAt(BootSegment.STAGE_3).build());
-    prepareModule(PacketSubscriptionLinker.class, ModuleSettings.builder().requiresProtocolLib().requires(Requirements.requiresPlugin("Intave")).bootAt(BootSegment.STAGE_5).build());
+    prepareModule(PacketSubscriptionLinker.class, ModuleSettings.builder().requiresProtocolLib().requires(Requirements.intaveEnabled()).bootAt(BootSegment.STAGE_5).build());
     prepareModule(EntityTracker.class, ModuleSettings.builder().requiresProtocolLib().bootAt(BootSegment.STAGE_7).build());
     prepareModule(ClientWarningModule.class, ModuleSettings.builder().requiresProtocolLib().bootAt(BootSegment.STAGE_7).build());
 

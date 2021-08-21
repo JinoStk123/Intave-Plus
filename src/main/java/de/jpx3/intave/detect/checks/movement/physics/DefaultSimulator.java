@@ -72,7 +72,7 @@ public class DefaultSimulator extends Simulator {
           user, user.player().getWorld(),
           movementData.lastPositionX, movementData.lastPositionY, movementData.lastPositionZ
         );
-        int blockData = BukkitBlockAccess.cacheAppliedDataAccess(
+        int blockData = BukkitBlockAccess.cacheAppliedVariantAccess(
           user, user.player().getWorld(),
           movementData.lastPositionX, movementData.lastPositionY, movementData.lastPositionZ
         );

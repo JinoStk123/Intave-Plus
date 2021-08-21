@@ -1,8 +1,12 @@
 package de.jpx3.intave.world.blockshape;
 
 /**
- * Class generated using IntelliJ IDEA
- * Created by Richard Strunk 2021
+ * The {@link CachedBlockShapeAccess} extends the functionality of the
+ * {@link BlockShapeAccess} by adding methods related to cache invalidation.
+ *
+ * @see BlockShapeAccess
+ * @see OverrideBlockShapeAccess
+ * @see OCBlockShapeAccess
  */
 
 public interface CachedBlockShapeAccess extends BlockShapeAccess {
@@ -17,7 +21,7 @@ public interface CachedBlockShapeAccess extends BlockShapeAccess {
   void invalidate();
 
   /**
-   * Invalidate all blocks around a specified position
+   * Invalidate all blocks next to a specified position
    * @param posX the x coordinate of the selected block
    * @param posY the y coordinate of the selected block
    * @param posZ the z coordinate of the selected block

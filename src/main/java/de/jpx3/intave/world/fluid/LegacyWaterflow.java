@@ -27,7 +27,7 @@ public final class LegacyWaterflow {
         for (int z = minZ; z < maxZ; ++z) {
           Material type = BukkitBlockAccess.cacheAppliedTypeAccess(user, world, x, y, z);
           if (MaterialMagic.isWater(type)) {
-            int level = BukkitBlockAccess.cacheAppliedDataAccess(user, world, x, y, z);
+            int level = BukkitBlockAccess.cacheAppliedVariantAccess(user, world, x, y, z);
             double d0 = (float) (y + 1) - resolveLiquidHeightPercentage(level);
             if ((double) maxY >= d0) {
               inWater = true;
@@ -94,7 +94,7 @@ public final class LegacyWaterflow {
   private static int resolveLevel(User user, WrappedBlockPosition pos) {
     World world = user.player().getWorld();
     Material clientSideBlock = BukkitBlockAccess.cacheAppliedTypeAccess(user, world, pos.xCoord, pos.yCoord, pos.zCoord);
-    return MaterialMagic.isWater(clientSideBlock) ? BukkitBlockAccess.cacheAppliedDataAccess(user, world, pos.xCoord, pos.yCoord, pos.zCoord) : -1;
+    return MaterialMagic.isWater(clientSideBlock) ? BukkitBlockAccess.cacheAppliedVariantAccess(user, world, pos.xCoord, pos.yCoord, pos.zCoord) : -1;
   }
 
   private static boolean blocksMovement(User user, WrappedBlockPosition position) {

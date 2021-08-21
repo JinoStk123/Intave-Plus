@@ -75,7 +75,7 @@ public final class RotationSnapHeuristic extends MetaCheckPart<Heuristics, Rotat
 
     if (blockPosition != null) {
       if (blockPlaceDirection != 255) {
-        Material clickedType = BukkitBlockAccess.blockAccess(blockPosition.toLocation(player.getWorld())).getType();
+        Material clickedType = BukkitBlockAccess.cacheAppliedTypeAccess(user, blockPosition.toLocation(player.getWorld()));
         boolean clickable = BlockInnerAccess.isClickable(clickedType);
 
         if (!clickable) {

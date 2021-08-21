@@ -7,8 +7,13 @@ import org.bukkit.World;
 import java.util.Map;
 
 /**
- * Class generated using IntelliJ IDEA
- * Created by Richard Strunk 2021
+ * The {@link OverrideBlockShapeAccess} extends the {@link BlockShapeAccess} in the definition of additional functions for overrides.
+ * A override temporarily replaces a block cache, making the cache ignore the resolved type.
+ * The {@link BlockShapeAccess} is eligible to delete overrides after 5 seconds after their initialization.
+ *
+ * @see BlockShapeAccess
+ * @see CachedBlockShapeAccess
+ * @see OCBlockShapeAccess
  */
 
 public interface OverrideBlockShapeAccess extends BlockShapeAccess {
@@ -53,7 +58,7 @@ public interface OverrideBlockShapeAccess extends BlockShapeAccess {
   Map<Long, BlockShape> indexedReplacements();
 
   /**
-   * Override a block at a specific position with a custom type and variant
+   * Override a block at a specific position with a custom type and variant.
    * @param world the world
    * @param posX the x coordinate of the selected block
    * @param posY the y coordinate of the selected block
@@ -63,5 +68,12 @@ public interface OverrideBlockShapeAccess extends BlockShapeAccess {
    */
   void override(World world, int posX, int posY, int posZ, Material type, int variant);
 
+  /**
+   * Remove all overrides in specified chunk boundaries
+   * @param chunkXMinPos the min chunk x boundary
+   * @param chunkXMaxPos the max chunk x boundary
+   * @param chunkZMinPos the min chunk z boundary
+   * @param chunkZMaxPos the max chunk z boundary
+   */
   void invalidateOverridesInBounds(int chunkXMinPos, int chunkXMaxPos, int chunkZMinPos, int chunkZMaxPos);
 }

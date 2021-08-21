@@ -149,13 +149,13 @@ public final class MovementContext {
       WrappedMathHelper.floor(positionY),
       WrappedMathHelper.floor(positionZ)
     );
-    if (clientData.combatUpdate() && type.name().contains("TRAP_DOOR") && canGoThroughTrapDoorOnLadder(block)) {
+    if (clientData.combatUpdate() && type.name().contains("TRAP_DOOR") && canGoThroughTrapDoorOnLadder(user, block)) {
       return true;
     }
     return BlockProperties.ofType(type).climbable();
   }
 
-  private static boolean canGoThroughTrapDoorOnLadder(Block block) {
+  private static boolean canGoThroughTrapDoorOnLadder(User user, Block block) {
     Location location = block.getLocation();
     BlockState blockState = block.getState();
     MaterialData trapDoorData = blockState.getData();
@@ -171,7 +171,7 @@ public final class MovementContext {
         return false;
       }
       Directional downBlockDirectional = (Directional) downBlockData;
-      return downBlock.getType() == Material.LADDER && directional.getFacing() == downBlockDirectional.getFacing();
+      return BukkitBlockAccess.cacheAppliedTypeAccess(user, downLocation) == Material.LADDER && directional.getFacing() == downBlockDirectional.getFacing();
     }
     return false;
   }

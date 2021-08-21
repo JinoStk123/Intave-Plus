@@ -11,6 +11,10 @@ public final class Requirements {
     return requiresPlugin("ProtocolLib");
   }
 
+  public static Requirement intaveEnabled() {
+    return requiresPlugin("Intave");
+  }
+
   public static Requirement requiresPlugin(String plugin) {
     return new PluginRequirement(plugin);
   }

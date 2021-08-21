@@ -8,7 +8,7 @@ import org.bukkit.Material;
 import java.util.List;
 
 /**
- * A BlockShapeAccess serves as a auto-resolving cache for block types, block bounding boxes and block variants.
+ * A BlockShapeAccess serves as an auto-resolving cache for block types, block bounding boxes and block variants.
  *
  * @see User
  * @see CachedBlockShapeAccess
@@ -50,5 +50,5 @@ public interface BlockShapeAccess {
    * @param posZ the blocks z coordinate
    * @return the blocks variant index
    */
-  int resolveData(int chunkX, int chunkZ, int posX, int posY, int posZ);
+  int resolveVariant(int chunkX, int chunkZ, int posX, int posY, int posZ);
 }

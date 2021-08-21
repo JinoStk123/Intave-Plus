@@ -7,7 +7,7 @@ import de.jpx3.intave.user.meta.ProtocolMetadata;
 import de.jpx3.intave.world.wrapper.link.WrapperLinkage;
 import org.bukkit.Location;
 
-public class WrappedAxisAlignedBB {
+public final class WrappedAxisAlignedBB {
   public final double minX, minY, minZ;
   public final double maxX, maxY, maxZ;
 
