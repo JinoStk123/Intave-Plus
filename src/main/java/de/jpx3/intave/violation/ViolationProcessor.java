@@ -19,7 +19,6 @@ import de.jpx3.intave.user.MessageChannel;
 import de.jpx3.intave.user.MessageChannelSubscriptions;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserRepository;
-import de.jpx3.intave.user.meta.ProtocolMetadata;
 import de.jpx3.intave.user.meta.ViolationMetadata;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -27,7 +26,7 @@ import org.bukkit.entity.Player;
 import java.util.*;
 import java.util.function.Predicate;
 
-import static de.jpx3.intave.violation.Violation.ViolationFlags;
+import static de.jpx3.intave.violation.Violation.ViolationFlags.DONT_PROCESS_VIOSTAT;
 
 public final class ViolationProcessor {
   private final IntavePlugin plugin;
@@ -83,7 +82,6 @@ public final class ViolationProcessor {
     double violationLevelBeforeViolation = violationMapOf(player).computeIfAbsent(checkName, s -> new HashMap<>()).computeIfAbsent(thresholdsKey, s -> 0d);
     double violationLevelAfterViolation = MathHelper.minmax(0, violationLevelBeforeViolation + violationLevelAdded, 1000);
     double preventionActivation = resolvePreventionActivationThreshold(checkName, player);
-
     violationContext.setViolationLevelAfter(reducePrecision(violationLevelAfterViolation));
     violationContext.setViolationLevelBefore(reducePrecision(violationLevelBeforeViolation));
     violationContext.setPreventionActivation(reducePrecision(preventionActivation));
@@ -130,7 +128,9 @@ public final class ViolationProcessor {
     if (violationContext.completed()) {
       return;
     }
-    User user = UserRepository.userOf(violationContext.violation().findPlayer().orElseThrow(IllegalStateException::new));
+    Violation violation = violationContext.violation();
+    Player player = violation.findPlayer().orElseThrow(IllegalStateException::new);
+    User user = UserRepository.userOf(player);
     ViolationMetadata violationLevelData = user.meta().violationLevel();
     if (AccessHelper.now() - violationLevelData.detectionCounterReset > 10000) {
       violationLevelData.detectionCounter = 0;
@@ -147,21 +147,19 @@ public final class ViolationProcessor {
     if (violationContext.completed()) {
       return;
     }
-    boolean ignoreVioStat = violationContext.violation().flagSet(ViolationFlags.DONT_PROCESS_VIOSTAT);
-    if (ignoreVioStat) {
+    Violation violation = violationContext.violation();
+    if (violation.flagSet(DONT_PROCESS_VIOSTAT)) {
       return;
     }
-    User user = UserRepository.userOf(violationContext.violation().findPlayer().orElseThrow(IllegalStateException::new));
-    Check check = violationContext.violation().check();
+    Player player = violation.findPlayer().orElseThrow(IllegalStateException::new);
+    User user = UserRepository.userOf(player);
+    Check check = violation.check();
     check.statisticApply(user, CheckStatistics::increaseViolations);
   }
 
   private final static String LOGGER_MESSAGE_LAYOUT = "%s/%s %s %s(+%s -> %s on %s)";
 
-  @Native
   private void processViolationVerbose(ViolationContext violationContext) {
-    boolean enterprise = (ProtocolMetadata.VERSION_DETAILS & 0x200) != 0;
-    boolean partner = (ProtocolMetadata.VERSION_DETAILS & 0x100) != 0;
     if (violationContext.completed()) {
       return;
     }
@@ -289,24 +287,16 @@ public final class ViolationProcessor {
 
   private final static MessageChannel VERBOSE_MESSAGE_CHANNEL = MessageChannel.VERBOSE;
 
-  public void broadcastVerbose(Player player, ViolationContext violationContext) {
-    String fullMessage = MessageFormatter.resolveVerboseMessage(
-      player, violationContext.placeholderContextOf(DetailScope.FULL)
+  public void broadcastVerbose(Player target, ViolationContext violationContext) {
+    String message = MessageFormatter.resolveVerboseMessage(
+      target, violationContext.placeholderContextOf(DetailScope.FULL)
     );
-    sendConstraintMessageOnChannel(player, VERBOSE_MESSAGE_CHANNEL, fullMessage);
-  }
-
-  private void sendConstraintMessageOnChannel(
-    Player target,
-    MessageChannel channel,
-    String message
-  ) {
-    for (Player allPlayers : MessageChannelSubscriptions.receiverOf(channel)/*Bukkit.getOnlinePlayers()*/) {
+    for (Player allPlayers : MessageChannelSubscriptions.receiverOf(VERBOSE_MESSAGE_CHANNEL)) {
       User allUsers = UserRepository.userOf(allPlayers);
-      if (!allUsers.receives(channel)) {
+      if (!allUsers.receives(VERBOSE_MESSAGE_CHANNEL)) {
         continue;
       }
-      Predicate<Player> constraint = allUsers.channelPlayerConstraint(channel);
+      Predicate<Player> constraint = allUsers.channelPlayerConstraint(VERBOSE_MESSAGE_CHANNEL);
       if (constraint == null || constraint.test(target)) {
         synchronizedMessage(allPlayers, message);
       }
