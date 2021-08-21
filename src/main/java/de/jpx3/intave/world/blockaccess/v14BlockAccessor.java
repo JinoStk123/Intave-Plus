@@ -36,7 +36,7 @@ public final class v14BlockAccessor implements BlockAccessor {
 
   @Override
   @PatchyAutoTranslation
-  public Material typeAccess(Block block) {
+  public Material typeOf(Block block) {
     WorldServer worldServer = ((CraftWorld) block.getWorld()).getHandle();
     IBlockAccess blockAccess = worldServer.getChunkProvider().c(block.getX() >> 4, block.getZ() >> 4);
     if (blockAccess == null) {
@@ -47,8 +47,8 @@ public final class v14BlockAccessor implements BlockAccessor {
 
   @Override
   @PatchyAutoTranslation
-  public int dataAccess(Block block) {
-    throw new UnsupportedOperationException("This minecraft version does not support block data");
+  public int variantOf(Block block) {
+    throw new UnsupportedOperationException("This minecraft version does not support shared block variant indices");
   }
 
   @Override

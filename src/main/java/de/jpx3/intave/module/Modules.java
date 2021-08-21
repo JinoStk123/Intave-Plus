@@ -1,30 +1,33 @@
 package de.jpx3.intave.module;
 
+import de.jpx3.intave.annotate.Native;
 import de.jpx3.intave.cleanup.Shutdown;
 import de.jpx3.intave.module.linker.bukkit.BukkitEventSubscriptionLinker;
 import de.jpx3.intave.module.linker.packet.PacketSubscriptionLinker;
 
 public final class Modules {
-  private final ModulePool pool = new ModulePool();
-  private final ModuleLoader loader = new ModuleLoader();
+  private final static ModulePool pool = new ModulePool();
+  private final static ModuleLoader loader = new ModuleLoader();
 
-  public void prepareModules() {
+  @Native
+  public static void prepareModules() {
     loader.setup();
   }
 
-  public void proceedBoot(BootSegment bootSegment) {
+  @Native
+  public static void proceedBoot(BootSegment bootSegment) {
     loader.loadRequests().forEach(pool::loadModule);
     pool.bootRequests(bootSegment).forEach(pool::enableModule);
 
-    Shutdown.addTask(this::shutdown);
+    Shutdown.addTask(Modules::shutdown);
   }
 
-  public void shutdown() {
+  public static void shutdown() {
     pool.disableAll();
     pool.unloadAll();
   }
 
-  public <T extends Module> T find(Class<T> moduleClass) {
+  public static <T extends Module> T find(Class<T> moduleClass) {
     T module = pool.lookup(moduleClass);
     if (module == null) {
       throw new IllegalStateException("Unable to find module " + moduleClass + ", is it loaded?");
@@ -34,27 +37,27 @@ public final class Modules {
 
   // quick accessors
 
-  private final LinkerCategory LINKER_CATEGORY = new LinkerCategory();
-  private final DispatchCategory DISPATCH_CATEGORY = new DispatchCategory();
+  private final static LinkerCategory LINKER_CATEGORY = new LinkerCategory();
+  private final static DispatchCategory DISPATCH_CATEGORY = new DispatchCategory();
 
-  public LinkerCategory linkers() {
+  public static LinkerCategory linker() {
     return LINKER_CATEGORY;
   }
 
-  public DispatchCategory dispatch() {
+  public static DispatchCategory dispatch() {
     return DISPATCH_CATEGORY;
   }
 
-  public class DispatchCategory {
+  public static class DispatchCategory {
     // empty
   }
 
-  public class LinkerCategory {
-    public BukkitEventSubscriptionLinker bukkitLinker() {
+  public static class LinkerCategory {
+    public BukkitEventSubscriptionLinker bukkitEvents() {
       return find(BukkitEventSubscriptionLinker.class);
     }
 
-    public PacketSubscriptionLinker packetLinker() {
+    public PacketSubscriptionLinker packetEvents() {
       return find(PacketSubscriptionLinker.class);
     }
   }

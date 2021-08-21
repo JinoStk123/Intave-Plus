@@ -36,7 +36,7 @@ public final class CheckAccessor {
 
   private Check tryGetCheck(String name) {
     try {
-      return plugin.checkService().searchCheck(name);
+      return plugin.checks().searchCheck(name);
     } catch (NullPointerException nullptr) {
       throw new UnknownCheckException("Could not find check " + name);
     }

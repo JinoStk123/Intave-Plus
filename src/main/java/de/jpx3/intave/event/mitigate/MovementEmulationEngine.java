@@ -41,7 +41,7 @@ public final class MovementEmulationEngine {
 
   public MovementEmulationEngine(IntavePlugin plugin) {
     this.plugin = plugin;
-    this.physicsCheck = plugin.checkService().searchCheck(Physics.class);
+    this.physicsCheck = plugin.checks().searchCheck(Physics.class);
     this.teleportMethodContainer = new InternalTeleportMethodContainer();
   }
 

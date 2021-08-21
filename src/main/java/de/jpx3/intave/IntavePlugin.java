@@ -92,7 +92,6 @@ public final class IntavePlugin extends JavaPlugin {
   }
 
   private IntaveLogger logger;
-  private final Modules modules = new Modules();
   private ProxyMessenger proxyMessenger;
   private SibylIntegrationService sibylIntegrationService;
   private ConfigurationService configurationService;
@@ -104,7 +103,7 @@ public final class IntavePlugin extends JavaPlugin {
   private CheckService checkService;
   private Filters filters;
   private TrustFactorService trustFactorService;
-  private IntaveVersionList versionList;
+  private IntaveVersionList versions;
   private LabymodShadowIntegration shadowIntegration;
   private CustomClientSupportService customClientSupportService;
   private IntaveAccessService accessService;
@@ -125,8 +124,8 @@ public final class IntavePlugin extends JavaPlugin {
     manifestDataFolder();
     this.logger = new IntaveLogger(this);
     this.logger.checkColorAvailability();
-    modules.prepareModules();
-    modules.proceedBoot(BootSegment.STAGE_2);
+    Modules.prepareModules();
+    Modules.proceedBoot(BootSegment.STAGE_2);
     redirectPluginLogger();
     checkClassLoaderAvailability();
   }
@@ -135,7 +134,7 @@ public final class IntavePlugin extends JavaPlugin {
   @Override
   public void onLoad() {
     // stage 3
-    modules.proceedBoot(BootSegment.STAGE_3);
+    Modules.proceedBoot(BootSegment.STAGE_3);
   }
 
   @Native
@@ -143,7 +142,7 @@ public final class IntavePlugin extends JavaPlugin {
   public void onEnable() {
     logger.info("Please stand by..");
     // stage 4
-    modules.proceedBoot(BootSegment.STAGE_4);
+    Modules.proceedBoot(BootSegment.STAGE_4);
     
     if (AgentAccessor.agentAvailable()) {
       logger.info("Using agent :{~"+"-"+"~}:");
@@ -172,7 +171,7 @@ public final class IntavePlugin extends JavaPlugin {
 
       // version mambo jumbo
       // stage 5
-      modules.proceedBoot(BootSegment.STAGE_5);
+      Modules.proceedBoot(BootSegment.STAGE_5);
 
       Locator.setup();
       SinusCache.setup();
@@ -184,7 +183,7 @@ public final class IntavePlugin extends JavaPlugin {
       trustFactorService = new TrustFactorService(this);
 
       // stage 6
-      modules.proceedBoot(BootSegment.STAGE_6);
+      Modules.proceedBoot(BootSegment.STAGE_6);
 
       // we need to put this here
       BackgroundExecutor.start();
@@ -460,7 +459,7 @@ public final class IntavePlugin extends JavaPlugin {
             }
             String textString = text.toString();
             if (textString.startsWith("success")) {
-              Long lastSuccessfulStart = Long.valueOf(textString.split("/")[1]);
+              long lastSuccessfulStart = Long.parseLong(textString.split("/")[1]);
               if (AccessHelper.now() - lastSuccessfulStart < TimeUnit.DAYS.toMillis(2)) {
                 writeSuccessLog = false;
               }
@@ -473,7 +472,7 @@ public final class IntavePlugin extends JavaPlugin {
       }
       
       // stage 7
-      modules.proceedBoot(BootSegment.STAGE_7);
+      Modules.proceedBoot(BootSegment.STAGE_7);
 
       SSLConnectionVerifier.setup();
       RuntimeBlockVariantIndexer.prepareIndex();
@@ -488,7 +487,7 @@ public final class IntavePlugin extends JavaPlugin {
       BukkitBlockAccess.setup();
       BlockAccessProvider.setup();
       BlockInnerAccess.setup();
-      BlockDataAccess.setup();
+      BlockVariantAccess.setup();
       BlockTypeAccess.setup();
       CollisionModifiers.setup();
       ViaVersionAdapter.setup();
@@ -499,9 +498,9 @@ public final class IntavePlugin extends JavaPlugin {
       ItemProperties.setup();
       BoundingBoxPatcher.setup();
 
-      versionList = new IntaveVersionList();
+      versions = new IntaveVersionList();
       try {
-        versionList.setup();
+        versions.setup();
       } catch (Exception | Error exception) {
         logger.error("Something went wrong checking version");
         exception.printStackTrace();
@@ -516,7 +515,7 @@ public final class IntavePlugin extends JavaPlugin {
       defaultColor = ChatColor.getLastColors(prefix);
 
       // stage 8
-      modules.proceedBoot(BootSegment.STAGE_8);
+      Modules.proceedBoot(BootSegment.STAGE_8);
       filters = new Filters(this);
       filters.setup();
       shadowIntegration = new LabymodShadowIntegration(this);
@@ -542,7 +541,7 @@ public final class IntavePlugin extends JavaPlugin {
       }
 
       // stage 9
-      modules.proceedBoot(BootSegment.STAGE_9);
+      Modules.proceedBoot(BootSegment.STAGE_9);
       metrics = new Metrics(this, 6019);
 
       trustFactorService.setup();
@@ -562,7 +561,7 @@ public final class IntavePlugin extends JavaPlugin {
     }
 
     // stage 10
-    modules.proceedBoot(BootSegment.STAGE_10);
+    Modules.proceedBoot(BootSegment.STAGE_10);
 
     ViaVersionAdapter.patchConfiguration();
 
@@ -580,13 +579,13 @@ public final class IntavePlugin extends JavaPlugin {
       logger.info(noticePrefix + ChatColor.RED + "Support for older versions of Java might eventually be dropped");
     }
 
-    modules().linkers().packetLinker().refreshLinkages();
+    Modules.linker().packetEvents().refreshLinkages();
     displayVersionInformation();
     logger.info( "Intave booted successfully");
 
     Synchronizer.synchronize(() -> {
       // stage 11
-      modules.proceedBoot(BootSegment.STAGE_11);
+      Modules.proceedBoot(BootSegment.STAGE_11);
     });
   }
 
@@ -635,7 +634,7 @@ public final class IntavePlugin extends JavaPlugin {
 
   @Native
   public void displayVersionInformation() {
-    IntaveVersion version = versionList.versionInformation(version());
+    IntaveVersion version = versions.versionInformation(version());
     if (version == null) {
       logger().info(ChatColor.YELLOW + "This version of Intave is not listed in the official version index");
     } else {
@@ -805,10 +804,6 @@ public final class IntavePlugin extends JavaPlugin {
     this.access = access;
   }
 
-  public Modules modules() {
-    return modules;
-  }
-
   public IntaveAccessService accessService() {
     return accessService;
   }
@@ -825,11 +820,11 @@ public final class IntavePlugin extends JavaPlugin {
     return logger;
   }
 
-  public ProxyMessenger proxyMessenger() {
+  public ProxyMessenger proxy() {
     return proxyMessenger;
   }
 
-  public CheckService checkService() {
+  public CheckService checks() {
     return checkService;
   }
 
@@ -848,12 +843,12 @@ public final class IntavePlugin extends JavaPlugin {
 
   @Deprecated
   public BukkitEventSubscriptionLinker eventLinker() {
-    return modules().linkers().bukkitLinker();
+    return Modules.linker().bukkitEvents();
   }
 
   @Deprecated
   public PacketSubscriptionLinker packetSubscriptionLinker() {
-    return modules().linkers().packetLinker();
+    return Modules.linker().packetEvents();
   }
 
   public ViolationProcessor violationProcessor() {
@@ -864,8 +859,8 @@ public final class IntavePlugin extends JavaPlugin {
     return sibylIntegrationService;
   }
 
-  public IntaveVersionList versionList() {
-    return versionList;
+  public IntaveVersionList versions() {
+    return versions;
   }
 
   public static String version() {

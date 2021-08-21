@@ -166,7 +166,7 @@ public final class RootStage extends CommandStage {
   public void checkStatisticsCommand(User user) {
     Player player = user.player();
     player.sendMessage(ChatColor.RED + "Loading statistics...");
-    for (Check check : plugin.checkService().checks()) {
+    for (Check check : plugin.checks().checks()) {
       CheckStatistics statistics = check.baseStatistics();
       double processed = statistics.totalProcessed();
       double violations = statistics.totalViolations();
@@ -288,7 +288,7 @@ public final class RootStage extends CommandStage {
   public void showConfidences(User user) {
     Player player = user.player();
     Map<UUID, Confidence> confidenceMap = new HashMap<>();
-    Heuristics heuristicsCheck = plugin.checkService().searchCheck(Heuristics.class);
+    Heuristics heuristicsCheck = plugin.checks().searchCheck(Heuristics.class);
 
     for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
       List<Anomaly> anomalies = heuristicsCheck.catchAnomaliesOf(UserRepository.userOf(onlinePlayer), false);

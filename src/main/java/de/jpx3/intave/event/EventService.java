@@ -46,6 +46,7 @@ public final class EventService implements BukkitEventSubscriber {
     this.plugin = plugin;
   }
 
+  @Deprecated
   public void setup() {
     this.feedbackService = new FeedbackService(plugin);
     this.emulationEngine = new MovementEmulationEngine(plugin);
@@ -78,7 +79,7 @@ public final class EventService implements BukkitEventSubscriber {
       return;
     }
     String currentVersion = IntavePlugin.version();
-    IntaveVersion version = plugin.versionList().versionInformation(currentVersion);
+    IntaveVersion version = plugin.versions().versionInformation(currentVersion);
     if (version == null) {
       sendPrefixedMessage(ChatColor.YELLOW + "This server is running an unlisted version of Intave (" + currentVersion + ")", player);
       sendPrefixedMessage(ChatColor.YELLOW + "It is possible that bugs occur", player);
@@ -125,18 +126,22 @@ public final class EventService implements BukkitEventSubscriber {
     target.sendMessage(IntavePlugin.prefix() + message);
   }
 
+  @Deprecated
   public ReconDelayLimiter reconDelayLimiter() {
     return reconDelayLimiter;
   }
 
+  @Deprecated
   public MovementEmulationEngine emulationEngine() {
     return emulationEngine;
   }
 
+  @Deprecated
   public FeedbackService feedback() {
     return feedbackService;
   }
 
+  @Deprecated
   public CombatMitigator combatMitigator() {
     return combatMitigator;
   }

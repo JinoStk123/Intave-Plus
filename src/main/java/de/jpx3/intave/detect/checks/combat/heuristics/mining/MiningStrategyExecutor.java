@@ -22,7 +22,7 @@ public abstract class MiningStrategyExecutor {
 
   public MiningStrategyExecutor(User user) {
     this.user = user;
-    this.heuristicsCheck = IntavePlugin.singletonInstance().checkService().searchCheck(Heuristics.class);
+    this.heuristicsCheck = IntavePlugin.singletonInstance().checks().searchCheck(Heuristics.class);
     this.added = AccessHelper.now();
     this.registerExecutor();
     this.setup();

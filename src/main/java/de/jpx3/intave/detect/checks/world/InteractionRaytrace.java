@@ -30,9 +30,9 @@ import de.jpx3.intave.user.meta.InventoryMetadata;
 import de.jpx3.intave.user.meta.MovementMetadata;
 import de.jpx3.intave.violation.Violation;
 import de.jpx3.intave.violation.ViolationContext;
-import de.jpx3.intave.world.blockaccess.BlockDataAccess;
 import de.jpx3.intave.world.blockaccess.BlockInnerAccess;
 import de.jpx3.intave.world.blockaccess.BlockTypeAccess;
+import de.jpx3.intave.world.blockaccess.BlockVariantAccess;
 import de.jpx3.intave.world.blockaccess.BukkitBlockAccess;
 import de.jpx3.intave.world.blockshape.OCBlockShapeAccess;
 import de.jpx3.intave.world.collision.Collision;
@@ -550,7 +550,7 @@ public final class InteractionRaytrace extends MetaCheck<InteractionRaytrace.Int
       return;
     }
     Block block = BukkitBlockAccess.blockAccess(location);
-    Object handle = BlockDataAccess.nativeBlockDataOf(block);
+    Object handle = BlockVariantAccess.nativeBlockDataOf(block);
     WrappedBlockData blockData = WrappedBlockData.fromHandle(handle);
     BlockPosition position = new BlockPosition(location.getBlockX(), location.getBlockY(), location.getBlockZ());
     packet.getBlockData().write(0, blockData);

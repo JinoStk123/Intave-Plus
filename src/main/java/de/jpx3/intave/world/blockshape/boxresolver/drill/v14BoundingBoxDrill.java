@@ -20,7 +20,7 @@ public final class v14BoundingBoxDrill extends AbstractBoundingBoxDrill {
     WorldServer handle = ((CraftWorld) world).getHandle();
     BlockPosition blockPosition = new BlockPosition(posX, posY, posZ);
     // do not attempt to merge this class with v13BoundingBoxDrill
-    IBlockData blockData = (IBlockData) RuntimeBlockVariantIndexer.modernStateFromIndex(type, blockState);
+    IBlockData blockData = (IBlockData) RuntimeBlockVariantIndexer.rawBlockDataOf(type, blockState);
     if (blockData == null) {
       return Collections.emptyList();
     }

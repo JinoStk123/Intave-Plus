@@ -15,7 +15,7 @@ import de.jpx3.intave.module.linker.packet.PacketSubscription;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserRepository;
 import de.jpx3.intave.user.meta.MovementMetadata;
-import de.jpx3.intave.world.blockaccess.BlockDataAccess;
+import de.jpx3.intave.world.blockaccess.BlockVariantAccess;
 import de.jpx3.intave.world.blockshape.OCBlockShapeAccess;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -211,7 +211,7 @@ public final class BlockActionDispatcher implements EventProcessor {
           BlockPosition blockPosition = blockPositions.get(i);
           WrappedBlockData blockData = blockDataList.get(i);
           Material material = blockData.getType();
-          blockShapeAccess.override(world, blockPosition.getX(), blockPosition.getY(), blockPosition.getZ(), material, BlockDataAccess.dataAccess(blockData));
+          blockShapeAccess.override(world, blockPosition.getX(), blockPosition.getY(), blockPosition.getZ(), material, BlockVariantAccess.variantAccess(blockData));
           blockShapeAccess.invalidate(blockPosition.getX(), blockPosition.getY(), blockPosition.getZ());
         }
       }, APPEND_ON_OVERFLOW);
@@ -219,7 +219,7 @@ public final class BlockActionDispatcher implements EventProcessor {
       for (int i = 0; i < blockPositions.size(); i++) {
         BlockPosition blockPosition = blockPositions.get(i);
         WrappedBlockData blockData = blockDataList.get(i);
-        blockShapeAccess.override(world, blockPosition.getX(), blockPosition.getY(), blockPosition.getZ(), blockData.getType(), BlockDataAccess.dataAccess(blockData));
+        blockShapeAccess.override(world, blockPosition.getX(), blockPosition.getY(), blockPosition.getZ(), blockData.getType(), BlockVariantAccess.variantAccess(blockData));
         blockShapeAccess.invalidate(blockPosition.getX(), blockPosition.getY(), blockPosition.getZ());
       }
     }

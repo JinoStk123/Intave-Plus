@@ -263,7 +263,7 @@ public final class ViolationProcessor {
       boolean playerRemoved = command.startsWith("ban") || command.startsWith("kick");
       if (playerRemoved) {
         plugin.eventService().reconDelayLimiter().ban(player.getAddress().getAddress(), player.getUniqueId(), checkName);
-        plugin.proxyMessenger().sendPacket(player, new IntavePacketOutKicked(
+        plugin.proxy().sendPacket(player, new IntavePacketOutKicked(
           player.getUniqueId(),
           checkName,
           violation.message(),

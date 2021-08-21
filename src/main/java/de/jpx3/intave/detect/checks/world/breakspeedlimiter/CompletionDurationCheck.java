@@ -23,8 +23,8 @@ import de.jpx3.intave.user.meta.ProtocolMetadata;
 import de.jpx3.intave.violation.Violation;
 import de.jpx3.intave.violation.ViolationContext;
 import de.jpx3.intave.violation.ViolationProcessor;
-import de.jpx3.intave.world.blockaccess.BlockDataAccess;
 import de.jpx3.intave.world.blockaccess.BlockInnerAccess;
+import de.jpx3.intave.world.blockaccess.BlockVariantAccess;
 import de.jpx3.intave.world.blockaccess.BukkitBlockAccess;
 import de.jpx3.intave.world.wrapper.WrappedEnumDirection;
 import org.bukkit.Location;
@@ -166,7 +166,7 @@ public final class CompletionDurationCheck extends MetaCheckPart<BreakSpeedLimit
       return;
     }
     Block block = BukkitBlockAccess.blockAccess(location);
-    Object handle = BlockDataAccess.nativeBlockDataOf(block);
+    Object handle = BlockVariantAccess.nativeBlockDataOf(block);
     WrappedBlockData blockData = WrappedBlockData.fromHandle(handle);
     BlockPosition position = new BlockPosition(location.getBlockX(), location.getBlockY(), location.getBlockZ());
     packet.getBlockData().write(0, blockData);

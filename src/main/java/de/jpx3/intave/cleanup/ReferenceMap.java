@@ -86,6 +86,7 @@ public final class ReferenceMap<K, V> implements Map<K, V> {
   @NotNull
   @Override
   public Set<K> keySet() {
+    cleanup();
     return map.keySet();
   }
 

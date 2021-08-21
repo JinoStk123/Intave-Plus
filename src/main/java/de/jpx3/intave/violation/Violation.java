@@ -10,6 +10,16 @@ import org.bukkit.entity.Player;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * A {@link Violation} serves as threat-assessment submitted by a {@link Check}.<br>
+ * It contains a base message, details, the threshold-channel,
+ * the amount of vl points to add and option flags.
+ * It is submitted to a {@link ViolationProcessor}.
+ *
+ * @see Check
+ * @see ViolationContext
+ * @see ViolationProcessor
+ */
 public final class Violation {
   private final Class<? extends Check> checkClass;
   private final UUID id;
@@ -38,7 +48,7 @@ public final class Violation {
   }
 
   public Check check() {
-    return IntavePlugin.singletonInstance().checkService().searchCheck(checkClass);
+    return IntavePlugin.singletonInstance().checks().searchCheck(checkClass);
   }
 
   public Class<? extends Check> checkClass() {

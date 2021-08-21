@@ -43,7 +43,7 @@ public final class Timer extends MetaCheck<Timer.TimerData> {
     super("Timer", "timer", TimerData.class);
     this.plugin = plugin;
     this.decrementer = new CheckViolationLevelDecrementer(this, 0.2);
-    this.simulationProcessor = plugin.checkService().searchCheck(Physics.class).simulationService();
+    this.simulationProcessor = plugin.checks().searchCheck(Physics.class).simulationService();
     highToleranceMode = configuration().settings().boolBy("high-tolerance", false);
     if (highToleranceMode) {
       IntaveLogger.logger().info("Enabled high ping tolerance");

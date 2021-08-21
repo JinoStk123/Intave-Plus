@@ -16,6 +16,7 @@ import de.jpx3.intave.connect.sibyl.LabyModChannelHelper;
 import de.jpx3.intave.connect.sibyl.LabymodClientListener;
 import de.jpx3.intave.executor.BackgroundExecutor;
 import de.jpx3.intave.executor.Synchronizer;
+import de.jpx3.intave.module.Modules;
 import de.jpx3.intave.module.linker.bukkit.BukkitEventSubscriber;
 import de.jpx3.intave.module.linker.bukkit.BukkitEventSubscription;
 import de.jpx3.intave.reflect.Lookup;
@@ -57,7 +58,7 @@ public final class SibylAuthentication implements BukkitEventSubscriber {
   public SibylAuthentication(IntavePlugin plugin) {
     this.plugin = plugin;
     this.authenticationListener = new LabymodClientListener(plugin, "sibyl-auth", this::processIncomingMessage);
-    this.plugin.eventLinker().registerEventsIn(this);
+    Modules.linker().bukkitEvents().registerEventsIn(this);
   }
 
   @Native

@@ -5,8 +5,8 @@ import de.jpx3.intave.annotate.Relocate;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserRepository;
 import de.jpx3.intave.user.meta.MovementMetadata;
-import de.jpx3.intave.world.blockaccess.BlockDataAccess;
 import de.jpx3.intave.world.blockaccess.BlockTypeAccess;
+import de.jpx3.intave.world.blockaccess.BlockVariantAccess;
 import de.jpx3.intave.world.blockaccess.BukkitBlockAccess;
 import de.jpx3.intave.world.blockphysic.MaterialMagic;
 import de.jpx3.intave.world.blockshape.OCBlockShapeAccess;
@@ -134,7 +134,7 @@ public final class Collision {
               for (int y = ystart; y < maxY; ++y) {
                 Block block = BukkitBlockAccess.blockAccess(world, x, y, z);
                 Material type = BlockTypeAccess.typeAccess(block);
-                int data = BlockDataAccess.dataAccess(block);
+                int data = BlockVariantAccess.variantAccess(block);
                 List<WrappedAxisAlignedBB> resolve = boundingBoxResolver.resolve(world, null, type, data, x, y, z);
                 boolean blockIsOutsideBorder = !blockInsideBorder(world, x, z);
                 if (blockIsOutsideBorder) {

@@ -2,8 +2,8 @@ package de.jpx3.intave.world.blockshape;
 
 import de.jpx3.intave.cleanup.ReferenceMap;
 import de.jpx3.intave.diagnostic.BoundingBoxAccessFlowStudy;
-import de.jpx3.intave.world.blockaccess.BlockDataAccess;
 import de.jpx3.intave.world.blockaccess.BlockTypeAccess;
+import de.jpx3.intave.world.blockaccess.BlockVariantAccess;
 import de.jpx3.intave.world.blockaccess.BukkitBlockAccess;
 import de.jpx3.intave.world.blockshape.boxresolver.BoundingBoxResolver;
 import de.jpx3.intave.world.blockshape.boxresolver.ResolverPipeline;
@@ -22,24 +22,25 @@ import java.util.concurrent.ConcurrentHashMap;
 import static de.jpx3.intave.IntaveControl.DISABLE_BLOCK_CACHING_ENTIRELY;
 
 public final class MultiChunkKeyOCBlockShapeAccess implements OCBlockShapeAccess {
+  private final static int BUILD_LIMIT = 255;
   private final Player player;
   private final ResolverPipeline boundingBoxResolver;
   private final Map<Long, BlockShape> blockCache = ReferenceMap.soft(new ConcurrentHashMap<>(4096));
   private final Map<Location, BlockShape> locatedReplacements = new ConcurrentHashMap<>(64);
   private final Map<Long, BlockShape> indexedReplacements = new ConcurrentHashMap<>(64);
-  private int originChunkX;
-  private int originChunkZ;
-  private int chunkX;
-  private int chunkZ;
+  private int originChunkX, originChunkZ;
+  private int chunkX, chunkZ;
 
-  private MultiChunkKeyOCBlockShapeAccess(Player player, ResolverPipeline resolver) {
+  private MultiChunkKeyOCBlockShapeAccess(
+    Player player, ResolverPipeline resolver
+  ) {
     this.player = player;
     this.boundingBoxResolver = resolver;
   }
 
   @Override
   public List<WrappedAxisAlignedBB> resolveBoxes(int chunkX, int chunkZ, int posX, int posY, int posZ) {
-    if (posY < 0 || 255 < posY) {
+    if (posY < 0 || BUILD_LIMIT < posY) {
       return Collections.emptyList();
     }
     BoundingBoxAccessFlowStudy.requests++;
@@ -73,7 +74,7 @@ public final class MultiChunkKeyOCBlockShapeAccess implements OCBlockShapeAccess
 
   @Override
   public Material resolveType(int chunkX, int chunkZ, int posX, int posY, int posZ) {
-    if (posY < 0 || 255 < posY) {
+    if (posY < 0 || BUILD_LIMIT < posY) {
       return Material.AIR;
     }
     BoundingBoxAccessFlowStudy.requests++;
@@ -107,7 +108,7 @@ public final class MultiChunkKeyOCBlockShapeAccess implements OCBlockShapeAccess
 
   @Override
   public int resolveVariant(int chunkX, int chunkZ, int posX, int posY, int posZ) {
-    if (posY < 0 || 255 < posY) {
+    if (posY < 0 || BUILD_LIMIT < posY) {
       return 0;
     }
     BoundingBoxAccessFlowStudy.requests++;
@@ -150,9 +151,9 @@ public final class MultiChunkKeyOCBlockShapeAccess implements OCBlockShapeAccess
       return EMPTY_CACHE_ENTRY;
     } else {
       BoundingBoxAccessFlowStudy.incremLookups();
-      int data = BlockDataAccess.dataAccess(block);
-      List<WrappedAxisAlignedBB> boundingBoxes = boundingBoxResolver.resolve(world, player, type, data, posX, posY, posZ);
-      return new BlockShape(boundingBoxes, type, data);
+      int variant = BlockVariantAccess.variantAccess(block);
+      List<WrappedAxisAlignedBB> boundingBoxes = boundingBoxResolver.resolve(world, player, type, variant, posX, posY, posZ);
+      return new BlockShape(boundingBoxes, type, variant);
     }
   }
 
@@ -195,7 +196,7 @@ public final class MultiChunkKeyOCBlockShapeAccess implements OCBlockShapeAccess
     for (Location location : locatedReplacements.keySet()) {
       if (location.getX() >= chunkXMinPos && location.getX() < chunkXMaxPos &&
         location.getZ() >= chunkZMinPos && location.getZ() < chunkZMaxPos) {
-        long key = bigKey(location.getBlockX(), location.getBlockY(), location.getBlockZ());
+        long key = bigKey(location);
         locatedReplacements.remove(location);
         indexedReplacements.remove(key);
       }
@@ -240,8 +241,12 @@ public final class MultiChunkKeyOCBlockShapeAccess implements OCBlockShapeAccess
     return indexedReplacements;
   }
 
+  private long bigKey(Location location) {
+    return bigKey(location.getBlockX(), location.getBlockY(), location.getBlockZ());
+  }
+
   private long bigKey(int posX, int posY, int posZ) {
-    return (posX & 0x3f_ffffL) << 42 | (posY & 0xf_ffffL) | (posZ & 0x3f_ffffL) << 20;
+    return (posX & 0x3fffffL) << 42 | (posY & 0xfffffL) | (posZ & 0x3fffffL) << 20;
   }
 
   public static MultiChunkKeyOCBlockShapeAccess withDefaultResolverOf(Player player) {

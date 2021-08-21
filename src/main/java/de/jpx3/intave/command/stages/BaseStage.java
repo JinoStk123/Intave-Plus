@@ -163,7 +163,7 @@ public final class BaseStage extends CommandStage {
   private void sendVersionMessage(CommandSender player) {
     boolean hasVersionViewPermission = BukkitPermissionCheck.permissionCheck(player, "intave.command");
 
-    IntaveVersion versionInformation = IntavePlugin.singletonInstance().versionList().versionInformation(IntavePlugin.version());
+    IntaveVersion versionInformation = IntavePlugin.singletonInstance().versions().versionInformation(IntavePlugin.version());
     String version;
     if (!hasVersionViewPermission) {
       version = "(version hidden)";

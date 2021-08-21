@@ -13,9 +13,9 @@ import org.bukkit.inventory.ItemStack;
  */
 
 public interface BlockAccessor {
-  Material typeAccess(Block block);
+  Material typeOf(Block block);
 
-  int dataAccess(Block block);
+  int variantOf(Block block);
 
   float blockDamage(Player player, ItemStack itemInHand, BlockPosition blockPosition);
 

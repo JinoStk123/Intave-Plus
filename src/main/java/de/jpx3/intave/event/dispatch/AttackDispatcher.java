@@ -45,7 +45,7 @@ public final class AttackDispatcher implements EventProcessor {
   public AttackDispatcher(IntavePlugin plugin) {
     plugin.packetSubscriptionLinker().linkSubscriptionsIn(this);
     plugin.eventLinker().registerEventsIn(this);
-    REDUCING_DISABLED = !MinecraftVersions.VER1_9_0.atOrAbove() && plugin.checkService().searchCheck(Heuristics.class).configuration().settings().boolBy("disable-reducing", true);
+    REDUCING_DISABLED = !MinecraftVersions.VER1_9_0.atOrAbove() && plugin.checks().searchCheck(Heuristics.class).configuration().settings().boolBy("disable-reducing", true);
 
     for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
       disableReducing(onlinePlayer);

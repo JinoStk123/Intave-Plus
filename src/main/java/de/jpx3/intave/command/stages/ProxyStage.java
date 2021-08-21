@@ -30,13 +30,13 @@ public final class ProxyStage extends CommandStage {
     description = "Remotely executes commands on the proxy"
   )
   public void proxyCommand(CommandSender sender, Player uplink, String[] commandParts) {
-    if (!plugin.proxyMessenger().isChannelOpen()) {
+    if (!plugin.proxy().isChannelOpen()) {
       sender.sendMessage(IntavePlugin.prefix() + ChatColor.RED + "Not connected to a proxy");
       return;
     }
     String command = Arrays.stream(commandParts).map(commandPart -> commandPart + " ").collect(Collectors.joining()).trim();
     IntavePacket packet = new IntavePacketOutExecuteCommand(uplink.getUniqueId(), command);
-    plugin.proxyMessenger().sendPacket(uplink, packet);
+    plugin.proxy().sendPacket(uplink, packet);
     sender.sendMessage(IntavePlugin.prefix() + "Remote command execution of \"/"+command+"\" issued");
   }
 
@@ -47,7 +47,7 @@ public final class ProxyStage extends CommandStage {
     description = "Remotely kicks the target player from the proxy"
   )
   public void proxyKick(CommandSender sender, Player target, @Optional String[] message) {
-    if (!plugin.proxyMessenger().isChannelOpen()) {
+    if (!plugin.proxy().isChannelOpen()) {
       sender.sendMessage(IntavePlugin.prefix() + ChatColor.RED + "Not connected to a proxy");
       return;
     }
@@ -63,7 +63,7 @@ public final class ProxyStage extends CommandStage {
     description = "Remotely temp-bans the target player from the proxy"
   )
   public void proxyTempBan(CommandSender sender, Player target, @Optional String[] reasonParts) {
-    if (!plugin.proxyMessenger().isChannelOpen()) {
+    if (!plugin.proxy().isChannelOpen()) {
       sender.sendMessage(IntavePlugin.prefix() + ChatColor.RED + "Not connected to a proxy");
       return;
     }
@@ -79,7 +79,7 @@ public final class ProxyStage extends CommandStage {
     description = "Remotely bans the target player from the proxy"
   )
   public void proxyBan(CommandSender sender, Player target, @Optional String[] reasonParts) {
-    if (!plugin.proxyMessenger().isChannelOpen()) {
+    if (!plugin.proxy().isChannelOpen()) {
       sender.sendMessage(IntavePlugin.prefix() + ChatColor.RED + "Not connected to a proxy");
       return;
     }
@@ -95,7 +95,7 @@ public final class ProxyStage extends CommandStage {
   ) {
     long tempbanEndTimestamp = System.currentTimeMillis() + 1000 * 60 * 60;
     IntavePacket packet = new IntavePacketOutPunishment(target.getUniqueId(), type, reason.trim(), tempbanEndTimestamp);
-    plugin.proxyMessenger().sendPacket(target, packet);
+    plugin.proxy().sendPacket(target, packet);
   }
 
   public static ProxyStage singletonInstance() {

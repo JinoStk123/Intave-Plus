@@ -23,7 +23,7 @@ public final class v17b1BoundingBoxDrill extends AbstractBoundingBoxDrill {
   public List<WrappedAxisAlignedBB> resolve(World world, Player player, Material type, int blockState, int posX, int posY, int posZ) {
     WorldServer handle = ((CraftWorld) world).getHandle();
     BlockPosition blockPosition = new BlockPosition(posX, posY, posZ);
-    IBlockData blockData = (IBlockData) RuntimeBlockVariantIndexer.modernStateFromIndex(type, blockState);
+    IBlockData blockData = (IBlockData) RuntimeBlockVariantIndexer.rawBlockDataOf(type, blockState);
     if (blockData == null) {
       return Collections.emptyList();
     }

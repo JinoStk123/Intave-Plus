@@ -14,7 +14,7 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
 
-public final class BlockDataAccess {
+public final class BlockVariantAccess {
   private static MethodHandle nativeBlockDataAccess;
   private static MethodHandle nativeBlockDataExtractionAccess;
 
@@ -47,23 +47,23 @@ public final class BlockDataAccess {
    * providing fast performance, a robust cache implementation and stable chunk fallback
    */
   @Deprecated
-  public static int dataAccess(Block block) {
-    Material type = BlockTypeAccess.typeAccess(block);
-    if (!MODERN_MATERIAL_PROCESSING) {
-      return BlockAccessProvider.accessor().dataAccess(block);
-    } else {
-      int index = RuntimeBlockVariantIndexer.indexOfModernState(type, nativeBlockDataOf(block));
+  public static int variantAccess(Block block) {
+    if (MODERN_MATERIAL_PROCESSING) {
+      Material type = BlockTypeAccess.typeAccess(block);
+      int index = RuntimeBlockVariantIndexer.variantIndexOf(type, nativeBlockDataOf(block));
       return Math.max(index, 0);
+    } else {
+      return BlockAccessProvider.accessor().variantOf(block);
     }
   }
 
-  public static int dataAccess(WrappedBlockData wrappedBlockData) {
+  public static int variantAccess(WrappedBlockData wrappedBlockData) {
     if(!MODERN_MATERIAL_PROCESSING) {
       return wrappedBlockData.getData();
     }
     Material type = wrappedBlockData.getType();
     Object handle = wrappedBlockData.getHandle();
-    int index = RuntimeBlockVariantIndexer.indexOfModernState(type, handle);
+    int index = RuntimeBlockVariantIndexer.variantIndexOf(type, handle);
     if (index < 0) {
       throw new IllegalStateException("Invalid block data update: " + type + "/" + handle);
     }
@@ -84,7 +84,7 @@ public final class BlockDataAccess {
 
   public static Object blockDataFromNativeBlock(Block block, Object nativeBlock) {
     try {
-      return nativeBlockDataExtractionAccess.invoke(nativeBlock, block.getData());
+      return nativeBlockDataExtractionAccess.invoke(nativeBlock, variantAccess(block));
     } catch (Throwable throwable) {
       throw new IntaveInternalException("Failed to access block data of " + nativeBlock, throwable);
     }

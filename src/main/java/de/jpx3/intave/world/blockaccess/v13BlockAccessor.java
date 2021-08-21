@@ -19,12 +19,12 @@ import org.bukkit.inventory.ItemStack;
 @PatchyAutoTranslation
 public final class v13BlockAccessor implements BlockAccessor {
   @Override
-  public Material typeAccess(Block block) {
+  public Material typeOf(Block block) {
     return block.getType();
   }
 
   @Override
-  public int dataAccess(Block block) {
+  public int variantOf(Block block) {
     return block.getData();
   }
 

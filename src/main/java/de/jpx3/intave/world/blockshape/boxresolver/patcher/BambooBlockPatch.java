@@ -1,7 +1,7 @@
 package de.jpx3.intave.world.blockshape.boxresolver.patcher;
 
-import de.jpx3.intave.world.blockaccess.BlockDataAccess;
 import de.jpx3.intave.world.blockaccess.BlockTypeAccess;
+import de.jpx3.intave.world.blockaccess.BlockVariantAccess;
 import de.jpx3.intave.world.wrapper.WrappedAxisAlignedBB;
 import de.jpx3.intave.world.wrapper.WrappedMathHelper;
 import org.bukkit.Material;
@@ -16,7 +16,7 @@ final class BambooBlockPatch extends BoundingBoxPatch {
 
   @Override
   public List<WrappedAxisAlignedBB> patch(World world, Player player, Block block, List<WrappedAxisAlignedBB> bbs) {
-    return patch(world, player, block.getX(), block.getY(), block.getZ(), BlockTypeAccess.typeAccess(block, player), BlockDataAccess.dataAccess(block), bbs);
+    return patch(world, player, block.getX(), block.getY(), block.getZ(), BlockTypeAccess.typeAccess(block, player), BlockVariantAccess.variantAccess(block), bbs);
   }
 
   @Override

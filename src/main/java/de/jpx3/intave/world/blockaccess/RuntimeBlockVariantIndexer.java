@@ -41,7 +41,7 @@ public final class RuntimeBlockVariantIndexer {
     return ImmutableList.copyOf(blockDataIndex.get(material).keySet());
   }
 
-  public static int indexOfModernState(Material type, Object rawBlockData) {
+  public static int variantIndexOf(Material type, Object rawBlockData) {
     Map<Object, Integer> indexMap = blockDataIndex.get(type);
     Integer integer = indexMap.get(rawBlockData);
     if (integer == null) {
@@ -51,7 +51,7 @@ public final class RuntimeBlockVariantIndexer {
     return integer;
   }
 
-  public static Object modernStateFromIndex(Material type, int blockState) {
+  public static Object rawBlockDataOf(Material type, int blockState) {
     try {
       return blockDataRegister.get(type).get(blockState);
     } catch (Exception exception) {

@@ -19,7 +19,7 @@ public final class ProxyListeningResponder {
   }
 
   private void setupPacketResponses() {
-    plugin.proxyMessenger().subscribe(IntavePacketInRequestVersion.class, (sender, packet) ->
-      plugin.proxyMessenger().sendPacket(sender, new IntavePacketOutVersion(IntavePlugin.version(), ProxyMessenger.PROTOCOL_VERSION)));
+    plugin.proxy().subscribe(IntavePacketInRequestVersion.class, (sender, packet) ->
+      plugin.proxy().sendPacket(sender, new IntavePacketOutVersion(IntavePlugin.version(), ProxyMessenger.PROTOCOL_VERSION)));
   }
 }

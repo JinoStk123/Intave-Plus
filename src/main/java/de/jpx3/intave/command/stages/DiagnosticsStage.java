@@ -114,7 +114,7 @@ public final class DiagnosticsStage extends CommandStage {
   )
   public void checkStatisticsCommand(CommandSender sender) {
     sender.sendMessage(IntavePlugin.prefix() + "Loading check statistics...");
-    List<Check> checks = new ArrayList<>(plugin.checkService().checks());
+    List<Check> checks = new ArrayList<>(plugin.checks().checks());
     checks.sort(Comparator.comparing(check -> check.baseStatistics().totalFails()));
     for (Check check : checks) {
       CheckStatistics statistics = check.baseStatistics();

@@ -60,7 +60,7 @@ public final class BukkitBlockAccess implements BukkitEventSubscriber {
     if (isInLoadedChunk(blockAccess, blockX, blockZ) || Bukkit.isPrimaryThread()) {
       return user.blockShapeAccess().resolveVariant(blockX >> 4, blockZ >> 4, blockX, blockY, blockZ);
     }
-    return BlockDataAccess.dataAccess(fallbackBlock(blockAccess));
+    return BlockVariantAccess.variantAccess(fallbackBlock(blockAccess));
   }
 
   private static Block fallbackBlock(World world) {

@@ -64,9 +64,9 @@ public final class MovementDispatcher implements EventProcessor {
     this.plugin = plugin;
     this.plugin.packetSubscriptionLinker().linkSubscriptionsIn(this);
     this.plugin.eventLinker().registerEventsIn(this);
-    this.physicsCheck = plugin.checkService().searchCheck(Physics.class);
-    this.interactionRaytraceCheck = plugin.checkService().searchCheck(InteractionRaytrace.class);
-    this.timerCheck = plugin.checkService().searchCheck(Timer.class);
+    this.physicsCheck = plugin.checks().searchCheck(Physics.class);
+    this.interactionRaytraceCheck = plugin.checks().searchCheck(InteractionRaytrace.class);
+    this.timerCheck = plugin.checks().searchCheck(Timer.class);
     linkTeleportObserver(plugin);
   }
 
