@@ -2,22 +2,22 @@ package de.jpx3.intave.diagnostic;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 public abstract class MemoryTraced {
-  private final static Map<Class<?>, AtomicInteger> objectsLoaded = new ConcurrentHashMap<>();
-
+  private final static Map<Class<?>, AtomicLong> objectsLoaded = new ConcurrentHashMap<>();
+  
   public MemoryTraced() {
-    objectsLoaded.computeIfAbsent(getClass(), aClass -> new AtomicInteger()).incrementAndGet();
+    objectsLoaded.computeIfAbsent(getClass(), aClass -> new AtomicLong()).incrementAndGet();
   }
 
-  public static Map<Class<?>, AtomicInteger> tracedClasses() {
+  public static Map<Class<?>, AtomicLong> tracedClasses() {
     return objectsLoaded;
   }
 
   @Override
   protected void finalize() throws Throwable {
     super.finalize();
-    objectsLoaded.computeIfAbsent(getClass(), aClass -> new AtomicInteger()).decrementAndGet();
+    objectsLoaded.computeIfAbsent(getClass(), aClass -> new AtomicLong()).decrementAndGet();
   }
 }

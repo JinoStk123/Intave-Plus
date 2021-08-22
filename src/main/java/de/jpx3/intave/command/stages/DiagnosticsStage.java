@@ -8,18 +8,16 @@ import de.jpx3.intave.command.Optional;
 import de.jpx3.intave.command.SubCommand;
 import de.jpx3.intave.detect.Check;
 import de.jpx3.intave.detect.CheckStatistics;
-import de.jpx3.intave.diagnostic.MemoryTraced;
+import de.jpx3.intave.diagnostic.timings.Timing;
+import de.jpx3.intave.diagnostic.timings.Timings;
 import de.jpx3.intave.math.MathHelper;
 import de.jpx3.intave.user.User;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public final class DiagnosticsStage extends CommandStage {
   private static DiagnosticsStage singletonInstance;
@@ -44,38 +42,31 @@ public final class DiagnosticsStage extends CommandStage {
       return;
     }
 
-    Map<Class<?>, AtomicInteger> traces = MemoryTraced.tracedClasses();
-    traces.forEach((aClass, atomicInteger) -> {
-      player.sendMessage(aClass + " has " + atomicInteger + " open instances");
-    });
+    String fullSpecifier = specifier != null ? Arrays.stream(specifier).map(s -> s + " ").collect(Collectors.joining()).trim().toLowerCase(Locale.ROOT) : "";
 
-//
-//    String fullSpecifier = specifier != null ? Arrays.stream(specifier).map(s -> s + " ").collect(Collectors.joining()).trim().toLowerCase(Locale.ROOT) : "";
-//
-//    Player player = user.player();
-//    player.sendMessage(ChatColor.RED + "Loading timings...");
-//    List<Timing> timings = new ArrayList<>(Timings.timingPool());
-//    timings.sort(Timing::compareTo);
-//
-//    timings.forEach(timing -> {
-//      if (timing.isPacketEventTiming() || timing.isBukkitEventTiming()) {
-//        return;
-//      }
-//      boolean suspicious = timing.averageCallDurationInMillis() > 0.5d;
-//      boolean dumping = timing.averageCallDurationInMillis() > 1.5d;
-//      String message = String.format(
-//        "%s: %s::%sms (%s&f ms/c)",
-//        timing.coloredName(),
-//        timing.recordedCalls(),
-//        MathHelper.formatDouble(timing.totalDurationMillis(), 4),
-//        (suspicious ? (dumping ? ChatColor.RED : ChatColor.YELLOW) : ChatColor.GREEN) + "" +
-//          MathHelper.formatDouble(timing.averageCallDurationInMillis(), 8)
-//      );
-//      if (!fullSpecifier.isEmpty() && !timing.name().toLowerCase(Locale.ROOT).contains(fullSpecifier)) {
-//        message = IntavePlugin.defaultColor() + ChatColor.stripColor(message);
-//      }
-//      player.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
-//    });
+    player.sendMessage(ChatColor.RED + "Loading timings...");
+    List<Timing> timings = new ArrayList<>(Timings.timingPool());
+    timings.sort(Timing::compareTo);
+
+    timings.forEach(timing -> {
+      if (timing.isPacketEventTiming() || timing.isBukkitEventTiming()) {
+        return;
+      }
+      boolean suspicious = timing.averageCallDurationInMillis() > 0.5d;
+      boolean dumping = timing.averageCallDurationInMillis() > 1.5d;
+      String message = String.format(
+        "%s: %s::%sms (%s&f ms/c)",
+        timing.coloredName(),
+        timing.recordedCalls(),
+        MathHelper.formatDouble(timing.totalDurationMillis(), 4),
+        (suspicious ? (dumping ? ChatColor.RED : ChatColor.YELLOW) : ChatColor.GREEN) + "" +
+          MathHelper.formatDouble(timing.averageCallDurationInMillis(), 8)
+      );
+      if (!fullSpecifier.isEmpty() && !timing.name().toLowerCase(Locale.ROOT).contains(fullSpecifier)) {
+        message = IntavePlugin.defaultColor() + ChatColor.stripColor(message);
+      }
+      player.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
+    });
   }
 
   @SubCommand(

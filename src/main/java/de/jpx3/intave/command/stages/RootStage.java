@@ -13,6 +13,7 @@ import de.jpx3.intave.detect.checks.combat.heuristics.Anomaly;
 import de.jpx3.intave.detect.checks.combat.heuristics.Confidence;
 import de.jpx3.intave.detect.checks.combat.heuristics.MiningStrategy;
 import de.jpx3.intave.diagnostic.KeyPressStudy;
+import de.jpx3.intave.diagnostic.MemoryTraced;
 import de.jpx3.intave.diagnostic.MemoryWatchdog;
 import de.jpx3.intave.diagnostic.timings.Timing;
 import de.jpx3.intave.diagnostic.timings.Timings;
@@ -30,6 +31,7 @@ import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import static de.jpx3.intave.diagnostic.BoundingBoxAccessFlowStudy.*;
@@ -413,6 +415,22 @@ public final class RootStage extends CommandStage {
       ci.next();
     }
     return String.format("%.1f%cB", bytes / 1000.0, ci.current());
+  }
+
+  @SubCommand(
+    selectors = "memtrace2",
+    usage = "",
+    description = "",
+    permission = "sibyl"
+  )
+  @Native
+  public void memtrace2(User user) {
+    Player player = user.player();
+
+    Map<Class<?>, AtomicLong> traces = MemoryTraced.tracedClasses();
+    traces.forEach((aClass, atomicInteger) -> {
+      player.sendMessage(atomicInteger + " of " + aClass);
+    });
   }
 
   public <K extends Comparable<? super K>, V extends Comparable<? super V>> Map<K, V> sortHashMapByValues(

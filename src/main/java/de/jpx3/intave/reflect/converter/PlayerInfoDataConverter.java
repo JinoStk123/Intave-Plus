@@ -1,4 +1,4 @@
-package de.jpx3.intave.reflect.converters;
+package de.jpx3.intave.reflect.converter;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.reflect.EquivalentConverter;
