@@ -1,6 +1,6 @@
 package de.jpx3.intave.executor;
 
-import de.jpx3.intave.cleanup.Shutdown;
+import de.jpx3.intave.cleanup.ShutdownTasks;
 import io.netty.util.internal.ConcurrentSet;
 import org.bukkit.Bukkit;
 
@@ -11,7 +11,7 @@ public final class TaskTracker {
   private final static Set<Integer> runningTasks = new ConcurrentSet<>();
 
   public static void setup() {
-    Shutdown.addTask(TaskTracker::stopAll);
+    ShutdownTasks.add(TaskTracker::stopAll);
   }
 
   public static void begun(int taskId) {

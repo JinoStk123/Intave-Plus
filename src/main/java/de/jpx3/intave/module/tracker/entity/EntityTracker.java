@@ -12,11 +12,12 @@ import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.adapter.MinecraftVersions;
 import de.jpx3.intave.adapter.ProtocolLibraryAdapter;
 import de.jpx3.intave.cleanup.GarbageCollector;
-import de.jpx3.intave.event.feedback.Callback;
-import de.jpx3.intave.event.feedback.FeedbackTracker;
 import de.jpx3.intave.executor.TaskTracker;
 import de.jpx3.intave.fakeplayer.FakePlayer;
 import de.jpx3.intave.module.Module;
+import de.jpx3.intave.module.Modules;
+import de.jpx3.intave.module.feedback.FeedbackCallback;
+import de.jpx3.intave.module.feedback.FeedbackTracker;
 import de.jpx3.intave.module.linker.packet.ListenerPriority;
 import de.jpx3.intave.module.linker.packet.PacketSubscription;
 import de.jpx3.intave.reflect.hitbox.HitBoxBoundaries;
@@ -40,7 +41,7 @@ import org.bukkit.util.Vector;
 import javax.annotation.Nullable;
 import java.util.*;
 
-import static de.jpx3.intave.event.feedback.FeedbackService.TransactionOptions.APPEND_ON_OVERFLOW;
+import static de.jpx3.intave.module.feedback.FeedbackSender.TransactionOptions.APPEND_ON_OVERFLOW;
 import static de.jpx3.intave.module.linker.packet.PacketId.Client.POSITION;
 import static de.jpx3.intave.module.linker.packet.PacketId.Client.*;
 import static de.jpx3.intave.module.linker.packet.PacketId.Server.*;
@@ -75,7 +76,7 @@ public final class EntityTracker extends Module {
 
   private void reevaluateTracingEntities() {
     for (Player player : Bukkit.getOnlinePlayers()) {
-      reevaluteTracingEntitiesFor(player);
+      selectEntitiesToTraceFor(player);
     }
   }
 
@@ -83,7 +84,7 @@ public final class EntityTracker extends Module {
   private final static int MAX_TRACED_ENTITIES = 4;
   private final static int MAX_DOUBLE_TRACED_ENTITIES = 1;
 
-  private void reevaluteTracingEntitiesFor(Player player) {
+  private void selectEntitiesToTraceFor(Player player) {
     User user = UserRepository.userOf(player);
     if (!user.hasPlayer()) {
       return;
@@ -112,8 +113,8 @@ public final class EntityTracker extends Module {
     validEntities.sort(Comparator.comparingDouble(entity -> entity.distanceToPlayerCache));
     int count = 0;
     for (WrappedEntity entity : validEntities) {
-      entity.doubleVerification = count < MAX_DOUBLE_TRACED_ENTITIES;
       entity.setResponseTracingEnabled(count < MAX_TRACED_ENTITIES);
+      entity.doubleVerification = count < MAX_DOUBLE_TRACED_ENTITIES;
       count++;
     }
   }
@@ -180,7 +181,7 @@ public final class EntityTracker extends Module {
       if (movementData.hasRidingEntity()) {
         movementData.dismountRidingEntity();
       }
-      if (ridingEntity != null && !(ridingEntity instanceof DestroyedWrappedEntity)) {
+      if (ridingEntity != null && !(ridingEntity instanceof WrappedEntity.Destroyed)) {
         movementData.setRidingEntity(ridingEntity);
       }
     }
@@ -209,7 +210,7 @@ public final class EntityTracker extends Module {
 //    plugin.eventService().transactionFeedbackService().requestPong(event.getPlayer(), event, this::processEntitySpawn);
 //    Thread.dumpStack();
     processEntitySpawn(event.getPlayer(), event);
-//    plugin.eventService().feedback().singleSynchronize(event.getPlayer(), event, this::processEntitySpawn, APPEND_ON_OVERFLOW);
+//    Modules.feedback().singleSynchronize(event.getPlayer(), event, this::processEntitySpawn, APPEND_ON_OVERFLOW);
   }
 
   private void processEntitySpawn(Player player, PacketEvent event) {
@@ -287,7 +288,7 @@ public final class EntityTracker extends Module {
     ConnectionMetadata synchronizeData = user.meta().connection();
     WrappedEntity wrappedEntity = synchronizeData.synchronizedEntityMap().get(entityID);
     if (wrappedEntity instanceof WrappedEntityFirework) {
-      plugin.eventService().feedback().singleSynchronize(player, entityID, this::processEntityDestroy, wrappedEntity.feedbackTracker(), APPEND_ON_OVERFLOW);
+      Modules.feedback().singleSynchronize(player, entityID, this::processEntityDestroy, wrappedEntity.feedbackTracker(), APPEND_ON_OVERFLOW);
     } else {
       processEntityDestroy(player, entityID);
     }
@@ -356,7 +357,7 @@ public final class EntityTracker extends Module {
     if(entity == null) return;
 
     if (entity.entityTypeData.isLivingEntity() && entity.tracingEnabled()) {
-      Callback<PacketEvent> task = (player1, event1) -> {
+      FeedbackCallback<PacketEvent> task = (player1, event1) -> {
         entity.verifiedPosition = false;
         entity.handleEntityTeleport(packet);
         entity.clientSynchronized = true;
@@ -365,10 +366,10 @@ public final class EntityTracker extends Module {
       FeedbackTracker feedbackTracker = entity.feedbackTracker();
 
       if (entity.doubleVerification) {
-        Callback<PacketEvent> verificationTask = (x, theEvent) -> entity.verifiedPosition = true;
-        plugin.eventService().feedback().doubleSynchronize(player, event, event, task, verificationTask, feedbackTracker, feedbackTracker);
+        FeedbackCallback<PacketEvent> verificationTask = (x, theEvent) -> entity.verifiedPosition = true;
+        Modules.feedback().doubleSynchronize(player, event, event, task, verificationTask, feedbackTracker, feedbackTracker);
       } else {
-        plugin.eventService().feedback().singleSynchronize(player, event, task, feedbackTracker);
+        Modules.feedback().singleSynchronize(player, event, task, feedbackTracker);
       }
     } else {
       entity.handleEntityTeleport(packet);
@@ -414,16 +415,16 @@ public final class EntityTracker extends Module {
     if(entity == null) return;
 
     if (entity.entityTypeData.isLivingEntity() && entity.tracingEnabled()) {
-      Callback<PacketEvent> task = (player1, event1) -> {
+      FeedbackCallback<PacketEvent> task = (player1, event1) -> {
         entity.verifiedPosition = false;
         entity.handleEntityMovement(packet);
       };
       FeedbackTracker tracker = entity.feedbackTracker();
       if (entity.doubleVerification) {
-        Callback<PacketEvent> verificationTask = (x, theEvent) -> entity.verifiedPosition = true;
-        plugin.eventService().feedback().doubleSynchronize(player, event, event, task, verificationTask, tracker, tracker);
+        FeedbackCallback<PacketEvent> verificationTask = (x, theEvent) -> entity.verifiedPosition = true;
+        Modules.feedback().doubleSynchronize(player, event, event, task, verificationTask, tracker, tracker);
       } else {
-        plugin.eventService().feedback().singleSynchronize(player, event, task, tracker);
+        Modules.feedback().singleSynchronize(player, event, task, tracker);
       }
     } else {
       entity.handleEntityMovement(packet);
@@ -583,8 +584,8 @@ public final class EntityTracker extends Module {
     }
     boolean synchronize = entity.clientSynchronized && entity.tracingEnabled();
     if (synchronize) {
-      Callback<WrappedEntity> task = (p, e) -> updateDeadState(e);
-      plugin.eventService().feedback().singleSynchronize(player, entity, task, entity.feedbackTracker());
+      FeedbackCallback<WrappedEntity> task = (p, e) -> updateDeadState(e);
+      Modules.feedback().singleSynchronize(player, entity, task, entity.feedbackTracker());
     } else {
       updateDeadState(entity);
     }
@@ -634,7 +635,7 @@ public final class EntityTracker extends Module {
         boolean synchronize = entity.clientSynchronized && entity.tracingEnabled();
         if (synchronize) {
           FeedbackTracker tracker = entity.feedbackTracker();
-          plugin.eventService().feedback().singleSynchronize(player, entity, (p, e) -> updateHealthState(e, health), tracker);
+          Modules.feedback().singleSynchronize(player, entity, (p, e) -> updateHealthState(e, health), tracker);
         } else {
           updateHealthState(entity, health);
         }
@@ -647,7 +648,7 @@ public final class EntityTracker extends Module {
     if (health != null) {
       AbilityMetadata abilityData = UserRepository.userOf(player).meta().abilities();
       abilityData.unsynchronizedHealth = health;
-      plugin.eventService().feedback().singleSynchronize(player, health, (p, retrievedHealth) -> {
+      Modules.feedback().singleSynchronize(player, health, (p, retrievedHealth) -> {
         abilityData.health = retrievedHealth;
         abilityData.ticksToLastHealthUpdate = 0;
       });

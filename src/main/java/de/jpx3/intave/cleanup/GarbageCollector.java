@@ -17,7 +17,7 @@ public final class GarbageCollector {
 
   // class loading
   public static void setup() {
-    Shutdown.addTask(GarbageCollector::die);
+    ShutdownTasks.add(GarbageCollector::die);
   }
 
   public static <K, V> Map<K, V> watch(Map<K, V> initialMap) {

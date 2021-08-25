@@ -10,7 +10,7 @@ import de.jpx3.intave.agent.AgentAccessor;
 import de.jpx3.intave.annotate.NameIntrinsicallyImportant;
 import de.jpx3.intave.annotate.Native;
 import de.jpx3.intave.cleanup.GarbageCollector;
-import de.jpx3.intave.cleanup.Shutdown;
+import de.jpx3.intave.cleanup.ShutdownTasks;
 import de.jpx3.intave.command.CommandProcessor;
 import de.jpx3.intave.config.ConfigurationService;
 import de.jpx3.intave.connect.customclient.CustomClientSupportService;
@@ -780,7 +780,7 @@ public final class IntavePlugin extends JavaPlugin {
     logger.info("Stopping Intave");
     BackgroundExecutor.stopBlocking();
     Bukkit.getScheduler().cancelTasks(this);
-    Shutdown.executeShutdownTasks();
+    ShutdownTasks.runAll();
     deleteIntegrityCache();
     logger.info("Intave offline");
     logger.shutdown();

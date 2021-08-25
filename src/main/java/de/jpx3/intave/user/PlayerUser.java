@@ -12,13 +12,12 @@ import de.jpx3.intave.annotate.Relocate;
 import de.jpx3.intave.connect.customclient.CustomClientSupportConfig;
 import de.jpx3.intave.connect.shadow.ShadowPacketDataLink;
 import de.jpx3.intave.detect.checks.movement.physics.Pose;
-import de.jpx3.intave.event.feedback.FeedbackService;
 import de.jpx3.intave.event.mitigate.AttackNerfStrategy;
-import de.jpx3.intave.event.mitigate.EntityNoDamageTickChanger;
-import de.jpx3.intave.event.mitigate.placeholder.PlayerContext;
-import de.jpx3.intave.event.mitigate.placeholder.UserContext;
+import de.jpx3.intave.event.mitigate.HurtimeModifier;
 import de.jpx3.intave.executor.Synchronizer;
 import de.jpx3.intave.fakeplayer.FakePlayer;
+import de.jpx3.intave.module.Modules;
+import de.jpx3.intave.module.feedback.FeedbackSender;
 import de.jpx3.intave.reflect.access.ReflectiveHandleAccess;
 import de.jpx3.intave.reflect.hitbox.HitBoxBoundaries;
 import de.jpx3.intave.tool.AccessHelper;
@@ -29,6 +28,8 @@ import de.jpx3.intave.user.meta.ProtocolMetadata;
 import de.jpx3.intave.user.permission.BukkitPermissionCheck;
 import de.jpx3.intave.user.permission.ExpiringPermissionCache;
 import de.jpx3.intave.user.permission.PermissionCache;
+import de.jpx3.intave.violation.placeholder.PlayerContext;
+import de.jpx3.intave.violation.placeholder.UserContext;
 import de.jpx3.intave.world.blockaccess.BlockTypeAccess;
 import de.jpx3.intave.world.blockshape.MultiChunkKeyOCBlockShapeAccess;
 import de.jpx3.intave.world.blockshape.OCBlockShapeAccess;
@@ -47,7 +48,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
-import static de.jpx3.intave.event.feedback.FeedbackService.TransactionOptions.SELF_SYNCHRONIZATION;
+import static de.jpx3.intave.module.feedback.FeedbackSender.TransactionOptions.SELF_SYNCHRONIZATION;
 import static de.jpx3.intave.user.meta.ProtocolMetadata.VER_1_13;
 import static de.jpx3.intave.user.meta.ProtocolMetadata.VER_1_9;
 
@@ -393,7 +394,7 @@ final class PlayerUser implements User {
     if (fakePlayer != null) {
       fakePlayer.remove();
     }
-    EntityNoDamageTickChanger.removeNoDamageTickChangeOf(this);
+    HurtimeModifier.removeNoDamageTickChangeOf(this);
     for (MessageChannel value : MessageChannel.values()) {
       MessageChannelSubscriptions.setChannelActivation(player(), value, false);
     }
@@ -402,11 +403,11 @@ final class PlayerUser implements User {
   @Override
   public void refreshSprintState() {
     Player player = player();
-    FeedbackService feedback = plugin().eventService().feedback();
-    feedback.singleSynchronize(player, null, (player1, target) -> {
+    FeedbackSender feedbackSender = Modules.feedback();
+    feedbackSender.singleSynchronize(player, null, (player1, target) -> {
       sendStatsUpdate(player, 0, 0);
-      feedback.singleSynchronize(player, null, (player2, target1) -> {
-        feedback.singleSynchronize(player, null, (player3, target2) -> {
+      feedbackSender.singleSynchronize(player, null, (player2, target1) -> {
+        feedbackSender.singleSynchronize(player, null, (player3, target2) -> {
           sendStatsUpdate(player, player.getFoodLevel(), player.getSaturation());
         }, SELF_SYNCHRONIZATION);
       }, SELF_SYNCHRONIZATION);

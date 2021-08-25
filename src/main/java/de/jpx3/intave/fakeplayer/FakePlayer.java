@@ -11,6 +11,7 @@ import de.jpx3.intave.fakeplayer.movement.FloatingMovement;
 import de.jpx3.intave.fakeplayer.movement.Movement;
 import de.jpx3.intave.fakeplayer.movement.PositionRotationLookup;
 import de.jpx3.intave.fakeplayer.movement.WalkingMovement;
+import de.jpx3.intave.module.Modules;
 import de.jpx3.intave.tool.AccessHelper;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserRepository;
@@ -25,10 +26,10 @@ import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
 
-import static de.jpx3.intave.event.feedback.FeedbackService.TransactionOptions.SELF_SYNCHRONIZATION;
 import static de.jpx3.intave.fakeplayer.FakePlayerAttribute.*;
 import static de.jpx3.intave.fakeplayer.MetadataAccess.updateHealthFor;
 import static de.jpx3.intave.fakeplayer.ProfileLookup.acquireGameProfile;
+import static de.jpx3.intave.module.feedback.FeedbackSender.TransactionOptions.SELF_SYNCHRONIZATION;
 
 public final class FakePlayer extends FakePlayerBody {
   public final static float SPAWN_HEALTH_STATE = 20.0f;
@@ -216,8 +217,7 @@ public final class FakePlayer extends FakePlayerBody {
   public void movementTeleport(Location to, boolean onGround) {
     super.movementTeleport(to, onGround);
     movement.registerTeleport(to);
-    plugin.eventService()
-      .feedback()
+    Modules.feedback()
       .singleSynchronize(observer, to, (player, target) -> {
         User user = UserRepository.userOf(player);
         AttackMetadata attackData = user.meta().attack();
@@ -229,8 +229,7 @@ public final class FakePlayer extends FakePlayerBody {
 
   public void movementUpdate(Location to, Location prevLocation, boolean onGround) {
     super.movementUpdate(to, prevLocation, onGround);
-    IntavePlugin.singletonInstance()
-      .eventService().feedback()
+    Modules.feedback()
       .singleSynchronize(observer, to, (player, target) -> {
         User user = UserRepository.userOf(player);
         AttackMetadata attackData = user.meta().attack();

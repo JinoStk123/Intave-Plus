@@ -5,13 +5,15 @@ import com.comphenix.protocol.reflect.StructureModifier;
 import de.jpx3.intave.access.IntaveInternalException;
 import de.jpx3.intave.adapter.MinecraftVersions;
 import de.jpx3.intave.adapter.ProtocolLibraryAdapter;
-import de.jpx3.intave.event.feedback.FeedbackTracker;
-import de.jpx3.intave.event.feedback.PendingCountingFeedbackTracker;
+import de.jpx3.intave.module.feedback.FeedbackTracker;
+import de.jpx3.intave.module.feedback.PendingCountingFeedbackTracker;
+import de.jpx3.intave.reflect.hitbox.HitBoxBoundaries;
 import de.jpx3.intave.reflect.hitbox.typeaccess.EntityTypeData;
 import de.jpx3.intave.tool.AccessHelper;
 import de.jpx3.intave.world.wrapper.WrappedAxisAlignedBB;
 import de.jpx3.intave.world.wrapper.WrappedMathHelper;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -62,9 +64,9 @@ public class WrappedEntity implements Cloneable {
    * Internal value - do not change
    */
   public double distanceToPlayerCache;
-  private boolean isClone;
+  private boolean temporaryCopy;
 
-  private PendingCountingFeedbackTracker feedbackTracker;
+  private final PendingCountingFeedbackTracker feedbackTracker;
 
   public WrappedEntity(
     int entityId,
@@ -123,17 +125,15 @@ public class WrappedEntity implements Cloneable {
    * FLYING, LOOK, POSITION, POSITION_LOOK
    */
   void onLivingUpdate() {
-    if (entityTypeData.isLivingEntity()) {
-      if (position.newPosRotationIncrements > 0) {
-        double newPosX = position.posX + (position.newPosX - position.posX) / (double) position.newPosRotationIncrements;
-        double newPosY = position.posY + (position.newPosY - position.posY) / (double) position.newPosRotationIncrements;
-        double alternativeNewPosY = alternativePosition.posY + (alternativePosition.newPosY - alternativePosition.posY) / (double) position.newPosRotationIncrements;
-        double newPosZ = position.posZ + (position.newPosZ - position.posZ) / (double) position.newPosRotationIncrements;
+    if (entityTypeData.isLivingEntity() && position.newPosRotationIncrements > 0) {
+      double newPosX = position.posX + (position.newPosX - position.posX) / (double) position.newPosRotationIncrements;
+      double newPosY = position.posY + (position.newPosY - position.posY) / (double) position.newPosRotationIncrements;
+      double shiftedNewY = alternativePosition.posY + (alternativePosition.newPosY - alternativePosition.posY) / (double) position.newPosRotationIncrements;
+      double newPosZ = position.posZ + (position.newPosZ - position.posZ) / (double) position.newPosRotationIncrements;
 
-        --position.newPosRotationIncrements;
-        setPosition(newPosX, newPosY, newPosZ);
-        setPosition(alternativeNewPosY);
-      }
+      --position.newPosRotationIncrements;
+      setPosition(newPosX, newPosY, newPosZ);
+      setShiftedPositionY(shiftedNewY);
     }
   }
 
@@ -256,7 +256,7 @@ public class WrappedEntity implements Cloneable {
     position.prevPosZ = position.posZ = z;
 
     setPosition(position.posX, position.posY, position.posZ);
-    setPosition(alternativePosition.posY);
+    setShiftedPositionY(alternativePosition.posY);
   }
 
   /**
@@ -273,8 +273,8 @@ public class WrappedEntity implements Cloneable {
     boundingBox = null;
   }
 
-  private void updatePositionHistory() {
-    if (!isClone) {
+  private synchronized void updatePositionHistory() {
+    if (!temporaryCopy) {
       if (positionHistory.size() > 25) {
         positionHistory.remove(0);
       }
@@ -282,7 +282,7 @@ public class WrappedEntity implements Cloneable {
     }
   }
 
-  public void setPosition(double alternativeNewPosY) {
+  public void setShiftedPositionY(double alternativeNewPosY) {
     alternativePosition.posY = alternativeNewPosY;
   }
 
@@ -306,7 +306,7 @@ public class WrappedEntity implements Cloneable {
 
   public void setPositionAndRotationEntityLiving(double alternativeY) {
     if (!entityTypeData.isLivingEntity()) {
-      setPosition(alternativeY);
+      setShiftedPositionY(alternativeY);
       return;
     }
     alternativePosition.newPosY = alternativeY;
@@ -373,13 +373,12 @@ public class WrappedEntity implements Cloneable {
     return boundingBox;
   }
 
-  @Override
-  public WrappedEntity clone()  {
+  public WrappedEntity temporaryCopy()  {
     WrappedEntity clone = new WrappedEntity(entityId, entityTypeData, player);
-    clone.isClone = true;
+    clone.temporaryCopy = true;
     clone.position = position.clone();
     clone.alternativePosition = alternativePosition.clone();
-    clone.positionHistory = new CopyOnWriteArrayList<>(positionHistory);
+    clone.positionHistory = new ArrayList<>(positionHistory); // CopyOnWriteArrayList seems to disobey our clone policy
     return clone;
   }
 
@@ -400,7 +399,7 @@ public class WrappedEntity implements Cloneable {
     /*
       Avoid possible class order deadlock
      */
-    DESTROYED_ENTITY = new DestroyedWrappedEntity();
+    DESTROYED_ENTITY = new Destroyed();
   }
 
   /*
@@ -411,5 +410,14 @@ public class WrappedEntity implements Cloneable {
    */
   public static WrappedEntity destroyedEntity() {
     return DESTROYED_ENTITY;
+  }
+
+  public static final class Destroyed extends WrappedEntity {
+    public Destroyed() {
+      super(0, new EntityTypeData("destroyed", HitBoxBoundaries.zero(),-1, false), false);
+    }
+
+    @Override
+    void onLivingUpdate() {}
   }
 }

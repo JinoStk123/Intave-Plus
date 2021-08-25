@@ -17,11 +17,11 @@ import de.jpx3.intave.detect.MetaCheck;
 import de.jpx3.intave.detect.checks.world.interaction.Interaction;
 import de.jpx3.intave.detect.checks.world.interaction.InteractionEmulator;
 import de.jpx3.intave.detect.checks.world.interaction.InteractionType;
-import de.jpx3.intave.event.dispatch.PlayerAbilityTracker;
 import de.jpx3.intave.executor.Synchronizer;
 import de.jpx3.intave.module.linker.packet.ListenerPriority;
 import de.jpx3.intave.module.linker.packet.PacketId;
 import de.jpx3.intave.module.linker.packet.PacketSubscription;
+import de.jpx3.intave.module.tracker.player.AbilityTracker;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserRepository;
 import de.jpx3.intave.user.meta.AbilityMetadata;
@@ -140,7 +140,7 @@ public final class InteractionRaytrace extends MetaCheck<InteractionRaytrace.Int
 
     EnumWrappers.PlayerDigType playerDigType = packet.getPlayerDigTypes().readSafely(0);
     float blockDamage = BlockInnerAccess.blockDamage(player, user.meta().inventory().heldItem(), blockPosition);
-    boolean instantBreak = blockDamage >= 1.0f || abilityData.inGameMode(PlayerAbilityTracker.GameMode.CREATIVE);
+    boolean instantBreak = blockDamage >= 1.0f || abilityData.inGameMode(AbilityTracker.GameMode.CREATIVE);
     boolean breakBlock = instantBreak || playerDigType == STOP_DESTROY_BLOCK;
 
     EnumWrappers.Direction direction = packet.getDirections().readSafely(0);
@@ -443,7 +443,7 @@ public final class InteractionRaytrace extends MetaCheck<InteractionRaytrace.Int
         vl = longBreakDuration ? 20 : 15;
       }
       float blockDamage = BlockInnerAccess.blockDamage(player, user.meta().inventory().heldItem(), interaction.targetBlock());
-      boolean instantBreak = blockDamage >= 1.0f || user.meta().abilities().inGameMode(PlayerAbilityTracker.GameMode.CREATIVE);
+      boolean instantBreak = blockDamage >= 1.0f || user.meta().abilities().inGameMode(AbilityTracker.GameMode.CREATIVE);
       if (instantBreak) {
         vl = 0;
       }

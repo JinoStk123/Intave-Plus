@@ -1,6 +1,7 @@
 package de.jpx3.intave.security.blacklist;
 
 import de.jpx3.intave.IntavePlugin;
+import de.jpx3.intave.annotate.HighOrderService;
 import de.jpx3.intave.executor.Synchronizer;
 import de.jpx3.intave.module.linker.bukkit.BukkitEventSubscriber;
 import de.jpx3.intave.module.linker.bukkit.BukkitEventSubscription;
@@ -13,6 +14,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+@HighOrderService
 public final class BlackListService implements BukkitEventSubscriber {
   private final IntavePlugin plugin;
   private final CachedResource resource = new CachedResource("blacklist", "https://intave.de/api/blacklist", TimeUnit.DAYS.toMillis(1));

@@ -1,7 +1,6 @@
 package de.jpx3.intave.detect.checks.movement.physics;
 
 import de.jpx3.intave.math.MathHelper;
-import de.jpx3.intave.tool.MovementContext;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.meta.MetadataBundle;
 import de.jpx3.intave.user.meta.MovementMetadata;
@@ -114,7 +113,7 @@ public final class SimulationEvaluator {
       } else {
         liquidPositionY = receivedMotionY + 0.3f;
       }
-      boolean offsetPositionInLiquid = MovementContext.isOffsetPositionInLiquid(
+      boolean offsetPositionInLiquid = MovementHelper.isOffsetPositionInLiquid(
         player, movementData.boundingBox(), receivedMotionX, liquidPositionY, receivedMotionZ
       );
       boolean maybeCollidedHorizontally = Collision.nearBySolidBlock(player.getWorld(), movementData.boundingBox().grow(0.2));

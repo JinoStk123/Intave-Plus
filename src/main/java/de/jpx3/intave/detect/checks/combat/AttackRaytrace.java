@@ -16,7 +16,6 @@ import de.jpx3.intave.executor.Synchronizer;
 import de.jpx3.intave.math.MathHelper;
 import de.jpx3.intave.module.linker.packet.ListenerPriority;
 import de.jpx3.intave.module.linker.packet.PacketSubscription;
-import de.jpx3.intave.module.tracker.entity.DestroyedWrappedEntity;
 import de.jpx3.intave.module.tracker.entity.WrappedEntity;
 import de.jpx3.intave.user.MessageChannelSubscriptions;
 import de.jpx3.intave.user.User;
@@ -62,7 +61,12 @@ public final class AttackRaytrace extends MetaCheck<AttackRaytrace.AttackRaytrac
     Player player = event.getPlayer();
     User user = userOf(player);
     AttackRaytraceMeta attackRaytraceMeta = metaOf(player);
-    ViolationMetadata violationLevelData = user.meta().violationLevel();
+    MetadataBundle meta = user.meta();
+    ViolationMetadata violationLevelData = meta.violationLevel();
+    MovementMetadata movementData = meta.movement();
+    ProtocolMetadata clientData = meta.protocol();
+    AbilityMetadata abilityData = meta.abilities();
+
     EnumWrappers.EntityUseAction action = packet.getEntityUseActions().readSafely(0);
     if (action == null) {
       action = packet.getEnumEntityUseActions().read(0).getAction();
@@ -70,34 +74,29 @@ public final class AttackRaytrace extends MetaCheck<AttackRaytrace.AttackRaytrac
     if (action == EnumWrappers.EntityUseAction.ATTACK) {
       PacketContainer packetClone = packet.deepClone();
       int entityId = packet.getIntegers().read(0);
-
-      boolean shouldResend;
-      MovementMetadata movementData = user.meta().movement();
       WrappedEntity entity = entityByIdentifier(user, entityId);
-      ProtocolMetadata clientData = user.meta().protocol();
-      AbilityMetadata abilityData = user.meta().abilities();
-      float unsynchroniszedHealth = abilityData.unsynchronizedHealth;
-
-      if (entity == null || entity instanceof DestroyedWrappedEntity || unsynchroniszedHealth <= 0) {
-        shouldResend = true;
+      boolean checkAgain;
+      float unsynchronizedHealth = abilityData.unsynchronizedHealth;
+      if (entity == null || entity instanceof WrappedEntity.Destroyed || unsynchronizedHealth <= 0) {
+        checkAgain = true;
       } else {
         if (movementData.lastTeleport == 0 || violationLevelData.isInActiveTeleportBundle) {
-          shouldResend = true;
+          checkAgain = true;
         } else {
           if ((entity.clientSynchronized && !movementData.recentlyEncounteredFlyingPacket(2) && attackRaytraceMeta.lastFlyPacketCounterReach > 1)
             || clientData.protocolVersion() == ProtocolMetadata.VER_1_8) {
-            shouldResend = validReachWalking(user, entity);
+            checkAgain = invalidReachWalking(user, entity);
           } else {
-            shouldResend = validReachStanding(user, entity);
+            checkAgain = invalidReachStanding(user, entity);
           }
         }
       }
 
-      if (shouldResend) {
+      if (checkAgain) {
         event.setCancelled(true);
       }
 
-      Attack attack = new Attack(packetClone, entityId, shouldResend);
+      Attack attack = new Attack(packetClone, entityId, checkAgain);
       List<Attack> pendingAttacks = attackRaytraceMeta.pendingAttacks;
       if (pendingAttacks.size() < 4) {
         pendingAttacks.add(attack);
@@ -143,7 +142,7 @@ public final class AttackRaytrace extends MetaCheck<AttackRaytrace.AttackRaytrac
 //        player.sendMessage(String.valueOf(pendingFeedbackPackets));
 
         // stops raytrace if the entity is null or the player is in the death screen
-        boolean entityIsAlive = unsynchronizedHealth > 0 && !(entity instanceof DestroyedWrappedEntity);
+        boolean entityIsAlive = unsynchronizedHealth > 0 && !(entity instanceof WrappedEntity.Destroyed);
         boolean entityHasNotTimedOut = pendingFeedbackPackets < maximumPendingFeedbackPackets;
 
         if (entityIsAlive && entityHasNotTimedOut) {
@@ -225,21 +224,20 @@ public final class AttackRaytrace extends MetaCheck<AttackRaytrace.AttackRaytrac
     }
   }
 
-  private boolean validReachStanding(User user, WrappedEntity entity) {
+  private boolean invalidReachStanding(User user, WrappedEntity entity) {
     Player player = user.player();
     int maximumPendingFeedbackPackets = trustFactorSetting("pending-allowance", player);
     long pendingFeedbackPackets = entity.pendingFeedbackPackets();
     boolean entityHasNotTimedOut = pendingFeedbackPackets < maximumPendingFeedbackPackets;
-
     if (!entityHasNotTimedOut && entity.clientSynchronized) {
-      return false;
+      return true;
     }
     double minReach = findLowestPossibleReachIterative(user, entity, false, true);
     double blockReachDistance = Raytracing.reachDistance(player);
     return minReach > blockReachDistance;
   }
 
-  private boolean validReachWalking(User user, WrappedEntity entity) {
+  private boolean invalidReachWalking(User user, WrappedEntity entity) {
     MovementMetadata movementData = user.meta().movement();
     Player player = user.player();
     double blockReachDistance = Raytracing.reachDistance(player);
@@ -250,11 +248,11 @@ public final class AttackRaytrace extends MetaCheck<AttackRaytrace.AttackRaytrac
     boolean entityHasNotTimedOut = pendingFeedbackPackets < maximumPendingFeedbackPackets;
 
     if (!entityHasNotTimedOut && entity.clientSynchronized) {
-      return false;
+      return true;
     }
 
     // mouse delay fix
-    Raytracing.EntityInteractionRaytrace distanceOfResult = Raytracing.doubleMDFEntityRaytrace(
+    Raytracing.EntityInteractionRaytrace distanceOfResult = Raytracing.doubleMDFBlockConstraintEntityRaytrace(
       player,
       entity, true,
       movementData.positionX, movementData.positionY, movementData.positionZ,
@@ -286,7 +284,7 @@ public final class AttackRaytrace extends MetaCheck<AttackRaytrace.AttackRaytrac
     float lastRotationYaw = movementData.lastRotationYaw % 360f;
 
     // mouse delay fix
-    Raytracing.EntityInteractionRaytrace distanceOfResult = Raytracing.doubleMDFEntityRaytrace(
+    Raytracing.EntityInteractionRaytrace distanceOfResult = Raytracing.doubleMDFBlockConstraintEntityRaytrace(
       player,
       entity, alternativePositionY,
       movementData.lastPositionX, movementData.lastPositionY, movementData.lastPositionZ,
@@ -440,9 +438,8 @@ public final class AttackRaytrace extends MetaCheck<AttackRaytrace.AttackRaytrac
   }
 
   private double findLowestPossibleReachIterative(
-    User user, WrappedEntity entity, boolean hasAlwaysMouseDelayFix, boolean stopOnFound
+    User user, WrappedEntity entity, boolean enforceMouseDelayFix, boolean stopOnFound
   ) {
-    WrappedEntity clonedEntity = entity.clone();
     Player player = user.player();
     MetadataBundle meta = user.meta();
     ProtocolMetadata clientData = meta.protocol();
@@ -450,9 +447,18 @@ public final class AttackRaytrace extends MetaCheck<AttackRaytrace.AttackRaytrac
     MovementMetadata movementData = meta.movement();
     float rotationYaw = movementData.rotationYaw % 360;
     float lastRotationYaw = movementData.lastRotationYaw % 360;
+    float rotationPitch = movementData.rotationPitch;
+    double positionX = movementData.positionX;
+    double positionY = movementData.positionY;
+    double positionZ = movementData.positionZ;
+    double lastPositionX = movementData.lastPositionX;
+    double lastPositionY = movementData.lastPositionY;
+    double lastPositionZ = movementData.lastPositionZ;
     double blockReachDistance = Raytracing.reachDistance(meta);
     int maximumPendingFeedbackPackets = trustFactorSetting("pending-allowance", player);
     double minReach = 10;
+    WrappedEntity clonedEntity = entity.temporaryCopy();
+    boolean livingEntity = entity.entityTypeData.isLivingEntity();
     List<WrappedEntity.EntityPositionContext> positionHistory = clonedEntity.positionHistory;
     int from = positionHistory.size() - 1;
     for (int i = from; i >= 0; i--) {
@@ -462,32 +468,36 @@ public final class AttackRaytrace extends MetaCheck<AttackRaytrace.AttackRaytrac
       WrappedEntity.EntityPositionContext possiblePosition = positionHistory.get(i);
       clonedEntity.position = possiblePosition.clone();
       // mouse delay fix
-      Raytracing.EntityInteractionRaytrace resultWithoutIncrement = Raytracing.doubleMDFEntityRaytrace(
+      Raytracing.EntityInteractionRaytrace resultWithoutIncrement = Raytracing.doubleMDFBlockConstraintEntityRaytrace(
         player,
         clonedEntity,
         alternativePositionY,
-        movementData.lastPositionX, movementData.lastPositionY, movementData.lastPositionZ,
+        lastPositionX, lastPositionY, lastPositionZ,
         lastRotationYaw,
-        rotationYaw, movementData.rotationPitch,
+        rotationYaw, rotationPitch,
         0.13f,
-        !hasAlwaysMouseDelayFix
+        !enforceMouseDelayFix
       );
       double minReachInItr = resultWithoutIncrement.reach;
       if (stopOnFound && resultWithoutIncrement.reach < blockReachDistance) {
         return resultWithoutIncrement.reach;
       }
-      while (clonedEntity.position.newPosRotationIncrements > 0 && !entity.entityTypeData.isLivingEntity()) {
+      int limit = 5;
+      while (clonedEntity.position.newPosRotationIncrements > 0 && livingEntity) {
+        if (limit-- <= 0) {
+          break;
+        }
         clonedEntity.onUpdate();
         // mouse delay fix
-        Raytracing.EntityInteractionRaytrace result = Raytracing.doubleMDFEntityRaytrace(
+        Raytracing.EntityInteractionRaytrace result = Raytracing.doubleMDFBlockConstraintEntityRaytrace(
           player,
           clonedEntity,
           alternativePositionY,
-          movementData.lastPositionX, movementData.lastPositionY, movementData.lastPositionZ,
+          lastPositionX, lastPositionY, lastPositionZ,
           lastRotationYaw,
-          rotationYaw, movementData.rotationPitch,
+          rotationYaw, rotationPitch,
           0.13f,
-          !hasAlwaysMouseDelayFix
+          !enforceMouseDelayFix
         );
         if (stopOnFound && result.reach < blockReachDistance) {
           return result.reach;
@@ -510,13 +520,13 @@ public final class AttackRaytrace extends MetaCheck<AttackRaytrace.AttackRaytrac
         // TODO: 01/07/21 add general packet based length tolerance
         clonedEntity.position = possiblePosition.clone();
         // mouse delay fix
-        Raytracing.EntityInteractionRaytrace resultWithoutIncrement = Raytracing.doubleMDFEntityRaytrace(
+        Raytracing.EntityInteractionRaytrace resultWithoutIncrement = Raytracing.doubleMDFBlockConstraintEntityRaytrace(
           player,
           clonedEntity,
           false,
-          movementData.positionX, movementData.positionY, movementData.positionZ,
+          positionX, positionY, positionZ,
           rotationYaw,
-          rotationYaw, movementData.rotationPitch,
+          rotationYaw, rotationPitch,
           0.13f,
           false
         );
@@ -525,16 +535,20 @@ public final class AttackRaytrace extends MetaCheck<AttackRaytrace.AttackRaytrac
         }
         double minReachInItr = resultWithoutIncrement.reach;
 
-        while (clonedEntity.position.newPosRotationIncrements > 0 && !entity.entityTypeData.isLivingEntity()) {
+        int limit = 5;
+        while (clonedEntity.position.newPosRotationIncrements > 0 && livingEntity) {
+          if (limit-- <= 0) {
+            break;
+          }
           clonedEntity.onUpdate();
           // mouse delay fix
-          Raytracing.EntityInteractionRaytrace result = Raytracing.doubleMDFEntityRaytrace(
+          Raytracing.EntityInteractionRaytrace result = Raytracing.doubleMDFBlockConstraintEntityRaytrace(
             player,
             clonedEntity,
             false,
-            movementData.positionX, movementData.positionY, movementData.positionZ,
+            positionX, positionY, movementData.positionZ,
             rotationYaw,
-            rotationYaw, movementData.rotationPitch,
+            rotationYaw, rotationPitch,
             0.13f,
             false
           );

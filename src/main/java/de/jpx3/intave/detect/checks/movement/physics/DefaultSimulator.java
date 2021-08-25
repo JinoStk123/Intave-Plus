@@ -2,7 +2,6 @@ package de.jpx3.intave.detect.checks.movement.physics;
 
 import de.jpx3.intave.adapter.MinecraftVersions;
 import de.jpx3.intave.module.tracker.entity.WrappedEntity;
-import de.jpx3.intave.tool.MovementContext;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.meta.MetadataBundle;
 import de.jpx3.intave.user.meta.MovementMetadata;
@@ -171,7 +170,7 @@ public class DefaultSimulator extends Simulator {
   ) {
     MovementMetadata movementData = user.meta().movement();
     performRelativeMoveSimulationOfState(context, movementData.friction(), yawSine, yawCosine, moveForward, moveStrafe);
-    if (MovementContext.isOnLadder(user, movementData.verifiedPositionX, movementData.verifiedPositionY, movementData.verifiedPositionZ)) {
+    if (MovementHelper.isOnLadder(user, movementData.verifiedPositionX, movementData.verifiedPositionY, movementData.verifiedPositionZ)) {
       float f6 = 0.15F;
       context.motionX = WrappedMathHelper.clamp_double(context.motionX, -f6, f6);
       context.motionZ = WrappedMathHelper.clamp_double(context.motionZ, -f6, f6);
@@ -210,7 +209,7 @@ public class DefaultSimulator extends Simulator {
 
     boolean onGround;
     Location location = new Location(player.getWorld(), positionX, positionY, positionZ);
-    double slipperiness = movementData.lastOnGround ? MovementContext.currentSlipperiness(user, location) : 0.91f;
+    double slipperiness = movementData.lastOnGround ? MovementHelper.currentSlipperiness(user, location) : 0.91f;
     double resetMotion = movementData.resetMotion();
     double jumpUpwardsMotion = movementData.jumpMotion();
 
@@ -338,7 +337,7 @@ public class DefaultSimulator extends Simulator {
       double blockPositionY = WrappedMathHelper.floor(movementData.verifiedPositionY - movementData.frictionPosSubtraction());
       double blockPositionZ = WrappedMathHelper.floor(movementData.verifiedPositionZ);
       Location blockBelow = new Location(world, blockPositionX, blockPositionY, blockPositionZ);
-      slipperiness = MovementContext.currentSlipperiness(user, blockBelow);
+      slipperiness = MovementHelper.currentSlipperiness(user, blockBelow);
     } else {
       slipperiness = 0.91f;
     }
@@ -556,7 +555,7 @@ public class DefaultSimulator extends Simulator {
     context.motionY *= 0.5D;
     context.motionZ *= 0.5D;
     context.motionY -= 0.02D;
-    boolean offsetPositionInLiquid = MovementContext.isOffsetPositionInLiquid(
+    boolean offsetPositionInLiquid = MovementHelper.isOffsetPositionInLiquid(
       player, boundingBox,
       context.motionX,
       context.motionY + 0.6f - positionY + movementData.verifiedPositionY,

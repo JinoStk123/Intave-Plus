@@ -6,6 +6,7 @@ import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.access.IntaveBootFailureException;
 import de.jpx3.intave.access.IntaveInternalException;
 import de.jpx3.intave.detect.checks.movement.Physics;
+import de.jpx3.intave.detect.checks.movement.physics.MovementHelper;
 import de.jpx3.intave.detect.checks.movement.physics.Pose;
 import de.jpx3.intave.executor.Synchronizer;
 import de.jpx3.intave.math.MathHelper;
@@ -13,7 +14,6 @@ import de.jpx3.intave.reflect.Lookup;
 import de.jpx3.intave.reflect.caller.CallerResolver;
 import de.jpx3.intave.reflect.caller.PluginInvocation;
 import de.jpx3.intave.reflect.method.InternalTeleportMethodContainer;
-import de.jpx3.intave.tool.MovementContext;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserRepository;
 import de.jpx3.intave.user.meta.MetadataBundle;
@@ -362,7 +362,7 @@ public final class MovementEmulationEngine {
     Player player = user.player();
     World world = player.getWorld();
     MovementMetadata movementData = user.meta().movement();
-    movementData.inWater = MovementContext.isAnyLiquid(world, user, movementData.boundingBox());
+    movementData.inWater = MovementHelper.isAnyLiquid(world, user, movementData.boundingBox());
   }
 
   private synchronized void rotationlessTeleport(Player player, Location to, float nativeYaw, float nativePitch) {

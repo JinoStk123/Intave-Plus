@@ -12,7 +12,6 @@ import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.meta.CheckCustomMetadata;
 import de.jpx3.intave.violation.Violation;
 import de.jpx3.intave.violation.ViolationContext;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;

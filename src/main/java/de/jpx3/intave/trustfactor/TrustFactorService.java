@@ -5,6 +5,7 @@ import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.access.player.trust.DefaultForwardingPermissionTrustFactorResolver;
 import de.jpx3.intave.access.player.trust.TrustFactor;
 import de.jpx3.intave.access.player.trust.TrustFactorResolver;
+import de.jpx3.intave.annotate.HighOrderService;
 import de.jpx3.intave.executor.BackgroundExecutor;
 import de.jpx3.intave.executor.Synchronizer;
 import de.jpx3.intave.module.linker.bukkit.BukkitEventSubscriber;
@@ -16,6 +17,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerJoinEvent;
 
+@HighOrderService
 public final class TrustFactorService implements BukkitEventSubscriber {
   private final IntavePlugin plugin;
   private TrustFactorResolver trustFactorResolver;
@@ -27,9 +29,9 @@ public final class TrustFactorService implements BukkitEventSubscriber {
   }
 
   public void setup() {
-    TrustFactorLoader trustFactorLoader = IntaveControl.USE_DEBUG_RESOURCES ? new DefaultTrustFactorLoader() : new DownloadingTrustFactorLoader();
+    TrustFactorLoader trustFactorLoader = IntaveControl.USE_DEBUG_RESOURCES ? new DebugYamlTrustFactorLoader() : new InternetYamlTrustFactorLoader();
     trustFactorConfiguration = trustFactorLoader.fetch();
-    trustFactorResolver = new DefaultForwardingPermissionTrustFactorResolver(new DefaultTrustFactorResolver());
+    trustFactorResolver = new DefaultForwardingPermissionTrustFactorResolver(new EmptyTrustFactorResolver());
 
     plugin.eventLinker().registerEventsIn(this);
     Synchronizer.synchronize(() -> BackgroundExecutor.execute(this::resolveTrustFactorForAll));
@@ -56,7 +58,7 @@ public final class TrustFactorService implements BukkitEventSubscriber {
       return;
     }
     if (trustFactorResolver == null) {
-      trustFactorResolver = new DefaultForwardingPermissionTrustFactorResolver(new DefaultTrustFactorResolver());
+      trustFactorResolver = new DefaultForwardingPermissionTrustFactorResolver(new EmptyTrustFactorResolver());
     }
     trustFactorResolver.resolve(player,
       trustFactor -> {

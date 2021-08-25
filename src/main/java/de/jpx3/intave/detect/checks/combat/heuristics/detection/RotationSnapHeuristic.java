@@ -15,7 +15,6 @@ import de.jpx3.intave.event.mitigate.AttackNerfStrategy;
 import de.jpx3.intave.math.MathHelper;
 import de.jpx3.intave.module.linker.packet.ListenerPriority;
 import de.jpx3.intave.module.linker.packet.PacketSubscription;
-import de.jpx3.intave.module.tracker.entity.DestroyedWrappedEntity;
 import de.jpx3.intave.module.tracker.entity.WrappedEntity;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.meta.AttackMetadata;
@@ -183,7 +182,7 @@ public final class RotationSnapHeuristic extends MetaCheckPart<Heuristics, Rotat
 
       for (Map.Entry<Integer, WrappedEntity> entry : user.meta().connection().synchronizedEntityMap().entrySet()) {
         WrappedEntity value = entry.getValue();
-        if (value != null && !(value instanceof DestroyedWrappedEntity)) {
+        if (value != null && !(value instanceof WrappedEntity.Destroyed)) {
           meta.entityPositions.put(entry.getKey(), value.positionHistory.get(Math.max(value.positionHistory.size() - 1, 0)));
         }
       }
@@ -215,7 +214,7 @@ public final class RotationSnapHeuristic extends MetaCheckPart<Heuristics, Rotat
         WrappedEntity wrappedEntity = attackData.lastAttackedEntity();
 
         Tick tick = meta.movementAtTick[1];
-        HashMap<Integer, WrappedEntity.EntityPositionContext> entityPositions = meta.entityPositions;
+        Map<Integer, WrappedEntity.EntityPositionContext> entityPositions = meta.entityPositions;
         WrappedEntity.EntityPositionContext lastEntityPosition = entityPositions.get(wrappedEntity.entityId());
 
         if (lastEntityPosition != null && tick != null) {
@@ -390,7 +389,7 @@ public final class RotationSnapHeuristic extends MetaCheckPart<Heuristics, Rotat
 
   public static final class RotationSnapHeuristicMeta extends CheckCustomMetadata {
     double lastLastPosX, lastLastPosY, lastLastPosZ;
-    HashMap<Integer, WrappedEntity.EntityPositionContext> entityPositions = new HashMap<>();
+    Map<Integer, WrappedEntity.EntityPositionContext> entityPositions = new HashMap<>();
     private final Tick[] movementAtTick = new Tick[2];
     private final double[] yawMotions = new double[2];
     private final KeyStates[] silentMovements = new KeyStates[2];
