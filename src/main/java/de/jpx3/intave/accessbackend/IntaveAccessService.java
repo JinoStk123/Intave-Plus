@@ -16,6 +16,7 @@ import de.jpx3.intave.access.server.ServerAccess;
 import de.jpx3.intave.accessbackend.check.CheckAccessor;
 import de.jpx3.intave.accessbackend.player.PlayerAccessor;
 import de.jpx3.intave.accessbackend.server.ServerAccessor;
+import de.jpx3.intave.annotate.HighOrderService;
 import de.jpx3.intave.annotate.Native;
 import de.jpx3.intave.user.UserRepository;
 import org.bukkit.entity.Player;
@@ -27,6 +28,7 @@ import java.util.function.BiConsumer;
  * Created by Jpx3 on 01.12.2017.
  */
 
+@HighOrderService
 public final class IntaveAccessService {
   private final IntavePlugin plugin;
   private final CheckAccessor checkAccessor;

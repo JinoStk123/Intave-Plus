@@ -1,7 +1,9 @@
 package de.jpx3.intave.module;
 
 import de.jpx3.intave.annotate.Native;
-import de.jpx3.intave.cleanup.Shutdown;
+import de.jpx3.intave.cleanup.ShutdownTasks;
+import de.jpx3.intave.module.feedback.FeedbackReceiver;
+import de.jpx3.intave.module.feedback.FeedbackSender;
 import de.jpx3.intave.module.linker.bukkit.BukkitEventSubscriptionLinker;
 import de.jpx3.intave.module.linker.packet.PacketSubscriptionLinker;
 
@@ -12,7 +14,7 @@ public final class Modules {
   @Native
   public static void prepareModules() {
     loader.setup();
-    Shutdown.addTask(Modules::shutdown);
+    ShutdownTasks.add(Modules::shutdown);
   }
 
   @Native
@@ -36,8 +38,17 @@ public final class Modules {
 
   // quick accessors
 
+  public static FeedbackSender feedback() {
+    return find(FeedbackSender.class);
+  }
+
+  public static FeedbackReceiver feedbackReceiver() {
+    return find(FeedbackReceiver.class);
+  }
+
   private final static LinkerCategory LINKER_CATEGORY = new LinkerCategory();
   private final static DispatchCategory DISPATCH_CATEGORY = new DispatchCategory();
+  private final static TrackerCategory TRACKER_CATEGORY = new TrackerCategory();
 
   public static LinkerCategory linker() {
     return LINKER_CATEGORY;
@@ -45,6 +56,14 @@ public final class Modules {
 
   public static DispatchCategory dispatch() {
     return DISPATCH_CATEGORY;
+  }
+
+  public static TrackerCategory tracker() {
+    return TRACKER_CATEGORY;
+  }
+
+  public static class TrackerCategory {
+
   }
 
   public static class DispatchCategory {

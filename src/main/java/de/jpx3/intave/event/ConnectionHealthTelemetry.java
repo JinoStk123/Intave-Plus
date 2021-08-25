@@ -27,7 +27,6 @@ public final class ConnectionHealthTelemetry implements PacketEventSubscriber {
   public ConnectionHealthTelemetry(IntavePlugin plugin) {
     this.plugin = plugin;
     this.plugin.packetSubscriptionLinker().linkSubscriptionsIn(this);
-
     int taskId = this.plugin.getServer().getScheduler().scheduleAsyncRepeatingTask(plugin, () -> {
       for (Player player : Bukkit.getOnlinePlayers()) {
         User user = UserRepository.userOf(player);
@@ -36,19 +35,23 @@ public final class ConnectionHealthTelemetry implements PacketEventSubscriber {
           IntaveLogger.logger().pushPrintln("[Intave] " + player.getName() + " was not responding to keep-alive packets for at least 30 seconds");
           user.synchronizedDisconnect("Timed out");
           if (IntaveControl.NETTY_DUMP_ON_TIMEOUT) {
-            Thread.getAllStackTraces().forEach((thread, stackTraceElements) -> {
-              if (thread.getName().contains("Netty")) {
-                System.out.println("Thread:" + thread.getName());
-                Exception exception = new Exception();
-                exception.setStackTrace(stackTraceElements);
-                exception.printStackTrace();
-              }
-            });
+            dumpNettyThreads();
           }
         }
       }
     }, 0, (TIMEOUT_DURATION / 50) / 2);
     TaskTracker.begun(taskId);
+  }
+
+  private void dumpNettyThreads() {
+    Thread.getAllStackTraces().forEach((thread, stackTraceElements) -> {
+      if (thread.getName().contains("Netty")) {
+        System.out.println("Thread:" + thread.getName());
+        Exception exception = new Exception();
+        exception.setStackTrace(stackTraceElements);
+        exception.printStackTrace();
+      }
+    });
   }
 
   private long lastKeepAliveResponse(User user) {
@@ -89,22 +92,18 @@ public final class ConnectionHealthTelemetry implements PacketEventSubscriber {
     User user = UserRepository.userOf(player);
     PacketContainer packet = event.getPacket();
     ConnectionMetadata synchronizeData = user.meta().connection();
-
     Map<Long, Long> remainingPingPackets = synchronizeData.remainingPingPacketTimestamps();
-
     Long id;
     if (packet.getLongs().size() > 0) {
       id = packet.getLongs().read(0);
     } else {
       id = Long.valueOf(packet.getIntegers().read(0));
     }
-
     if (!remainingPingPackets.containsKey(id)) {
       IntaveLogger.logger().error(player.getName() + " sent KAI " + id + ", but expected one of " + remainingPingPackets.keySet());
       user.synchronizedDisconnect("Unknown keep-alive identifier");
       return;
     }
-
     List<Long> differenceBalance = synchronizeData.latencyDifferenceBalance();
     Long timeSent = remainingPingPackets.remove(id);
     long difference = MathHelper.minmax(0, AccessHelper.now() - timeSent, 1000);
@@ -112,7 +111,6 @@ public final class ConnectionHealthTelemetry implements PacketEventSubscriber {
     long pingChange = Math.abs(difference - synchronizeData.lastKeepAliveDifference);
     int size = 8;
     boolean enoughPingDataAvailable = differenceBalance.size() >= size;
-
     if (enoughPingDataAvailable) {
       differenceBalance.remove(0);
     }
@@ -121,12 +119,10 @@ public final class ConnectionHealthTelemetry implements PacketEventSubscriber {
       user.meta().connection().latencyJitter =
         (int) differenceBalance.stream().mapToLong(value -> value).average().orElse(0d);
     }
-
     plugin.accessService()
       .playerAccessor()
       .netStatisticsAccessor()
       .pushPingJitterUpdate(player, synchronizeData.latency, (int) pingChange);
-
     synchronizeData.lastKeepAliveDifference = difference;
   }
 }

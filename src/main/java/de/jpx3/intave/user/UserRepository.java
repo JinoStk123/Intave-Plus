@@ -1,9 +1,9 @@
 package de.jpx3.intave.user;
 
 import de.jpx3.intave.IntaveControl;
-import de.jpx3.intave.cleanup.Shutdown;
+import de.jpx3.intave.cleanup.ShutdownTasks;
 import de.jpx3.intave.diagnostic.MemoryWatchdog;
-import de.jpx3.intave.event.mitigate.EntityNoDamageTickChanger;
+import de.jpx3.intave.event.mitigate.HurtimeModifier;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -18,13 +18,13 @@ public final class UserRepository {
 
   // used to load the class on startup
   public static void setup() {
-    Shutdown.addTask(UserRepository::die);
+    ShutdownTasks.add(UserRepository::die);
   }
 
   public static void registerUser(Player player) {
     repository.put(player.getUniqueId(), UserFactory.newFor(player));
     if (IntaveControl.RESET_HURT_TIME_ON_JOIN) {
-      EntityNoDamageTickChanger.setNoDamageTicksOf(player, 20);
+      HurtimeModifier.setNoDamageTicksOf(player, 20);
     }
   }
 

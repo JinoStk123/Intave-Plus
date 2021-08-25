@@ -8,16 +8,12 @@ import de.jpx3.intave.annotate.DispatchTarget;
 import de.jpx3.intave.annotate.Nullable;
 import de.jpx3.intave.annotate.Relocate;
 import de.jpx3.intave.annotate.refactoring.IdoNotBelongHere;
-import de.jpx3.intave.detect.checks.movement.physics.MotionVector;
-import de.jpx3.intave.detect.checks.movement.physics.Pose;
-import de.jpx3.intave.detect.checks.movement.physics.Simulator;
-import de.jpx3.intave.detect.checks.movement.physics.Simulators;
+import de.jpx3.intave.detect.checks.movement.physics.*;
 import de.jpx3.intave.executor.Synchronizer;
 import de.jpx3.intave.math.SinusCache;
 import de.jpx3.intave.module.tracker.entity.WrappedEntity;
 import de.jpx3.intave.reflect.access.ReflectiveDataWatcherAccess;
 import de.jpx3.intave.reflect.access.ReflectiveHandleAccess;
-import de.jpx3.intave.tool.MovementContext;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserRepository;
 import de.jpx3.intave.world.blockaccess.BukkitBlockAccess;
@@ -234,7 +230,7 @@ public final class MovementMetadata {
     if (!boundingBoxSetup) {
       setupDefaults();
     }
-    jumpMotion = MovementContext.jumpMotionFor(player, jumpUpwardsMotion());
+    jumpMotion = MovementHelper.jumpMotionFor(player, jumpUpwardsMotion());
     lastPositionX = positionX;
     lastPositionY = positionY;
     lastPositionZ = positionZ;
@@ -509,7 +505,7 @@ public final class MovementMetadata {
     if (abilityData.probablyFlying()) {
       this.jumpMovementFactor = abilityData.flySpeed() * (float) (lastSprinting ? 2 : 1);
     }
-    friction = MovementContext.resolveFriction(user, verifiedPositionX, verifiedPositionY, verifiedPositionZ);
+    friction = MovementHelper.resolveFriction(user, verifiedPositionX, verifiedPositionY, verifiedPositionZ);
   }
 
   public boolean blockOnPositionSoulSpeedAffected() {
@@ -542,7 +538,7 @@ public final class MovementMetadata {
         -0.4000000059604645D,
         -0.1f
       );
-      return MovementContext.isLavaInBB(user, player.getWorld(), lavaBoundingBox);
+      return MovementHelper.isLavaInBB(user, player.getWorld(), lavaBoundingBox);
     }
   }
 
@@ -671,12 +667,12 @@ public final class MovementMetadata {
   // Override on vehicle movement
   public void setJumpMovementFactor(float jumpMovementFactor) {
     this.jumpMovementFactor = jumpMovementFactor;
-    friction = MovementContext.resolveFriction(user, verifiedPositionX, verifiedPositionY, verifiedPositionZ);
+    friction = MovementHelper.resolveFriction(user, verifiedPositionX, verifiedPositionY, verifiedPositionZ);
   }
 
   public void setAiMoveSpeed(float aiMoveSpeed) {
     this.aiMoveSpeed = aiMoveSpeed;
-    friction = MovementContext.resolveFriction(user, verifiedPositionX, verifiedPositionY, verifiedPositionZ);
+    friction = MovementHelper.resolveFriction(user, verifiedPositionX, verifiedPositionY, verifiedPositionZ);
   }
 
   public int pastFlyingPacketAccurate() {

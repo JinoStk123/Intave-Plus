@@ -1,6 +1,6 @@
 package de.jpx3.intave.reflect.locate;
 
-import de.jpx3.intave.cleanup.Shutdown;
+import de.jpx3.intave.cleanup.ShutdownTasks;
 
 import java.lang.reflect.Field;
 import java.util.Map;
@@ -89,7 +89,7 @@ public final class Locator {
   }
 
   public static void setup() {
-    Shutdown.addTask(Locator::close);
+    ShutdownTasks.add(Locator::close);
   }
 
   public static void close() {

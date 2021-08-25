@@ -6,7 +6,7 @@ import org.bukkit.potion.PotionEffect;
 
 import java.util.Collection;
 
-import static de.jpx3.intave.event.dispatch.PotionEffectTracker.*;
+import static de.jpx3.intave.module.tracker.player.EffectTracker.*;
 
 @Relocate
 public final class EffectMetadata {

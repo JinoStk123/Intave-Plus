@@ -1,6 +1,7 @@
 package de.jpx3.intave.connect.sibyl;
 
 import de.jpx3.intave.IntavePlugin;
+import de.jpx3.intave.annotate.HighOrderService;
 import de.jpx3.intave.annotate.Native;
 import de.jpx3.intave.connect.sibyl.auth.SibylAuthentication;
 import de.jpx3.intave.connect.sibyl.data.SibylPacketTransmitter;
@@ -14,6 +15,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerJoinEvent;
 
+@HighOrderService
 public final class SibylIntegrationService implements BukkitEventSubscriber {
   private final IntavePlugin plugin;
   private final SibylAuthentication authentication;

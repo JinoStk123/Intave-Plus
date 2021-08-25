@@ -3,7 +3,7 @@ package de.jpx3.intave.user.meta;
 import com.google.common.collect.Lists;
 import de.jpx3.intave.annotate.Relocate;
 import de.jpx3.intave.event.mitigate.AttackNerfStrategy;
-import de.jpx3.intave.event.mitigate.EntityNoDamageTickChanger;
+import de.jpx3.intave.event.mitigate.HurtimeModifier;
 import de.jpx3.intave.tool.AccessHelper;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -61,14 +61,14 @@ public final class PunishmentMetadata {
       new AttackNerfer(AttackNerfStrategy.HT_MEDIUM, DAMAGE_CANCEL_MEDIUM_DURATION, event -> {
         // Perform hurt-time change
         int ticks = -ThreadLocalRandom.current().nextInt(4, 7);
-        EntityNoDamageTickChanger.applyHurtTimeChangeTo(player, (int) (DAMAGE_CANCEL_MEDIUM_DURATION / 50), ticks);
+        HurtimeModifier.applyHurtTimeChangeTo(player, (int) (DAMAGE_CANCEL_MEDIUM_DURATION / 50), ticks);
         // Perform hurt-time change on entity
         performEntityHurtTimeChange(event.getEntity());
       }),
       new AttackNerfer(AttackNerfStrategy.HT_LIGHT, DAMAGE_CANCEL_LIGHT_DURATION, event -> {
         // Perform hurt-time change
         int ticks = -ThreadLocalRandom.current().nextInt(3, 4);
-        EntityNoDamageTickChanger.applyHurtTimeChangeTo(player, (int) (DAMAGE_CANCEL_LIGHT_DURATION / 50), ticks);
+        HurtimeModifier.applyHurtTimeChangeTo(player, (int) (DAMAGE_CANCEL_LIGHT_DURATION / 50), ticks);
       }),
       new AttackNerfer(AttackNerfStrategy.BLOCKING, BLOCKING_DAMAGE_CANCEL_DURATION, event -> {
         double blockingDamageAbsorption = event.getDamage(EntityDamageEvent.DamageModifier.BLOCKING);
@@ -107,7 +107,7 @@ public final class PunishmentMetadata {
     }
     Player player = (Player) entity;
     int increase = 2;
-    EntityNoDamageTickChanger.applyHurtTimeChangeTo(player, (int) (ENTITY_HURT_TIME_CHANGE_DURATION / 50), increase);
+    HurtimeModifier.applyHurtTimeChangeTo(player, (int) (ENTITY_HURT_TIME_CHANGE_DURATION / 50), increase);
   }
 
   public List<AttackNerfer> availableAttackNerfer() {

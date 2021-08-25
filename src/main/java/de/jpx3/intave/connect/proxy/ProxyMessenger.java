@@ -6,7 +6,8 @@ import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import de.jpx3.intave.IntaveLogger;
 import de.jpx3.intave.IntavePlugin;
-import de.jpx3.intave.cleanup.Shutdown;
+import de.jpx3.intave.annotate.HighOrderService;
+import de.jpx3.intave.cleanup.ShutdownTasks;
 import de.jpx3.intave.connect.proxy.protocol.IntavePacket;
 import de.jpx3.intave.connect.proxy.protocol.IntavePacketSerializer;
 import de.jpx3.intave.connect.proxy.protocol.PacketRegister;
@@ -31,6 +32,7 @@ import java.util.Map;
  * IPC = Intave Proxy Connection
  */
 
+@HighOrderService
 public final class ProxyMessenger {
   public final static int PROTOCOL_VERSION = 5;
   public final static String INCOMING_CHANNEL = "intave:proxy";
@@ -67,7 +69,7 @@ public final class ProxyMessenger {
       return;
     }
     openChannel();
-    Shutdown.addTask(this::closeChannel);
+    ShutdownTasks.add(this::closeChannel);
   }
 
   private void openChannel() {

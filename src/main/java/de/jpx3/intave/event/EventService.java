@@ -5,16 +5,17 @@ import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.adapter.MinecraftVersions;
 import de.jpx3.intave.adapter.ProtocolLibraryAdapter;
 import de.jpx3.intave.adapter.ViaVersionAdapter;
+import de.jpx3.intave.annotate.refactoring.IdoNotBelongHere;
 import de.jpx3.intave.cleanup.GarbageCollector;
-import de.jpx3.intave.event.dispatch.*;
-import de.jpx3.intave.event.feedback.FeedbackService;
 import de.jpx3.intave.event.mitigate.CombatMitigator;
 import de.jpx3.intave.event.mitigate.MovementEmulationEngine;
 import de.jpx3.intave.event.mitigate.ReconDelayLimiter;
 import de.jpx3.intave.executor.Synchronizer;
+import de.jpx3.intave.module.Modules;
+import de.jpx3.intave.module.feedback.FeedbackSender;
 import de.jpx3.intave.module.linker.bukkit.BukkitEventSubscriber;
 import de.jpx3.intave.module.linker.bukkit.BukkitEventSubscription;
-import de.jpx3.intave.module.tracker.entity.EntityNoCollisionService;
+import de.jpx3.intave.module.tracker.entity.EntityCollisionDisabler;
 import de.jpx3.intave.module.tracker.entity.LazyEntityCollisionService;
 import de.jpx3.intave.reflect.access.ReflectiveDataWatcherAccess;
 import de.jpx3.intave.reflect.caller.CallerResolver;
@@ -45,7 +46,6 @@ public final class EventService implements BukkitEventSubscriber {
   private final static boolean DISABLE_ENTITY_COLLISIONS = ProtocolLibraryAdapter.serverVersion().isAtLeast(MinecraftVersions.VER1_9_0);
 
   private final IntavePlugin plugin;
-  private FeedbackService feedbackService;
   private MovementEmulationEngine emulationEngine;
   private CombatMitigator combatMitigator;
   private ReconDelayLimiter reconDelayLimiter;
@@ -56,29 +56,29 @@ public final class EventService implements BukkitEventSubscriber {
 
   @Deprecated
   public void setup() {
-    this.feedbackService = new FeedbackService(plugin);
     this.emulationEngine = new MovementEmulationEngine(plugin);
     this.combatMitigator = new CombatMitigator(plugin);
     this.reconDelayLimiter = new ReconDelayLimiter(plugin);
     new UserLifetimeService(plugin);
-    new AttackDispatcher(plugin);
-    new AttributeTracker(plugin);
-    new BlockActionDispatcher(plugin);
-    new MovementDispatcher(plugin);
-    new PotionEffectTracker(plugin);
-    new PlayerAbilityTracker(plugin);
-    new PlayerInventoryTracker(plugin);
+//    new AttackDispatcher(plugin);
+//    new AttributeTracker(plugin);
+//    new BlockUpdateTracker(plugin);
+//    new MovementDispatcher(plugin);
+//    new EffectTracker(plugin);
+//    new AbilityTracker();
+//    new InventoryTracker(plugin);
     new LazyEntityCollisionService(plugin);
     new ConnectionHealthTelemetry(plugin);
     new PacketResynchronizer(plugin);
     if (DISABLE_ENTITY_COLLISIONS) {
-      new EntityNoCollisionService(plugin);
+      new EntityCollisionDisabler(plugin);
     }
 
     plugin.eventLinker().registerEventsIn(this);
   }
 
   @BukkitEventSubscription
+  @IdoNotBelongHere
   public void on(PlayerJoinEvent join) {
     Player player = join.getPlayer();
 
@@ -104,6 +104,7 @@ public final class EventService implements BukkitEventSubscriber {
   }
 
   @BukkitEventSubscription
+  @IdoNotBelongHere
   public void on(PlayerTeleportEvent teleport) {
     if (IntaveControl.DEBUG_TELEPORT_CAUSE_AND_CAUSER) {
       PluginInvocation pluginInvocation = CallerResolver.callerPluginInfo();
@@ -113,6 +114,7 @@ public final class EventService implements BukkitEventSubscriber {
   }
 
   @BukkitEventSubscription
+  @IdoNotBelongHere
   public void on(WorldUnloadEvent unloadEvent) {
     World world = unloadEvent.getWorld();
     GarbageCollector.clear(world);
@@ -120,6 +122,7 @@ public final class EventService implements BukkitEventSubscriber {
   }
 
   @BukkitEventSubscription
+  @IdoNotBelongHere
   public void on(PlayerQuitEvent quit) {
     Player player = quit.getPlayer();
     GarbageCollector.clear(player);
@@ -130,14 +133,16 @@ public final class EventService implements BukkitEventSubscriber {
    * fixes a bug where players drop their sword whilst blocking, tricking the server into letting them constantly block - even whilst attacking
    */
   @BukkitEventSubscription(ignoreCancelled = true)
+  @IdoNotBelongHere
   public void on(PlayerDropItemEvent event) {
     Player player = event.getPlayer();
     User user = UserRepository.userOf(player);
-    if (user.meta().inventory().handActive() && ItemProperties.isSwordItem(player.getItemOnCursor()) && !ViaVersionAdapter.ignoreBlocking(user.player())) {
+    if (/*user.meta().inventory().handActive() && */ItemProperties.isSwordItem(player.getItemOnCursor()) && !ViaVersionAdapter.ignoreBlocking(user.player())) {
       Synchronizer.synchronize(() -> ReflectiveDataWatcherAccess.setDataWatcherFlag(player, WATCHER_BLOCKING_ID, false));
     }
   }
 
+  @IdoNotBelongHere
   private void sendPrefixedMessage(String message, CommandSender target) {
     if (!Bukkit.isPrimaryThread()) {
       Synchronizer.synchronize(() -> sendPrefixedMessage(message, target));
@@ -147,21 +152,26 @@ public final class EventService implements BukkitEventSubscriber {
   }
 
   @Deprecated
+  @IdoNotBelongHere
   public ReconDelayLimiter reconDelayLimiter() {
     return reconDelayLimiter;
   }
 
   @Deprecated
+  @IdoNotBelongHere
   public MovementEmulationEngine emulationEngine() {
     return emulationEngine;
   }
 
   @Deprecated
-  public FeedbackService feedback() {
-    return feedbackService;
+  @IdoNotBelongHere
+  public FeedbackSender feedback() {
+//    return feedbackService;
+    return Modules.find(FeedbackSender.class);
   }
 
   @Deprecated
+  @IdoNotBelongHere
   public CombatMitigator combatMitigator() {
     return combatMitigator;
   }

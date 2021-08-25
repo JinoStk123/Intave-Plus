@@ -4,14 +4,11 @@ import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.access.check.event.IntaveCommandExecutionEvent;
 import de.jpx3.intave.access.check.event.IntaveViolationEvent;
 import de.jpx3.intave.access.player.trust.TrustFactor;
+import de.jpx3.intave.annotate.HighOrderService;
 import de.jpx3.intave.annotate.Native;
 import de.jpx3.intave.connect.proxy.protocol.packets.IntavePacketOutKicked;
 import de.jpx3.intave.detect.Check;
 import de.jpx3.intave.detect.CheckStatistics;
-import de.jpx3.intave.event.mitigate.MessageFormatter;
-import de.jpx3.intave.event.mitigate.placeholder.TextContext;
-import de.jpx3.intave.event.mitigate.placeholder.ViolationPlaceholderContext;
-import de.jpx3.intave.event.mitigate.placeholder.ViolationPlaceholderContext.DetailScope;
 import de.jpx3.intave.executor.Synchronizer;
 import de.jpx3.intave.math.MathHelper;
 import de.jpx3.intave.tool.AccessHelper;
@@ -20,6 +17,9 @@ import de.jpx3.intave.user.MessageChannelSubscriptions;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserRepository;
 import de.jpx3.intave.user.meta.ViolationMetadata;
+import de.jpx3.intave.violation.placeholder.TextContext;
+import de.jpx3.intave.violation.placeholder.ViolationPlaceholderContext;
+import de.jpx3.intave.violation.placeholder.ViolationPlaceholderContext.DetailScope;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -28,6 +28,7 @@ import java.util.function.Predicate;
 
 import static de.jpx3.intave.violation.Violation.ViolationFlags.DONT_PROCESS_VIOSTAT;
 
+@HighOrderService
 public final class ViolationProcessor {
   private final IntavePlugin plugin;
 

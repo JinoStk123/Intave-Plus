@@ -10,6 +10,7 @@ import de.jpx3.intave.detect.MetaCheck;
 import de.jpx3.intave.detect.checks.movement.physics.SimulationProcessor;
 import de.jpx3.intave.executor.Synchronizer;
 import de.jpx3.intave.math.MathHelper;
+import de.jpx3.intave.module.Modules;
 import de.jpx3.intave.module.linker.bukkit.BukkitEventSubscription;
 import de.jpx3.intave.module.linker.packet.PacketSubscription;
 import de.jpx3.intave.tool.AccessHelper;
@@ -102,7 +103,7 @@ public final class Timer extends MetaCheck<Timer.TimerData> {
     if (delta > 500) {
       timerData.lastLagSpike = AccessHelper.now();
       Synchronizer.synchronize(() -> {
-        plugin.eventService().feedback().singleSynchronize(player, null, (player1, target) -> {
+        Modules.feedback().singleSynchronize(player, null, (player1, target) -> {
           // Lag spike - requesting feedback to reset balance
           timerData.timerBalance = Math.max(0, timerData.timerBalance);
         });

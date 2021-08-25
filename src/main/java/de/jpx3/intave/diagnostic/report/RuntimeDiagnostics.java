@@ -1,7 +1,7 @@
 package de.jpx3.intave.diagnostic.report;
 
 import de.jpx3.intave.IntaveLogger;
-import de.jpx3.intave.cleanup.Shutdown;
+import de.jpx3.intave.cleanup.ShutdownTasks;
 import de.jpx3.intave.resource.EncryptedResource;
 
 import java.io.ByteArrayInputStream;
@@ -23,7 +23,7 @@ public final class RuntimeDiagnostics {
     setupReports();
     loadReports();
 
-    Shutdown.addTask(RuntimeDiagnostics::applicationShutdown);
+    ShutdownTasks.add(RuntimeDiagnostics::applicationShutdown);
     pluginEnabled = true;
   }
 

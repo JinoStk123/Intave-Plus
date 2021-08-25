@@ -4,7 +4,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.access.IntaveInternalException;
+import de.jpx3.intave.annotate.HighOrderService;
 import de.jpx3.intave.annotate.Relocate;
+import de.jpx3.intave.cleanup.ShutdownTasks;
 import de.jpx3.intave.detect.checks.combat.AttackRaytrace;
 import de.jpx3.intave.detect.checks.combat.ClickSpeedLimiter;
 import de.jpx3.intave.detect.checks.combat.Heuristics;
@@ -39,6 +41,7 @@ import java.util.*;
  * @see MetaCheckPart
  */
 @Relocate
+@HighOrderService
 public final class CheckService {
   private final IntavePlugin plugin;
   private List<Check> checks = new ArrayList<>();
@@ -67,11 +70,12 @@ public final class CheckService {
     addCheck(PlacementAnalysis.class);
     addCheck(InventoryClickAnalysis.class);
     addCheck(ClickSpeedLimiter.class);
-//    addCheck(WorkspaceCheck.class);
 
     bakeQuickAccess();
     checkLinker.linkBukkitEventSubscriptions(checks);
     checkLinker.linkPacketEventSubscriptions(checks);
+
+    ShutdownTasks.add(this::reset);
   }
 
   /**

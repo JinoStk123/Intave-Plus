@@ -5,13 +5,11 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import de.jpx3.intave.adapter.ProtocolLibraryAdapter;
 import de.jpx3.intave.annotate.Nullable;
-import de.jpx3.intave.event.dispatch.PlayerAbilityTracker;
+import de.jpx3.intave.module.tracker.player.AbilityTracker;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserRepository;
 import de.jpx3.intave.user.meta.AbilityMetadata;
 import de.jpx3.intave.user.meta.MovementMetadata;
-import joptsimple.internal.Strings;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -23,7 +21,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static de.jpx3.intave.adapter.MinecraftVersions.*;
+import static de.jpx3.intave.adapter.MinecraftVersions.VER1_13_0;
+import static de.jpx3.intave.adapter.MinecraftVersions.VER1_9_0;
 import static de.jpx3.intave.world.items.Enchantments.tridentRiptideEnchanted;
 
 public final class ItemProperties {
@@ -105,7 +104,7 @@ public final class ItemProperties {
   public static boolean foodConsumable(Player player, Material type) {
     User user = UserRepository.userOf(player);
     AbilityMetadata abilityData = user.meta().abilities();
-    boolean creative = abilityData.inGameMode(PlayerAbilityTracker.GameMode.CREATIVE);
+    boolean creative = abilityData.inGameMode(AbilityTracker.GameMode.CREATIVE);
     if (creative) {
       return false;
     }

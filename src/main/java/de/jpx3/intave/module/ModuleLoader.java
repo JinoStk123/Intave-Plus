@@ -3,9 +3,17 @@ package de.jpx3.intave.module;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.access.IntaveInternalException;
 import de.jpx3.intave.annotate.Native;
+import de.jpx3.intave.module.dispatch.AttackDispatcher;
+import de.jpx3.intave.module.dispatch.MovementDispatcher;
+import de.jpx3.intave.module.feedback.FeedbackReceiver;
+import de.jpx3.intave.module.feedback.FeedbackSender;
 import de.jpx3.intave.module.linker.bukkit.BukkitEventSubscriptionLinker;
 import de.jpx3.intave.module.linker.packet.PacketSubscriptionLinker;
+import de.jpx3.intave.module.tracker.block.BlockUpdateTracker;
 import de.jpx3.intave.module.tracker.entity.EntityTracker;
+import de.jpx3.intave.module.tracker.player.AbilityTracker;
+import de.jpx3.intave.module.tracker.player.EffectTracker;
+import de.jpx3.intave.module.tracker.player.InventoryTracker;
 import de.jpx3.intave.module.warning.ClientWarningModule;
 
 import java.lang.reflect.InvocationTargetException;
@@ -20,9 +28,25 @@ public final class ModuleLoader {
 
   @Native
   public void setup() {
+    // linker
     prepareModule(BukkitEventSubscriptionLinker.class, ModuleSettings.builder().doNotLinkSubscriptions().bootAt(BootSegment.STAGE_3).build());
     prepareModule(PacketSubscriptionLinker.class, ModuleSettings.builder().doNotLinkSubscriptions().requiresProtocolLib().requires(Requirements.intaveEnabled()).bootAt(BootSegment.STAGE_6).build());
+
+    // feedback
+    prepareModule(FeedbackSender.class, ModuleSettings.builder().requiresProtocolLib().bootAt(BootSegment.STAGE_7).build());
+    prepareModule(FeedbackReceiver.class, ModuleSettings.builder().requiresProtocolLib().bootAt(BootSegment.STAGE_7).build());
+
+    // tracker
+    prepareModule(AbilityTracker.class, ModuleSettings.builder().requiresProtocolLib().bootAt(BootSegment.STAGE_7).build());
+    prepareModule(BlockUpdateTracker.class, ModuleSettings.builder().requiresProtocolLib().bootAt(BootSegment.STAGE_7).build());
+    prepareModule(EffectTracker.class, ModuleSettings.builder().requiresProtocolLib().bootAt(BootSegment.STAGE_7).build());
     prepareModule(EntityTracker.class, ModuleSettings.builder().requiresProtocolLib().bootAt(BootSegment.STAGE_7).build());
+    prepareModule(InventoryTracker.class, ModuleSettings.builder().requiresProtocolLib().bootAt(BootSegment.STAGE_7).build());
+
+    // dispatch
+    prepareModule(AttackDispatcher.class, ModuleSettings.builder().requiresProtocolLib().bootAt(BootSegment.STAGE_9).build());
+    prepareModule(MovementDispatcher.class, ModuleSettings.builder().requiresProtocolLib().bootAt(BootSegment.STAGE_9).build());
+
     prepareModule(ClientWarningModule.class, ModuleSettings.builder().requiresProtocolLib().bootAt(BootSegment.STAGE_7).build());
   }
 

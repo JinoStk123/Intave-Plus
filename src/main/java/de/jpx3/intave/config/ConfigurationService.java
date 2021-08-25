@@ -3,6 +3,7 @@ package de.jpx3.intave.config;
 import de.jpx3.intave.IntaveControl;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.access.IntaveBootFailureException;
+import de.jpx3.intave.annotate.HighOrderService;
 import de.jpx3.intave.annotate.Native;
 import de.jpx3.intave.tool.AccessHelper;
 import de.jpx3.intave.user.meta.ProtocolMetadata;
@@ -11,6 +12,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.*;
 
+@HighOrderService
 public final class ConfigurationService {
   private final IntavePlugin plugin;
   private final ConfigurationLoader loader;

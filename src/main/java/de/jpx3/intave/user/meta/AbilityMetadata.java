@@ -9,7 +9,7 @@ import com.google.common.collect.ImmutableMap;
 import de.jpx3.intave.access.IntaveInternalException;
 import de.jpx3.intave.adapter.MinecraftVersions;
 import de.jpx3.intave.annotate.Relocate;
-import de.jpx3.intave.event.dispatch.PlayerAbilityTracker;
+import de.jpx3.intave.module.tracker.player.AbilityTracker;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 
@@ -27,8 +27,8 @@ public final class AbilityMetadata {
   private boolean flying;
   private boolean allowFlying;
 
-  private PlayerAbilityTracker.GameMode gameMode = PlayerAbilityTracker.GameMode.NOT_SET;
-  private PlayerAbilityTracker.GameMode pendingGameMode = PlayerAbilityTracker.GameMode.NOT_SET;
+  private AbilityTracker.GameMode gameMode = AbilityTracker.GameMode.NOT_SET;
+  private AbilityTracker.GameMode pendingGameMode = AbilityTracker.GameMode.NOT_SET;
 
   private float flySpeed = 0.05f;
   private float walkSpeed = 0.1f;
@@ -66,10 +66,10 @@ public final class AbilityMetadata {
       throw new IntaveInternalException("Player gameMode reference is null?");
     }
     int gameModeValue = gameMode.getValue();
-    this.gameMode = Arrays.stream(PlayerAbilityTracker.GameMode.values())
+    this.gameMode = Arrays.stream(AbilityTracker.GameMode.values())
       .filter(mode -> mode.id() == gameModeValue)
       .findFirst()
-      .orElse(PlayerAbilityTracker.GameMode.NOT_SET);
+      .orElse(AbilityTracker.GameMode.NOT_SET);
     this.pendingGameMode = this.gameMode;
   }
 
@@ -148,19 +148,19 @@ public final class AbilityMetadata {
     }
   }
 
-  public boolean inGameModeIncludePending(PlayerAbilityTracker.GameMode gameMode) {
+  public boolean inGameModeIncludePending(AbilityTracker.GameMode gameMode) {
     return this.gameMode == gameMode || this.pendingGameMode == gameMode;
   }
 
   public boolean ignoringMovementPackets() {
-    return inGameModeIncludePending(PlayerAbilityTracker.GameMode.SPECTATOR) || hasViewEntity;
+    return inGameModeIncludePending(AbilityTracker.GameMode.SPECTATOR) || hasViewEntity;
   }
 
   public boolean inGameMode(GameMode gameMode) {
     return this.gameMode.id() == gameMode.getValue();
   }
 
-  public boolean inGameMode(PlayerAbilityTracker.GameMode gameMode) {
+  public boolean inGameMode(AbilityTracker.GameMode gameMode) {
     return this.gameMode == gameMode;
   }
 
@@ -192,15 +192,15 @@ public final class AbilityMetadata {
     this.flySpeed = flySpeed;
   }
 
-  public void setGameMode(PlayerAbilityTracker.GameMode gameMode) {
-    if (this.gameMode == PlayerAbilityTracker.GameMode.SPECTATOR && gameMode == PlayerAbilityTracker.GameMode.CREATIVE) {
+  public void setGameMode(AbilityTracker.GameMode gameMode) {
+    if (this.gameMode == AbilityTracker.GameMode.SPECTATOR && gameMode == AbilityTracker.GameMode.CREATIVE) {
       setAllowFlying(true);
       setFlying(true);
     }
     this.gameMode = gameMode;
   }
 
-  public void setPendingGameMode(PlayerAbilityTracker.GameMode pendingGameMode) {
+  public void setPendingGameMode(AbilityTracker.GameMode pendingGameMode) {
     this.pendingGameMode = pendingGameMode;
   }
 }

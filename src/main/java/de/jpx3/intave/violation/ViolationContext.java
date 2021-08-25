@@ -2,8 +2,8 @@ package de.jpx3.intave.violation;
 
 import com.google.common.collect.ImmutableList;
 import de.jpx3.intave.annotate.Native;
-import de.jpx3.intave.event.mitigate.placeholder.ViolationPlaceholderContext;
 import de.jpx3.intave.user.meta.ProtocolMetadata;
+import de.jpx3.intave.violation.placeholder.ViolationPlaceholderContext;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,5 +1,6 @@
 package de.jpx3.intave.command;
 
+import de.jpx3.intave.annotate.HighOrderService;
 import de.jpx3.intave.command.stages.*;
 import org.bukkit.block.CommandBlock;
 import org.bukkit.command.Command;
@@ -14,6 +15,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@HighOrderService
 public final class CommandProcessor implements CommandExecutor, TabCompleter {
   private final CommandStage rootCommandStage = BaseStage.singletonInstance();
 

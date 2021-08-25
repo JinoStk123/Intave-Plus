@@ -8,7 +8,7 @@ import de.jpx3.intave.access.player.trust.TrustFactor;
 import de.jpx3.intave.annotate.DispatchTarget;
 import de.jpx3.intave.annotate.Relocate;
 import de.jpx3.intave.annotate.refactoring.IdoNotBelongHere;
-import de.jpx3.intave.annotate.refactoring.ImVeryBigPleaseSplitMeUp;
+import de.jpx3.intave.annotate.refactoring.SplitMeUp;
 import de.jpx3.intave.detect.Check;
 import de.jpx3.intave.detect.CheckStatistics;
 import de.jpx3.intave.detect.CheckViolationLevelDecrementer;
@@ -17,7 +17,6 @@ import de.jpx3.intave.diagnostic.timings.Timings;
 import de.jpx3.intave.executor.Synchronizer;
 import de.jpx3.intave.math.MathHelper;
 import de.jpx3.intave.reflect.method.FallDamageMethodContainer;
-import de.jpx3.intave.tool.MovementContext;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.meta.*;
 import de.jpx3.intave.violation.Violation;
@@ -56,9 +55,7 @@ public final class Physics extends Check {
   private final CheckViolationLevelDecrementer decrementer;
   private final SimulationProcessor simulationProcessor;
   private final SimulationEvaluator simulationEvaluator;
-
   private final FallDamageMethodContainer fallDamageMethodContainer;
-
   private final boolean highToleranceMode;
 
   public Physics(IntavePlugin plugin) {
@@ -67,12 +64,9 @@ public final class Physics extends Check {
     this.decrementer = new CheckViolationLevelDecrementer(this, VL_DECREMENT_PER_VALID_MOVE * 20);
     this.simulationProcessor = new PredictionSimulationProcessor();
     this.simulationEvaluator = new SimulationEvaluator();
-
-    highToleranceMode = configuration().settings().boolBy("high-tolerance", false);
+    this.highToleranceMode = configuration().settings().boolBy("high-tolerance", false);
     setDefaultMitigationStrategy(MitigationStrategy.CAREFUL);
-
-    fallDamageMethodContainer = new FallDamageMethodContainer();
-
+    this.fallDamageMethodContainer = new FallDamageMethodContainer();
     linkCheckToPoseSimulators();
   }
 
@@ -250,7 +244,7 @@ public final class Physics extends Check {
   /**
    * This method is too big, please refactor
    */
-  @ImVeryBigPleaseSplitMeUp
+  @SplitMeUp
   private void evaluateBestSimulation(User user, ComplexColliderSimulationResult expectedMovement) {
     Player player = user.player();
     MetadataBundle meta = user.meta();
@@ -286,7 +280,7 @@ public final class Physics extends Check {
     double differenceZ = predictedZ - receivedMotionZ;
     double distance = MathHelper.hypot3d(differenceX, differenceY, differenceZ);
 
-    boolean onLadderCurrent = MovementContext.isOnLadder(user, positionX, positionY, positionZ);
+    boolean onLadderCurrent = MovementHelper.isOnLadder(user, positionX, positionY, positionZ);
     boolean onLadder = onLadderCurrent | movementData.onLadderLast;
     movementData.onLadderLast = onLadderCurrent;
 
@@ -656,7 +650,6 @@ public final class Physics extends Check {
   private String shortenTypeName(Material type) {
     return type.name().toLowerCase().replace("_", "").replace("block", "");
   }
-
 
   public SimulationProcessor simulationService() {
     return simulationProcessor;
