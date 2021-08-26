@@ -21,7 +21,6 @@ import java.util.List;
 
 import static de.jpx3.intave.module.linker.packet.PacketId.Client.LOOK;
 import static de.jpx3.intave.module.linker.packet.PacketId.Client.POSITION_LOOK;
-import static de.jpx3.intave.tool.RotationUtilities.averageOf;
 
 public final class RotationUnlikelyAccuracyHeuristic extends MetaCheckPart<Heuristics, RotationUnlikelyAccuracyHeuristic.ULMeta> {
   public RotationUnlikelyAccuracyHeuristic(Heuristics parentCheck) {
@@ -79,6 +78,17 @@ public final class RotationUnlikelyAccuracyHeuristic extends MetaCheckPart<Heuri
       heuristicMeta.distancesToPerfectYaw.add(distanceToPerfectYaw);
       heuristicMeta.yawSpeeds.add((double) yawSpeed);
     }
+  }
+
+  private double averageOf(List<? extends Number> data) {
+    double sum = 0;
+    for (Number element : data) {
+      sum += element.doubleValue();
+    }
+    if (sum == 0) {
+      return 0;
+    }
+    return sum / data.size();
   }
 
   public final static class ULMeta extends CheckCustomMetadata {

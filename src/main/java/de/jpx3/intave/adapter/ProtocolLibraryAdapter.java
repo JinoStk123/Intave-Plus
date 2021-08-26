@@ -1,6 +1,5 @@
 package de.jpx3.intave.adapter;
 
-import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.utility.MinecraftVersion;
@@ -12,8 +11,9 @@ import org.bukkit.Bukkit;
 import java.util.Arrays;
 
 public final class ProtocolLibraryAdapter {
+  @Deprecated
   public static MinecraftVersion serverVersion() {
-    return ProtocolLibrary.getProtocolManager().getMinecraftVersion();
+    return MinecraftVersion.getCurrentVersion();
   }
 
   public static boolean protocolLibAlreadyAvailable() {

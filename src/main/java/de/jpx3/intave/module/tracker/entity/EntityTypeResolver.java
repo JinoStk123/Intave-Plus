@@ -26,10 +26,10 @@ import java.lang.reflect.Field;
 import java.util.List;
 
 public final class EntityTypeResolver {
-  private final static boolean AT_OR_ABOVE_1_9 = MinecraftVersions.VER1_9_0.atOrAbove();
-  private final static boolean AT_OR_ABOVE_1_10 = MinecraftVersions.VER1_10_0.atOrAbove();
-  private final static boolean AT_OR_ABOVE_1_14 = MinecraftVersions.VER1_14_0.atOrAbove();
-  private final static boolean AT_OR_ABOVE_1_15 = MinecraftVersions.VER1_15_0.atOrAbove();
+  private final boolean AT_OR_ABOVE_1_9 = MinecraftVersions.VER1_9_0.atOrAbove();
+  private final boolean AT_OR_ABOVE_1_10 = MinecraftVersions.VER1_10_0.atOrAbove();
+  private final boolean AT_OR_ABOVE_1_14 = MinecraftVersions.VER1_14_0.atOrAbove();
+  private final boolean AT_OR_ABOVE_1_15 = MinecraftVersions.VER1_15_0.atOrAbove();
   private static final boolean DATA_WATCHER_ACCESS_UNDER_1_15 = !MinecraftVersions.VER1_15_0.atOrAbove();
   private static final boolean ENTITY_TYPE_ACCESS_UNDER_1_14 = !MinecraftVersions.VER1_14_0.atOrAbove();
   private String dataWatcherEntityFieldName;

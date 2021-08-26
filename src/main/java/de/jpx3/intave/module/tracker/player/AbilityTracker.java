@@ -3,7 +3,6 @@ package de.jpx3.intave.module.tracker.player;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import de.jpx3.intave.adapter.MinecraftVersions;
-import de.jpx3.intave.adapter.ProtocolLibraryAdapter;
 import de.jpx3.intave.module.Module;
 import de.jpx3.intave.module.Modules;
 import de.jpx3.intave.module.linker.packet.ListenerPriority;
@@ -68,7 +67,7 @@ public final class AbilityTracker extends Module {
     }
   }
 
-  private final static boolean BIT_FIELD = ProtocolLibraryAdapter.serverVersion().isAtLeast(MinecraftVersions.VER1_16_0);
+  private final boolean BIT_FIELD = MinecraftVersions.VER1_16_0.atOrAbove();
 
   private boolean requestedFlying(PacketContainer packet) {
     return packet.getBooleans().read(BIT_FIELD ? 0 : 1);
@@ -142,8 +141,8 @@ public final class AbilityTracker extends Module {
     );
   }
 
-  private final static boolean NEW_GAME_STATE_CHANGE_PACKET = MinecraftVersions.VER1_16_0.atOrAbove();
-  private final static Class<?> GAME_STATE_CLASS = !NEW_GAME_STATE_CHANGE_PACKET ? null : Lookup.serverClass("PacketPlayOutGameStateChange$a");
+  private final boolean NEW_GAME_STATE_CHANGE_PACKET = MinecraftVersions.VER1_16_0.atOrAbove();
+  private final Class<?> GAME_STATE_CLASS = !NEW_GAME_STATE_CHANGE_PACKET ? null : Lookup.serverClass("PacketPlayOutGameStateChange$a");
 
   private boolean gameModeUpdateState(PacketContainer packet) {
     if (NEW_GAME_STATE_CHANGE_PACKET) {

@@ -41,7 +41,7 @@ public final class EffectTracker extends Module {
     Modules.feedback().singleSynchronize(player, potionEffectType, this::receiveEffectRemoval);
   }
 
-  private final static boolean EFFECT_ACCESS = MinecraftVersions.VER1_9_0.atOrAbove();
+  private final boolean EFFECT_ACCESS = MinecraftVersions.VER1_9_0.atOrAbove();
 
   private PotionEffectType effectIdOf(PacketContainer packet) {
     if (EFFECT_ACCESS) {

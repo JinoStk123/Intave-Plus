@@ -263,7 +263,7 @@ public final class InventoryTracker extends Module {
     }
   }
 
-  private final static boolean NEW_ITEM_REQUEST = ProtocolLibraryAdapter.serverVersion().isAtLeast(MinecraftVersions.VER1_9_0);
+  private final boolean NEW_ITEM_REQUEST = ProtocolLibraryAdapter.serverVersion().isAtLeast(MinecraftVersions.VER1_9_0);
 
   private boolean requestedItemUse(PacketContainer packet) {
     if (NEW_ITEM_REQUEST) {

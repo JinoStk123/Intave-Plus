@@ -33,8 +33,6 @@ public final class PredictionSimulationProcessor implements SimulationProcessor 
     return movementData.applyClientKeys ? performKeySimulationFromInput(user, simulator) : performKeyComparisonSimulation(user, simulator);
   }
 
-  private final static double REQUIRED_ACCURACY_FOR_QUICK_PROC_EXIT = 0.001;
-
   private ComplexColliderSimulationResult performKeySimulationFromInput(User user, Simulator simulator) {
     MovementMetadata movementData = user.meta().movement();
     int clientInputKey = movementData.clientInputKey;
@@ -46,6 +44,8 @@ public final class PredictionSimulationProcessor implements SimulationProcessor 
     KeyPressStudy.enterKeyPress(movementData.keyForward, movementData.keyStrafe);
     return simulateWithKeyPress(user, simulator, clientInputKey, clientStrafeKey, jump);
   }
+
+  private final static double REQUIRED_ACCURACY_FOR_QUICK_PROC_EXIT = 0.001;
 
   private ComplexColliderSimulationResult performKeyComparisonSimulation(User user, Simulator simulator) {
     MovementMetadata movementData = user.meta().movement();

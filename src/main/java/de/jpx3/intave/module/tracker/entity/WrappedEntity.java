@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public class WrappedEntity implements Cloneable {
+public class WrappedEntity {
   /*
   Dead entities are used to identify recently removed entities.
 

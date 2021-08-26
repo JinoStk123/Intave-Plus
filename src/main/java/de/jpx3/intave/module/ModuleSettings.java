@@ -1,5 +1,7 @@
 package de.jpx3.intave.module;
 
+import com.comphenix.protocol.ProtocolLibrary;
+
 public final class ModuleSettings {
   private final BootSegment bootSegment;
   private final Requirement requirement;
@@ -53,7 +55,7 @@ public final class ModuleSettings {
     }
 
     public Builder requiresProtocolLib() {
-      return requires(Requirements.protocolLib());
+      return requires(Requirements.protocolLib().and(() -> ProtocolLibrary.getProtocolManager() != null));
     }
 
     public Builder requires(Requirement requirement) {

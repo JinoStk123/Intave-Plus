@@ -7,7 +7,6 @@ import de.jpx3.intave.detect.MetaCheckPart;
 import de.jpx3.intave.detect.checks.world.PlacementAnalysis;
 import de.jpx3.intave.module.linker.packet.PacketSubscription;
 import de.jpx3.intave.tool.AccessHelper;
-import de.jpx3.intave.tool.RotationUtilities;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.meta.CheckCustomMetadata;
 import de.jpx3.intave.violation.Violation;
@@ -58,7 +57,7 @@ public final class PacketOrderAnalyzer extends MetaCheckPart<PlacementAnalysis, 
     meta.placementDifferences.add(timeDiff);
 
     if (meta.placementDifferences.size() == 4) {
-      double average = RotationUtilities.averageOf(meta.placementDifferences);
+      double average = averageOf(meta.placementDifferences);
 
       if (average < 20) {
         long permutePacketIncrementDiff = now - meta.lastIncrement;
@@ -85,6 +84,17 @@ public final class PacketOrderAnalyzer extends MetaCheckPart<PlacementAnalysis, 
 
       meta.placementDifferences.clear();
     }
+  }
+
+  private double averageOf(List<? extends Number> data) {
+    double sum = 0;
+    for (Number element : data) {
+      sum += element.doubleValue();
+    }
+    if (sum == 0) {
+      return 0;
+    }
+    return sum / data.size();
   }
 
   private boolean blockingPlacementPacket(PacketContainer packet) {

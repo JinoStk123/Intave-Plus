@@ -5,7 +5,6 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.google.common.collect.Lists;
-import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.detect.MetaCheckPart;
 import de.jpx3.intave.detect.checks.combat.Heuristics;
 import de.jpx3.intave.detect.checks.combat.heuristics.Anomaly;
@@ -15,7 +14,6 @@ import de.jpx3.intave.math.MathHelper;
 import de.jpx3.intave.module.linker.packet.ListenerPriority;
 import de.jpx3.intave.module.linker.packet.PacketSubscription;
 import de.jpx3.intave.module.tracker.entity.WrappedEntity;
-import de.jpx3.intave.tool.RotationUtilities;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.meta.AttackMetadata;
 import de.jpx3.intave.user.meta.CheckCustomMetadata;
@@ -28,11 +26,8 @@ import static de.jpx3.intave.detect.checks.combat.heuristics.Anomaly.AnomalyOpti
 import static de.jpx3.intave.module.linker.packet.PacketId.Client.*;
 
 public final class PerfectAttackHeuristic extends MetaCheckPart<Heuristics, PerfectAttackHeuristic.PerfectAttackMeta> {
-  private final IntavePlugin plugin;
-
   public PerfectAttackHeuristic(Heuristics parentCheck) {
     super(parentCheck, PerfectAttackMeta.class);
-    this.plugin = IntavePlugin.singletonInstance();
   }
 
   @PacketSubscription(
@@ -92,8 +87,8 @@ public final class PerfectAttackHeuristic extends MetaCheckPart<Heuristics, Perf
     float pitchSpeed = MathHelper.distanceInDegrees(movementData.rotationPitch, movementData.lastRotationPitch);
 
     if (heuristicMeta.distanceToPerfectYawList.size() > 20) {
-      double distanceAverage = RotationUtilities.averageOf(heuristicMeta.distanceToPerfectYawList);
-      double yawSpeedAverage = RotationUtilities.averageOf(heuristicMeta.yawSpeedList);
+      double distanceAverage = averageOf(heuristicMeta.distanceToPerfectYawList);
+      double yawSpeedAverage = averageOf(heuristicMeta.yawSpeedList);
       double failRate = (heuristicMeta.swings / heuristicMeta.attacks) * 100.0;
 
       if (failRate < 5 && (yawSpeedAverage > 10 || distanceAverage > 10)) {
@@ -103,13 +98,13 @@ public final class PerfectAttackHeuristic extends MetaCheckPart<Heuristics, Perf
           + "%, r:" + MathHelper.formatDouble(yawSpeedAverage, 2)
           + ", d:" + MathHelper.formatDouble(distanceAverage, 2)
           + ") vl:" + MathHelper.formatDouble(heuristicMeta.vl, 2);
-        int options = LIMIT_1 | LIMIT_4 | SUGGEST_MINING | DELAY_16s;
-        Anomaly anomaly = Anomaly.anomalyOf("51", Confidence.PROBABLE, Anomaly.Type.KILLAURA, description, options);
+        int options = LIMIT_4 | SUGGEST_MINING | DELAY_16s;
+        Anomaly anomaly = Anomaly.anomalyOf("51", Confidence.MAYBE, Anomaly.Type.KILLAURA, description, options);
         parentCheck().saveAnomaly(player, anomaly);
         if (heuristicMeta.vl >= 2) {
           //dmc13
           user.applyAttackNerfer(AttackNerfStrategy.HT_MEDIUM, "13");
-          user.applyAttackNerfer(AttackNerfStrategy.CANCEL_FIRST_HIT, "13");
+          user.applyAttackNerfer(AttackNerfStrategy.DMG_MEDIUM, "13");
         }
       } else if (heuristicMeta.vl > 0) {
         heuristicMeta.vl -= 0.2;
@@ -125,6 +120,17 @@ public final class PerfectAttackHeuristic extends MetaCheckPart<Heuristics, Perf
       heuristicMeta.distanceToPerfectYawList.add(distanceToPerfectYaw);
       heuristicMeta.yawSpeedList.add(yawSpeed + pitchSpeed);
     }
+  }
+
+  private double averageOf(List<? extends Number> data) {
+    double sum = 0;
+    for (Number element : data) {
+      sum += element.doubleValue();
+    }
+    if (sum == 0) {
+      return 0;
+    }
+    return sum / data.size();
   }
 
   public final static class PerfectAttackMeta extends CheckCustomMetadata {

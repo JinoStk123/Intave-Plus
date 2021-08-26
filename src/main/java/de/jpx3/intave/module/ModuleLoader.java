@@ -44,9 +44,10 @@ public final class ModuleLoader {
     prepareModule(InventoryTracker.class, ModuleSettings.builder().requiresProtocolLib().bootAt(BootSegment.STAGE_7).build());
 
     // dispatch
-    prepareModule(AttackDispatcher.class, ModuleSettings.builder().requiresProtocolLib().bootAt(BootSegment.STAGE_9).build());
-    prepareModule(MovementDispatcher.class, ModuleSettings.builder().requiresProtocolLib().bootAt(BootSegment.STAGE_9).build());
+    prepareModule(AttackDispatcher.class, ModuleSettings.builder().requiresProtocolLib().bootAt(BootSegment.STAGE_10).build());
+    prepareModule(MovementDispatcher.class, ModuleSettings.builder().requiresProtocolLib().bootAt(BootSegment.STAGE_10).build());
 
+    // misc
     prepareModule(ClientWarningModule.class, ModuleSettings.builder().requiresProtocolLib().bootAt(BootSegment.STAGE_7).build());
   }
 

@@ -6,7 +6,6 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.comphenix.protocol.wrappers.WrappedAttribute;
-import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.adapter.MinecraftVersions;
 import de.jpx3.intave.annotate.refactoring.SplitMeUp;
 import de.jpx3.intave.detect.checks.combat.Heuristics;
@@ -44,9 +43,8 @@ import static de.jpx3.intave.module.linker.packet.PacketId.Server.SET_SLOT;
 public final class AttackDispatcher extends Module {
   public static boolean REDUCING_DISABLED;
 
-  public AttackDispatcher(IntavePlugin plugin) {
-//    plugin.packetSubscriptionLinker().linkSubscriptionsIn(this);
-//    plugin.eventLinker().registerEventsIn(this);
+  @Override
+  public void enable() {
     REDUCING_DISABLED = !MinecraftVersions.VER1_9_0.atOrAbove() &&
       plugin.checks().searchCheck(Heuristics.class).configuration().settings().boolBy("disable-reducing", true);
 

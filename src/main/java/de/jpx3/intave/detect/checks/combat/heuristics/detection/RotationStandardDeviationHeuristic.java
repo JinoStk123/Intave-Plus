@@ -12,7 +12,6 @@ import de.jpx3.intave.math.MathHelper;
 import de.jpx3.intave.module.linker.packet.ListenerPriority;
 import de.jpx3.intave.module.linker.packet.PacketSubscription;
 import de.jpx3.intave.module.tracker.entity.WrappedEntity;
-import de.jpx3.intave.tool.RotationUtilities;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.meta.AttackMetadata;
 import de.jpx3.intave.user.meta.CheckCustomMetadata;
@@ -82,7 +81,7 @@ public final class RotationStandardDeviationHeuristic extends MetaCheckPart<Heur
   private void evaluateYawPatterns(User user) {
     Player player = user.player();
     RotationStandardDeviationMeta heuristicMeta = metaOf(user);
-    double standardDeviation = RotationUtilities.calculateStandardDeviation(heuristicMeta.distancesToPerfectYaw);
+    double standardDeviation = standardDeviation(heuristicMeta.distancesToPerfectYaw);
 
     if (standardDeviation < 1.0) {
       if (heuristicMeta.rotationBalanceYaw++ >= 2) {
@@ -102,7 +101,7 @@ public final class RotationStandardDeviationHeuristic extends MetaCheckPart<Heur
   private void evaluatePitchPatterns(User user) {
     Player player = user.player();
     RotationStandardDeviationMeta heuristicMeta = metaOf(user);
-    double standardDeviation = RotationUtilities.calculateStandardDeviation(heuristicMeta.distancesToPerfectPitch);
+    double standardDeviation = standardDeviation(heuristicMeta.distancesToPerfectPitch);
 
     if (standardDeviation < 3.0) {
       if (heuristicMeta.rotationBalancePitch++ >= 4) {
@@ -117,6 +116,18 @@ public final class RotationStandardDeviationHeuristic extends MetaCheckPart<Heur
     } else {
       heuristicMeta.rotationBalancePitch -= heuristicMeta.rotationBalancePitch > 0 ? 0.2 : 0;
     }
+  }
+
+  private double standardDeviation(List<? extends Number> sd) {
+    double sum = 0, newSum = 0;
+    for (Number v : sd) {
+      sum = sum + v.doubleValue();
+    }
+    double mean = sum / sd.size();
+    for (Number v : sd) {
+      newSum = newSum + (v.doubleValue() - mean) * (v.doubleValue() - mean);
+    }
+    return Math.sqrt(newSum / sd.size());
   }
 
   public static class RotationStandardDeviationMeta extends CheckCustomMetadata {

@@ -12,6 +12,7 @@ import de.jpx3.intave.annotate.DispatchTarget;
 import de.jpx3.intave.annotate.KeepEnumInternalNames;
 import de.jpx3.intave.executor.Synchronizer;
 import de.jpx3.intave.math.MathHelper;
+import de.jpx3.intave.module.Modules;
 import de.jpx3.intave.module.linker.packet.ListenerPriority;
 import de.jpx3.intave.module.linker.packet.PacketEventSubscriber;
 import de.jpx3.intave.module.linker.packet.PacketSubscription;
@@ -30,9 +31,13 @@ import java.util.Set;
 import static de.jpx3.intave.module.linker.packet.PacketId.Client.TELEPORT_ACCEPT;
 import static de.jpx3.intave.module.linker.packet.PacketId.Server.POSITION;
 
-final class TeleportApplyEnforcer implements PacketEventSubscriber {
+public final class TeleportApplyEnforcer implements PacketEventSubscriber {
   private final static boolean TELEPORTATION_DEBUG = false;
-  final static boolean NEW_TELEPORTATION = ProtocolLibraryAdapter.serverVersion().isAtLeast(MinecraftVersions.VER1_9_0);
+  final boolean NEW_TELEPORTATION = ProtocolLibraryAdapter.serverVersion().isAtLeast(MinecraftVersions.VER1_9_0);
+
+  public void setup() {
+    Modules.linker().packetEvents().linkSubscriptionsIn(this);
+  }
 
   @PacketSubscription(
     priority = ListenerPriority.LOWEST,
@@ -43,9 +48,6 @@ final class TeleportApplyEnforcer implements PacketEventSubscriber {
   public void receiveTeleport(PacketEvent event) {
     Player player = event.getPlayer();
     PacketContainer packet = event.getPacket();
-
-//    Thread.dumpStack();
-
     if (NEW_TELEPORTATION) {
       dispatchTeleportation(player, packet);
     } else {
@@ -72,7 +74,6 @@ final class TeleportApplyEnforcer implements PacketEventSubscriber {
       if (TELEPORTATION_DEBUG) {
         IntaveLogger.logger().pushPrintln("[Intave] Cancel packet of " + player.getName() + "(Awaiting teleport accept)");
       }
-//      event.setCancelled(true);
       if (movementData.teleportResendCountdown-- < 0) {
         if (TELEPORTATION_DEBUG) {
           IntaveLogger.logger().pushPrintln("[Intave] Resend teleport to " + player.getName());

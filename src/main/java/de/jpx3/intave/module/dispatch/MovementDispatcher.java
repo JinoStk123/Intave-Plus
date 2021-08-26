@@ -5,9 +5,9 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.reflect.StructureModifier;
 import com.comphenix.protocol.wrappers.WrappedWatchableObject;
-import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.adapter.MinecraftVersions;
 import de.jpx3.intave.annotate.Relocate;
+import de.jpx3.intave.detect.CheckService;
 import de.jpx3.intave.detect.checks.movement.Physics;
 import de.jpx3.intave.detect.checks.movement.Timer;
 import de.jpx3.intave.detect.checks.movement.physics.Pose;
@@ -21,7 +21,6 @@ import de.jpx3.intave.module.feedback.FeedbackCallback;
 import de.jpx3.intave.module.linker.bukkit.BukkitEventSubscription;
 import de.jpx3.intave.module.linker.packet.ListenerPriority;
 import de.jpx3.intave.module.linker.packet.PacketSubscription;
-import de.jpx3.intave.module.linker.packet.PacketSubscriptionLinker;
 import de.jpx3.intave.module.linker.packet.PrioritySlot;
 import de.jpx3.intave.module.tracker.entity.WrappedEntity;
 import de.jpx3.intave.reflect.converter.PlayerAction;
@@ -54,26 +53,19 @@ import static de.jpx3.intave.user.meta.ProtocolMetadata.VER_1_9;
 
 @Relocate
 public final class MovementDispatcher extends Module {
-  private final TeleportApplyEnforcer teleportApplyEnforcer = new TeleportApplyEnforcer();
+  private TeleportApplyEnforcer teleportApplyEnforcer;
+  private Physics physicsCheck;
+  private InteractionRaytrace interactionRaytraceCheck;
+  private Timer timerCheck;
 
-  private final IntavePlugin plugin;
-  private final Physics physicsCheck;
-  private final InteractionRaytrace interactionRaytraceCheck;
-  private final Timer timerCheck;
-
-  public MovementDispatcher(IntavePlugin plugin) {
-    this.plugin = plugin;
-//    this.plugin.packetSubscriptionLinker().linkSubscriptionsIn(this);
-//    this.plugin.eventLinker().registerEventsIn(this);
-    this.physicsCheck = plugin.checks().searchCheck(Physics.class);
-    this.interactionRaytraceCheck = plugin.checks().searchCheck(InteractionRaytrace.class);
-    this.timerCheck = plugin.checks().searchCheck(Timer.class);
-    linkTeleportObserver(plugin);
-  }
-
-  private void linkTeleportObserver(IntavePlugin plugin) {
-    PacketSubscriptionLinker subscriptionLinker = plugin.packetSubscriptionLinker();
-    subscriptionLinker.linkSubscriptionsIn(teleportApplyEnforcer);
+  @Override
+  public void enable() {
+    CheckService checks = plugin.checks();
+    this.physicsCheck = checks.searchCheck(Physics.class);
+    this.interactionRaytraceCheck = checks.searchCheck(InteractionRaytrace.class);
+    this.timerCheck = checks.searchCheck(Timer.class);
+    this.teleportApplyEnforcer = new TeleportApplyEnforcer();
+    this.teleportApplyEnforcer.setup();
   }
 
   @BukkitEventSubscription
@@ -528,7 +520,7 @@ public final class MovementDispatcher extends Module {
     movementData.clientPressedJump = jumping;
   }
 
-  private final static boolean ELYTRA_SUPPORTED = MinecraftVersions.VER1_9_0.atOrAbove();
+  private final boolean ELYTRA_SUPPORTED = MinecraftVersions.VER1_9_0.atOrAbove();
 
   @PacketSubscription(
     priority = ListenerPriority.HIGH,

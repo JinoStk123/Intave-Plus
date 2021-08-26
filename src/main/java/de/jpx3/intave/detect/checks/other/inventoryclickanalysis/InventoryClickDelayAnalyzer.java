@@ -13,7 +13,6 @@ import de.jpx3.intave.module.linker.packet.ListenerPriority;
 import de.jpx3.intave.module.linker.packet.PacketSubscription;
 import de.jpx3.intave.reflect.Lookup;
 import de.jpx3.intave.tool.AccessHelper;
-import de.jpx3.intave.tool.RotationUtilities;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.meta.CheckCustomMetadata;
 import de.jpx3.intave.user.meta.ProtocolMetadata;
@@ -145,7 +144,7 @@ public final class InventoryClickDelayAnalyzer extends MetaCheckPart<InventoryCl
 
   private void processStandardDeviationCheck(Player player, ClickDelayMeta meta) {
     User user = userOf(player);
-    double std = RotationUtilities.calculateStandardDeviation(meta.clickDelayList) * 100;
+    double std = standardDeviation(meta.clickDelayList) * 100;
 
     double averageMovementPacketTimestamp = user.meta().connection().averageMovementPacketTimestamp();
     if (std < 2 && Math.abs(averageMovementPacketTimestamp - 50) < 40) {
@@ -157,6 +156,18 @@ public final class InventoryClickDelayAnalyzer extends MetaCheckPart<InventoryCl
 //
       plugin.violationProcessor().processViolation(violation);
     }
+  }
+
+  private double standardDeviation(List<? extends Number> sd) {
+    double sum = 0, newSum = 0;
+    for (Number v : sd) {
+      sum = sum + v.doubleValue();
+    }
+    double mean = sum / sd.size();
+    for (Number v : sd) {
+      newSum = newSum + (v.doubleValue() - mean) * (v.doubleValue() - mean);
+    }
+    return Math.sqrt(newSum / sd.size());
   }
 
   private void prepareNextTick(User user, int slot, int itemID) {

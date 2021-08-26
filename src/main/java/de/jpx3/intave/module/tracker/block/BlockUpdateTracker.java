@@ -120,7 +120,7 @@ public final class BlockUpdateTracker extends Module {
     }
   }
 
-  private final static boolean USE_MBP_FOR_BC = MinecraftVersions.VER1_14_0.atOrAbove();
+  private final boolean USE_MBP_FOR_BC = MinecraftVersions.VER1_14_0.atOrAbove();
 
   private BlockPosition readBlockPositionFrom(PacketContainer container) {
     if (USE_MBP_FOR_BC) {
@@ -131,7 +131,7 @@ public final class BlockUpdateTracker extends Module {
     }
   }
 
-  private final static boolean USE_SELECTION_POSITION_TO_READ_MBC_PACKET = MinecraftVersions.VER1_16_2.atOrAbove();
+  private final boolean USE_SELECTION_POSITION_TO_READ_MBC_PACKET = MinecraftVersions.VER1_16_2.atOrAbove();
 
   @PacketSubscription(
     packetsOut = {

@@ -8,7 +8,6 @@ import de.jpx3.intave.detect.checks.combat.Heuristics;
 import de.jpx3.intave.math.MathHelper;
 import de.jpx3.intave.module.linker.packet.ListenerPriority;
 import de.jpx3.intave.module.linker.packet.PacketSubscription;
-import de.jpx3.intave.tool.RotationUtilities;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.meta.CheckCustomMetadata;
 import org.bukkit.entity.Player;
@@ -108,7 +107,7 @@ public final class PacketDependenciesHeuristic extends MetaCheckPart<Heuristics,
     }
 
     for (SaveMultipleTicks value : multipleDependencies.values()) {
-      double standardDeviation = RotationUtilities.calculateStandardDeviation(value.ticks);
+      double standardDeviation = standardDeviation(value.ticks);
       String standardDeviationString = MathHelper.formatDouble(standardDeviation, 4);
       player.sendMessage("std: " + standardDeviationString
         + " " + value.firstPacketType.name().toLowerCase()
@@ -116,6 +115,18 @@ public final class PacketDependenciesHeuristic extends MetaCheckPart<Heuristics,
         + " " + value.ticks.size());
     }
     prepareNextTick(meta);
+  }
+
+  private double standardDeviation(List<? extends Number> sd) {
+    double sum = 0, newSum = 0;
+    for (Number v : sd) {
+      sum = sum + v.doubleValue();
+    }
+    double mean = sum / sd.size();
+    for (Number v : sd) {
+      newSum = newSum + (v.doubleValue() - mean) * (v.doubleValue() - mean);
+    }
+    return Math.sqrt(newSum / sd.size());
   }
 
   private int packetTypesToInt(PacketType first, PacketType second) {

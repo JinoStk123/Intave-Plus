@@ -82,7 +82,7 @@ public final class PunishmentMetadata {
         if (lastValidAttack < delay) {
           event.setCancelled(true);
         } else {
-          int random = ThreadLocalRandom.current().nextInt(-10, 10);
+          int random = ThreadLocalRandom.current().nextInt(-5, 10);
           if (random < 0) {
             delay = 550;
           } else if (random < 5) {
