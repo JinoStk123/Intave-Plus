@@ -75,7 +75,7 @@ public final class CheckService {
     checkLinker.linkBukkitEventSubscriptions(checks);
     checkLinker.linkPacketEventSubscriptions(checks);
 
-    ShutdownTasks.add(this::reset);
+    ShutdownTasks.addBeforeAll(this::reset);
   }
 
   /**

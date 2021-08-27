@@ -1,10 +1,10 @@
 package de.jpx3.intave.cleanup;
 
 import java.util.ArrayDeque;
-import java.util.Queue;
+import java.util.Deque;
 
 public final class ShutdownTasks {
-  private final static Queue<Runnable> tasks = new ArrayDeque<>();
+  private final static Deque<Runnable> tasks = new ArrayDeque<>();
 
   private ShutdownTasks() {
     throw new UnsupportedOperationException("Initialization of helper class");
@@ -14,7 +14,14 @@ public final class ShutdownTasks {
     if (runnable == null) {
       throw new NullPointerException("Null shutdown task");
     }
-    tasks.offer(runnable);
+    tasks.offerLast(runnable);
+  }
+
+  public static void addBeforeAll(Runnable runnable) {
+    if (runnable == null) {
+      throw new NullPointerException("Null shutdown task");
+    }
+    tasks.offerFirst(runnable);
   }
 
   public static void runAll() {

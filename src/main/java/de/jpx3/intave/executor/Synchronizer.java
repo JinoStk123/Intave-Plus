@@ -14,12 +14,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Queue;
+import java.util.concurrent.Executor;
 
 public final class Synchronizer {
   private final static BukkitScheduler scheduler = Bukkit.getScheduler();
 
-  private static Queue<Runnable> cachedProcessQueue;
-  private static boolean useScheduler;
+  private static Executor syncTaskExecutor;
   private static Object minecraftServer;
   private static MethodHandle postToMainThreadMethodHandle;
 
@@ -28,14 +28,14 @@ public final class Synchronizer {
       Class<?> minecraftServerClass = Lookup.serverClass("MinecraftServer");
       Object minecraftServer = minecraftServerClass.getMethod("getServer").invoke(null);
       //noinspection unchecked
-      cachedProcessQueue = (Queue<Runnable>) minecraftServerClass.getField("processQueue").get(minecraftServer);
+      Queue<Runnable> cachedProcessQueue = (Queue<Runnable>) minecraftServerClass.getField("processQueue").get(minecraftServer);
+      syncTaskExecutor = cachedProcessQueue::add;
     } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException exception) {
       throw new IllegalStateException(exception);
     } catch (NoSuchFieldException exception) {
-      IntavePlugin.singletonInstance().logger().error("Your version of spigot has removed support for task-queueing. We will switch to bukkits scheduling service");
-      useScheduler = true;
+      IntavePlugin.singletonInstance().logger().error("Your version of spigot has removed support for task-queueing. We will switch to bukkit's scheduling service");
+      syncTaskExecutor = command -> scheduler.runTask(IntavePlugin.singletonInstance(), command);
     }
-
     try {
       minecraftServer = Lookup.serverClass("MinecraftServer").getMethod("getServer").invoke(null);
       Class<?> serverClass = minecraftServer.getClass();
@@ -57,11 +57,7 @@ public final class Synchronizer {
 
   public static void synchronize(Runnable runnable) {
     runnable = wrapTask(runnable);
-    if (useScheduler) {
-      scheduler.runTask(IntavePlugin.singletonInstance(), runnable);
-    } else {
-      cachedProcessQueue.add(runnable);
-    }
+    syncTaskExecutor.execute(runnable);
   }
 
   @Deprecated
