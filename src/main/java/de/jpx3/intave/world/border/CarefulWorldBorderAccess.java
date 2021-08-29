@@ -1,0 +1,33 @@
+package de.jpx3.intave.world.border;
+
+import de.jpx3.intave.IntaveControl;
+import de.jpx3.intave.reflect.patchy.annotate.PatchyAutoTranslation;
+import net.minecraft.server.v1_8_R3.EnumWorldBorderState;
+import net.minecraft.server.v1_8_R3.WorldBorder;
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.craftbukkit.v1_8_R3.CraftWorld;
+
+@PatchyAutoTranslation
+public final class CarefulWorldBorderAccess implements WorldBorderAccess {
+  @Override
+  @PatchyAutoTranslation
+  public double sizeOf(World world) {
+    WorldBorder worldBorder = ((CraftWorld) world).getHandle().getWorldBorder();
+    long remainingMillis = worldBorder.i();
+    if (worldBorder.getState() != EnumWorldBorderState.STATIONARY) {
+      if (remainingMillis <= 500) {
+        if (IntaveControl.GOMME_MODE) {
+          System.out.println("Skipped moving world border access (" + remainingMillis + " ms remaining)");
+        }
+        return 0;
+      }
+    }
+    return worldBorder.getSize();
+  }
+
+  @Override
+  public Location centerOf(World world) {
+    return world.getWorldBorder().getCenter();
+  }
+}

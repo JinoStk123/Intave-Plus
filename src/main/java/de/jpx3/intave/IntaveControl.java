@@ -18,7 +18,7 @@ public final class IntaveControl {
   public final static boolean ENABLE_MEMTRACE = false;
   public final static boolean NETTY_DUMP_ON_TIMEOUT = true;
   public final static boolean FILL_UFOE_STACKTRACE = false;
-  public final static boolean USE_TIMINGS = false;
+  public final static boolean USE_TIMINGS = true;
 
   public final static boolean USE_EXTERNAL_CONFIGURATION_FILE = true;
   public final static boolean GOMME_MODE = false;

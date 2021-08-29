@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 public final class CachedForwardingWorldBorderAccess implements WorldBorderAccess {
-  private final static long CACHE_EXPIRY = TimeUnit.MICROSECONDS.toMillis(100);
+  private final static long CACHE_EXPIRY = TimeUnit.MICROSECONDS.toMillis(50);
   private final WorldBorderAccess forward;
   private final Map<World, WorldBorderAccessCache<Double>> sizeCache = GarbageCollector.watch(new ConcurrentHashMap<>());
 
