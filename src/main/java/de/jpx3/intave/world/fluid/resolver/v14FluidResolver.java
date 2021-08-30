@@ -52,7 +52,11 @@ public final class v14FluidResolver extends FluidEngine {
   @PatchyAutoTranslation
   protected WrappedVector flowVectorAt(User user, int x, int y, int z) {
     MovementMetadata movementData = user.meta().movement();
-    IWorldReader world = (World) movementData.nmsWorld();
+    World world = (World) movementData.nmsWorld();
+    IBlockAccess blockAccess = world.getChunkProvider().c(x >> 4, z >> 4);
+    if (blockAccess == null) {
+      return WrappedVector.ZERO;
+    }
     BlockPosition blockPosition = new BlockPosition(x, y, z);
     return WrapperLinkage.vectorOf(world.getFluid(blockPosition).c(world, blockPosition));
   }

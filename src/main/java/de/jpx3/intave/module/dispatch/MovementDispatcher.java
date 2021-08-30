@@ -20,6 +20,7 @@ import de.jpx3.intave.module.Module;
 import de.jpx3.intave.module.Modules;
 import de.jpx3.intave.module.feedback.FeedbackCallback;
 import de.jpx3.intave.module.linker.bukkit.BukkitEventSubscription;
+import de.jpx3.intave.module.linker.packet.Engine;
 import de.jpx3.intave.module.linker.packet.ListenerPriority;
 import de.jpx3.intave.module.linker.packet.PacketSubscription;
 import de.jpx3.intave.module.linker.packet.PrioritySlot;
@@ -521,6 +522,7 @@ public final class MovementDispatcher extends Module {
   }
 
   @PacketSubscription(
+    engine = Engine.INTERNAL,
     packetsOut = {
       UPDATE_HEALTH
     }

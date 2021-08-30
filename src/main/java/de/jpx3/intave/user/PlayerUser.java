@@ -115,9 +115,6 @@ final class PlayerUser implements User {
     Player player = player();
     ProtocolMetadata clientData = meta().protocol();
     clientData.refresh(player);
-    if (clientData.protocolVersion() < 0) {
-      synchronizedDisconnect("Invalid version received");
-    }
     outputVersionJoinInfo();
     BlockTypeAccess.setupTranslationsFor(this);
   }

@@ -6,6 +6,7 @@ import de.jpx3.intave.user.UserRepository;
 import de.jpx3.intave.user.meta.EffectMetadata;
 import de.jpx3.intave.user.meta.MovementMetadata;
 import de.jpx3.intave.user.meta.ProtocolMetadata;
+import de.jpx3.intave.world.blockaccess.BlockEmitter;
 import de.jpx3.intave.world.blockaccess.BukkitBlockAccess;
 import de.jpx3.intave.world.blockphysic.BlockProperties;
 import de.jpx3.intave.world.blockphysic.MaterialMagic;
@@ -176,6 +177,7 @@ public final class MovementHelper {
   @Deprecated
   @IdoNotBelongHere
   private static boolean canGoThroughTrapDoorOnLadder(User user, Block block) {
+    block = BlockEmitter.emit(user, block);
     Location location = block.getLocation();
     BlockState blockState = block.getState();
     MaterialData trapDoorData = blockState.getData();

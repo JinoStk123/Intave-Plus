@@ -39,7 +39,6 @@ import java.util.function.Predicate;
  * @see FallbackUser
  */
 public interface User {
-
   /**
    * Retrieve the player's "handle", the NMS-container-object of a player entity
    * @return the players "handle"

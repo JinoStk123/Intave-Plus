@@ -100,12 +100,11 @@ final class FallbackUser implements User {
 
   @Override
   public CustomClientSupportConfig customClientSupport() {
-    return customClientSupportConfig;
+    return CustomClientSupportConfig.createDefault();
   }
 
   @Override
   public void setCustomClientSupport(CustomClientSupportConfig customClientSupportConfig) {
-    this.customClientSupportConfig = customClientSupportConfig;
   }
 
   @Override

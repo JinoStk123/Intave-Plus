@@ -16,7 +16,7 @@ public final class InventoryClickAnalysis extends Check {
   public InventoryClickAnalysis(IntavePlugin plugin) {
     super("InventoryClickAnalysis", "inventoryclickanalysis");
     decrementer = new CheckViolationLevelDecrementer(this, MAX_VL_DECREMENT_PER_SECOND);
-    this.highToleranceMode = configuration().settings().boolBy("high-tolerance", false);
+    this.highToleranceMode = configuration().settings().boolBy("high-tolerance", true);
     this.setupCheckParts();
   }
 

@@ -23,8 +23,11 @@ public final class ReflectiveTPSAccess {
         Server.Spigot serverSpigot = Bukkit.getServer().spigot();
         tpsAccess = (double[]) serverSpigot.getClass().getMethod("getTPS").invoke(serverSpigot);
         return;
-      } catch (Exception ignored) {}
+      } catch (Exception exception1) {
+        exception1.printStackTrace();
+      }
       exception.printStackTrace();
+      tpsAccess = new double[] {20, 20, 20};
     }
   }
 

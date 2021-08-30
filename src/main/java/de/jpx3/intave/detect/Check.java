@@ -185,7 +185,7 @@ import java.util.function.Consumer;
   /**
    * Retrieve whether the check is enabled.
    * The {@link Physics} and {@link Timer} check override this method to always return {@code true},
-   * as they must be enabled and can never be disabled.
+   * as they must be enabled and therefore can't be disabled.
    * @return whether the check is enabled
    */
   public boolean enabled() {

@@ -481,6 +481,7 @@ public final class IntavePlugin extends JavaPlugin {
       SSLConnectionVerifier.setup();
       BlockVariantRegister.prepareIndex();
 
+      BlockEmitter.setup();
       WorldBorders.setup();
       BoundingBoxResolver.setup();
       WrappedEntity.setup();

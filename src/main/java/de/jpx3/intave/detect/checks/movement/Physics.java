@@ -495,7 +495,7 @@ public final class Physics extends Check {
           manualOverrideDistance = 0.75;
           break;
         case CAREFUL:
-          setback = deepPitchViolationOverflow && highPitchAggressiveViolationOverflow && (violationLevelAfter > 30 || user.justJoined());
+          setback = deepPitchViolationOverflow && highPitchAggressiveViolationOverflow && (violationLevelAfter > 30 || user.justJoined() );
           if (receivedMotionY > Math.max(0.42f, movementData.jumpMotion() + 0.01)) {
             setback = true;
           }
