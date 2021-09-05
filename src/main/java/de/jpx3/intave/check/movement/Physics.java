@@ -65,7 +65,7 @@ public final class Physics extends Check {
     this.simulationProcessor = new PredictionSimulationProcessor();
     this.simulationEvaluator = new SimulationEvaluator();
     this.highToleranceMode = configuration().settings().boolBy("high-tolerance", false);
-    setDefaultMitigationStrategy(IntaveControl.GOMME_MODE ? MitigationStrategy.AGGRESSIVE : MitigationStrategy.CAREFUL);
+    setDefaultMitigationStrategy(MitigationStrategy.CAREFUL);
     this.fallDamageMethodContainer = new FallDamageMethodContainer();
     linkCheckToPoseSimulators();
   }
@@ -479,8 +479,9 @@ public final class Physics extends Check {
       double distanceMoved = MathHelper.hypot3d(movementData.motionX(), movementData.motionY(), movementData.motionZ());
 
       boolean deepPitchViolationOverflow = violationContext.shouldCounterThreat();
-      boolean highPitchViolationOverflow = violationLevelData.physicsVL > trustFactorSetting("pa-override-threshold", player);
-      boolean highPitchAggressiveViolationOverflow = violationLevelData.physicsVL >= 100;
+      int highPitchLimit = trustFactorSetting("pa-override-threshold", player);
+      boolean highPitchViolationOverflow = violationLevelData.physicsVL > highPitchLimit;
+      boolean highPitchAggressiveViolationOverflow = violationLevelData.physicsVL >= Math.max(highPitchLimit, 150);
 
       double violationLevelBefore = violationContext.violationLevelBefore();
       double violationLevelAfter = violationContext.violationLevelAfter();
@@ -495,15 +496,16 @@ public final class Physics extends Check {
           manualOverrideDistance = 0.75;
           break;
         case CAREFUL:
-          setback = deepPitchViolationOverflow && highPitchAggressiveViolationOverflow && (violationLevelAfter > 30 || user.justJoined() );
-          if (receivedMotionY > Math.max(0.42f, movementData.jumpMotion() + 0.01)) {
+          setback = deepPitchViolationOverflow || (highPitchViolationOverflow && (violationLevelAfter > 20 || highPitchAggressiveViolationOverflow || !user.trustFactor().atLeast(TrustFactor.YELLOW) || user.justJoined()) );
+
+          if (receivedMotionY > Math.max(0.42f, movementData.jumpMotion()) + 0.01) {
             setback = true;
           }
           manualOverrideDistance = 0.75;
           break;
         case LENIENT:
           setback = (distanceMoved > (violationLevelAfter > 30 ? 0.4 : 0.6) || violationLevelAfter > 200 || user.justJoined()) && deepPitchViolationOverflow && highPitchAggressiveViolationOverflow;
-          manualOverrideDistance = 0.9;
+          manualOverrideDistance = 0.75;
           break;
         case SILENT:
           setback = false;

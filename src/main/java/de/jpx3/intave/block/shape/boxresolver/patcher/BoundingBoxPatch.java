@@ -24,7 +24,7 @@ abstract class BoundingBoxPatch {
     return bbs;
   }
 
-  protected boolean requireRepose() {
+  protected boolean requireNormalization() {
     return false;
   }
 

@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class VariantCachePipe implements ResolverPipeline {
   private final ResolverPipeline forward;
-  private final Map<Material, Map<Integer, List<BoundingBox>>> cache = MemoryWatchdog.watch("variant-cache", new ConcurrentHashMap<>());
+  private final Map<Material, /*SoftReference*/Map<Integer, List<BoundingBox>>> cache = MemoryWatchdog.watch("variant-cache", new ConcurrentHashMap<>());
 
   public VariantCachePipe(ResolverPipeline forward) {
     this.forward = forward;
@@ -32,7 +32,9 @@ public final class VariantCachePipe implements ResolverPipeline {
   @Override
   public List<BoundingBox> resolve(World world, Player player, Material type, int blockState, int posX, int posY, int posZ) {
     Map<Integer, List<BoundingBox>> variantCache = cache.computeIfAbsent(type, material -> ReferenceMap.soft(new ConcurrentHashMap<>()));
-    return transpose(variantCache.computeIfAbsent(blockState, integer -> reposeIfRequired(forward.resolve(world, player, type, blockState, posX, posY, posZ), posX, posY, posZ)), posX, posY, posZ);
+    return contextualize(variantCache.computeIfAbsent(blockState, integer ->
+      normalize(forward.resolve(world, player, type, blockState, posX, posY, posZ), posX, posY, posZ)
+    ), posX, posY, posZ);
   }
 
   @Override
@@ -41,7 +43,7 @@ public final class VariantCachePipe implements ResolverPipeline {
     forward.downstreamTypeReset(type);
   }
 
-  private static List<BoundingBox> transpose(List<BoundingBox> boundingBoxes, int posX, int posY, int posZ) {
+  private static List<BoundingBox> contextualize(List<BoundingBox> boundingBoxes, int posX, int posY, int posZ) {
     if (boundingBoxes.isEmpty()) {
       return Collections.emptyList();
     }
@@ -56,7 +58,7 @@ public final class VariantCachePipe implements ResolverPipeline {
     return result;
   }
 
-  private static List<BoundingBox> reposeIfRequired(List<BoundingBox> boundingBoxes, int posX, int posY, int posZ) {
+  private static List<BoundingBox> normalize(List<BoundingBox> boundingBoxes, int posX, int posY, int posZ) {
     if (boundingBoxes.isEmpty()) {
       return Collections.emptyList();
     }

@@ -44,9 +44,9 @@ public final class BoundingBoxPatcher {
     if (patch == null) {
       return bbs;
     } else {
-      List<BoundingBox> reposedBoxes = repose(patch, bbs, block.getX(), block.getY(), block.getZ());
+      List<BoundingBox> reposedBoxes = normalize(patch, bbs, block.getX(), block.getY(), block.getZ());
       List<BoundingBox> patchedBoxes = patch.patch(world, player, block, reposedBoxes);
-      return transpose(patchedBoxes, block.getX(), block.getY(), block.getZ());
+      return contextualizeModifying(patchedBoxes, block.getX(), block.getY(), block.getZ());
     }
   }
 
@@ -55,15 +55,15 @@ public final class BoundingBoxPatcher {
     if (patch == null) {
       return boxes;
     } else {
-      List<BoundingBox> reposed = repose(patch, boxes, blockX, blockY, blockZ);
-      return transpose(
-        patch.patch(world, player, blockX, blockY, blockZ, type, blockState, reposed),
+      List<BoundingBox> normalized = normalize(patch, boxes, blockX, blockY, blockZ);
+      return contextualizeModifying(
+        patch.patch(world, player, blockX, blockY, blockZ, type, blockState, normalized),
         blockX, blockY, blockZ
       );
     }
   }
 
-  private static List<BoundingBox> transpose(List<BoundingBox> boundingBoxes, int posX, int posY, int posZ) {
+  private static List<BoundingBox> contextualizeModifying(List<BoundingBox> boundingBoxes, int posX, int posY, int posZ) {
     if (boundingBoxes.isEmpty()) {
       return boundingBoxes;
     }
@@ -77,8 +77,8 @@ public final class BoundingBoxPatcher {
     return boundingBoxes;
   }
 
-  private static List<BoundingBox> repose(BoundingBoxPatch patch, List<BoundingBox> boundingBoxes, int posX, int posY, int posZ) {
-    if (!patch.requireRepose() || boundingBoxes.isEmpty()) {
+  private static List<BoundingBox> normalize(BoundingBoxPatch patch, List<BoundingBox> boundingBoxes, int posX, int posY, int posZ) {
+    if (!patch.requireNormalization() || boundingBoxes.isEmpty()) {
       return boundingBoxes;
     }
     List<BoundingBox> reposedList = new ArrayList<>(boundingBoxes);

@@ -26,7 +26,7 @@ public final class BlockVariantRegister {
 
   static {
     if (required) {
-      PatchyLoadingInjector.loadUnloadedClassPatched(IntavePlugin.class.getClassLoader(), "de.jpx3.intave.block.blockaccess.BlockVariantRegister$Indexer");
+      PatchyLoadingInjector.loadUnloadedClassPatched(IntavePlugin.class.getClassLoader(), "de.jpx3.intave.block.access.BlockVariantRegister$Indexer");
     }
   }
 
@@ -46,7 +46,6 @@ public final class BlockVariantRegister {
     Integer integer = indexMap.get(rawBlockData);
     if (integer == null) {
       return -1;
-//      throw new IllegalStateException("Unable to find block " + type + "/" + rawBlockData);
     }
     return integer;
   }

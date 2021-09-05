@@ -110,7 +110,8 @@ public final class PredictionSimulationProcessor implements SimulationProcessor 
     ItemStack itemStack = inventoryData.heldItem();
 
     if (itemStack != null && !ItemProperties.isSwordItem(itemStack)) {
-      boolean ignoredItem = itemStack.getType() == Material.BOW;
+      Material type = itemStack.getType();
+      boolean ignoredItem = type == Material.BOW || type == Material.POTION || type == Material.SPLASH_POTION || type == Material.ENDER_PEARL;
       boolean combatUpdate = user.meta().protocol().combatUpdate();
       int threshold = combatUpdate ? 5 : 3;
       if (!ignoredItem && movementData.physicsEatingSlotSwitchVL++ > threshold) {

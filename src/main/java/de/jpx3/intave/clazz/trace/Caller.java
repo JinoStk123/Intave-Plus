@@ -5,6 +5,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Map;
 
+@Deprecated
 public final class Caller {
   private Caller() {
     throw new SecurityException("Can not instantiate utility class");

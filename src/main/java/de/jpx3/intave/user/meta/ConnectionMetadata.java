@@ -8,10 +8,7 @@ import de.jpx3.intave.module.feedback.FeedbackRequest;
 import de.jpx3.intave.module.tracker.entity.WrappedEntity;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 
 @Relocate
 public final class ConnectionMetadata {
@@ -19,7 +16,8 @@ public final class ConnectionMetadata {
   private final Map<Short, FeedbackRequest<?>> transactionShortMap = Maps.newConcurrentMap();
   private final Map<Long, FeedbackRequest<?>> transactionGlobalKeyMap = Maps.newConcurrentMap();
   private final Map<Long, Queue<FeedbackRequest<?>>> transactionOptionalAppendixMap = Maps.newConcurrentMap();
-  private final Map<Integer, WrappedEntity> entities = Maps.newConcurrentMap();
+  private final Map<Integer, WrappedEntity> entitiesById = Maps.newConcurrentMap();
+  private final List<WrappedEntity> entities = Lists.newCopyOnWriteArrayList();
   private final List<WrappedEntity> synchronizedEntities = Lists.newCopyOnWriteArrayList();
   private final Map<Long, Long> remainingPingPacketTimestamps = Maps.newConcurrentMap();
   private final List<Long> latencyDifferenceBalance = Lists.newCopyOnWriteArrayList();
@@ -88,8 +86,34 @@ public final class ConnectionMetadata {
     return transactionOptionalAppendixMap;
   }
 
-  public Map<Integer, WrappedEntity> entities() {
+  @Deprecated
+  public Map<Integer, WrappedEntity> entitiesById() {
+    return entitiesById;
+  }
+
+  public Collection<WrappedEntity> entities() {
     return entities;
+  }
+
+  public WrappedEntity entityBy(int identifier) {
+    return entitiesById.get(identifier);
+  }
+
+  // are destroyed entities really required to be saved?!
+
+  public void destroyEntity(int entityId) {
+    entitiesById.put(entityId, WrappedEntity.destroyedEntity());
+    for (int i = 0; i < entities.size(); i++) {
+      WrappedEntity wrappedEntity = entities.get(i);
+      if (wrappedEntity.entityId() == entityId) {
+        entities.set(i, WrappedEntity.destroyedEntity());
+      }
+    }
+  }
+
+  public void enterEntity(WrappedEntity entity) {
+    entitiesById.put(entity.entityId(), entity);
+    entities.add(entity);
   }
 
   public List<WrappedEntity> tracedEntities() {

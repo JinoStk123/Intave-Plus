@@ -151,7 +151,7 @@ final class ThinBlockPatch extends BoundingBoxPatch {
   }
 
   @Override
-  protected boolean requireRepose() {
+  protected boolean requireNormalization() {
     return true;
   }
 

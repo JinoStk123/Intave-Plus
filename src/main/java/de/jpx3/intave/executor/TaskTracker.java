@@ -1,5 +1,6 @@
 package de.jpx3.intave.executor;
 
+import de.jpx3.intave.IntaveLogger;
 import de.jpx3.intave.cleanup.ShutdownTasks;
 import io.netty.util.internal.ConcurrentSet;
 import org.bukkit.Bukkit;
@@ -16,6 +17,11 @@ public final class TaskTracker {
 
   public static void begun(int taskId) {
     runningTasks.add(taskId);
+    if (runningTasks.size() > 64) {
+      IntaveLogger.logger().error("Intave is creating too many tasks, closing the last one to stay under 64 tasks");
+      Thread.dumpStack();
+      Bukkit.getScheduler().cancelTask(taskId);
+    }
   }
 
   public static void stopped(int taskId) {

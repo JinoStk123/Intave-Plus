@@ -97,6 +97,7 @@ public final class InventoryMetadata {
       pastSlotSwitch = 0;
       awaitingSlotSet = previousItemSlot;
       player.getInventory().setHeldItemSlot(finalNewItemSlot);
+      player.updateInventory();
     });
   }
 

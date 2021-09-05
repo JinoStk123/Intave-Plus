@@ -46,7 +46,7 @@ import de.jpx3.intave.module.tracker.entity.WrappedEntity;
 import de.jpx3.intave.packet.reader.PacketReaders;
 import de.jpx3.intave.player.item.ItemProperties;
 import de.jpx3.intave.reflect.access.ReflectiveAccess;
-import de.jpx3.intave.reflect.access.ReflectiveTPSAccess;
+import de.jpx3.intave.reflect.access.TPSAccess;
 import de.jpx3.intave.resource.EncryptedResource;
 import de.jpx3.intave.security.*;
 import de.jpx3.intave.security.blacklist.BlackListService;
@@ -178,7 +178,7 @@ public final class IntavePlugin extends JavaPlugin {
       TaskTracker.setup();
       Locator.setup();
       SinusCache.setup();
-      ReflectiveTPSAccess.setup();
+      TPSAccess.setup();
       Synchronizer.setup();
       ContextSecrets.setup();
       EntityTypeDataAccessor.setup();

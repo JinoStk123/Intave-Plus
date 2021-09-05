@@ -6,6 +6,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.executor.Synchronizer;
+import de.jpx3.intave.executor.TaskTracker;
 import de.jpx3.intave.fakeplayer.action.*;
 import de.jpx3.intave.fakeplayer.movement.FloatingMovement;
 import de.jpx3.intave.fakeplayer.movement.Movement;
@@ -95,10 +96,12 @@ public final class FakePlayer extends FakePlayerBody {
 
   public void startTicking() {
     this.taskId = Bukkit.getScheduler().scheduleAsyncRepeatingTask(plugin, this::tick, 0, 1);
+    TaskTracker.begun(taskId);
   }
 
   public void stopTicking() {
     Bukkit.getScheduler().cancelTask(taskId);
+    TaskTracker.stopped(taskId);
   }
 
   public void create(Location spawn) {

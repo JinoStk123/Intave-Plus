@@ -7,14 +7,13 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 public final class CubeMemoryPipe implements ResolverPipeline {
   private final ResolverPipeline forward;
-  private final Set<Material> solidMaterials = new HashSet<>();
-  private final Set<Material> otherMaterials = new HashSet<>();
+  private final Set<Material> solidMaterials = TrustingCopyOnWriteEnumSet.of(Material.class);
+  private final Set<Material> otherMaterials = TrustingCopyOnWriteEnumSet.of(Material.class);
 
   public CubeMemoryPipe(ResolverPipeline forward) {
     this.forward = forward;

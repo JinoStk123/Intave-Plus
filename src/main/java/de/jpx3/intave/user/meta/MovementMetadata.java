@@ -35,7 +35,6 @@ import org.bukkit.util.Vector;
 
 import java.lang.ref.WeakReference;
 import java.util.List;
-import java.util.Map;
 
 import static de.jpx3.intave.user.meta.ProtocolMetadata.VER_1_15;
 
@@ -304,8 +303,7 @@ public final class MovementMetadata {
   @IdoNotBelongHere
   private void updateEntityMovement() {
     ConnectionMetadata connectionMetadata = user.meta().connection();
-    Map<Integer, WrappedEntity> entityMap = connectionMetadata.entities();
-    for (WrappedEntity value : entityMap.values()) {
+    for (WrappedEntity value : connectionMetadata.entities()) {
       value.entityPlayerMoveUpdate();
     }
 //    for (Map.Entry<Integer, WrappedEntity> entry : entityMap.entrySet()) {

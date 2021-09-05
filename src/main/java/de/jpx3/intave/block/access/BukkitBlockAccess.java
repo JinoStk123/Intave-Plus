@@ -3,7 +3,6 @@ package de.jpx3.intave.block.access;
 import de.jpx3.intave.annotate.Relocate;
 import de.jpx3.intave.module.linker.bukkit.BukkitEventSubscriber;
 import de.jpx3.intave.shade.BlockPosition;
-import de.jpx3.intave.shade.WrappedMathHelper;
 import de.jpx3.intave.user.User;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -37,9 +36,9 @@ public final class BukkitBlockAccess implements BukkitEventSubscriber {
   }
 
   public static Material cacheAppliedTypeAccess(User user, World blockAccess, double x, double y, double z) {
-    int blockX = WrappedMathHelper.floor(x);
-    int blockY = WrappedMathHelper.floor(y);
-    int blockZ = WrappedMathHelper.floor(z);
+    int blockX = floor(x);
+    int blockY = floor(y);
+    int blockZ = floor(z);
     if (isInLoadedChunk(blockAccess, blockX, blockZ) || Bukkit.isPrimaryThread()) {
       return user.blockShapeAccess().resolveType(blockX >> 4, blockZ >> 4,blockX, blockY, blockZ);
     }
@@ -54,13 +53,13 @@ public final class BukkitBlockAccess implements BukkitEventSubscriber {
   }
 
   public static int cacheAppliedVariantAccess(User user, World blockAccess, double x, double y, double z) {
-    int blockX = WrappedMathHelper.floor(x);
-    int blockY = WrappedMathHelper.floor(y);
-    int blockZ = WrappedMathHelper.floor(z);
+    int blockX = floor(x);
+    int blockY = floor(y);
+    int blockZ = floor(z);
     if (isInLoadedChunk(blockAccess, blockX, blockZ) || Bukkit.isPrimaryThread()) {
       return user.blockShapeAccess().resolveVariant(blockX >> 4, blockZ >> 4, blockX, blockY, blockZ);
     }
-    return BlockVariantAccess.variantAccess(fallbackBlock(blockAccess));
+    return 0;
   }
 
   private static Block fallbackBlock(World world) {
@@ -73,11 +72,16 @@ public final class BukkitBlockAccess implements BukkitEventSubscriber {
   }
 
   public static Block blockAccess(World blockAccess, double x, double y, double z) {
-    return blockAccess(blockAccess, WrappedMathHelper.floor(x), WrappedMathHelper.floor(y),WrappedMathHelper.floor(z));
+    return blockAccess(blockAccess, floor(x), floor(y),floor(z));
   }
 
   public static Block blockAccess(World blockAccess, BlockPosition position) {
     return blockAccess(blockAccess, position.xCoord, position.yCoord, position.zCoord);
+  }
+
+  private static int floor(double value) {
+    int i = (int) value;
+    return value < (double) i ? i - 1 : i;
   }
 
   public static boolean isInLoadedChunk(World world, int x, int z) {

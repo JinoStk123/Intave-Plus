@@ -25,10 +25,7 @@ import de.jpx3.intave.module.linker.packet.PacketSubscription;
 import de.jpx3.intave.shade.WrappedMathHelper;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserRepository;
-import de.jpx3.intave.user.meta.AbilityMetadata;
-import de.jpx3.intave.user.meta.AttackMetadata;
-import de.jpx3.intave.user.meta.ConnectionMetadata;
-import de.jpx3.intave.user.meta.MovementMetadata;
+import de.jpx3.intave.user.meta.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -93,7 +90,7 @@ public final class EntityTracker extends Module {
     Vector location = new Vector(0, 0, 0);
     Vector playerLocation = player.getLocation().toVector();
     List<WrappedEntity> validEntities = new ArrayList<>();
-    for (WrappedEntity entity : synchronizeData.entities().values()) {
+    for (WrappedEntity entity : synchronizeData.entities()) {
       boolean firstSurvive = false;
       if (entity.typeData != null && entity.typeData.isLivingEntity()) {
         WrappedEntity.EntityPositionContext positions = entity.position;
@@ -157,10 +154,11 @@ public final class EntityTracker extends Module {
 
   private void processAttachEntity(Player player, int entityID, int vehicleEntityID) {
     User user = UserRepository.userOf(player);
-    MovementMetadata movementData = user.meta().movement();
-    ConnectionMetadata synchronizeData = user.meta().connection();
-    Map<Integer, WrappedEntity> entities = synchronizeData.entities();
-    WrappedEntity sittingEntity = entities.get(entityID);
+    MetadataBundle metadataBundle = user.meta();
+    MovementMetadata movementData = metadataBundle.movement();
+    ConnectionMetadata connection = metadataBundle.connection();
+//    Map<Integer, WrappedEntity> entities = connection.entities();
+    WrappedEntity sittingEntity = connection.entityBy(entityID);
 
     if (sittingEntity != null) {
       // Another entity
@@ -169,7 +167,7 @@ public final class EntityTracker extends Module {
         sittingEntity.unmountFromEntity();
       } else {
         // mounts on entity
-        WrappedEntity sittingOnEntity = entities.get(vehicleEntityID);
+        WrappedEntity sittingOnEntity = connection.entityBy(vehicleEntityID);
         if (sittingOnEntity != null) {
           sittingEntity.mountToEntity(sittingOnEntity);
         } else {
@@ -182,7 +180,7 @@ public final class EntityTracker extends Module {
       // The Player
       // ID -1 => undo attachment
       tryCreateVehicleEntity(user, vehicleEntityID);
-      WrappedEntity ridingEntity = entities.get(vehicleEntityID);
+      WrappedEntity ridingEntity = connection.entityBy(vehicleEntityID);
       if (movementData.hasRidingEntity()) {
         movementData.dismountRidingEntity();
       }
@@ -291,7 +289,7 @@ public final class EntityTracker extends Module {
      */
     User user = UserRepository.userOf(player);
     ConnectionMetadata synchronizeData = user.meta().connection();
-    WrappedEntity wrappedEntity = synchronizeData.entities().get(entityID);
+    WrappedEntity wrappedEntity = synchronizeData.entityBy(entityID);
     if (wrappedEntity instanceof WrappedEntityFirework) {
       Modules.feedback().tracedSingleSynchronize(player, entityID, this::processEntityDestroy, wrappedEntity.feedbackTracker(), APPEND_ON_OVERFLOW);
     } else {
@@ -303,20 +301,20 @@ public final class EntityTracker extends Module {
     User user = UserRepository.userOf(player);
     AttackMetadata attackData = user.meta().attack();
     ConnectionMetadata synchronizeData = user.meta().connection();
-    Map<Integer, WrappedEntity> synchronizedEntityMap = synchronizeData.entities();
     MovementMetadata movementData = user.meta().movement();
 
-    WrappedEntity entity = synchronizedEntityMap.get(entityId);
+    WrappedEntity entity = synchronizeData.entityBy(entityId);//synchronizedEntityMap.get(entityId);
     if (entity != null && movementData.ridingEntity() == entity) {
       movementData.dismountRidingEntity();
     }
-    synchronizedEntityMap.put(entityId, WrappedEntity.destroyedEntity());
+    synchronizeData.destroyEntity(entityId);
+//    synchronizedEntityMap.put(entityId, WrappedEntity.destroyedEntity());
 
     if (attackData.lastAttackedEntity() != null && attackData.lastAttackedEntityID() == entityId) {
       attackData.nullifyLastAttackedEntity();
     }
     if (NEW_POSITION_PROCESSING_1_9) {
-      for (WrappedEntity wrappedEntity : synchronizedEntityMap.values()) {
+      for (WrappedEntity wrappedEntity : synchronizeData.entities()) {
         if (wrappedEntity.mountedEntity() != null) {
           if (wrappedEntity.mountedEntity().entityId() == entityId) {
             wrappedEntity.unmountFromEntity();
@@ -341,7 +339,7 @@ public final class EntityTracker extends Module {
     if (movementData.lastTeleport == 0) {
       return;
     }
-    for (WrappedEntity value : synchronizeData.entities().values()) {
+    for (WrappedEntity value : synchronizeData.entities()) {
       value.onUpdate();
     }
 //    for (Map.Entry<Integer, WrappedEntity> entry : synchronizeData.synchronizedEntityMap().entrySet()) {
@@ -527,13 +525,14 @@ public final class EntityTracker extends Module {
     boolean player
   ) {
     ConnectionMetadata synchronizeData = user.meta().connection();
-    Map<Integer, WrappedEntity> synchronizedEntityMap = synchronizeData.entities();
+//    Map<Integer, WrappedEntity> entities = synchronizeData.entities();
     WrappedEntity entity = createEntityOf(user, entityId, entityTypeData, player);
     entity.serverPosX = WrappedMathHelper.getPositionLong(posX);
     entity.serverPosY = WrappedMathHelper.getPositionLong(posY);
     entity.serverPosZ = WrappedMathHelper.getPositionLong(posZ);
     entity.setPositionAndRotationSpawnMob(posX, posY, posZ, posY);
-    synchronizedEntityMap.put(entityId, entity);
+//    entities.put(entityId, entity);
+    synchronizeData.enterEntity(entity);
   }
 
   private WrappedEntity processEntitySpawn(
@@ -542,7 +541,7 @@ public final class EntityTracker extends Module {
     boolean player
   ) {
     ConnectionMetadata synchronizeData = user.meta().connection();
-    Map<Integer, WrappedEntity> synchronizedEntityMap = synchronizeData.entities();
+//    Map<Integer, WrappedEntity> entities = synchronizeData.entities();
     double posX = serverPosX / 32d;
     double posY = serverPosY / 32d;
     double posZ = serverPosZ / 32d;
@@ -551,7 +550,8 @@ public final class EntityTracker extends Module {
     entity.serverPosY = serverPosY;
     entity.serverPosZ = serverPosZ;
     entity.setPositionAndRotationSpawnMob(posX, posY, posZ, posY);
-    synchronizedEntityMap.put(entityId, entity);
+//    entities.put(entityId, entity);
+    synchronizeData.enterEntity(entity);
 
     return entity;
   }
@@ -707,6 +707,6 @@ public final class EntityTracker extends Module {
   @Nullable
   public static WrappedEntity entityByIdentifier(User user, int entityID) {
     ConnectionMetadata synchronizeData = user.meta().connection();
-    return synchronizeData.entities().getOrDefault(entityID, null);
+    return synchronizeData.entityBy(entityID);
   }
 }

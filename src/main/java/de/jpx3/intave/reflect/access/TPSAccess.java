@@ -6,7 +6,7 @@ import org.bukkit.Server;
 
 import java.lang.reflect.Field;
 
-public final class ReflectiveTPSAccess {
+public final class TPSAccess {
   private static double[] tpsAccess;
 
   public static void setup() {
@@ -24,9 +24,9 @@ public final class ReflectiveTPSAccess {
         tpsAccess = (double[]) serverSpigot.getClass().getMethod("getTPS").invoke(serverSpigot);
         return;
       } catch (Exception exception1) {
+        exception.printStackTrace();
         exception1.printStackTrace();
       }
-      exception.printStackTrace();
       tpsAccess = new double[] {20, 20, 20};
     }
   }
