@@ -1,4 +1,4 @@
-package de.jpx3.intave.event.mitigate;
+package de.jpx3.intave.violation.mitigate;
 
 import de.jpx3.intave.IntaveControl;
 import de.jpx3.intave.IntaveLogger;

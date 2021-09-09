@@ -99,7 +99,12 @@ public final class ItemProperties {
 
     boolean useItem = materialUseItems.contains(type);
     boolean potion = materialPotionItems.contains(type);
-    return useItem || potion || foodConsumable(player, type);
+    boolean sword = materialSwordItems.contains(type);
+    return sword || useItem || potion || foodConsumable(player, type);
+  }
+
+  public static boolean isBow(Material type) {
+    return type == Material.BOW;
   }
 
   public static boolean isPotion(Material type) {

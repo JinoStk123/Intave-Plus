@@ -6,10 +6,10 @@ import com.comphenix.protocol.reflect.StructureModifier;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.check.CheckPart;
 import de.jpx3.intave.check.world.PlacementAnalysis;
-import de.jpx3.intave.event.mitigate.AttackNerfStrategy;
 import de.jpx3.intave.module.linker.packet.PacketSubscription;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.violation.Violation;
+import de.jpx3.intave.violation.mitigate.AttackNerfStrategy;
 import org.bukkit.entity.Player;
 
 import static de.jpx3.intave.check.world.PlacementAnalysis.COMMON_FLAG_MESSAGE;

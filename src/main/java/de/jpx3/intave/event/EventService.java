@@ -9,9 +9,6 @@ import de.jpx3.intave.annotate.refactoring.IdoNotBelongHere;
 import de.jpx3.intave.clazz.trace.Caller;
 import de.jpx3.intave.clazz.trace.PluginInvocation;
 import de.jpx3.intave.cleanup.GarbageCollector;
-import de.jpx3.intave.event.mitigate.CombatMitigator;
-import de.jpx3.intave.event.mitigate.MovementEmulator;
-import de.jpx3.intave.event.mitigate.ReconDelayLimiter;
 import de.jpx3.intave.executor.Synchronizer;
 import de.jpx3.intave.module.Modules;
 import de.jpx3.intave.module.feedback.FeedbackSender;
@@ -24,15 +21,23 @@ import de.jpx3.intave.reflect.access.ReflectiveDataWatcherAccess;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserLifetimeService;
 import de.jpx3.intave.user.UserRepository;
+import de.jpx3.intave.user.meta.InventoryMetadata;
 import de.jpx3.intave.user.permission.BukkitPermissionCheck;
 import de.jpx3.intave.version.DurationTranslator;
 import de.jpx3.intave.version.IntaveVersion;
+import de.jpx3.intave.violation.mitigate.CombatMitigator;
+import de.jpx3.intave.violation.mitigate.MovementEmulator;
+import de.jpx3.intave.violation.mitigate.ReconDelayLimiter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -137,6 +142,38 @@ public final class EventService implements BukkitEventSubscriber {
         ReflectiveDataWatcherAccess.setDataWatcherFlag(player, WATCHER_BLOCKING_ID, false);
 //        player.sendMessage(ReflectiveDataWatcherAccess.getDataWatcherFlag(player, WATCHER_BLOCKING_ID) + "");
       });
+    }
+  }
+
+  @BukkitEventSubscription
+  public void on(EntityDamageByEntityEvent event) {
+    Entity attacker = event.getDamager();
+    if (!(attacker instanceof Player ) || event.getCause() != EntityDamageEvent.DamageCause.ENTITY_ATTACK) {
+      return;
+    }
+    Entity attacked = event.getEntity();
+    if (!(attacked instanceof Player)) {
+      return;
+    }
+    Player attackedPlayer = (Player) attacked;
+    User user = UserRepository.userOf(attackedPlayer);
+    double blockingDamageAbsorption = event.getDamage(EntityDamageEvent.DamageModifier.BLOCKING);
+    if (blockingDamageAbsorption != 0 && !user.meta().inventory().handActive()) {
+      event.setDamage(EntityDamageEvent.DamageModifier.BLOCKING, 0);
+    }
+  }
+
+  @BukkitEventSubscription
+  public void on(EntityShootBowEvent event) {
+    if (!(event.getEntity() instanceof Player)) {
+      return;
+    }
+    User user = UserRepository.userOf((Player) event.getEntity());
+    InventoryMetadata inventory = user.meta().inventory();
+
+    if (inventory.blockNextArrow) {
+      event.setCancelled(true);
+      inventory.blockNextArrow = false;
     }
   }
 

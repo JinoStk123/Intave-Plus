@@ -288,6 +288,17 @@ public final class InventoryTracker extends Module {
     PacketContainer packet = event.getPacket();
     EnumWrappers.PlayerDigType digType = packet.getPlayerDigTypes().read(0);
 
+    player.sendMessage(digType.name() + " " + packet.getDirections().read(0) + " " + packet.getBlockPositionModifier().read(0));
+
+    if (digType == EnumWrappers.PlayerDigType.RELEASE_USE_ITEM
+      && !inventoryData.handActive()
+      && packet.getDirections().read(0).equals(EnumWrappers.Direction.DOWN)
+      && packet.getBlockPositionModifier().read(0).toVector().length() == 0
+    ) {
+      event.setCancelled(true);
+      return;
+    }
+
     boolean usedFoodItem = inventoryData.foodItem() && inventoryData.handActive();
     switch (digType) {
       case RELEASE_USE_ITEM:

@@ -3,7 +3,7 @@ package de.jpx3.intave.user;
 import de.jpx3.intave.IntaveControl;
 import de.jpx3.intave.cleanup.ShutdownTasks;
 import de.jpx3.intave.diagnostic.MemoryWatchdog;
-import de.jpx3.intave.event.mitigate.HurtimeModifier;
+import de.jpx3.intave.violation.mitigate.HurtimeModifier;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 

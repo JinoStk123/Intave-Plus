@@ -1,6 +1,10 @@
 package de.jpx3.intave.check.movement.physics;
 
-import de.jpx3.intave.adapter.ViaVersionAdapter;
+import com.comphenix.protocol.PacketType;
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.events.PacketContainer;
+import com.comphenix.protocol.wrappers.BlockPosition;
+import com.comphenix.protocol.wrappers.EnumWrappers;
 import de.jpx3.intave.annotate.Relocate;
 import de.jpx3.intave.diagnostic.KeyPressStudy;
 import de.jpx3.intave.diagnostic.timings.Timings;
@@ -10,17 +14,17 @@ import de.jpx3.intave.math.MathHelper;
 import de.jpx3.intave.module.dispatch.AttackDispatcher;
 import de.jpx3.intave.player.collider.complex.ComplexColliderSimulationResult;
 import de.jpx3.intave.player.item.ItemProperties;
-import de.jpx3.intave.reflect.access.ReflectiveDataWatcherAccess;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserLocal;
+import de.jpx3.intave.user.UserRepository;
 import de.jpx3.intave.user.meta.InventoryMetadata;
 import de.jpx3.intave.user.meta.MetadataBundle;
 import de.jpx3.intave.user.meta.MovementMetadata;
 import de.jpx3.intave.user.meta.ProtocolMetadata;
 import org.bukkit.Material;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.entity.Player;
 
-import static de.jpx3.intave.reflect.access.ReflectiveDataWatcherAccess.WATCHER_BLOCKING_ID;
+import java.lang.reflect.InvocationTargetException;
 
 @Relocate
 public final class PredictionSimulationProcessor implements SimulationProcessor {
@@ -91,7 +95,9 @@ public final class PredictionSimulationProcessor implements SimulationProcessor 
     if (movementData.pastPlayerAttackPhysics == 0 && movementData.sprinting && !iterativeResult.reduced()) {
       movementData.ignoredAttackReduce = true;
     }
-    if (inventoryData.handActive() && !iterativeResult.handActive()) {
+    boolean movementSuggestsHandIsActive = iterativeResult.handActive();
+    boolean packetsSuggestsHandIsActive = inventoryData.handActive();
+    if (packetsSuggestsHandIsActive && !movementSuggestsHandIsActive) {
       boolean releaseHandConditions = Hypot.fast(movementData.motionX(), movementData.motionZ()) > 0.2 || movementData.lastTeleport >= 2;
       if (releaseHandConditions) {
         releaseHandOf(user);
@@ -105,24 +111,41 @@ public final class PredictionSimulationProcessor implements SimulationProcessor 
   private void releaseHandOf(User user) {
     MetadataBundle meta = user.meta();
     InventoryMetadata inventoryData = meta.inventory();
-    MovementMetadata movementData = meta.movement();
-    inventoryData.setHandActive(false);
-    ItemStack itemStack = inventoryData.heldItem();
 
-    if (itemStack != null && !ItemProperties.isSwordItem(itemStack)) {
-      Material type = itemStack.getType();
-      boolean ignoredItem = type == Material.BOW || ItemProperties.isPotion(type) || type == Material.ENDER_PEARL;
-      boolean combatUpdate = user.meta().protocol().combatUpdate();
-      int threshold = combatUpdate ? 5 : 3;
-      if (!ignoredItem && movementData.physicsEatingSlotSwitchVL++ > threshold) {
-        inventoryData.applySlotSwitch();
-      } else {
-        inventoryData.setHandActive(true);
+    inventoryData.setHandActive(false);
+    Synchronizer.synchronize(() -> {
+      sendStopUseItemPacketToServer(user, inventoryData.heldItemType());
+    });
+  }
+
+  private void sendStopUseItemPacketToServer(User user, Material type) {
+    Player player = user.player();
+    try {
+      InventoryMetadata inventory = user.meta().inventory();
+
+      if (ItemProperties.isBow(type)) {
+        inventory.blockNextArrow = true;
       }
+
+      PacketContainer packet = ProtocolLibrary.getProtocolManager().createPacket(PacketType.Play.Client.BLOCK_DIG);
+      packet.getBlockPositionModifier().write(0, new BlockPosition(0,0,0));
+      packet.getDirections().write(0, EnumWrappers.Direction.DOWN);
+      packet.getPlayerDigTypes().write(0, EnumWrappers.PlayerDigType.RELEASE_USE_ITEM);
+
+      user.ignoreNextInboundPacket();
+      ProtocolLibrary.getProtocolManager().recieveClientPacket(player, packet);
+
+      updatePlayerHandItem(player);
+    } catch (InvocationTargetException | IllegalAccessException exception) {
+      exception.printStackTrace();
     }
-    if (!ViaVersionAdapter.ignoreBlocking(user.player())) {
-      Synchronizer.synchronize(() -> ReflectiveDataWatcherAccess.setDataWatcherFlag(user.player(), WATCHER_BLOCKING_ID, false));
-    }
+    Synchronizer.synchronize(player::updateInventory);
+  }
+
+  private void updatePlayerHandItem(Player player) {
+    User user = UserRepository.userOf(player);
+    InventoryMetadata inventoryData = user.meta().inventory();
+    inventoryData.deactivateHand();
   }
 
   @Override

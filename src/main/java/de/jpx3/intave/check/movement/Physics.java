@@ -352,7 +352,6 @@ public final class Physics extends Check {
         movementData.invalidMovement = true;
 
         BoundingBox boundingBox = intersectionBoundingBoxesCurrent.get(0);
-
         double blockPositionX = (boundingBox.minX + boundingBox.maxX) / 2.0;
         double blockPositionY = (boundingBox.minY + boundingBox.maxY) / 2.0;
         double blockPositionZ = (boundingBox.minZ + boundingBox.maxZ) / 2.0;
@@ -571,11 +570,11 @@ public final class Physics extends Check {
 //      debug += " (sprint " + movementData.sprinting + ")";
 //      debug += " (sneak " + movementData.sneaking + "/"+movementData.actualSneaking()+")";
 //      debug += " (size:" + movementData.width + "," + movementData.height + ")";
-//      debug += "handActive=" + inventoryData.handActive();
+      debug += " hand=" + shortenBoolean(meta.inventory().handActive());
 //      debug += inventoryData.heldItem().getType().name();
 //      debug += " flying:" + movementData.pastFlyingPacketAccurate;
 //      debug += " gliding:" + movementData.elytraFlying;
-      debug += " y:" + formatDouble(movementData.motionY(),4);
+//      debug += " y:" + formatDouble(movementData.motionY(),4);
 
       List<String> tags = new ArrayList<>();
 
@@ -602,6 +601,10 @@ public final class Physics extends Check {
       player.sendMessage(finalDebug);
 //      Synchronizer.synchronize(() -> player.sendMessage(finalDebug));
     }
+  }
+
+  private static String shortenBoolean(boolean bool) {
+    return bool ? "1" : "0";
   }
 
   private static String resolveKeysFromInput(int forward, int strafe) {

@@ -637,8 +637,10 @@ public final class MovementDispatcher extends Module {
           integers.writeSafely(2, (int) (velocity.getY() * 8000d));
           integers.writeSafely(3, (int) (velocity.getZ() * 8000d));
         } else {
-          event.setCancelled(true);
-          return;
+          if (!event.isReadOnly()) {
+            event.setCancelled(true);
+            return;
+          }
         }
       }
 

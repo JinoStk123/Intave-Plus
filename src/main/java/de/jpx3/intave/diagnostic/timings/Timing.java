@@ -39,7 +39,7 @@ public class Timing implements Cloneable, Comparable<Timing> {
     if (IntaveControl.USE_TIMINGS) {
       // end from before sync
       long currentTimestamp = now();
-      totalTimingData.addTime(currentTimestamp - lastStart.get());
+      totalTimingData.addDuration(currentTimestamp - lastStart.get());
       totalTimingData.increaseCallCount();
     }
   }
@@ -88,7 +88,7 @@ public class Timing implements Cloneable, Comparable<Timing> {
   }
 
   public long getTotalDurationNanos() {
-    return totalTimingData.getTotalDuration();
+    return totalTimingData.totalDuration();
   }
 
   public double totalDurationMillis() {
@@ -96,7 +96,7 @@ public class Timing implements Cloneable, Comparable<Timing> {
   }
 
   public long recordedCalls() {
-    return totalTimingData.getCalls();
+    return totalTimingData.calls();
   }
 
   public double getAverageCallDurationInNanos() {

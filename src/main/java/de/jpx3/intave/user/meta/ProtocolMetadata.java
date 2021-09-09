@@ -134,7 +134,7 @@ public final class ProtocolMetadata {
   }
 
   public boolean supportsInventoryAchievementPacket() {
-    return protocolVersion <= VER_1_11_1;
+    return protocolVersion <= VER_1_11_1 && !clientVersionOlderThanServerVersion();
   }
 
   public boolean applyModernCollider() {

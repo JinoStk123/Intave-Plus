@@ -73,7 +73,7 @@ public final class EntityTypeResolver {
   public EntityTypeData entityTypeDataOfDeadEntity(PacketEvent event) {
     PacketContainer packet = event.getPacket();
     int entityId = packet.getIntegers().read(0);
-    Entity entity = packet.getEntityModifier(event).read(0);
+    Entity entity = packet.getEntityModifier(event).readSafely(0);
 
     if (entity != null) {
       return entityTypeDataOfBukkitEntity(entity);

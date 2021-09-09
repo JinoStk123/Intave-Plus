@@ -29,7 +29,7 @@ public final class AttributeTracker extends Module {
     Player player = event.getPlayer();
     User user = UserRepository.userOf(player);
     PacketContainer packet = event.getPacket();
-    if (packet.getEntityModifier(event).read(0) == player) {
+    if (packet.getEntityModifier(event).readSafely(0) == player) {
       StructureModifier<List<WrappedAttribute>> attributeModifier = packet.getAttributeCollectionModifier();
       List<WrappedAttribute> attributes = filterAttributes(attributeModifier.read(0));
       attributeModifier.write(0, attributes);
