@@ -8,7 +8,6 @@ import de.jpx3.intave.diagnostic.MemoryTraced;
 import de.jpx3.intave.shade.BoundingBox;
 import org.bukkit.Material;
 
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -27,12 +26,6 @@ public final class BlockState extends MemoryTraced {
   private final Material type;
   private final int variant;
   private final long creation = System.currentTimeMillis();
-
-  public BlockState(List<BoundingBox> boxes, Material type, int variant) {
-    this.shape = BlockShapes.ofBoxes(boxes);
-    this.type = type;
-    this.variant = variant;
-  }
 
   public BlockState(BlockShape shape, Material type, int variant) {
     this.shape = shape;

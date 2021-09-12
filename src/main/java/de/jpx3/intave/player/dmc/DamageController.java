@@ -18,7 +18,22 @@ public final class DamageController {
   ) {
     Map<DamageModifier, Function<? super Double, Double>> damageModifierMap = modifierFunctionsOf(damageEvent);
     damageModifierMap.put(modifier, modifierFunction::apply);
-    double baseDamage = damageEvent.getOriginalDamage(BASE);
+    double baseDamage = damageEvent.getDamage(BASE);
+    for (DamageModifier damageModifier : DamageModifier.values()) {
+      if (!damageModifierMap.containsKey(damageModifier)) {
+        continue;
+      }
+      Double apply = damageModifierMap.get(damageModifier).apply(baseDamage);
+      damageEvent.setDamage(damageModifier, apply);
+      baseDamage += apply;
+    }
+  }
+
+  public static void refreshDamageChain(
+    EntityDamageEvent damageEvent
+  ) {
+    Map<DamageModifier, Function<? super Double, Double>> damageModifierMap = modifierFunctionsOf(damageEvent);
+    double baseDamage = damageEvent.getDamage(BASE);
     for (DamageModifier damageModifier : DamageModifier.values()) {
       if (!damageModifierMap.containsKey(damageModifier)) {
         continue;

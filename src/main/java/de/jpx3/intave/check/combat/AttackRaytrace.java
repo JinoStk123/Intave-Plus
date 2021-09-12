@@ -11,6 +11,7 @@ import de.jpx3.intave.annotate.Native;
 import de.jpx3.intave.check.CheckStatistics;
 import de.jpx3.intave.check.CheckViolationLevelDecrementer;
 import de.jpx3.intave.check.MetaCheck;
+import de.jpx3.intave.diagnostic.LatencyStudy;
 import de.jpx3.intave.executor.Synchronizer;
 import de.jpx3.intave.math.Hypot;
 import de.jpx3.intave.math.MathHelper;
@@ -140,6 +141,8 @@ public final class AttackRaytrace extends MetaCheck<AttackRaytrace.AttackRaytrac
       if (entity != null) {
         long pendingFeedbackPackets = entity.pendingFeedbackPackets();
 //        player.sendMessage(String.valueOf(pendingFeedbackPackets));
+
+        LatencyStudy.enterHit((short) pendingFeedbackPackets);
 
         // stops raytrace if the entity is null or the player is in the death screen
         boolean entityIsAlive = unsynchronizedHealth > 0 && !(entity instanceof WrappedEntity.Destroyed);

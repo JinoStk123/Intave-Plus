@@ -1,4 +1,4 @@
-package de.jpx3.intave.block.shape;
+package de.jpx3.intave.block.shape.pipe;
 
 import org.jetbrains.annotations.NotNull;
 

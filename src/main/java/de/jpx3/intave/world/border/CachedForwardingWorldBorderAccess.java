@@ -9,9 +9,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 public final class CachedForwardingWorldBorderAccess implements WorldBorderAccess {
-  private final static long CACHE_EXPIRY = TimeUnit.MICROSECONDS.toMillis(50);
+  private final static long CACHE_EXPIRY = TimeUnit.MICROSECONDS.toMillis(200);
   private final WorldBorderAccess forward;
   private final Map<World, WorldBorderAccessCache<Double>> sizeCache = GarbageCollector.watch(new ConcurrentHashMap<>());
+  private final Map<World, WorldBorderAccessCache<Location>> locationCache = GarbageCollector.watch(new ConcurrentHashMap<>());
 
   public CachedForwardingWorldBorderAccess(WorldBorderAccess forward) {
     this.forward = forward;
@@ -26,12 +27,19 @@ public final class CachedForwardingWorldBorderAccess implements WorldBorderAcces
     } else if (sizeCache.expired()) {
       sizeCache.typeFlush(forward.sizeOf(world));
     }
-    return sizeCache.target;
+    return sizeCache.target();
   }
 
   @Override
   public Location centerOf(World world) {
-    return forward.centerOf(world);
+    WorldBorderAccessCache<Location> locationCache = this.locationCache.get(world);
+    if (locationCache == null) {
+      locationCache = new WorldBorderAccessCache<>(forward.centerOf(world));
+      this.locationCache.put(world, locationCache);
+    } else if (locationCache.expired()) {
+      locationCache.typeFlush(forward.centerOf(world));
+    }
+    return locationCache.target();
   }
 
   public static class WorldBorderAccessCache<T> {

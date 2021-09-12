@@ -16,11 +16,11 @@ import de.jpx3.intave.command.CommandStage;
 import de.jpx3.intave.command.Optional;
 import de.jpx3.intave.command.SubCommand;
 import de.jpx3.intave.diagnostic.KeyPressStudy;
+import de.jpx3.intave.diagnostic.LatencyStudy;
 import de.jpx3.intave.diagnostic.MemoryTraced;
 import de.jpx3.intave.diagnostic.MemoryWatchdog;
 import de.jpx3.intave.diagnostic.timings.Timing;
 import de.jpx3.intave.diagnostic.timings.Timings;
-import de.jpx3.intave.math.MathHelper;
 import de.jpx3.intave.shade.BoundingBox;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserRepository;
@@ -37,7 +37,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
-import static de.jpx3.intave.diagnostic.BoundingBoxAccessFlowStudy.*;
+import static de.jpx3.intave.diagnostic.ShapeAccessFlowStudy.*;
+import static de.jpx3.intave.math.MathHelper.formatDouble;
 
 public final class RootStage extends CommandStage {
   private static RootStage singletonInstance;
@@ -74,9 +75,9 @@ public final class RootStage extends CommandStage {
           "%s: %s::%sms (%s&f ms/c)",
           timing.coloredName(),
           timing.recordedCalls(),
-          MathHelper.formatDouble(timing.totalDurationMillis(), 4),
+          formatDouble(timing.totalDurationMillis(), 4),
           (suspicious ? (dumping ? ChatColor.RED : ChatColor.YELLOW) : ChatColor.GREEN) + "" +
-            MathHelper.formatDouble(timing.averageCallDurationInMillis(), 8)
+            formatDouble(timing.averageCallDurationInMillis(), 8)
         );
         if (!fullSpecifier.isEmpty() && !timing.name().toLowerCase(Locale.ROOT).contains(fullSpecifier)) {
           message = IntavePlugin.defaultColor() + ChatColor.stripColor(message);
@@ -111,9 +112,9 @@ public final class RootStage extends CommandStage {
           "%s: %s::%sms (%s ms/c)",
           timing.coloredName(),
           timing.recordedCalls(),
-          MathHelper.formatDouble(timing.totalDurationMillis(), 4),
+          formatDouble(timing.totalDurationMillis(), 4),
           (suspicious ? (dumping ? ChatColor.RED : ChatColor.YELLOW) : ChatColor.GREEN) + "" +
-            MathHelper.formatDouble(timing.averageCallDurationInMillis(), 8)
+            formatDouble(timing.averageCallDurationInMillis(), 8)
           + ChatColor.WHITE
         );
         if (!fullSpecifier.isEmpty() && !timing.name().toLowerCase(Locale.ROOT).contains(fullSpecifier)) {
@@ -149,9 +150,9 @@ public final class RootStage extends CommandStage {
           "%s: %s::%sms (%s&f ms/c)",
           timing.coloredName(),
           timing.recordedCalls(),
-          MathHelper.formatDouble(timing.totalDurationMillis(), 4),
+          formatDouble(timing.totalDurationMillis(), 4),
           (suspicious ? (dumping ? ChatColor.RED : ChatColor.YELLOW) : ChatColor.GREEN) + "" +
-            MathHelper.formatDouble(timing.averageCallDurationInMillis(), 8)
+            formatDouble(timing.averageCallDurationInMillis(), 8)
         );
         if (!fullSpecifier.isEmpty() && !timing.name().toLowerCase(Locale.ROOT).contains(fullSpecifier)) {
           message = IntavePlugin.defaultColor() + ChatColor.stripColor(message);
@@ -182,8 +183,8 @@ public final class RootStage extends CommandStage {
         continue;
       }
 
-      String failedRate = MathHelper.formatDouble(failed / processed * 100, 5);
-      String violatedRate = MathHelper.formatDouble(violations / processed * 100, 5);
+      String failedRate = formatDouble(failed / processed * 100, 5);
+      String violatedRate = formatDouble(violations / processed * 100, 5);
 
       String message = String.format("Check/%s: %s::%s%% / vio %s%%", check.name(), passed, failedRate, violatedRate);
       player.sendMessage(ChatColor.WHITE + message);
@@ -212,11 +213,11 @@ public final class RootStage extends CommandStage {
     long successfulLK = biasLKCalls - iterativeCall;
 
     player.sendMessage(successfulBias + "/"+biasPredCalls+" pred biased, "+successfulLK+"/"+biasLKCalls+" lk biased with " + iterativeCall + " iterative");
-    player.sendMessage(MathHelper.formatDouble(percentage, 2) + "% movements bias simulated");
+    player.sendMessage(formatDouble(percentage, 2) + "% movements bias simulated");
     double estimatedTimeIfAllBiasCallsWereIterative = biasTotalCalls * Timings.CHECK_PHYSICS_PROC_ITR.getAverageCallDurationInNanos();
     double savedTime = (estimatedTimeIfAllBiasCallsWereIterative - (Timings.CHECK_PHYSICS_PROC_PRED_BIA.getTotalDurationNanos() + Timings.CHECK_PHYSICS_PROC_LK_BIA.getTotalDurationNanos()) ) / 1000000d;
 
-    player.sendMessage("Saved " + (savedTime > 0 ? ChatColor.GREEN : ChatColor.RED) + MathHelper.formatDouble(savedTime, 2) + ChatColor.WHITE + "ms");
+    player.sendMessage("Saved " + (savedTime > 0 ? ChatColor.GREEN : ChatColor.RED) + formatDouble(savedTime, 2) + ChatColor.WHITE + "ms");
   }
 
   @SubCommand(
@@ -236,8 +237,20 @@ public final class RootStage extends CommandStage {
       if (keys.trim().isEmpty()) {
         keys = "N";
       }
-      player.sendMessage("Key " + keys + " " + MathHelper.formatDouble(percentage * 100, 4) + "%");
+      player.sendMessage("Key " + keys + " " + formatDouble(percentage * 100, 4) + "%");
     });
+  }
+
+  @SubCommand(
+    selectors = "atlat",
+    usage = "",
+    description = "",
+    permission = "sibyl"
+  )
+  @Native
+  public void outputAttackLatencies(User user) {
+    Player player = user.player();
+    player.sendMessage("The average attack latency is " + formatDouble(LatencyStudy.average(), 2) + " ticks");
   }
 
   @SubCommand(

@@ -4,7 +4,7 @@ import de.jpx3.intave.block.physics.MaterialMagic;
 import de.jpx3.intave.block.shape.BlockShape;
 import de.jpx3.intave.block.shape.BlockShapes;
 import de.jpx3.intave.block.shape.ShapeResolverPipeline;
-import de.jpx3.intave.diagnostic.BoundingBoxAccessFlowStudy;
+import de.jpx3.intave.diagnostic.ShapeAccessFlowStudy;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -19,7 +19,7 @@ public final class EmptyPrefetchPipe implements ShapeResolverPipeline {
   @Override
   public BlockShape resolve(World world, Player player, Material type, int blockState, int posX, int posY, int posZ) {
     if (isEmpty(type)) {
-      BoundingBoxAccessFlowStudy.incremDynamic();
+      ShapeAccessFlowStudy.incremDynamic();
       return BlockShapes.empty();
     }
     return forward.resolve(world, player, type, blockState, posX, posY, posZ);

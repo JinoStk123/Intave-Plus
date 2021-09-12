@@ -6,6 +6,7 @@ import de.jpx3.intave.block.shape.BlockShapes;
 import de.jpx3.intave.clazz.rewrite.PatchyAutoTranslation;
 import net.minecraft.core.BlockPosition;
 import net.minecraft.server.level.WorldServer;
+import net.minecraft.world.level.IBlockAccess;
 import net.minecraft.world.level.block.state.IBlockData;
 import net.minecraft.world.phys.AxisAlignedBB;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -27,7 +28,11 @@ public final class v17B1ShapeDrill extends AbstractShapeDrill {
     if (blockData == null) {
       return BlockShapes.empty();
     }
-    VoxelShape collisionShape = blockData.getCollisionShape(handle, blockPosition);
+    IBlockAccess blockAccess = handle.getChunkProvider().c(posX >> 4, posZ >> 4);
+    if (blockAccess == null) {
+      return BlockShapes.empty();
+    }
+    VoxelShape collisionShape = blockData.getCollisionShape(blockAccess, blockPosition);
     List<AxisAlignedBB> nativeBoxes = collisionShape.toList();
     return translateWithOffset(nativeBoxes, posX, posY, posZ);
   }

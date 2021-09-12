@@ -7,7 +7,7 @@ import de.jpx3.intave.block.shape.BlockShape;
 import de.jpx3.intave.block.shape.BlockShapes;
 import de.jpx3.intave.block.shape.ShapeResolver;
 import de.jpx3.intave.block.shape.ShapeResolverPipeline;
-import de.jpx3.intave.diagnostic.BoundingBoxAccessFlowStudy;
+import de.jpx3.intave.diagnostic.ShapeAccessFlowStudy;
 import de.jpx3.intave.math.Hypot;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -43,7 +43,7 @@ public final class MultiChunkKeyBlockStateAccess implements BlockStateAccess {
     if (posY < 0 || BUILD_LIMIT < posY) {
       return BlockShapes.empty();
     }
-    BoundingBoxAccessFlowStudy.requests++;
+    ShapeAccessFlowStudy.requests++;
     if ((chunkX != this.chunkX || chunkZ != this.chunkZ)) {
       this.chunkX = chunkX;
       this.chunkZ = chunkZ;
@@ -77,7 +77,7 @@ public final class MultiChunkKeyBlockStateAccess implements BlockStateAccess {
     if (posY < 0 || BUILD_LIMIT < posY) {
       return Material.AIR;
     }
-    BoundingBoxAccessFlowStudy.requests++;
+    ShapeAccessFlowStudy.requests++;
     if ((chunkX != this.chunkX || chunkZ != this.chunkZ)) {
       this.chunkX = chunkX;
       this.chunkZ = chunkZ;
@@ -111,7 +111,7 @@ public final class MultiChunkKeyBlockStateAccess implements BlockStateAccess {
     if (posY < 0 || BUILD_LIMIT < posY) {
       return 0;
     }
-    BoundingBoxAccessFlowStudy.requests++;
+    ShapeAccessFlowStudy.requests++;
     if ((chunkX != this.chunkX || chunkZ != this.chunkZ)) {
       this.chunkX = chunkX;
       this.chunkZ = chunkZ;
@@ -148,7 +148,7 @@ public final class MultiChunkKeyBlockStateAccess implements BlockStateAccess {
     if (type == Material.AIR) {
       return BlockState.empty();
     } else {
-      BoundingBoxAccessFlowStudy.incremLookups();
+      ShapeAccessFlowStudy.incremLookups();
       int variant = BlockVariantAccess.variantAccess(block);
       BlockShape shape = shapeResolver.resolve(world, player, type, variant, posX, posY, posZ);
       return new BlockState(shape, type, variant);

@@ -54,11 +54,17 @@ public final class PunishmentMetadata {
       ),
       new AttackNerfer(
         AttackNerfStrategy.DMG_MEDIUM, DAMAGE_CANCEL_MEDIUM_DURATION,
-        event -> DamageController.withNewDamageApplier(event, BASE, originalDamage -> -(originalDamage * 0.5))
+        event -> {
+          event.setDamage(BASE, event.getDamage(BASE) * 0.7);
+          DamageController.refreshDamageChain(event);
+        }
       ),
       new AttackNerfer(
         AttackNerfStrategy.DMG_LIGHT, DAMAGE_CANCEL_LIGHT_DURATION,
-        event -> DamageController.withNewDamageApplier(event, BASE, originalDamage -> -(originalDamage * 0.2))
+        event -> {
+          event.setDamage(BASE, event.getDamage(BASE) * 0.9);
+          DamageController.refreshDamageChain(event);
+        }
       ),
       new AttackNerfer(AttackNerfStrategy.HT_MEDIUM, DAMAGE_CANCEL_MEDIUM_DURATION, event -> {
         // Perform hurt-time change

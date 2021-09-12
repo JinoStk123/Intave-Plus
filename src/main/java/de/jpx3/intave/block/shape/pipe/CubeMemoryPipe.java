@@ -3,8 +3,7 @@ package de.jpx3.intave.block.shape.pipe;
 import de.jpx3.intave.block.shape.BlockShape;
 import de.jpx3.intave.block.shape.CubeShape;
 import de.jpx3.intave.block.shape.ShapeResolverPipeline;
-import de.jpx3.intave.block.shape.TrustingCopyOnWriteEnumSet;
-import de.jpx3.intave.diagnostic.BoundingBoxAccessFlowStudy;
+import de.jpx3.intave.diagnostic.ShapeAccessFlowStudy;
 import de.jpx3.intave.shade.BoundingBox;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -35,7 +34,7 @@ public final class CubeMemoryPipe implements ShapeResolverPipeline {
   @Override
   public BlockShape resolve(World world, Player player, Material type, int blockState, int posX, int posY, int posZ) {
     if (solidMaterials.contains(type)) {
-      BoundingBoxAccessFlowStudy.incremDynamic();
+      ShapeAccessFlowStudy.incremDynamic();
       return new CubeShape(posX, posY, posZ);
     } else if (otherMaterials.contains(type)) {
       return forward.resolve(world, player, type, blockState, posX, posY, posZ);
