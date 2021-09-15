@@ -187,9 +187,6 @@ public final class InventoryTracker extends Module {
     packetsIn = {
       HELD_ITEM_SLOT
     }
-//    ,packetsOut = {
-//      PacketId.Server.HELD_ITEM_SLOT
-//    }
   )
   public void receiveSlotSwitch(PacketEvent event) {
     Player player = event.getPlayer();
@@ -209,6 +206,20 @@ public final class InventoryTracker extends Module {
     }
     inventoryData.setHeldItemSlot(slot);
     inventoryData.pastHotBarSlotChange = 0;
+  }
+
+  @PacketSubscription(
+    packetsOut = {
+      PacketId.Server.HELD_ITEM_SLOT
+    }
+  )
+  public void sentSlotSwitch(PacketEvent event) {
+    Player player = event.getPlayer();
+    User user = UserRepository.userOf(player);
+    int slot = event.getPacket().getIntegers().read(0);
+    Modules.feedback().synchronize(player, slot, (player1, slot1) -> {
+      user.meta().inventory().setHeldItemSlot(slot);
+    });
   }
 
   @PacketSubscription(
