@@ -517,7 +517,7 @@ public final class MovementDispatcher extends Module {
     Boolean jumping = packet.getBooleans().read(0);
     movementData.externalKeyApply = true;
     movementData.clientStrafeKey = strafeKey;
-    movementData.clientInputKey = forwardKey;
+    movementData.clientForwardKey = forwardKey;
     movementData.clientPressedJump = jumping;
   }
 
