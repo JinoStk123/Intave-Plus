@@ -3,7 +3,7 @@ package de.jpx3.intave.block.shape.pipe.drill;
 import de.jpx3.intave.block.shape.BlockShape;
 import de.jpx3.intave.block.shape.BlockShapes;
 import de.jpx3.intave.block.variant.BlockVariantRegister;
-import de.jpx3.intave.clazz.rewrite.PatchyAutoTranslation;
+import de.jpx3.intave.klass.rewrite.PatchyAutoTranslation;
 import net.minecraft.server.v1_14_R1.*;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -29,8 +29,15 @@ public final class v14ShapeDrill extends AbstractShapeDrill {
       return BlockShapes.emptyShape();
     }
     VoxelShape collisionShape = blockData.getCollisionShape(blockAccess, blockPosition);
+    // check if shape is static empty
+    if (VoxelShapes.a() == collisionShape) {
+      return BlockShapes.emptyShape();
+    }
+    // check if shape is static cube
+    if (VoxelShapes.b() == collisionShape) {
+      return BlockShapes.cubicShapeAt(posX, posY, posZ);
+    }
     List<AxisAlignedBB> nativeBoxes = collisionShape.d();
-    BlockShape blockShape = translateWithOffset(nativeBoxes, posX, posY, posZ);
-    return blockShape;
+    return translateWithOffset(nativeBoxes, posX, posY, posZ);
   }
 }

@@ -1,6 +1,6 @@
 package de.jpx3.intave.shade;
 
-import de.jpx3.intave.clazz.Lookup;
+import de.jpx3.intave.klass.Lookup;
 import de.jpx3.intave.math.MathHelper;
 import de.jpx3.intave.shade.link.WrapperLinkage;
 import org.bukkit.Location;

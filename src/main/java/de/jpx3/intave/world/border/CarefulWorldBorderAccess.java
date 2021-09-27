@@ -1,6 +1,6 @@
 package de.jpx3.intave.world.border;
 
-import de.jpx3.intave.clazz.rewrite.PatchyAutoTranslation;
+import de.jpx3.intave.klass.rewrite.PatchyAutoTranslation;
 import net.minecraft.server.v1_8_R3.EnumWorldBorderState;
 import net.minecraft.server.v1_8_R3.WorldBorder;
 import org.bukkit.Location;

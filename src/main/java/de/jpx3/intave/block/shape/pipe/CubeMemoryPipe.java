@@ -1,6 +1,7 @@
 package de.jpx3.intave.block.shape.pipe;
 
 import de.jpx3.intave.block.shape.BlockShape;
+import de.jpx3.intave.block.shape.BlockShapes;
 import de.jpx3.intave.block.shape.CubeShape;
 import de.jpx3.intave.block.shape.ShapeResolverPipeline;
 import de.jpx3.intave.diagnostic.ShapeAccessFlowStudy;
@@ -14,8 +15,8 @@ import java.util.Set;
 
 public final class CubeMemoryPipe implements ShapeResolverPipeline {
   private final ShapeResolverPipeline forward;
-  private final Set<Material> solidMaterials = TrustingCopyOnWriteEnumSet.of(Material.class);
-  private final Set<Material> otherMaterials = TrustingCopyOnWriteEnumSet.of(Material.class);
+  private final Set<Material> solidMaterials = UnsafeCopyOnWriteEnumSet.of(Material.class);
+  private final Set<Material> otherMaterials = UnsafeCopyOnWriteEnumSet.of(Material.class);
 
   public CubeMemoryPipe(ShapeResolverPipeline forward) {
     this.forward = forward;
@@ -32,22 +33,32 @@ public final class CubeMemoryPipe implements ShapeResolverPipeline {
   }
 
   @Override
-  public BlockShape resolve(World world, Player player, Material type, int blockState, int posX, int posY, int posZ) {
-    if (solidMaterials.contains(type)) {
+  public BlockShape resolve(World world, Player player, Material type, int variantIndex, int posX, int posY, int posZ) {
+    if (knownToBeCubic(type)) {
       ShapeAccessFlowStudy.incremDynamic();
-      return new CubeShape(posX, posY, posZ);
-    } else if (otherMaterials.contains(type)) {
-      return forward.resolve(world, player, type, blockState, posX, posY, posZ);
+      return BlockShapes.cubicShapeAt(posX, posY, posZ);
+    } else if (knownToBeNonCubic(type)) {
+      return forward.resolve(world, player, type, variantIndex, posX, posY, posZ);
     }
-    BlockShape shape = forward.resolve(world, player, type, blockState, posX, posY, posZ);
+    BlockShape shape = forward.resolve(world, player, type, variantIndex, posX, posY, posZ);
     if (isInLoadedChunk(world, posX, posZ)) {
       boolean solid = shape instanceof CubeShape || isCubic(shape.boundingBoxes(), posX, posY, posZ);
       if (solid) {
         downstreamTypeReset(type); // flush downstream type
+        solidMaterials.add(type);
+      } else {
+        otherMaterials.add(type);
       }
-      (solid ? solidMaterials : otherMaterials).add(type);
     }
     return shape;
+  }
+
+  public boolean knownToBeCubic(Material type) {
+    return solidMaterials.contains(type);
+  }
+
+  public boolean knownToBeNonCubic(Material type) {
+    return otherMaterials.contains(type);
   }
 
   @Override

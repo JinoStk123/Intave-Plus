@@ -1,8 +1,8 @@
 package de.jpx3.intave.world.raytrace;
 
 import de.jpx3.intave.adapter.MinecraftVersions;
-import de.jpx3.intave.clazz.rewrite.PatchyLoadingInjector;
 import de.jpx3.intave.diagnostic.timings.Timings;
+import de.jpx3.intave.klass.rewrite.PatchyLoadingInjector;
 import de.jpx3.intave.math.SinusCache;
 import de.jpx3.intave.module.tracker.entity.EntityShade;
 import de.jpx3.intave.shade.BoundingBox;

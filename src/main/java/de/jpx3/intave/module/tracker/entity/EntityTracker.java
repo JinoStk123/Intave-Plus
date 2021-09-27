@@ -3,15 +3,13 @@ package de.jpx3.intave.module.tracker.entity;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
-import com.comphenix.protocol.reflect.EquivalentConverter;
-import com.comphenix.protocol.wrappers.BukkitConverters;
 import com.comphenix.protocol.wrappers.WrappedWatchableObject;
 import de.jpx3.intave.IntaveControl;
 import de.jpx3.intave.IntaveLogger;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.adapter.MinecraftVersions;
 import de.jpx3.intave.adapter.ProtocolLibraryAdapter;
-import de.jpx3.intave.cleanup.GarbageCollector;
+import de.jpx3.intave.entity.EntityLookup;
 import de.jpx3.intave.entity.size.HitboxSize;
 import de.jpx3.intave.entity.type.EntityTypeData;
 import de.jpx3.intave.executor.TaskTracker;
@@ -28,7 +26,6 @@ import de.jpx3.intave.user.UserRepository;
 import de.jpx3.intave.user.meta.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
@@ -36,7 +33,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.OptionalInt;
 
 import static de.jpx3.intave.module.feedback.TransactionOptions.APPEND_ON_OVERFLOW;
 import static de.jpx3.intave.module.linker.packet.PacketId.Client.POSITION;
@@ -240,7 +240,7 @@ public final class EntityTracker extends Module {
         entityName = "Player";
       }
 
-      HitboxSize hitBoxSize = HitboxSize.player();
+      HitboxSize hitBoxSize = HitboxSize.playerDefault();
       entityIsPlayer = true;
       entityTypeData = new EntityTypeData(entityName, hitBoxSize, 105, true, 1);
     }
@@ -692,16 +692,14 @@ public final class EntityTracker extends Module {
     entity.health = health;
   }
 
-  private final static Map<World, EquivalentConverter<Entity>> ENTITY_CONVERTER = GarbageCollector.watch(new HashMap<>());
+//  private final static Map<World, EquivalentConverter<Entity>> ENTITY_CONVERTER = GarbageCollector.watch(new HashMap<>());
 
   @Nullable
   public static Entity serverEntityByIdentifier(Player player, int entityID) {
     if (entityID < 0) {
       return null;
     }
-    EquivalentConverter<Entity> converter =
-      ENTITY_CONVERTER.computeIfAbsent(player.getWorld(), BukkitConverters::getEntityConverter);
-    return converter.getSpecific(entityID);
+    return EntityLookup.findEntity(player.getWorld(), entityID);
   }
 
   @Nullable

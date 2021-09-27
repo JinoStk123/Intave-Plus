@@ -120,7 +120,7 @@ public final class SimulationEvaluator {
       boolean offsetPositionInLiquid = MovementHelper.isOffsetPositionInLiquid(
         player, movementData.boundingBox(), receivedMotionX, liquidPositionY, receivedMotionZ
       );
-      boolean maybeCollidedHorizontally = Collision.nearBySolidBlock(player.getWorld(), movementData.boundingBox().grow(0.2));
+      boolean maybeCollidedHorizontally = Collision.nearSolidBlock(player.getWorld(), movementData.boundingBox().grow(0.2));
       if (maybeCollidedHorizontally && offsetPositionInLiquid && receivedMotionY < 0.4) {
         legitimateDeviation = Math.max(legitimateDeviation, 0.7f);
       }
@@ -203,7 +203,7 @@ public final class SimulationEvaluator {
     } else {
       legitimateDeviation = 0.0007;
       if (distance > 0.0007) {
-        boolean collides = Collision.nearBySolidBlock(player.getWorld(), movementData.boundingBox().growHorizontally(0.001));
+        boolean collides = Collision.nearSolidBlock(player.getWorld(), movementData.boundingBox().growHorizontally(0.001));
         if (collides) {
           legitimateDeviation = distanceMoved < 0.04 ? 0.04 : 0.001;
         }

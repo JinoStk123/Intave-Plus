@@ -7,6 +7,7 @@ import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 /**
@@ -128,6 +129,18 @@ public final class ReferenceMap<K, V> implements Map<K, V> {
       });
     }
     return newEntries;
+  }
+
+  @Override
+  public V computeIfAbsent(K key, @NotNull Function<? super K, ? extends V> mappingFunction) {
+    Reference<V> reference = map.computeIfAbsent(key, k -> referencer.apply(mappingFunction.apply(k)));
+    return reference == null ? null : reference.get();
+  }
+
+  @Override
+  public V computeIfPresent(K key, @NotNull BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+    Reference<V> reference = map.computeIfPresent(key, (k, v) -> referencer.apply(remappingFunction.apply(k, v.get())));
+    return reference == null ? null : reference.get();
   }
 
   private void cleanup() {

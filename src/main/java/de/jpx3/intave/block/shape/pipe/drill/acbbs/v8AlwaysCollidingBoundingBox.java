@@ -1,7 +1,7 @@
 package de.jpx3.intave.block.shape.pipe.drill.acbbs;
 
-import de.jpx3.intave.clazz.rewrite.PatchyAutoTranslation;
-import de.jpx3.intave.clazz.rewrite.PatchyTranslateParameters;
+import de.jpx3.intave.klass.rewrite.PatchyAutoTranslation;
+import de.jpx3.intave.klass.rewrite.PatchyTranslateParameters;
 import net.minecraft.server.v1_8_R3.AxisAlignedBB;
 
 @PatchyAutoTranslation

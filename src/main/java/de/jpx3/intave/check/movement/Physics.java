@@ -503,7 +503,6 @@ public final class Physics extends Check {
           break;
         case CAREFUL:
           setback = deepPitchViolationOverflow || (highPitchViolationOverflow && (violationLevelAfter > 20 || highPitchAggressiveViolationOverflow || !user.trustFactor().atLeast(TrustFactor.YELLOW) || user.justJoined()) );
-
           if (receivedMotionY > Math.max(0.42f, movementData.jumpMotion()) + 0.01) {
             setback = true;
           }
@@ -572,8 +571,8 @@ public final class Physics extends Check {
       debug += "(" + key + ")";
       debug += " " + violationLevelInfo;
 
-//      debug += "(ai " + movementData.aiMoveSpeed()+ ")";
-      debug += " (sprint " + movementData.sprinting + ")";
+      debug += " ai ?" + movementData.aiMoveSpeed();
+      debug += " sprint " + shortenBoolean(movementData.sprinting) + "/" + shortenBoolean(movementData.hasSprintSpeed);
 //      debug += " (sneak " + movementData.sneaking + "/"+movementData.actualSneaking()+")";
 //      debug += " (size:" + movementData.width + "," + movementData.height + ")";
 //      debug += " hand=" + shortenBoolean(meta.inventory().handActive());

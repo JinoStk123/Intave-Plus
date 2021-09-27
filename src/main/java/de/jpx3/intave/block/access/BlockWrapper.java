@@ -1,9 +1,9 @@
 package de.jpx3.intave.block.access;
 
 import de.jpx3.intave.adapter.MinecraftVersions;
-import de.jpx3.intave.clazz.rewrite.PatchyAutoTranslation;
-import de.jpx3.intave.clazz.rewrite.PatchyLoadingInjector;
-import de.jpx3.intave.clazz.rewrite.PatchyTranslateParameters;
+import de.jpx3.intave.klass.rewrite.PatchyAutoTranslation;
+import de.jpx3.intave.klass.rewrite.PatchyLoadingInjector;
+import de.jpx3.intave.klass.rewrite.PatchyTranslateParameters;
 import de.jpx3.intave.user.User;
 import net.minecraft.server.v1_13_R2.BlockPosition;
 import org.bukkit.Location;

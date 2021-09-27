@@ -12,7 +12,7 @@ public final class HorseSimulator extends DefaultSimulator {
   public ComplexColliderSimulationResult performSimulation(
     User user, Motion motion,
     float forward, float strafe,
-    boolean attackReduce, boolean jumped, boolean handActive
+    boolean attackReduce, boolean sprinting, boolean jumped, boolean handActive
   ) {
     MovementMetadata movementData = user.meta().movement();
     float horseForward = forward;
@@ -31,10 +31,10 @@ public final class HorseSimulator extends DefaultSimulator {
 //    System.out.println("horseForward:" + horseForward);
 
     float aiMoveSpeed = 0;
-    movementData.setJumpMovementFactor(0.02f);
+    movementData.setJumpMovementFactor(0.02f, sprinting);
     movementData.setAiMoveSpeed(0.2f);
 
-    return super.performSimulation(user, motion, horseForward, horseStrafe, attackReduce, jumped, handActive);
+    return super.performSimulation(user, motion, horseForward, horseStrafe, attackReduce, sprinting, jumped, handActive);
   }
 
   @Override

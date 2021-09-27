@@ -104,13 +104,11 @@ public final class Heuristics extends MetaCheck<Heuristics.HeuristicMeta> {
   public void saveAnomaly(Player player, Anomaly anomaly) {
     if (anomaly.confidence().level() > Confidence.NONE.level()) {
       HeuristicMeta meta = metaOf(player);
-      boolean noLimit = anomaly.limit() == 0;
       int limit = anomaly.limit();
-      int betterFound = (int) meta.anomalies
-        .stream()
+      int betterFound = (int) meta.anomalies.stream()
         .filter(anomaly1 -> anomaly1.key().equals(anomaly.key()) && anomaly1.confidence().atLeast(anomaly.confidence()))
         .count();
-      if (noLimit || betterFound <= limit) {
+      if (limit == 0 || betterFound <= limit) {
         meta.anomalies.add(anomaly);
       }
     }

@@ -103,6 +103,10 @@ public final class ConnectionTracker extends Module {
     } else {
       id = Long.valueOf(packet.getIntegers().read(0));
     }
+    if (id == 0) {
+      event.setCancelled(true);
+      return;
+    }
     if (!remainingPingPackets.containsKey(id)) {
       IntaveLogger.logger().error(player.getName() + " sent keep-alive id " + id + ", but expected one of " + remainingPingPackets.keySet());
       user.synchronizedDisconnect("Unknown keep-alive identifier");

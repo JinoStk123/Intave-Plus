@@ -387,7 +387,7 @@ public class EntityShade {
     double z = position.posZ;
 
     double halfWidth = entity.typeData.size().width() / 2.0;
-    double length = entity.typeData.size().length();
+    double length = entity.typeData.size().height();
     return new BoundingBox(
       x - halfWidth, y, z - halfWidth,
       x + halfWidth, y + length, z + halfWidth

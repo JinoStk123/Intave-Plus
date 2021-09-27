@@ -19,6 +19,15 @@ public final class PacketReaders {
     setup(Server.MULTI_BLOCK_CHANGE, MultiBlockChangeReader::new);
     setup(Server.MAP_CHUNK, MapChunkReader::new);
     setup(Server.MAP_CHUNK_BULK, MapChunkBulkReader::new);
+    setup(Server.ENTITY_METADATA, EntityReader::new);
+    setup(Server.ENTITY_VELOCITY, EntityReader::new);
+    setup(Server.SPAWN_ENTITY_LIVING, EntityReader::new);
+    setup(Server.SPAWN_ENTITY, EntityReader::new);
+    setup(Server.ENTITY_EFFECT, EntityReader::new);
+    setup(Server.REMOVE_ENTITY_EFFECT, EntityReader::new);
+    setup(Server.NAMED_ENTITY_SPAWN, EntityReader::new);
+    setup(Server.UPDATE_ATTRIBUTES, EntityReader::new);
+    setup(Server.BLOCK_BREAK_ANIMATION, EntityReader::new);
 
     setup(Client.CUSTOM_PAYLOAD, PayloadInReader::new);
     setup(Client.BLOCK_PLACE, BlockInteractionReader::new);

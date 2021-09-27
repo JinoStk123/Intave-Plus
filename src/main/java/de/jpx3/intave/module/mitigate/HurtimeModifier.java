@@ -1,8 +1,8 @@
 package de.jpx3.intave.module.mitigate;
 
 import de.jpx3.intave.IntaveLogger;
-import de.jpx3.intave.clazz.Lookup;
 import de.jpx3.intave.executor.Synchronizer;
+import de.jpx3.intave.klass.Lookup;
 import de.jpx3.intave.reflect.access.ReflectiveHandleAccess;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserRepository;

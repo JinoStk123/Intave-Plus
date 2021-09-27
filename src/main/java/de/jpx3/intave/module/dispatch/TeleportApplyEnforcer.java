@@ -10,8 +10,8 @@ import de.jpx3.intave.adapter.MinecraftVersions;
 import de.jpx3.intave.adapter.ProtocolLibraryAdapter;
 import de.jpx3.intave.annotate.DispatchTarget;
 import de.jpx3.intave.annotate.KeepEnumInternalNames;
-import de.jpx3.intave.clazz.Lookup;
 import de.jpx3.intave.executor.Synchronizer;
+import de.jpx3.intave.klass.Lookup;
 import de.jpx3.intave.math.MathHelper;
 import de.jpx3.intave.module.Modules;
 import de.jpx3.intave.module.linker.packet.ListenerPriority;
@@ -24,16 +24,16 @@ import de.jpx3.intave.user.meta.MovementMetadata;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerTeleportEvent;
 
 import java.util.Set;
 
 import static de.jpx3.intave.module.linker.packet.PacketId.Client.TELEPORT_ACCEPT;
 import static de.jpx3.intave.module.linker.packet.PacketId.Server.POSITION;
+import static org.bukkit.event.player.PlayerTeleportEvent.TeleportCause.NETHER_PORTAL;
 
 public final class TeleportApplyEnforcer implements PacketEventSubscriber {
   private final static boolean TELEPORTATION_DEBUG = false;
-  final boolean NEW_TELEPORTATION = ProtocolLibraryAdapter.serverVersion().isAtLeast(MinecraftVersions.VER1_9_0);
+  private final static boolean NEW_TELEPORTATION = ProtocolLibraryAdapter.serverVersion().isAtLeast(MinecraftVersions.VER1_9_0);
 
   public void setup() {
     Modules.linker().packetEvents().linkSubscriptionsIn(this);
@@ -76,11 +76,11 @@ public final class TeleportApplyEnforcer implements PacketEventSubscriber {
       }
       if (movementData.teleportResendCountdown-- < 0) {
         if (TELEPORTATION_DEBUG) {
-          IntaveLogger.logger().printLine("[Intave] Resend teleport to " + player.getName());
+          IntaveLogger.logger().printLine("[Intave] Resent teleport to " + player.getName());
         }
         Synchronizer.synchronize(() -> {
           Location location = movementData.teleportLocation;
-          player.teleport(location, PlayerTeleportEvent.TeleportCause.NETHER_PORTAL);
+          player.teleport(location, NETHER_PORTAL);
         });
       }
     }

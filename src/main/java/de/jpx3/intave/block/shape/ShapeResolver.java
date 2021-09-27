@@ -7,7 +7,7 @@ import de.jpx3.intave.block.shape.pipe.*;
 import de.jpx3.intave.block.shape.pipe.drill.AbstractShapeDrill;
 import de.jpx3.intave.block.state.BlockStateAccess;
 import de.jpx3.intave.block.state.MultiChunkKeyBlockStateAccess;
-import de.jpx3.intave.clazz.rewrite.PatchyLoadingInjector;
+import de.jpx3.intave.klass.rewrite.PatchyLoadingInjector;
 
 import static de.jpx3.intave.adapter.MinecraftVersions.VER1_14_0;
 
@@ -57,9 +57,9 @@ public final class ShapeResolver {
       drillClassName = "de.jpx3.intave.block.shape.pipe.drill.v14ShapeDrill";
     } else if (MinecraftVersions.VER1_13_0.atOrAbove()) {
       drillClassName = "de.jpx3.intave.block.shape.pipe.drill.v13ShapeDrill";
-    } else if (MinecraftVersions.VER1_12_0.atOrAbove()) {
-      drillClassName = "de.jpx3.intave.block.shape.pipe.drill.v12ShapeDrill";
-      acClassName = "de.jpx3.intave.block.shape.pipe.drill.acbbs.v12AlwaysCollidingBoundingBox";
+    } else if (MinecraftVersions.VER1_11_0.atOrAbove()) {
+      drillClassName = "de.jpx3.intave.block.shape.pipe.drill.v11ShapeDrill";
+      acClassName = "de.jpx3.intave.block.shape.pipe.drill.acbbs.v11AlwaysCollidingBoundingBox";
     } else if (MinecraftVersions.VER1_9_0.atOrAbove()) {
       drillClassName = "de.jpx3.intave.block.shape.pipe.drill.v9ShapeDrill";
       acClassName = "de.jpx3.intave.block.shape.pipe.drill.acbbs.v9AlwaysCollidingBoundingBox";

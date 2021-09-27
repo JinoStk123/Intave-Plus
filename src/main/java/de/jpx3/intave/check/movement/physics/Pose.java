@@ -21,7 +21,7 @@ public enum Pose {
   ;
 
   private static final Map<Pose, HitboxSize> SIZE_BY_POSE = ImmutableMap.<Pose, HitboxSize>builder()
-    .put(STANDING, HitboxSize.player())
+    .put(STANDING, HitboxSize.playerDefault())
     .put(SLEEPING, HitboxSize.of(0.2f, 0.2f))
     .put(FALL_FLYING, HitboxSize.of(0.6f, 0.6f))
     .put(SWIMMING, HitboxSize.of(0.6f, 0.6f))
@@ -81,7 +81,7 @@ public enum Pose {
     if (simulator == Simulators.BOAT) {
       return 0.5625F;
     }
-    return size(user).length();
+    return size(user).height();
   }
 
   private HitboxSize size(User user) {

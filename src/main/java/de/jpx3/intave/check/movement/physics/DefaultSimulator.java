@@ -37,7 +37,8 @@ public class DefaultSimulator extends Simulator {
   public ComplexColliderSimulationResult performSimulation(
     User user, Motion motion,
     float forward, float strafe,
-    boolean attackReduce, boolean jumped, boolean handActive
+    boolean attackReduce, boolean sprinting,
+    boolean jumped, boolean handActive
   ) {
     MetadataBundle meta = user.meta();
     MovementMetadata movementData = meta.movement();
@@ -105,7 +106,7 @@ public class DefaultSimulator extends Simulator {
       }
     }
     if (inWater) {
-      performSimulationInWaterOfState(user, motion, forward, strafe, yawSine, yawCosine);
+      performSimulationInWaterOfState(user, motion, sprinting, forward, strafe, yawSine, yawCosine);
     } else if (inLava) {
       performLavaSimulationOfState(user, motion, forward, strafe, yawSine, yawCosine);
     } else {
@@ -136,6 +137,7 @@ public class DefaultSimulator extends Simulator {
 
   private void performSimulationInWaterOfState(
     User user, Motion context,
+    boolean sprinting,
     float moveForward, float moveStrafe,
     float yawSine, float yawCosine
   ) {
@@ -150,7 +152,7 @@ public class DefaultSimulator extends Simulator {
       f3 *= 0.5F;
     }
     if (f3 > 0.0F) {
-      f2 += (movementData.aiMoveSpeed() - f2) * f3 / 3.0F;
+      f2 += (movementData.aiMoveSpeed(sprinting) - f2) * f3 / 3.0F;
     }
     performRelativeMoveSimulationOfState(context, f2, yawSine, yawCosine, moveForward, moveStrafe);
   }

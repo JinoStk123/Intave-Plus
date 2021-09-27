@@ -2,8 +2,8 @@ package de.jpx3.intave.entity.size;
 
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.adapter.MinecraftVersions;
-import de.jpx3.intave.clazz.rewrite.PatchyAutoTranslation;
-import de.jpx3.intave.clazz.rewrite.PatchyLoadingInjector;
+import de.jpx3.intave.klass.rewrite.PatchyAutoTranslation;
+import de.jpx3.intave.klass.rewrite.PatchyLoadingInjector;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftEntity;
 import org.bukkit.entity.Entity;
 
@@ -20,25 +20,25 @@ public final class HitboxSizeAccess {
   }
 
   public static HitboxSize dimensionsOf(Entity entity) {
-    return resolver.hitBoxOf(entity);
+    return resolver.sizeOf(entity);
   }
 
   public static HitboxSize dimensionsOf(Object serverEntity) {
-    return resolver.hitBoxOf(serverEntity);
+    return resolver.sizeOf(serverEntity);
   }
 
   @PatchyAutoTranslation
   public static final class HitBoxAccessLegacy implements HitboxSizeResolver {
     @PatchyAutoTranslation
     @Override
-    public HitboxSize hitBoxOf(Entity entity) {
+    public HitboxSize sizeOf(Entity entity) {
       net.minecraft.server.v1_8_R3.Entity serverEntity = ((CraftEntity) entity).getHandle();
       return HitboxSize.of(serverEntity.width, serverEntity.length);
     }
 
     @PatchyAutoTranslation
     @Override
-    public HitboxSize hitBoxOf(Object serverEntity) {
+    public HitboxSize sizeOf(Object serverEntity) {
       net.minecraft.server.v1_8_R3.Entity theServerEntity =
         (net.minecraft.server.v1_8_R3.Entity) (serverEntity);
       return HitboxSize.of(theServerEntity.width, theServerEntity.length);
@@ -49,14 +49,14 @@ public final class HitboxSizeAccess {
   public static final class HitBoxAccessModern implements HitboxSizeResolver {
     @PatchyAutoTranslation
     @Override
-    public HitboxSize hitBoxOf(Entity entity) {
+    public HitboxSize sizeOf(Entity entity) {
       net.minecraft.server.v1_14_R1.Entity serverEntity = ((org.bukkit.craftbukkit.v1_14_R1.entity.CraftEntity) entity).getHandle();
       return HitboxSize.of(serverEntity.getWidth(), serverEntity.getHeight());
     }
 
     @PatchyAutoTranslation
     @Override
-    public HitboxSize hitBoxOf(Object serverEntity) {
+    public HitboxSize sizeOf(Object serverEntity) {
       float width = ((net.minecraft.server.v1_14_R1.Entity) (serverEntity)).getWidth();
       float length = ((net.minecraft.server.v1_14_R1.Entity) (serverEntity)).getHeight();
       return HitboxSize.of(width, length);

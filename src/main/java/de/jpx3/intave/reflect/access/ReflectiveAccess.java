@@ -1,7 +1,7 @@
 package de.jpx3.intave.reflect.access;
 
 import de.jpx3.intave.IntavePlugin;
-import de.jpx3.intave.clazz.rewrite.PatchyLoadingInjector;
+import de.jpx3.intave.klass.rewrite.PatchyLoadingInjector;
 
 @Deprecated
 public final class ReflectiveAccess {

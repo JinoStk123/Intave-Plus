@@ -2,8 +2,8 @@ package de.jpx3.intave.world.raytrace;
 
 import de.jpx3.intave.block.state.BlockState;
 import de.jpx3.intave.block.state.BlockStateAccess;
-import de.jpx3.intave.clazz.rewrite.PatchyAutoTranslation;
-import de.jpx3.intave.clazz.rewrite.PatchyTranslateParameters;
+import de.jpx3.intave.klass.rewrite.PatchyAutoTranslation;
+import de.jpx3.intave.klass.rewrite.PatchyTranslateParameters;
 import de.jpx3.intave.shade.MovingObjectPosition;
 import de.jpx3.intave.shade.NativeVector;
 import de.jpx3.intave.user.UserRepository;

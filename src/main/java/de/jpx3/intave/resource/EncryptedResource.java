@@ -3,8 +3,8 @@ package de.jpx3.intave.resource;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.access.IntaveInternalException;
 import de.jpx3.intave.annotate.Native;
-import de.jpx3.intave.clazz.trace.Caller;
-import de.jpx3.intave.clazz.trace.PluginInvocation;
+import de.jpx3.intave.klass.trace.Caller;
+import de.jpx3.intave.klass.trace.PluginInvocation;
 import de.jpx3.intave.security.ContextSecrets;
 
 import javax.crypto.Cipher;

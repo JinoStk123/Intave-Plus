@@ -41,7 +41,7 @@ public final class PredictionSimulationProcessor implements SimulationProcessor 
     return simulateWithKeyPress(user, simulator, clientInputKey, clientStrafeKey, jump);
   }
 
-  private final static double REQUIRED_ACCURACY_FOR_QUICK_PROC_EXIT = 0.001;
+  private final static double REQUIRED_ACCURACY_FOR_QUICK_PROC_EXIT = 0.002;
   private final static double REQUIRED_ACCURACY_FOR_FLYING_PROC_EXIT = 0.02;
 
   private ComplexColliderSimulationResult performKeyComparisonSimulation(User user, Simulator simulator) {
@@ -110,7 +110,7 @@ public final class PredictionSimulationProcessor implements SimulationProcessor 
     motion.resetTo(movementData);
     return simulator.performSimulation(
       user, motion,
-      forward, strafe, false, jumped,
+      forward, strafe, false, movementData.sprintingAllowed(), jumped,
       meta.inventory().handActive()
     );
   }
@@ -126,10 +126,11 @@ public final class PredictionSimulationProcessor implements SimulationProcessor 
     double lastMotionX = movementData.physicsMotionX;
     double lastMotionZ = movementData.physicsMotionZ;
     boolean jumped = false;
+    boolean sprinting = movementData.sprintingAllowed() || movementData.hasSprintSpeed;
     if (movementData.lastOnGround && !movementData.denyJump()) {
       double motionY = movementData.motionY();
       jumped = Math.abs(motionY - 0.2) < 1e-5 || motionY == movementData.jumpMotion();
-      if (jumped && movementData.sprinting) {
+      if (jumped && sprinting) {
         lastMotionX -= movementData.yawSine() * 0.2f;
         lastMotionZ += movementData.yawCosine() * 0.2f;
       }
@@ -157,7 +158,7 @@ public final class PredictionSimulationProcessor implements SimulationProcessor 
     int keyStrafe = strafeKeyFrom(directionPrediction);
     boolean handActive = inventoryData.handActive();
     boolean attackReduce = !AttackDispatcher.REDUCING_DISABLED && movementData.sprintingAllowed() && movementData.pastPlayerAttackPhysics == 0;
-    if (movementData.sprinting && keyForward != 1) {
+    if (sprinting && keyForward != 1) {
       keyForward = 0;
       keyStrafe = 0;
     }
@@ -172,7 +173,7 @@ public final class PredictionSimulationProcessor implements SimulationProcessor 
     movementData.keyForward = keyForward;
     movementData.keyStrafe = keyStrafe;
     ComplexColliderSimulationResult simulationResult =
-      simulator.performSimulation(user, motionVector, moveForward, moveStrafe, attackReduce, jumped, handActive);
+      simulator.performSimulation(user, motionVector, moveForward, moveStrafe, attackReduce, sprinting, jumped, handActive);
     Timings.CHECK_PHYSICS_PROC_PRED_BIA.stop();
     Timings.CHECK_PHYSICS_PROC_BIA.stop();
     return simulationResult;
@@ -248,7 +249,8 @@ public final class PredictionSimulationProcessor implements SimulationProcessor 
 
     boolean handActive = inventoryData.handActive();
     boolean attackReduce = !AttackDispatcher.REDUCING_DISABLED && movementData.sprintingAllowed() && user.meta().movement().pastPlayerAttackPhysics == 0;
-    if (movementData.sprinting && keyForward != 1) {
+    boolean sprinting = movementData.sprinting;
+    if (sprinting && keyForward != 1) {
       keyForward = 0;
       keyStrafe = 0;
     }
@@ -262,7 +264,7 @@ public final class PredictionSimulationProcessor implements SimulationProcessor 
     motion.resetTo(movementData);
     movementData.keyForward = keyForward;
     movementData.keyStrafe = keyStrafe;
-    ComplexColliderSimulationResult simulationResult = simulator.performSimulation(user, motion, moveForward, moveStrafe, attackReduce, jumped, handActive);
+    ComplexColliderSimulationResult simulationResult = simulator.performSimulation(user, motion, moveForward, moveStrafe, attackReduce, sprinting, jumped, handActive);
     Timings.CHECK_PHYSICS_PROC_LK_BIA.stop();
     Timings.CHECK_PHYSICS_PROC_BIA.stop();
     return simulationResult;
@@ -270,6 +272,7 @@ public final class PredictionSimulationProcessor implements SimulationProcessor 
 
   private final static boolean[] OPTIMISTIC_BOOLEAN_ORDER = new boolean[]{true, false};
   private final static boolean[] PESSIMISTIC_BOOLEAN_ORDER = new boolean[]{false, true};
+  private final static boolean[] NEVER = new boolean[]{false};
 
   private final static int[][] KEYS_USAGE_ORDERED = {{1, 0}, {0, 0}, {1, -1}, {1, 1}, {0, -1}, {0, 1}, {-1, -1}, {-1, 0}, {-1, 1}};
 
@@ -283,54 +286,72 @@ public final class PredictionSimulationProcessor implements SimulationProcessor 
     boolean inLava = movementData.inLava();
     boolean inWater = movementData.inWater;
     boolean lastOnGround = movementData.lastOnGround;
-    boolean estimatedJump = Math.abs(movementData.motionY() - 0.2) < 1e-5 || movementData.motionY() == movementData.jumpMotion();
+    boolean estimatedJump = Math.abs(movementData.motionY() - (1 - user.sizeOf(movementData.pose()).height() % 1)) < 1e-5 || movementData.motionY() == movementData.jumpMotion();
     boolean skipUseItem = !clientData.sprintWhenHandActive() && movementData.sprinting;
 
     int iterativeRuns = 0;
+    int nearestForwardKey = -2, nearestStrafeKey = -2;
+    double nearestKeyDistance = Double.MAX_VALUE;
 
     SIMULATION:
-    for (boolean useItemState : inventoryData.handActive() ? OPTIMISTIC_BOOLEAN_ORDER : PESSIMISTIC_BOOLEAN_ORDER) {
-      if (skipUseItem && useItemState) {
-        continue;
-      }
-      IterativeStudy.USE_ITEM_ITERATOR.run();
-      for (boolean attackReduce : PESSIMISTIC_BOOLEAN_ORDER) {
-        if (attackReduce && (movementData.pastPlayerAttackPhysics >= 1 || AttackDispatcher.REDUCING_DISABLED)) {
+    for (boolean sprinting : movementData.sprintingAllowed() || movementData.hasSprintSpeed ? /* surprisingly pessimistic */ PESSIMISTIC_BOOLEAN_ORDER : NEVER) {
+      for (boolean useItemState : inventoryData.handActive() ? OPTIMISTIC_BOOLEAN_ORDER : PESSIMISTIC_BOOLEAN_ORDER) {
+        if (skipUseItem && useItemState) {
           continue;
         }
-        IterativeStudy.ATTACK_REDUCE_ITERATOR.run();
-        for (boolean jumped : estimatedJump ? OPTIMISTIC_BOOLEAN_ORDER : PESSIMISTIC_BOOLEAN_ORDER) {
-          // Jumps are only allowed on the ground :(
-          if (jumped && !lastOnGround && !inLava && !inWater) {
+        IterativeStudy.USE_ITEM_ITERATOR.run();
+        for (boolean attackReduce : PESSIMISTIC_BOOLEAN_ORDER) {
+          if (attackReduce && (movementData.pastPlayerAttackPhysics >= 1 || AttackDispatcher.REDUCING_DISABLED)) {
             continue;
           }
-          if (jumped && movementData.denyJump()) {
-            continue;
-          }
-          IterativeStudy.JUMP_ITERATOR.run();
-          for (int i = 0; i < 9; i++) {
-            int[] keyPair = KEYS_USAGE_ORDERED[i];
-            int keyForward = keyPair[0];
-            int keyStrafe = keyPair[1];
-            if (movementData.sprinting && keyForward != 1) {
+          IterativeStudy.ATTACK_REDUCE_ITERATOR.run();
+          for (boolean jumped : estimatedJump ? OPTIMISTIC_BOOLEAN_ORDER : PESSIMISTIC_BOOLEAN_ORDER) {
+            // Jumps are only allowed on the ground :(
+            if (jumped && !lastOnGround && !inLava && !inWater) {
               continue;
             }
-            iterativeRuns++;
-            simulateIterativeState(
-              simulator,
-              user,
-              movementData,
-              inventoryData,
-              simulationStack,
-              keyForward,
-              keyStrafe,
-              attackReduce,
-              jumped,
-              useItemState,
-              false
-            );
-            if (simulationStack.smallestDistance() <= (movementData.recentlyEncounteredFlyingPacket(2) ? REQUIRED_ACCURACY_FOR_FLYING_PROC_EXIT : REQUIRED_ACCURACY_FOR_QUICK_PROC_EXIT)) {
-              break SIMULATION;
+            if (jumped && movementData.denyJump()) {
+              continue;
+            }
+            IterativeStudy.JUMP_ITERATOR.run();
+            boolean hasKeyEstimate = nearestKeyDistance < 1;
+            for (int i = (hasKeyEstimate ? -1 : 0); i < 9; i++) {
+              int keyForward;
+              int keyStrafe;
+              if (i >= 0) {
+                int[] keyPair = KEYS_USAGE_ORDERED[i];
+                keyForward = keyPair[0];
+                keyStrafe = keyPair[1];
+                if (hasKeyEstimate && keyForward == nearestForwardKey && keyStrafe == nearestStrafeKey) {
+                  continue;
+                }
+              } else {
+                keyForward = nearestForwardKey;
+                keyStrafe = nearestStrafeKey;
+              }
+              if (sprinting && keyForward != 1) {
+                continue;
+              }
+              iterativeRuns++;
+              double distance = simulateIterativeState(
+                simulator,
+                user,
+                movementData,
+                inventoryData,
+                simulationStack,
+                keyForward, keyStrafe,
+                attackReduce, sprinting,
+                jumped, useItemState,
+                false
+              );
+              if (distance < nearestKeyDistance) {
+                nearestKeyDistance = distance;
+                nearestForwardKey = keyForward;
+                nearestStrafeKey = keyStrafe;
+              }
+              if (simulationStack.smallestDistance() <= (movementData.recentlyEncounteredFlyingPacket(2) ? REQUIRED_ACCURACY_FOR_FLYING_PROC_EXIT : REQUIRED_ACCURACY_FOR_QUICK_PROC_EXIT)) {
+                break SIMULATION;
+              }
             }
           }
         }
@@ -348,6 +369,7 @@ public final class PredictionSimulationProcessor implements SimulationProcessor 
         false,
         false,
         false,
+        false,
         true
       );
     }
@@ -357,6 +379,10 @@ public final class PredictionSimulationProcessor implements SimulationProcessor 
     IterativeStudy.enterTrials(iterativeRuns);
     Timings.CHECK_PHYSICS_PROC_ITR.stop();
     return simulationStack;
+  }
+
+  private static String shortenBoolean(boolean bool) {
+    return bool ? "1" : "0";
   }
 
   private static String resolveKeysFromInput(int forward, int strafe) {
@@ -382,7 +408,7 @@ public final class PredictionSimulationProcessor implements SimulationProcessor 
     );
   }
 
-  private void simulateIterativeState(
+  private double simulateIterativeState(
     Simulator simulator,
     User user,
     MovementMetadata movementData,
@@ -392,6 +418,7 @@ public final class PredictionSimulationProcessor implements SimulationProcessor 
     int keyStrafe,
     boolean attackReduce,
     boolean jumped,
+    boolean sprinting,
     boolean handActive,
     boolean forceApply
   ) {
@@ -401,13 +428,14 @@ public final class PredictionSimulationProcessor implements SimulationProcessor 
     motionVector.resetTo(movementData);
     ComplexColliderSimulationResult collisionResult = simulator.performSimulation(
       user, motionVector, moveForward, moveStrafe,
-      attackReduce, jumped, handActive
+      attackReduce, sprinting, jumped, handActive
     );
     Motion predictedMotion = collisionResult.motion();
     double distance = compareReceivedMotionWithMotion(user, predictedMotion);
     if (forceApply || inventoryData.handActive() == handActive || distance < 0.001) {
       result.tryAppendToState(collisionResult, distance, keyForward, keyStrafe, attackReduce, jumped, handActive);
     }
+    return distance;
   }
 
 }

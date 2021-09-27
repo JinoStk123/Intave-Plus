@@ -27,8 +27,8 @@ public final class BoatSimulator extends DefaultSimulator {
     User user,
     Motion motion,
     float keyForward, float keyStrafe,
-    boolean attackReduce, boolean jumped,
-    boolean handActive
+    boolean attackReduce, boolean sprinting,
+    boolean jumped, boolean handActive
   ) {
     MovementMetadata movement = user.meta().movement();
 
@@ -135,11 +135,11 @@ public final class BoatSimulator extends DefaultSimulator {
     } else {
       switch (movement.boatStatus) {
         case IN_WATER:
-           d2 = (movement.waterLevel - movement.verifiedPositionY) / (double) movement.height;
+          d2 = (movement.waterLevel - movement.verifiedPositionY) / (double) movement.height;
           movement.momentum = 0.9f;
           break;
         case UNDER_FLOWING_WATER:
-          d1 = -7.0E-4D;
+          d1 = -0.0007;
           movement.momentum = 0.9F;
           break;
         case UNDER_WATER:

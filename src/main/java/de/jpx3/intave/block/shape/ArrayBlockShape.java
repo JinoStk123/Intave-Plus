@@ -49,8 +49,7 @@ public final class ArrayBlockShape extends MemoryTraced implements BlockShape {
   public BlockShape contextualized(int posX, int posY, int posZ) {
     List<BlockShape> list = new ArrayList<>();
     for (BlockShape blockShape : contents) {
-      BlockShape contextualized = blockShape.contextualized(posX, posY, posZ);
-      list.add(contextualized);
+      list.add(blockShape.contextualized(posX, posY, posZ));
     }
     return new ArrayBlockShape(list);
   }
@@ -59,8 +58,7 @@ public final class ArrayBlockShape extends MemoryTraced implements BlockShape {
   public BlockShape normalized(int posX, int posY, int posZ) {
     List<BlockShape> list = new ArrayList<>();
     for (BlockShape blockShape : contents) {
-      BlockShape normalized = blockShape.normalized(posX, posY, posZ);
-      list.add(normalized);
+      list.add(blockShape.normalized(posX, posY, posZ));
     }
     return new ArrayBlockShape(list);
   }

@@ -1,8 +1,8 @@
 package de.jpx3.intave.player.fake;
 
 import de.jpx3.intave.access.IntaveInternalException;
-import de.jpx3.intave.clazz.Lookup;
 import de.jpx3.intave.executor.Synchronizer;
+import de.jpx3.intave.klass.Lookup;
 import org.bukkit.Bukkit;
 
 import java.lang.reflect.Field;

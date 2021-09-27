@@ -6,7 +6,7 @@ import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.adapter.MinecraftVersions;
 import de.jpx3.intave.annotate.KeepEnumInternalNames;
 import de.jpx3.intave.check.MetaCheck;
-import de.jpx3.intave.clazz.Lookup;
+import de.jpx3.intave.klass.Lookup;
 import de.jpx3.intave.math.Hypot;
 import de.jpx3.intave.math.MathHelper;
 import de.jpx3.intave.module.Modules;

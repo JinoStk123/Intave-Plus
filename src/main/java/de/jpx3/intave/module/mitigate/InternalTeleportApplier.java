@@ -2,7 +2,7 @@ package de.jpx3.intave.module.mitigate;
 
 import de.jpx3.intave.access.IntaveInternalException;
 import de.jpx3.intave.adapter.MinecraftVersions;
-import de.jpx3.intave.clazz.Lookup;
+import de.jpx3.intave.klass.Lookup;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserRepository;
 import org.bukkit.Location;

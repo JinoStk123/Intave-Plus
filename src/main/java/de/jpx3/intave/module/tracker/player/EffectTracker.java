@@ -10,11 +10,8 @@ import de.jpx3.intave.module.linker.packet.PacketSubscription;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserRepository;
 import de.jpx3.intave.user.meta.EffectMetadata;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffectType;
-
-import java.util.Objects;
 
 import static de.jpx3.intave.module.linker.packet.PacketId.Server.ENTITY_EFFECT;
 import static de.jpx3.intave.module.linker.packet.PacketId.Server.REMOVE_ENTITY_EFFECT;
@@ -33,8 +30,8 @@ public final class EffectTracker extends Module {
   public void sentRemoveEffect(PacketEvent event) {
     Player player = event.getPlayer();
     PacketContainer packet = event.getPacket();
-    Entity entity = packet.getEntityModifier(event).read(0);
-    if (!Objects.equals(entity, player)) {
+    int entityId = packet.getIntegers().read(0);
+    if (entityId != player.getEntityId()) {
       return;
     }
     PotionEffectType potionEffectType = effectIdOf(packet);
@@ -60,8 +57,8 @@ public final class EffectTracker extends Module {
   public void sentEffect(PacketEvent event) {
     Player player = event.getPlayer();
     PacketContainer packet = event.getPacket();
-    Entity entity = packet.getEntityModifier(event).read(0);
-    if (!Objects.equals(entity, player)) {
+    int entityId = packet.getIntegers().read(0);
+    if (entityId != player.getEntityId()) {
       return;
     }
 

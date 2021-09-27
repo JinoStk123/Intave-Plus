@@ -29,6 +29,51 @@ import static de.jpx3.intave.shade.ClientMathHelper.floor;
 @Relocate
 @DoNotFlowObfuscate
 public final class Collision {
+  public static BlockShape colliderShapeFor(Player player, BoundingBox playerBoundingBox) {
+    int minX = floor(playerBoundingBox.minX);
+    int maxX = floor(playerBoundingBox.maxX);
+    int minY = floor(playerBoundingBox.minY);
+    int maxY = floor(playerBoundingBox.maxY);
+    int minZ = floor(playerBoundingBox.minZ);
+    int maxZ = floor(playerBoundingBox.maxZ);
+    int ystart = Math.max(minY - 1, 0);
+    User user = UserRepository.userOf(player);
+    World world = player.getWorld();
+    MovementMetadata movementData = user.meta().movement();
+    ShapeCombiner shapeCombiner = ShapeCombiner.create();
+    BlockStateAccess stateAccess = user.blockShapeAccess();
+    boolean outsideBorderLast = movementData.outsideBorder;
+    boolean outsideBorderCurrent = playerOutsideBorder(user);
+    if (outsideBorderLast && outsideBorderCurrent) {
+      movementData.outsideBorder = false;
+    } else if (!outsideBorderLast && !outsideBorderCurrent) {
+      movementData.outsideBorder = true;
+    }
+    for (int x = minX; x <= maxX; ++x) {
+      for (int z = minZ; z <= maxZ; ++z) {
+        for (int y = ystart; y <= maxY; ++y) {
+          BlockShape resolve = stateAccess.resolveShape(x, y, z);
+          Material material = stateAccess.resolveType(x >> 4, z >> 4, x, y, z);
+          if (CollisionModifiers.isModified(material)) {
+            // this should not happen too often
+            resolve = BlockShapes.shapeOf(CollisionModifiers.modified(material, user, playerBoundingBox, x, y, z, resolve.boundingBoxes()));
+          }
+          boolean blockOutsideBorder = !blockInsideBorder(world, x, z);
+          if (blockOutsideBorder && !movementData.outsideBorder) {
+            BoundingBox borderShape = BoundingBox.fromBounds(x, y, z, x + 1, y, z + 1);
+            if (borderShape.intersectsWith(playerBoundingBox)) {
+              shapeCombiner = shapeCombiner.append(borderShape);
+            }
+          }
+          if (resolve.intersectsWith(playerBoundingBox)) {
+            shapeCombiner = shapeCombiner.append(resolve);
+          }
+        }
+      }
+    }
+    return shapeCombiner.compile();
+  }
+
   public static boolean present(Player player, BoundingBox playerBox) {
     return !nonePresent(player, playerBox);
   }
@@ -41,21 +86,17 @@ public final class Collision {
     int minZ = floor(playerBox.minZ);
     int maxZ = floor(playerBox.maxZ);
     int ystart = Math.max(minY - 1, 0);
-
     User user = UserRepository.userOf(player);
     World world = player.getWorld();
     BlockStateAccess blockStateAccess = user.blockShapeAccess();
     MovementMetadata movementData = user.meta().movement();
-
     boolean outsideBorderLast = movementData.outsideBorder;
     boolean outsideBorderCurrent = playerOutsideBorder(user);
-
     if (outsideBorderLast && outsideBorderCurrent) {
       movementData.outsideBorder = false;
     } else if (!outsideBorderLast && !outsideBorderCurrent) {
       movementData.outsideBorder = true;
     }
-
     for (int x = minX; x <= maxX; ++x) {
       for (int z = minZ; z <= maxZ; ++z) {
         for (int y = ystart; y <= maxY; ++y) {
@@ -76,13 +117,15 @@ public final class Collision {
         }
       }
     }
-
     return true;
   }
 
   private static boolean intersects(BoundingBox boundingBox, int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
     return boundingBox.maxX > minX && boundingBox.minX < maxX && (boundingBox.maxY > minY && boundingBox.minY < maxY && boundingBox.maxZ > minZ && boundingBox.minZ < maxZ);
   }
+
+  private final static ShapeResolverPipeline boundingBoxResolver = ShapeResolver.pipelineHead();
+
 
   @Deprecated
   // I suck, please remove
@@ -93,25 +136,19 @@ public final class Collision {
     int maxY = floor(playerBoundingBox.maxY + 1.0D);
     int minZ = floor(playerBoundingBox.minZ);
     int maxZ = floor(playerBoundingBox.maxZ + 1.0D);
-
     int ystart = Math.max(minY - 1, 0);
-
     List<BoundingBox> resolvedBoundingBoxes = null;
     User user = UserRepository.userOf(player);
     MovementMetadata movementData = user.meta().movement();
-
     boolean outsideBorderLast = movementData.outsideBorder;
     boolean outsideBorderCurrent = playerOutsideBorder(user);
-
     if (outsideBorderLast && outsideBorderCurrent) {
       movementData.outsideBorder = false;
     } else if (!outsideBorderLast && !outsideBorderCurrent) {
       movementData.outsideBorder = true;
     }
-
     BlockStateAccess stateAccess = user.blockShapeAccess();
     World world = player.getWorld();
-
     // this looks 1000x slower than it actually is
     for (int chunkx = minX >> 4; chunkx <= maxX - 1 >> 4; ++chunkx) {
       int chunkXPos = chunkx << 4;
@@ -160,56 +197,6 @@ public final class Collision {
     }
     return resolvedBoundingBoxes;
   }
-
-  public static BlockShape colliderShapeFor(Player player, BoundingBox playerBoundingBox) {
-    int minX = floor(playerBoundingBox.minX);
-    int maxX = floor(playerBoundingBox.maxX);
-    int minY = floor(playerBoundingBox.minY);
-    int maxY = floor(playerBoundingBox.maxY);
-    int minZ = floor(playerBoundingBox.minZ);
-    int maxZ = floor(playerBoundingBox.maxZ);
-    int ystart = Math.max(minY - 1, 0);
-
-    User user = UserRepository.userOf(player);
-    World world = player.getWorld();
-    MovementMetadata movementData = user.meta().movement();
-    ShapeCombiner shapeCombiner = ShapeCombiner.create();
-    BlockStateAccess stateAccess = user.blockShapeAccess();
-
-    boolean outsideBorderLast = movementData.outsideBorder;
-    boolean outsideBorderCurrent = playerOutsideBorder(user);
-    if (outsideBorderLast && outsideBorderCurrent) {
-      movementData.outsideBorder = false;
-    } else if (!outsideBorderLast && !outsideBorderCurrent) {
-      movementData.outsideBorder = true;
-    }
-
-    for (int x = minX; x <= maxX; ++x) {
-      for (int z = minZ; z <= maxZ; ++z) {
-        for (int y = ystart; y <= maxY; ++y) {
-          BlockShape resolve = stateAccess.resolveShape(x, y, z);
-          Material material = stateAccess.resolveType(x >> 4, z >> 4, x, y, z);
-          if (CollisionModifiers.isModified(material)) {
-            // this should not happen too often
-            resolve = BlockShapes.shapeOf(CollisionModifiers.modified(material, user, playerBoundingBox, x, y, z, resolve.boundingBoxes()));
-          }
-          boolean blockOutsideBorder = !blockInsideBorder(world, x, z);
-          if (blockOutsideBorder && !movementData.outsideBorder) {
-            BoundingBox borderShape = BoundingBox.fromBounds(x, y, z, x + 1, y, z + 1);
-            if (borderShape.intersectsWith(playerBoundingBox)) {
-              shapeCombiner = shapeCombiner.append(borderShape);
-            }
-          }
-          if (resolve.intersectsWith(playerBoundingBox)) {
-            shapeCombiner = shapeCombiner.append(resolve);
-          }
-        }
-      }
-    }
-    return shapeCombiner.compile();
-  }
-
-  private final static ShapeResolverPipeline boundingBoxResolver = ShapeResolver.pipelineHead();
 
   @Deprecated
   public static List<BoundingBox> __INVALID__resolveBoxes(
@@ -313,7 +300,7 @@ public final class Collision {
     return boundingBoxes.intersectsWith(playerBox);
   }
 
-  public static boolean nearBySolidBlock(
+  public static boolean nearSolidBlock(
     World world,
     BoundingBox boundingBox
   ) {

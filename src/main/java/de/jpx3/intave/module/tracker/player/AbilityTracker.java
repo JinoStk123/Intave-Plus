@@ -3,7 +3,7 @@ package de.jpx3.intave.module.tracker.player;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import de.jpx3.intave.adapter.MinecraftVersions;
-import de.jpx3.intave.clazz.Lookup;
+import de.jpx3.intave.klass.Lookup;
 import de.jpx3.intave.module.Module;
 import de.jpx3.intave.module.Modules;
 import de.jpx3.intave.module.linker.packet.ListenerPriority;

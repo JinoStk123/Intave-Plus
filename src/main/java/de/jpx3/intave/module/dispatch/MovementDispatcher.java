@@ -574,7 +574,7 @@ public final class MovementDispatcher extends Module {
     FeedbackCallback<Integer> callback = (x, foodLevel) -> {
       MetadataBundle meta = user.meta();
       if (foodLevel <= 6) {
-        meta.movement().sprinting = false;
+        meta.movement().setSprinting(false);
       }
       meta.abilities().foodLevel = foodLevel;
     };
@@ -643,7 +643,8 @@ public final class MovementDispatcher extends Module {
     Player player = event.getPlayer();
     PacketContainer packet = event.getPacket();
     StructureModifier<Integer> integers = packet.getIntegers();
-    if (packet.getEntityModifier(event).readSafely(0) == player) {
+
+    if (packet.getIntegers().readSafely(0) == player.getEntityId()) {
       Vector velocity = new Vector(
         integers.readSafely(1) / 8000d,
         integers.readSafely(2) / 8000d,

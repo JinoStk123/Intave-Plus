@@ -71,14 +71,13 @@ public final class AbilityMetadata {
     int gameModeValue = gameMode.getValue();
     this.gameMode = Arrays.stream(AbilityTracker.GameMode.values())
       .filter(mode -> mode.id() == gameModeValue)
-      .findFirst()
-      .orElse(AbilityTracker.GameMode.NOT_SET);
+      .findFirst().orElse(AbilityTracker.GameMode.NOT_SET);
     this.pendingGameMode = this.gameMode;
   }
 
   public void setupAttributes() {
     boolean atLeastMinecraft16 = MinecraftVersions.VER1_16_0.atOrAbove();
-    setupAttribute("generic.movementSpeed", atLeastMinecraft16 ? (double) 0.1F : 0.1);
+    setupAttribute("generic.movementSpeed", atLeastMinecraft16 ? (double) 0.1F : 0.1D);
   }
 
   private void setupAttribute(String name, double baseValue) {

@@ -31,6 +31,7 @@ import de.jpx3.intave.module.tracker.player.AbilityTracker;
 import de.jpx3.intave.module.violation.Violation;
 import de.jpx3.intave.module.violation.ViolationContext;
 import de.jpx3.intave.packet.reader.BlockInteractionReader;
+import de.jpx3.intave.packet.reader.EntityReader;
 import de.jpx3.intave.packet.reader.PacketReaders;
 import de.jpx3.intave.player.ItemProperties;
 import de.jpx3.intave.shade.*;
@@ -513,7 +514,9 @@ public final class InteractionRaytrace extends MetaCheck<InteractionRaytrace.Int
 //    Player player = event.getPlayer();
 //    User user = userOf(player);
     PacketContainer packet = event.getPacket();
-    Entity entity = packet.getEntityModifier(event).read(0);
+    EntityReader entityReader = PacketReaders.readerOf(packet);
+    Entity entity = entityReader.readEntity(event);
+    entityReader.close();
 
     if (entity instanceof Player && UserRepository.hasUser((Player) entity)) {
       User breakingUser = UserRepository.userOf((Player) entity);

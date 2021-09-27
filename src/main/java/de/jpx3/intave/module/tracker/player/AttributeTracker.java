@@ -12,6 +12,7 @@ import de.jpx3.intave.module.linker.packet.PacketSubscription;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserRepository;
 import de.jpx3.intave.user.meta.AbilityMetadata;
+import de.jpx3.intave.user.meta.MovementMetadata;
 import org.bukkit.entity.Player;
 
 import java.util.List;
@@ -29,23 +30,47 @@ public final class AttributeTracker extends Module {
     Player player = event.getPlayer();
     User user = UserRepository.userOf(player);
     PacketContainer packet = event.getPacket();
-    if (packet.getEntityModifier(event).readSafely(0) == player) {
+    if (packet.getIntegers().read(0) == player.getEntityId()) {
       StructureModifier<List<WrappedAttribute>> attributeModifier = packet.getAttributeCollectionModifier();
-      List<WrappedAttribute> attributes = filterAttributes(attributeModifier.read(0));
+      List<WrappedAttribute> attributes = patchAttributes(user, attributeModifier.read(0));
       attributeModifier.write(0, attributes);
       Modules.feedback().synchronize(player, attributes, (player1, target) -> target.forEach(attribute -> receivedAttribute(user, attribute)));
     }
   }
 
-  private List<WrappedAttribute> filterAttributes(List<WrappedAttribute> attributes) {
+//  private final static UUID SPRINTING_MODIFIER_ID = UUID.fromString("662A6B8D-DA3E-4C1C-8813-96EA6097278D");
+//  private final static WrappedAttributeModifier SPRINTING_MODIFIER = WrappedAttributeModifier.newBuilder(SPRINTING_MODIFIER_ID).amount(0.3F).operation(ADD_PERCENTAGE).name("Sprint Boost").build();
+
+  private List<WrappedAttribute> patchAttributes(User user, List<WrappedAttribute> attributes) {
+//    MetadataBundle meta = user.meta();
+//    AbilityMetadata abilities = meta.abilities();
+//    MovementMetadata movement = meta.movement();
+//    for (int i = 0; i < attributes.size(); i++) {
+//      WrappedAttribute attribute = attributes.get(i);
+//      boolean sprinting = movement.sprinting;
+//      if (abilities.findAttribute(attribute.getAttributeKey()) != null) {
+//        boolean setsSprinting = attribute.getModifiers().contains(SPRINTING_MODIFIER);
+//        if (sprinting && !setsSprinting) {
+//          Set<WrappedAttributeModifier> modifiers = new HashSet<>(attribute.getModifiers());
+//          modifiers.add(SPRINTING_MODIFIER);
+//          attributes.set(i, attribute.withModifiers(modifiers));
+//        } else if (!sprinting && setsSprinting) {
+//          Set<WrappedAttributeModifier> modifiers = new HashSet<>(attribute.getModifiers());
+//          modifiers.remove(SPRINTING_MODIFIER);
+//          attributes.set(i, attribute.withModifiers(modifiers));
+//        }
+//      }
+//    }
     return attributes;
   }
 
   private void receivedAttribute(User user, WrappedAttribute attribute) {
-    AbilityMetadata abilityData = user.meta().abilities();
-    if (abilityData.findAttribute(attribute.getAttributeKey()) != null) {
-      List<WrappedAttributeModifier> modifiers = abilityData.modifiersOf(attribute);
+    AbilityMetadata abilities = user.meta().abilities();
+    MovementMetadata movement = user.meta().movement();
+    if (abilities.findAttribute(attribute.getAttributeKey()) != null) {
+      List<WrappedAttributeModifier> modifiers = abilities.modifiersOf(attribute);
       modifiers.clear();
+      movement.hasSprintSpeed = attribute.getModifiers().contains(MovementMetadata.SPRINTING_MODIFIER);
       modifiers.addAll(attribute.getModifiers());
     }
   }

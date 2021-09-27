@@ -2,7 +2,7 @@ package de.jpx3.intave.block.fluid;
 
 import de.jpx3.intave.access.IntaveInternalException;
 import de.jpx3.intave.annotate.KeepEnumInternalNames;
-import de.jpx3.intave.clazz.Lookup;
+import de.jpx3.intave.klass.Lookup;
 
 @KeepEnumInternalNames
 public enum FluidTag {

@@ -2,7 +2,7 @@ package de.jpx3.intave.block.shape.pipe.drill;
 
 import de.jpx3.intave.block.shape.BlockShape;
 import de.jpx3.intave.block.shape.BlockShapes;
-import de.jpx3.intave.clazz.rewrite.PatchyAutoTranslation;
+import de.jpx3.intave.klass.rewrite.PatchyAutoTranslation;
 import net.minecraft.server.v1_13_R2.*;
 import org.bukkit.Material;
 import org.bukkit.World;

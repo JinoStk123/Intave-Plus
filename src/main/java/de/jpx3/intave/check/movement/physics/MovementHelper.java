@@ -41,7 +41,7 @@ public final class MovementHelper {
 
   @Deprecated
   @IdoNotBelongHere
-  public static float resolveFriction(User user, double positionX, double positionY, double positionZ) {
+  public static float resolveFriction(User user, boolean sprinting, double positionX, double positionY, double positionZ) {
     MovementMetadata movementData = user.meta().movement();
     World world = user.player().getWorld();
     float speed;
@@ -54,7 +54,7 @@ public final class MovementHelper {
       );
       float slipperiness = currentSlipperiness(user, location);
       float var4 = movementData.frictionMultiplier() / (slipperiness * slipperiness * slipperiness);
-      speed = movementData.aiMoveSpeed() * var4;
+      speed = movementData.aiMoveSpeed(sprinting) * var4;
     } else {
       speed = movementData.jumpMovementFactor();
     }

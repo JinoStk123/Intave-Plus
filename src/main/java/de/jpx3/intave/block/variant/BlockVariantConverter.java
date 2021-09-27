@@ -2,8 +2,8 @@ package de.jpx3.intave.block.variant;
 
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.adapter.MinecraftVersions;
-import de.jpx3.intave.clazz.rewrite.PatchyAutoTranslation;
-import de.jpx3.intave.clazz.rewrite.PatchyLoadingInjector;
+import de.jpx3.intave.klass.rewrite.PatchyAutoTranslation;
+import de.jpx3.intave.klass.rewrite.PatchyLoadingInjector;
 import net.minecraft.server.v1_14_R1.*;
 import org.bukkit.Material;
 

@@ -6,6 +6,8 @@ import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.module.linker.packet.PacketSubscription;
+import de.jpx3.intave.packet.reader.EntityReader;
+import de.jpx3.intave.packet.reader.PacketReaders;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 
@@ -33,7 +35,9 @@ public final class HealthFilter extends Filter {
         return;
       }
       PacketContainer packet = event.getPacket();
-      Entity entity = event.getPacket().getEntityModifier(event).readSafely(0);
+      EntityReader entityReader = PacketReaders.readerOf(packet);
+      Entity entity = entityReader.readEntity(event);
+      entityReader.close();
       if (entity == null) {
         return;
       }

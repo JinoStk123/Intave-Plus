@@ -2,7 +2,7 @@ package de.jpx3.intave.entity.datawatcher;
 
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.adapter.MinecraftVersions;
-import de.jpx3.intave.clazz.rewrite.PatchyLoadingInjector;
+import de.jpx3.intave.klass.rewrite.PatchyLoadingInjector;
 import org.bukkit.entity.Player;
 
 public final class DataWatcherAccess {

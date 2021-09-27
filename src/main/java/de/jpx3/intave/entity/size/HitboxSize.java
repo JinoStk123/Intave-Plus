@@ -2,11 +2,11 @@ package de.jpx3.intave.entity.size;
 
 public final class HitboxSize {
   private final float width;
-  private final float length;
+  private final float height;
 
-  private HitboxSize(float width, float length) {
+  private HitboxSize(float width, float height) {
     this.width = width;
-    this.length = length;
+    this.height = height;
   }
 
   public static HitboxSize of(float width, float length) {
@@ -17,7 +17,7 @@ public final class HitboxSize {
     return new HitboxSize(0, 0);
   }
 
-  public static HitboxSize player() {
+  public static HitboxSize playerDefault() {
     return new HitboxSize(0.6f, 1.8f);
   }
 
@@ -25,15 +25,15 @@ public final class HitboxSize {
     return width;
   }
 
-  public float length() {
-    return length;
+  public float height() {
+    return height;
   }
 
   @Override
   public String toString() {
-    return "HitBoxBoundaries{" +
+    return "HitboxSize{" +
       "width=" + width +
-      ", length=" + length +
+      ", height=" + height +
       '}';
   }
 }

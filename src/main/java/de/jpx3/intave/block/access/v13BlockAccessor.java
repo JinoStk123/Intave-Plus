@@ -2,7 +2,7 @@ package de.jpx3.intave.block.access;
 
 import com.comphenix.protocol.wrappers.BlockPosition;
 import de.jpx3.intave.block.variant.BlockVariantRegister;
-import de.jpx3.intave.clazz.rewrite.PatchyAutoTranslation;
+import de.jpx3.intave.klass.rewrite.PatchyAutoTranslation;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserRepository;
 import net.minecraft.server.v1_13_R2.Chunk;

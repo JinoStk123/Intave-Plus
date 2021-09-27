@@ -2,9 +2,9 @@ package de.jpx3.intave.entity.type;
 
 import de.jpx3.intave.access.IntaveInternalException;
 import de.jpx3.intave.adapter.MinecraftVersions;
-import de.jpx3.intave.clazz.Lookup;
-import de.jpx3.intave.clazz.rewrite.PatchyAutoTranslation;
 import de.jpx3.intave.entity.size.HitboxSize;
+import de.jpx3.intave.klass.Lookup;
+import de.jpx3.intave.klass.rewrite.PatchyAutoTranslation;
 import net.minecraft.server.v1_16_R1.EntitySize;
 import net.minecraft.server.v1_16_R1.EntityTypes;
 import net.minecraft.server.v1_16_R1.IChatBaseComponent;

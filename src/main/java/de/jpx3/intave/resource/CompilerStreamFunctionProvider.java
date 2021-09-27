@@ -20,7 +20,7 @@ public interface CompilerStreamFunctionProvider<O> extends Function<List<String>
     return fromStream(resource.read());
   }
 
-  default O fromWithinJar(String path) {
+  default O fromResourceInJar(String path) {
     InputStream resource = IntavePlugin.class.getResourceAsStream(path);
     if (resource == null) {
       resource = IntavePlugin.class.getResourceAsStream(path.substring(1));

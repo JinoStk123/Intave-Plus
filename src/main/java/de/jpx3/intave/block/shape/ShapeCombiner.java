@@ -5,7 +5,7 @@ import java.util.List;
 
 public final class ShapeCombiner {
   private final static ShapeCombiner EMPTY = new ShapeCombiner();
-  private final List<BlockShape> shapes = new ArrayList<>();
+  private final List<BlockShape> shapes = new ArrayList<>(4);
 
   private ShapeCombiner() {
   }

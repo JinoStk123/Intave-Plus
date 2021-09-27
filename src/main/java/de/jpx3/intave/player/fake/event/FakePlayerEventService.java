@@ -1,7 +1,7 @@
 package de.jpx3.intave.player.fake.event;
 
 import de.jpx3.intave.IntavePlugin;
-import de.jpx3.intave.clazz.rewrite.PatchyLoadingInjector;
+import de.jpx3.intave.klass.rewrite.PatchyLoadingInjector;
 
 public final class FakePlayerEventService {
   private final IntavePlugin plugin;

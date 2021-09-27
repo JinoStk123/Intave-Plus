@@ -2,6 +2,8 @@ package de.jpx3.intave.user.meta;
 
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.reflect.StructureModifier;
+import com.comphenix.protocol.wrappers.WrappedAttribute;
+import com.comphenix.protocol.wrappers.WrappedAttributeModifier;
 import de.jpx3.intave.adapter.MinecraftVersions;
 import de.jpx3.intave.adapter.ProtocolLibraryAdapter;
 import de.jpx3.intave.annotate.DispatchTarget;
@@ -19,7 +21,6 @@ import de.jpx3.intave.executor.Synchronizer;
 import de.jpx3.intave.math.SinusCache;
 import de.jpx3.intave.module.tracker.entity.EntityShade;
 import de.jpx3.intave.player.Effects;
-import de.jpx3.intave.reflect.access.ReflectiveHandleAccess;
 import de.jpx3.intave.shade.BoundingBox;
 import de.jpx3.intave.shade.Motion;
 import de.jpx3.intave.user.User;
@@ -34,8 +35,11 @@ import org.bukkit.util.Vector;
 
 import java.lang.ref.WeakReference;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.comphenix.protocol.wrappers.WrappedAttributeModifier.Operation.ADD_PERCENTAGE;
+import static de.jpx3.intave.reflect.access.ReflectiveHandleAccess.handleOf;
 import static de.jpx3.intave.shade.ClientMathHelper.*;
 import static de.jpx3.intave.user.meta.ProtocolMetadata.VER_1_14;
 import static de.jpx3.intave.user.meta.ProtocolMetadata.VER_1_15;
@@ -73,7 +77,7 @@ public final class MovementMetadata {
   public double lastPositionX, lastPositionY, lastPositionZ;
   public double positionX, positionY, positionZ;
   private double motionX, motionY, motionZ;
-  public boolean sprinting, lastSprinting, sneaking, lastSneaking;
+  public boolean sprinting, lastSprinting, hasSprintSpeed, sneaking, lastSneaking;
   private boolean sprintingAllowed;
   private float yawSine, yawCosine, friction;
   public float rotationYaw, rotationPitch;
@@ -216,16 +220,16 @@ public final class MovementMetadata {
     if (player == null) {
       return;
     }
-    sprinting = player.isSprinting();
+    setSprinting(player.isSprinting());
     sneaking = player.isSneaking();
   }
 
   public void updateWorld() {
     if (player == null) {
-      nmsWorld = new WeakReference<>(ReflectiveHandleAccess.handleOf(Bukkit.getWorlds().get(0)));
+      nmsWorld = new WeakReference<>(handleOf(Bukkit.getWorlds().get(0)));
       return;
     }
-    nmsWorld = new WeakReference<>(ReflectiveHandleAccess.handleOf(player.getWorld()));
+    nmsWorld = new WeakReference<>(handleOf(player.getWorld()));
   }
 
   @DispatchTarget
@@ -504,10 +508,6 @@ public final class MovementMetadata {
 //    aiMoveSpeed *= 1f + (0.2f * speedAmplifier);
 //    aiMoveSpeed += genericMovementSpeedAttribute;
     aiMoveSpeed = (float) abilityData.attributeValue("generic.movementSpeed", AbilityMetadata.EXCLUDE_SPRINT_MODIFIER);
-    // handle sprinting externally
-    if (sprintingAllowed) {
-      aiMoveSpeed *= 1.3f;
-    }
 
     if (lastSprinting) {
       jumpMovementFactor = (float) ((double) jumpMovementFactor + (double) 0.02f * 0.3d);
@@ -515,7 +515,7 @@ public final class MovementMetadata {
     if (abilityData.probablyFlying()) {
       this.jumpMovementFactor = abilityData.flySpeed() * (float) (lastSprinting ? 2 : 1);
     }
-    friction = MovementHelper.resolveFriction(user, verifiedPositionX, verifiedPositionY, verifiedPositionZ);
+    friction = MovementHelper.resolveFriction(user, meta.movement().sprinting, verifiedPositionX, verifiedPositionY, verifiedPositionZ);
   }
 
   public boolean blockOnPositionSoulSpeedAffected() {
@@ -597,8 +597,26 @@ public final class MovementMetadata {
     }
   }
 
+  public final static WrappedAttributeModifier SPRINTING_MODIFIER = WrappedAttributeModifier.newBuilder(UUID.fromString("662A6B8D-DA3E-4C1C-8813-96EA6097278D")).amount(0.3F).operation(ADD_PERCENTAGE).name("Sprint Boost").build();
+
   public void setSprinting(boolean sprinting) {
     this.sprinting = sprinting;
+    AbilityMetadata abilities = user.meta().abilities();
+    WrappedAttribute movementSpeed = abilities.findAttribute("generic.movementSpeed");
+
+//    player.sendMessage(ChatColor.GOLD + "Sprint-toggle to: " + sprinting);
+
+    List<WrappedAttributeModifier> movementSpeedModifiers = abilities.modifiersOf(movementSpeed);
+    if (sprinting) {
+      //
+      if (!movementSpeedModifiers.contains(SPRINTING_MODIFIER)) {
+//        player.sendMessage(ChatColor.RED + "Added Sprinting Modifier");
+        movementSpeedModifiers.add(SPRINTING_MODIFIER);
+      }
+    } else {
+//      player.sendMessage(ChatColor.RED + "Removed Sprinting Modifier");
+      movementSpeedModifiers.remove(SPRINTING_MODIFIER);
+    }
   }
 
   public void dismountRidingEntity() {
@@ -669,19 +687,23 @@ public final class MovementMetadata {
     return aiMoveSpeed;
   }
 
+  public float aiMoveSpeed(boolean sprinting) {
+    return sprinting ? aiMoveSpeed * 1.3f : aiMoveSpeed;
+  }
+
   public float jumpMovementFactor() {
     return jumpMovementFactor;
   }
 
   // Override on vehicle movement
-  public void setJumpMovementFactor(float jumpMovementFactor) {
+  public void setJumpMovementFactor(float jumpMovementFactor, boolean sprinting) {
     this.jumpMovementFactor = jumpMovementFactor;
-    friction = MovementHelper.resolveFriction(user, verifiedPositionX, verifiedPositionY, verifiedPositionZ);
+    friction = MovementHelper.resolveFriction(user, sprinting, verifiedPositionX, verifiedPositionY, verifiedPositionZ);
   }
 
   public void setAiMoveSpeed(float aiMoveSpeed) {
     this.aiMoveSpeed = aiMoveSpeed;
-    friction = MovementHelper.resolveFriction(user, verifiedPositionX, verifiedPositionY, verifiedPositionZ);
+    friction = MovementHelper.resolveFriction(user, sprinting, verifiedPositionX, verifiedPositionY, verifiedPositionZ);
   }
 
   public int pastFlyingPacketAccurate() {

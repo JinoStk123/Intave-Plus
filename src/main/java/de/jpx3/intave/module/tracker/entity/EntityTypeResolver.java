@@ -11,11 +11,13 @@ import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.access.IntaveInternalException;
 import de.jpx3.intave.adapter.MinecraftVersions;
 import de.jpx3.intave.adapter.ProtocolLibraryAdapter;
-import de.jpx3.intave.clazz.Lookup;
 import de.jpx3.intave.entity.size.HitboxSize;
 import de.jpx3.intave.entity.size.HitboxSizeAccess;
 import de.jpx3.intave.entity.type.EntityTypeData;
 import de.jpx3.intave.entity.type.EntityTypeDataAccessor;
+import de.jpx3.intave.klass.Lookup;
+import de.jpx3.intave.packet.reader.EntityReader;
+import de.jpx3.intave.packet.reader.PacketReaders;
 import de.jpx3.intave.reflect.access.ReflectiveHandleAccess;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -72,7 +74,10 @@ public final class EntityTypeResolver {
   public EntityTypeData entityTypeDataOfDeadEntity(PacketEvent event) {
     PacketContainer packet = event.getPacket();
     int entityId = packet.getIntegers().read(0);
-    Entity entity = packet.getEntityModifier(event).readSafely(0);
+
+    EntityReader entityReader = PacketReaders.readerOf(packet);
+    Entity entity = entityReader.readEntity(event);
+    entityReader.close();
 
     if (entity != null) {
       return entityTypeDataOfBukkitEntity(entity);
@@ -84,7 +89,7 @@ public final class EntityTypeResolver {
           HitboxSize boundaries = hitboxBoundariesByDeadEntityType(deadEntityType);
           return new EntityTypeData(name, boundaries, -1, false, 2);
         } catch (FieldAccessException exception) {
-          IntaveLogger.logger().info("unknown entity entityID: " + entityId);
+          IntaveLogger.logger().info("Unknown entity identifier: " + entityId);
         }
         return new EntityTypeData("could not be created", HitboxSize.zero(), -2, false, 3);
       } else {
@@ -102,10 +107,8 @@ public final class EntityTypeResolver {
 
   public EntityTypeData entityTypeDataOfLivingEntity(PacketEvent event) {
     PacketContainer packet = event.getPacket();
-
     int entityId = packet.getIntegers().read(0);
     Entity entity = EntityTracker.serverEntityByIdentifier(event.getPlayer(), entityId);
-
     if (entity != null) {
       return entityTypeDataOfBukkitEntity(entity);
     } else {
@@ -210,8 +213,11 @@ public final class EntityTypeResolver {
   }
 
   private EntityTypeData convertHitboxBoundariesToBaby(EntityTypeData entityTypeData) {
-    HitboxSize hitBoxSize = HitboxSize.of(entityTypeData.size().width() * 0.5f, entityTypeData.size().length() * 0.5f);
-    return new EntityTypeData(entityTypeData.name(), hitBoxSize, entityTypeData.identifier(), entityTypeData.isLivingEntity(), 5);
+    if (entityTypeData == null) {
+      return null;
+    }
+    HitboxSize size = HitboxSize.of(entityTypeData.size().width() * 0.5f, entityTypeData.size().height() * 0.5f);
+    return new EntityTypeData(entityTypeData.name(), size, entityTypeData.identifier(), entityTypeData.isLivingEntity(), 5);
   }
 
   public HitboxSize hitBoxBoundariesByBukkitEntity(Entity bukkitEntity) {
@@ -230,7 +236,7 @@ public final class EntityTypeResolver {
       Zombie zombie = (Zombie) entity;
       if(zombie.isBaby()) {
         // setting the hitbox of the zombie to a normal zombie hitbox which is the same as a player hitbox
-        hitBoxSize = HitboxSize.player();
+        hitBoxSize = HitboxSize.playerDefault();
       }
     }
     boolean isEntityLiving = entity instanceof LivingEntity;

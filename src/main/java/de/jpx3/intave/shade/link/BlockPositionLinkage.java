@@ -1,8 +1,8 @@
 package de.jpx3.intave.shade.link;
 
 import de.jpx3.intave.IntavePlugin;
-import de.jpx3.intave.clazz.rewrite.PatchyAutoTranslation;
-import de.jpx3.intave.clazz.rewrite.PatchyLoadingInjector;
+import de.jpx3.intave.klass.rewrite.PatchyAutoTranslation;
+import de.jpx3.intave.klass.rewrite.PatchyLoadingInjector;
 import de.jpx3.intave.shade.BlockPosition;
 
 public final class BlockPositionLinkage {

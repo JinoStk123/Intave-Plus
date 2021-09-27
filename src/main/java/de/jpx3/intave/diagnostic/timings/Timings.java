@@ -24,11 +24,11 @@ public class Timings {
   private static final Map<String, Timing> packetTimings = Maps.newConcurrentMap();
   private final static Map<Class<?>, String> classNameCache = Maps.newConcurrentMap();
 
-  public static final Timing CHECK_PHYSICS_PROC_TOT = Timing.of("Check/Physics/ProcTot", "Exe/Netty");
-  public static final Timing CHECK_PHYSICS_PROC_BIA = Timing.of("Check/Physics/ProcBia", "Check/Physics/ProcTot");
-  public static final Timing CHECK_PHYSICS_PROC_PRED_BIA = Timing.of("Check/Physics/ProcPredBia", "Check/Physics/ProcBia");
-  public static final Timing CHECK_PHYSICS_PROC_LK_BIA = Timing.of("Check/Physics/ProcLKBia", "Check/Physics/ProcBia");
-  public static final Timing CHECK_PHYSICS_PROC_ITR = Timing.of("Check/Physics/ProcItr", "Check/Physics/ProcTot");
+  public static final Timing CHECK_PHYSICS_PROC_TOT = Timing.of("Check/Physics/Proc", "Exe/Netty");
+  public static final Timing CHECK_PHYSICS_PROC_BIA = Timing.of("Check/Physics/Proc/Bia", "Check/Physics/Proc");
+  public static final Timing CHECK_PHYSICS_PROC_PRED_BIA = Timing.of("Check/Physics/Proc/Bia/Pred", "Check/Physics/Proc/Bia");
+  public static final Timing CHECK_PHYSICS_PROC_LK_BIA = Timing.of("Check/Physics/Proc/Bia/lK", "Check/Physics/Proc/Bia");
+  public static final Timing CHECK_PHYSICS_PROC_ITR = Timing.of("Check/Physics/Proc/Itr", "Check/Physics/Proc/Tot");
   public static final Timing CHECK_PHYSICS_EVAL = Timing.of("Check/Physics/Eval", "Check/Physics/ProcTot");
 
   public static final Timing SERVICE_TYPE_LOOKUP = Timing.of("Service/Lookup/Type");

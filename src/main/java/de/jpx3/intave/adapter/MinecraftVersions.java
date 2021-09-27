@@ -11,6 +11,7 @@ public final class MinecraftVersions {
   public static final MinecraftVersion VER1_14_0 = new MinecraftVersion("1.14");
   public static final MinecraftVersion VER1_13_0 = new MinecraftVersion("1.13");
   public static final MinecraftVersion VER1_12_0 = new MinecraftVersion("1.12");
+  public static final MinecraftVersion VER1_11_2 = new MinecraftVersion("1.11.2");
   public static final MinecraftVersion VER1_11_0 = new MinecraftVersion("1.11");
   public static final MinecraftVersion VER1_10_0 = new MinecraftVersion("1.10");
   public static final MinecraftVersion VER1_9_0 = new MinecraftVersion("1.9");

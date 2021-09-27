@@ -1,7 +1,7 @@
 package de.jpx3.intave.block.state;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import de.jpx3.intave.block.access.BlockVariantAccess;
 import de.jpx3.intave.block.access.VolatileBlockAccess;
 import de.jpx3.intave.block.shape.BlockShape;
@@ -18,8 +18,8 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static de.jpx3.intave.IntaveControl.DISABLE_BLOCK_CACHING_ENTIRELY;
 
@@ -30,7 +30,7 @@ public final class MultiChunkKeyBlockStateAccess implements BlockStateAccess {
   private final Map<Long, BlockState> blockCache = Maps.newConcurrentMap();
   private final Map<Location, BlockState> locatedReplacements = Maps.newConcurrentMap();
   private final Map<Long, BlockState> indexedReplacements = Maps.newConcurrentMap();
-  private final List<Location> replacementLocations = Lists.newCopyOnWriteArrayList();
+  private final Set<Location> replacementLocations = Sets.newConcurrentHashSet();
   private int originChunkX, originChunkZ;
   private int chunkX, chunkZ;
 
@@ -226,12 +226,12 @@ public final class MultiChunkKeyBlockStateAccess implements BlockStateAccess {
   }
 
   public void purgeOverrides() {
-    for (Location replacementLocation : replacementLocations) {
-      BlockState blockState = locatedReplacements.get(replacementLocation);
+    for (Location location : replacementLocations) {
+      BlockState blockState = locatedReplacements.get(location);
       if (blockState == null || blockState.expired()) {
-        replacementLocations.remove(replacementLocation);
-        locatedReplacements.remove(replacementLocation);
-        indexedReplacements.remove(bigKey(replacementLocation));
+        replacementLocations.remove(location);
+        locatedReplacements.remove(location);
+        indexedReplacements.remove(bigKey(location));
       }
     }
   }

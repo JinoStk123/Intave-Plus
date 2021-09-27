@@ -7,7 +7,7 @@ import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.injector.packet.PacketRegistry;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.annotate.DoNotFlowObfuscate;
-import de.jpx3.intave.clazz.create.IRXClassFactory;
+import de.jpx3.intave.klass.create.IRXClassFactory;
 import de.jpx3.intave.lib.asm.Type;
 import de.jpx3.intave.module.Module;
 import de.jpx3.intave.module.linker.packet.tinyprotocol.InjectionService;

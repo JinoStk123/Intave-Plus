@@ -9,12 +9,13 @@ import de.jpx3.intave.block.shape.BlockShape;
 import de.jpx3.intave.check.movement.Physics;
 import de.jpx3.intave.check.movement.physics.MovementHelper;
 import de.jpx3.intave.check.movement.physics.Pose;
-import de.jpx3.intave.clazz.Lookup;
-import de.jpx3.intave.clazz.trace.Caller;
-import de.jpx3.intave.clazz.trace.PluginInvocation;
 import de.jpx3.intave.executor.Synchronizer;
+import de.jpx3.intave.klass.Lookup;
+import de.jpx3.intave.klass.trace.Caller;
+import de.jpx3.intave.klass.trace.PluginInvocation;
 import de.jpx3.intave.math.MathHelper;
 import de.jpx3.intave.module.Module;
+import de.jpx3.intave.module.linker.bukkit.BukkitEventSubscription;
 import de.jpx3.intave.player.Effects;
 import de.jpx3.intave.shade.BlockPosition;
 import de.jpx3.intave.shade.BoundingBox;
@@ -30,11 +31,17 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import org.bukkit.util.Vector;
 
 import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import static de.jpx3.intave.shade.Direction.Axis.*;
+import static org.bukkit.event.player.PlayerTeleportEvent.TeleportCause.NETHER_PORTAL;
+import static org.bukkit.event.player.PlayerTeleportEvent.TeleportCause.UNKNOWN;
 
 public final class MovementEmulator extends Module {
   private Physics physicsCheck;
@@ -44,6 +51,25 @@ public final class MovementEmulator extends Module {
   public void enable() {
     this.physicsCheck = plugin.checks().searchCheck(Physics.class);
     this.teleportMethodContainer = new InternalTeleportApplier();
+  }
+
+  private final static Set<TeleportCause> BANNED_TELEPORT_CAUSES = new HashSet<>(Arrays.asList(NETHER_PORTAL /* Intave */, UNKNOWN /* Vanilla "AntiCheat" */));
+
+  @BukkitEventSubscription
+  public void uponTeleport(PlayerTeleportEvent teleport) {
+    if (BANNED_TELEPORT_CAUSES.contains(teleport.getCause())) {
+      return;
+    }
+    Player player = teleport.getPlayer();
+    User user = UserRepository.userOf(player);
+    MetadataBundle meta = user.meta();
+    ViolationMetadata violationLevelData = meta.violationLevel();
+    if (violationLevelData.isInActiveTeleportBundle) {
+      if (IntaveControl.DEBUG_EMULATION) {
+        player.sendMessage(ChatColor.DARK_PURPLE + "[E-] Exit by " + teleport.getCause() + " teleport event");
+      }
+      violationLevelData.isInActiveTeleportBundle = false;
+    }
   }
 
   public void emulationSetBack(
@@ -56,6 +82,7 @@ public final class MovementEmulator extends Module {
     MetadataBundle meta = user.meta();
     MovementMetadata movementData = meta.movement();
     ViolationMetadata violationLevelData = meta.violationLevel();
+
     if (violationLevelData.isInActiveTeleportBundle) {
       return;
     }
@@ -105,10 +132,15 @@ public final class MovementEmulator extends Module {
     if (!user.hasPlayer()) {
       return;
     }
+
     MetadataBundle meta = user.meta();
     MovementMetadata movementData = meta.movement();
     ViolationMetadata violationLevelData = meta.violationLevel();
     BoundingBox boundingBox = movementData.boundingBox();
+
+    if (!violationLevelData.isInActiveTeleportBundle) {
+      return;
+    }
 
     boolean boundingBoxIntersection = Collision.present(user.player(), boundingBox);
     if (boundingBoxIntersection) {
@@ -158,6 +190,10 @@ public final class MovementEmulator extends Module {
     MetadataBundle meta = user.meta();
     MovementMetadata movementData = meta.movement();
     ViolationMetadata violationLevelData = meta.violationLevel();
+
+    if (!violationLevelData.isInActiveTeleportBundle) {
+      return;
+    }
 
     // check motion status (velocity?)
     Location futurePosition = movementData.verifiedLocation();
@@ -420,7 +456,7 @@ public final class MovementEmulator extends Module {
   }
 
   private PlayerTeleportEvent constructTeleportEvent(Player player, Location to) {
-    return new PlayerTeleportEvent(player, player.getLocation().clone(), to.clone(), PlayerTeleportEvent.TeleportCause.NETHER_PORTAL) {
+    return new PlayerTeleportEvent(player, player.getLocation().clone(), to.clone(), NETHER_PORTAL) {
       @Override
       public void setCancelled(boolean cancel) {
         if (IntaveControl.DEBUG_INTAVE_TELEPORT_EVENT_CANCELS && cancel) {

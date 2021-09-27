@@ -17,7 +17,8 @@ public final class ElytraSimulator extends DefaultSimulator {
   public ComplexColliderSimulationResult performSimulation(
     User user, Motion motion,
     float forward, float strafe,
-    boolean attackReduce, boolean jumped, boolean handActive
+    boolean attackReduce, boolean sprinting,
+    boolean jumped, boolean handActive
   ) {
     MovementMetadata movementData = user.meta().movement();
     float rotationPitch = movementData.rotationPitch;

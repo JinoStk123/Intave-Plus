@@ -328,6 +328,10 @@ VoxelShape -> {
   17 -> "net/minecraft/world/phys/shapes/VoxelShape"
 }
 
+VoxelShapes -> {
+  17 -> "net/minecraft/world/phys/shapes/VoxelShapes"
+}
+
 World -> {
   17 -> "net/minecraft/world/level/World"
 }

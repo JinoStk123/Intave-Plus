@@ -19,7 +19,6 @@ import de.jpx3.intave.block.shape.pipe.patch.BoundingBoxPatcher;
 import de.jpx3.intave.block.type.BlockTypeAccess;
 import de.jpx3.intave.block.variant.BlockVariantRegister;
 import de.jpx3.intave.check.CheckService;
-import de.jpx3.intave.clazz.locate.Locator;
 import de.jpx3.intave.cleanup.GarbageCollector;
 import de.jpx3.intave.cleanup.ShutdownTasks;
 import de.jpx3.intave.command.CommandProcessor;
@@ -34,6 +33,7 @@ import de.jpx3.intave.entity.type.EntityTypeDataAccessor;
 import de.jpx3.intave.executor.BackgroundExecutor;
 import de.jpx3.intave.executor.Synchronizer;
 import de.jpx3.intave.executor.TaskTracker;
+import de.jpx3.intave.klass.locate.Locate;
 import de.jpx3.intave.lib.asm.Frame;
 import de.jpx3.intave.math.SinusCache;
 import de.jpx3.intave.metric.Metrics;
@@ -171,7 +171,7 @@ public final class IntavePlugin extends JavaPlugin {
       Modules.proceedBoot(BootSegment.STAGE_5);
 
       TaskTracker.setup();
-      Locator.setup();
+      Locate.setup();
       SinusCache.setup();
       ServerHealth.setup();
       Synchronizer.setup();

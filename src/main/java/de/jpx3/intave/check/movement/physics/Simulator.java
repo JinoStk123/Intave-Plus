@@ -15,7 +15,7 @@ public abstract class Simulator {
   public abstract ComplexColliderSimulationResult performSimulation(
     User user, Motion motion,
     float keyForward, float keyStrafe,
-    boolean attackReduce, boolean jumped, boolean handActive
+    boolean attackReduce, boolean sprinting, boolean jumped, boolean handActive
   );
 
   public abstract void prepareNextTick(
