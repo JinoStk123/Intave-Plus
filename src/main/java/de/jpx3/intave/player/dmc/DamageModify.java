@@ -10,7 +10,7 @@ import java.util.function.UnaryOperator;
 
 import static org.bukkit.event.entity.EntityDamageEvent.DamageModifier.BASE;
 
-public final class DamageController {
+public final class DamageModify {
   public static void withNewDamageApplier(
     EntityDamageEvent damageEvent,
     DamageModifier modifier,
@@ -31,7 +31,7 @@ public final class DamageController {
     }
   }
 
-  public static void refreshDamageChain(
+  public static void refreshModifiers(
     EntityDamageEvent damageEvent
   ) {
     Map<DamageModifier, Function<? super Double, Double>> damageModifierMap = modifierFunctionsOf(damageEvent);

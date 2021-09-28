@@ -87,15 +87,15 @@ public final class PredictionSimulationProcessor implements SimulationProcessor 
     return simulation;
   }
 
-  private void enterIterativeSimulationStack(User user, SimulationStack iterativeResult) {
+  private void enterIterativeSimulationStack(User user, SimulationStack simulationStack) {
     MetadataBundle meta = user.meta();
     MovementMetadata movementData = meta.movement();
     InventoryMetadata inventoryData = meta.inventory();
-    if (movementData.pastPlayerAttackPhysics == 0 && movementData.sprinting && !iterativeResult.reduced()) {
+    if (movementData.pastPlayerAttackPhysics == 0 && movementData.sprinting && !simulationStack.reduced()) {
       movementData.ignoredAttackReduce = true;
     }
     /* misplaced - please solve this otherwise */
-    boolean movementSuggestsHandIsActive = iterativeResult.handActive();
+    boolean movementSuggestsHandIsActive = simulationStack.handActive();
     boolean packetsSuggestsHandIsActive = inventoryData.handActive();
     if (packetsSuggestsHandIsActive && !movementSuggestsHandIsActive) {
       boolean releaseHandConditions = Hypot.fast(movementData.motionX(), movementData.motionZ()) > 0.3 || movementData.lastTeleport >= 2;
@@ -103,9 +103,9 @@ public final class PredictionSimulationProcessor implements SimulationProcessor 
         user.meta().inventory().releaseItemNextTick();
       }
     }
-    movementData.keyForward = iterativeResult.forward();
-    movementData.keyStrafe = iterativeResult.strafe();
-    movementData.physicsJumped = iterativeResult.jumped();
+    movementData.keyForward = simulationStack.forward();
+    movementData.keyStrafe = simulationStack.strafe();
+    movementData.physicsJumped = simulationStack.jumped();
   }
 
   @Override
@@ -196,7 +196,6 @@ public final class PredictionSimulationProcessor implements SimulationProcessor 
     movementData.keyStrafe = configuration.strafe();
     movementData.refreshFriction(sprinting);
     Simulation simulation = simulator.performSimulation(user, motionVector, configuration);
-//    user.player().sendMessage(configuration + " -> " + simulation.accuracy(movementData.motion()));
     Timings.CHECK_PHYSICS_PROC_PRED_BIA.stop();
     Timings.CHECK_PHYSICS_PROC_BIA.stop();
     return simulation;
@@ -425,7 +424,7 @@ public final class PredictionSimulationProcessor implements SimulationProcessor 
     double distance = simulation.accuracy(movementData.motion());
     if (forceApply || inventoryData.handActive() == movementConfiguration.isHandActive() || distance < 0.001) {
       simulation = simulation.reusableCopy();
-      result.tryAppendToState(simulation, distance, movementConfiguration);
+      result.tryAppendToState(simulation, distance);
     }
     return simulation;
   }

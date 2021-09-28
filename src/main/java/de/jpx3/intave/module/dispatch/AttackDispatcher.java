@@ -6,6 +6,7 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.comphenix.protocol.wrappers.WrappedAttribute;
+import com.google.common.collect.Lists;
 import de.jpx3.intave.adapter.MinecraftVersions;
 import de.jpx3.intave.annotate.refactoring.SplitMeUp;
 import de.jpx3.intave.check.combat.Heuristics;
@@ -15,7 +16,7 @@ import de.jpx3.intave.module.linker.bukkit.BukkitEventSubscription;
 import de.jpx3.intave.module.linker.packet.ListenerPriority;
 import de.jpx3.intave.module.linker.packet.PacketSubscription;
 import de.jpx3.intave.module.tracker.entity.EntityShade;
-import de.jpx3.intave.player.dmc.DamageController;
+import de.jpx3.intave.player.dmc.DamageModify;
 import de.jpx3.intave.player.fake.FakePlayer;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserRepository;
@@ -205,7 +206,7 @@ public final class AttackDispatcher extends Module {
     user.meta().attack().noteExternalAttack();
     double blockingDamageAbsorption = event.getDamage(BLOCKING);
     if (blockingDamageAbsorption < 0 && !user.meta().inventory().handActive()) {
-      DamageController.withNewDamageApplier(event, BLOCKING, current -> -0d);
+      DamageModify.withNewDamageApplier(event, BLOCKING, current -> -0d);
     }
   }
 
@@ -220,8 +221,8 @@ public final class AttackDispatcher extends Module {
     }
     PacketContainer packet = ProtocolLibrary.getProtocolManager().createPacket(PacketType.Play.Server.UPDATE_ATTRIBUTES);
     packet.getIntegers().write(0, player.getEntityId());
-    WrappedAttribute wrappedAttribute = WrappedAttribute.newBuilder().packet(packet).attributeKey("generic.attackDamage").baseValue(0).modifiers(Collections.emptyList()).build();
-    packet.getAttributeCollectionModifier().write(0, Collections.singletonList(wrappedAttribute));
+    WrappedAttribute attribute = WrappedAttribute.newBuilder().packet(packet).attributeKey("generic.attackDamage").baseValue(0).modifiers(Collections.emptyList()).build();
+    packet.getAttributeCollectionModifier().write(0, Lists.newArrayList(attribute));
 
     try {
       ProtocolLibrary.getProtocolManager().sendServerPacket(player, packet);

@@ -5,90 +5,75 @@ import de.jpx3.intave.user.UserLocal;
 
 public final class SimulationStack {
   private final static UserLocal<SimulationStack> stackUserLocal = UserLocal.withInitial(SimulationStack::new);
-
   private final static int DEFAULT_DISTANCE = Integer.MAX_VALUE;
 
-  private Simulation collisionResult;
-  private int forward, strafe;
-  private boolean jumped;
-  private boolean sprinted;
-  private boolean reduced;
+  private Simulation simulation;
   private double smallestDistance;
-  private boolean handActive;
 
   public SimulationStack() {
     this.smallestDistance = DEFAULT_DISTANCE;
   }
 
   public void restore() {
-    collisionResult = null;
-    forward = 0;
-    strafe = 0;
-    jumped = false;
-    reduced = false;
+    simulation = Simulation.invalid();
     smallestDistance = DEFAULT_DISTANCE;
-    handActive = false;
   }
 
   public void tryAppendToState(
     Simulation simulation,
-    double newDistance,
-    MovementConfiguration movementConfiguration
+    double newDistance
   ) {
     if (newDistance < this.smallestDistance) {
-      appendToState(simulation, newDistance, movementConfiguration);
+      appendToState(simulation, newDistance);
     }
   }
 
   private void appendToState(
-    Simulation collisionResult,
-    double newDistance,
-    MovementConfiguration movementConfiguration
+    Simulation simulation,
+    double newDistance
   ) {
-    this.collisionResult = collisionResult;
+    this.simulation = simulation;
     this.smallestDistance = newDistance;
-    this.forward = movementConfiguration.forward();
-    this.strafe = movementConfiguration.strafe();
-    this.reduced = movementConfiguration.isReducing();
-    this.sprinted = movementConfiguration.isSprinting();
-    this.jumped = movementConfiguration.isJumping();
-    this.handActive = movementConfiguration.isHandActive();
   }
 
   public boolean noMatch() {
-    return collisionResult == null || this.smallestDistance == DEFAULT_DISTANCE;
+    return simulation == null || this.smallestDistance == DEFAULT_DISTANCE;
   }
 
   public Simulation bestSimulation() {
-    return collisionResult;
+    return simulation;
   }
 
   public int forward() {
-    return forward;
+    return configuration().forward();
   }
 
   public int strafe() {
-    return strafe;
+    return configuration().strafe();
   }
 
   public boolean jumped() {
-    return jumped;
+    return configuration().isJumping();
   }
 
   public boolean sprinted() {
-    return sprinted;
+    return configuration().isSprinting();
   }
 
   public boolean reduced() {
-    return reduced;
+    return configuration().isReducing();
+  }
+
+  public boolean handActive() {
+    return configuration().isHandActive();
   }
 
   public double smallestDistance() {
     return smallestDistance;
   }
 
-  public boolean handActive() {
-    return handActive;
+  public MovementConfiguration configuration() {
+    return simulation.configuration();
   }
 
   public static SimulationStack of(User user) {
