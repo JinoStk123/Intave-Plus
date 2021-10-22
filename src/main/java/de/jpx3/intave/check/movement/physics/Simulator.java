@@ -11,23 +11,10 @@ public abstract class Simulator {
     this.physics = physics;
   }
 
-  public Simulation performSimulation(
+  public abstract Simulation simulate(
     User user, Motion motion,
+    SimulationEnvironment environment,
     MovementConfiguration configuration
-  ) {
-    return performSimulation(
-      user, motion, configuration.forward(), configuration.strafe(),
-      configuration.isReducing(), configuration.isSprinting(),
-      configuration.isJumping(), configuration.isHandActive()
-    );
-  }
-
-  @Deprecated
-  // use the method above please
-  protected abstract Simulation performSimulation(
-    User user, Motion motion,
-    float keyForward, float keyStrafe,
-    boolean attackReduce, boolean sprinting, boolean jumped, boolean handActive
   );
 
   public abstract void prepareNextTick(
@@ -40,6 +27,7 @@ public abstract class Simulator {
     return "";
   }
 
+  @Deprecated
   protected Physics physics() {
     return physics;
   }

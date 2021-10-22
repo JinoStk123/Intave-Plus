@@ -17,7 +17,6 @@ import de.jpx3.intave.block.physics.BlockProperties;
 import de.jpx3.intave.check.movement.physics.*;
 import de.jpx3.intave.entity.datawatcher.DataWatcherAccess;
 import de.jpx3.intave.executor.Synchronizer;
-import de.jpx3.intave.math.SinusCache;
 import de.jpx3.intave.module.tracker.entity.EntityShade;
 import de.jpx3.intave.player.Effects;
 import de.jpx3.intave.shade.BoundingBox;
@@ -278,8 +277,8 @@ public final class MovementMetadata implements SimulationEnvironment {
       rotationYaw = modifier.read(0);
       rotationPitch = modifier.read(1);
       lookVector = vectorForRotation(rotationYaw, rotationPitch);
-      yawSine = SinusCache.sin(rotationYaw * (float) Math.PI / 180.0F, false);
-      yawCosine = SinusCache.cos(rotationYaw * (float) Math.PI / 180.0F, false);
+      yawSine = sin(rotationYaw * (float) Math.PI / 180.0F);
+      yawCosine = cos(rotationYaw * (float) Math.PI / 180.0F);
     }
     updateEntityMovement();
     if (clientData.canUseElytra()) {
@@ -815,12 +814,22 @@ public final class MovementMetadata implements SimulationEnvironment {
     return frictionMultiplier;
   }
 
+  @Override
+  public float rotationYaw() {
+    return rotationYaw;
+  }
+
   public float yawSine() {
     return yawSine;
   }
 
   public float yawCosine() {
     return yawCosine;
+  }
+
+  @Override
+  public float rotationPitch() {
+    return rotationPitch;
   }
 
   @Override

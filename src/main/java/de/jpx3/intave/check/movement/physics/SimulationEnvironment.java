@@ -4,11 +4,6 @@ import de.jpx3.intave.shade.Motion;
 import de.jpx3.intave.shade.Position;
 import org.bukkit.util.Vector;
 
-/**
- * Class generated using IntelliJ IDEA
- * Created by Richard Strunk 2021
- */
-
 public interface SimulationEnvironment {
   /**
    * pose
@@ -60,8 +55,11 @@ public interface SimulationEnvironment {
 
   Vector motionMultiplier();
 
+  float rotationYaw();
   float yawSine();
   float yawCosine();
+
+  float rotationPitch();
 
   float aiMoveSpeed(boolean sprinting);
   float friction();

@@ -86,13 +86,13 @@ public final class InteractionRaytrace extends MetaCheck<InteractionRaytrace.Int
 
     PacketContainer packet = event.getPacket();
     BlockInteractionReader reader = PacketReaders.readerOf(packet);
-    com.comphenix.protocol.wrappers.BlockPosition blockPosition = reader.blockPosition();
 
     try {
+      com.comphenix.protocol.wrappers.BlockPosition blockPosition = reader.blockPosition();
       if (blockPosition == null || event.isCancelled() || movementData.hasRidingEntity()) {
         return;
       }
-      int enumDirection = reader.enumDirection();//readEnumDirectionFromInteraction(packet);
+      int enumDirection = reader.enumDirection();
       if (enumDirection == 255) {
         return;
       }

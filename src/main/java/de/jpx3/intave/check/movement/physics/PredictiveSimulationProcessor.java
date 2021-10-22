@@ -28,31 +28,47 @@ public final class PredictiveSimulationProcessor implements SimulationProcessor 
 
   @Override
   public Simulation simulate(User user, Simulator simulator) {
-    boolean keyDependent = simulator.affectedByMovementKeys();
-    return keyDependent ? performKeySimulation(user, simulator) : simulateWithoutKeyPress(user, simulator);
+    MovementMetadata movementData = user.meta().movement();
+    boolean searchKeys = simulator.affectedByMovementKeys();
+
+    if (movementData.externalKeyApply) {
+      // vehicles sent us the keys
+      return simulateWithKeyPress(user, simulator, movementData.clientForwardKey, movementData.clientStrafeKey, movementData.clientPressedJump);
+    } else if (searchKeys) {
+      // we must search and guess the keys
+      return performKeySearchSimulation(user, simulator);
+    } else {
+      // keys don't matter
+      return simulateWithKeyPress(user, simulator, 0, 0, false);
+    }
   }
 
-  private Simulation performKeySimulation(User user, Simulator simulator) {
-    MovementMetadata movementData = user.meta().movement();
-    return movementData.externalKeyApply ? performKeySimulationFromInput(user, simulator) : performKeyComparisonSimulation(user, simulator);
-  }
-
-  private Simulation performKeySimulationFromInput(User user, Simulator simulator) {
-    MovementMetadata movementData = user.meta().movement();
-    int clientInputKey = movementData.clientForwardKey;
-    int clientStrafeKey = movementData.clientStrafeKey;
-    boolean jump = movementData.clientPressedJump && movementData.lastOnGround;
-    movementData.keyForward = clientInputKey;
-    movementData.keyStrafe = clientStrafeKey;
-    movementData.physicsJumped = jump;
+  @Override
+  public Simulation simulateWithKeyPress(
+    User user, Simulator simulator, int forward, int strafe, boolean jumped
+  ) {
+    MetadataBundle meta = user.meta();
+    MovementMetadata movementData = meta.movement();
+    jumped &= movementData.lastOnGround;
+    movementData.keyForward = forward;
+    movementData.keyStrafe = strafe;
+    movementData.physicsJumped = jumped;
     KeyPressStudy.enterKeyPress(movementData.keyForward, movementData.keyStrafe);
-    return simulateWithKeyPress(user, simulator, clientInputKey, clientStrafeKey, jump);
+
+    Motion motion = movementData.motionProcessorContext.copy();
+    motion.resetTo(movementData);
+    MovementConfiguration configuration = MovementConfiguration.select(
+      forward, strafe,
+      false, movementData.sprintingAllowed(),
+      jumped, meta.inventory().handActive()
+    );
+    return simulator.simulate(user, motion, movementData, configuration);
   }
 
   private final static double REQUIRED_ACCURACY_FOR_QUICK_PROC_EXIT = 0.002;
   private final static double REQUIRED_ACCURACY_FOR_FLYING_PROC_EXIT = 0.02;
 
-  private Simulation performKeyComparisonSimulation(User user, Simulator simulator) {
+  private Simulation performKeySearchSimulation(User user, Simulator simulator) {
     MovementMetadata movementData = user.meta().movement();
     Simulation simulation;
     double simulationAccuracy;
@@ -108,24 +124,6 @@ public final class PredictiveSimulationProcessor implements SimulationProcessor 
     movementData.physicsJumped = simulationStack.jumped();
   }
 
-  @Override
-  public Simulation simulateWithKeyPress(
-    User user, Simulator simulator, int forward, int strafe, boolean jumped
-  ) {
-    MetadataBundle meta = user.meta();
-    MovementMetadata movementData = meta.movement();
-    Motion motion = movementData.motionProcessorContext.copy();
-    motion.resetTo(movementData);
-    MovementConfiguration configuration = MovementConfiguration.select(
-      forward, strafe,
-      false, movementData.sprintingAllowed(),
-      jumped, meta.inventory().handActive()
-    );
-    return simulator.performSimulation(
-      user, motion, configuration
-    );
-  }
-
   private final static double REQUIRED_PREDICTION_ACCURACY_FOR_PRED_BIAS_PROCEED = 0.1;
 
   private Simulation simulateMovementKeyPredictionBiased(User user, Simulator simulator) {
@@ -179,7 +177,7 @@ public final class PredictiveSimulationProcessor implements SimulationProcessor 
     if (!AttackDispatcher.REDUCING_DISABLED && movementData.sprintingAllowed() && movementData.pastPlayerAttackPhysics == 0) {
       configuration = configuration.withReducing();
     }
-    // block omisprint
+    // block omnisprint
     if (sprinting && configuration.forward() != 1) {
       configuration = configuration.withoutKeypress();
     } else if (sprinting) {
@@ -195,7 +193,7 @@ public final class PredictiveSimulationProcessor implements SimulationProcessor 
     movementData.keyForward = configuration.forward();
     movementData.keyStrafe = configuration.strafe();
     movementData.refreshFriction(sprinting);
-    Simulation simulation = simulator.performSimulation(user, motionVector, configuration);
+    Simulation simulation = simulator.simulate(user, motionVector, movementData, configuration);
     Timings.CHECK_PHYSICS_PROC_PRED_BIA.stop();
     Timings.CHECK_PHYSICS_PROC_BIA.stop();
     return simulation;
@@ -298,7 +296,7 @@ public final class PredictiveSimulationProcessor implements SimulationProcessor 
     movementData.keyForward = configuration.forward();
     movementData.keyStrafe = configuration.strafe();
     movementData.refreshFriction(sprinting);
-    Simulation simulationResult = simulator.performSimulation(user, motion, configuration);
+    Simulation simulationResult = simulator.simulate(user, motion, movementData, configuration);
     Timings.CHECK_PHYSICS_PROC_LK_BIA.stop();
     Timings.CHECK_PHYSICS_PROC_BIA.stop();
     return simulationResult;
@@ -319,9 +317,9 @@ public final class PredictiveSimulationProcessor implements SimulationProcessor 
     ProtocolMetadata clientData = meta.protocol();
     SimulationStack simulationStack = SimulationStack.of(user);
     boolean inLava = movementData.inLava();
-    boolean inWater = movementData.inWater;
-    boolean lastOnGround = movementData.lastOnGround;
-    boolean estimatedJump = Math.abs(movementData.motionY() - (1 - user.sizeOf(movementData.pose()).height() % 1)) < 1e-5 || movementData.motionY() == movementData.jumpMotion();
+    boolean inWater = movementData.inWater();
+    boolean lastOnGround = movementData.lastOnGround();
+    boolean estimatedJump = Math.abs(movementData.motionY() - (1 - user.sizeOf(movementData.pose()).height() % 1)) < 1e-5 || Math.abs(movementData.motionY() - movementData.jumpMotion()) < 0.0001;
     boolean skipUseItem = !clientData.sprintWhenHandActive() && movementData.sprinting;
 
     int iterativeRuns = 0;
@@ -412,18 +410,18 @@ public final class PredictiveSimulationProcessor implements SimulationProcessor 
     User user,
     Simulator simulator,
     SimulationStack result,
-    MovementConfiguration movementConfiguration,
+    MovementConfiguration configuration,
     boolean forceApply
   ) {
     MovementMetadata movementData = user.meta().movement();
     InventoryMetadata inventoryData = user.meta().inventory();
     Motion motion = movementData.motionProcessorContext;
     motion.resetTo(movementData);
-    Simulation simulation = simulator.performSimulation(
-      user, motion, movementConfiguration
+    Simulation simulation = simulator.simulate(
+      user, motion, movementData, configuration
     );
     double distance = simulation.accuracy(movementData.motion());
-    if (forceApply || inventoryData.handActive() == movementConfiguration.isHandActive() || distance < 0.001) {
+    if (forceApply || inventoryData.handActive() == configuration.isHandActive() || distance < 0.001) {
       simulation = simulation.reusableCopy();
       result.tryAppendToState(simulation, distance);
     }

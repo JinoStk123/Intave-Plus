@@ -23,8 +23,9 @@ import static de.jpx3.intave.shade.ClientMathHelper.floor;
 
 public final class BoatSimulator extends BaseSimulator {
   @Override
-  public Simulation performSimulation(
+  public Simulation simulate(
     User user, Motion motion,
+    SimulationEnvironment environment,
     MovementConfiguration configuration
   ) {
     MovementMetadata movement = user.meta().movement();

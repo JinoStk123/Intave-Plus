@@ -36,14 +36,9 @@ import static de.jpx3.intave.user.meta.ProtocolMetadata.VER_1_14;
 
 class BaseSimulator extends Simulator {
   @Override
-  @Deprecated
-  protected Simulation performSimulation(User user, Motion motion, float keyForward, float keyStrafe, boolean attackReduce, boolean sprinting, boolean jumped, boolean handActive) {
-    return Simulation.invalid();
-  }
-
-  @Override
-  public Simulation performSimulation(
+  public Simulation simulate(
     User user, Motion motion,
+    SimulationEnvironment environment,
     MovementConfiguration configuration
   ) {
     // guessed movement configuration
@@ -58,8 +53,8 @@ class BaseSimulator extends Simulator {
     MetadataBundle meta = user.meta();
     MovementMetadata movementData = meta.movement();
     ProtocolMetadata clientData = meta.protocol();
-    SimulationEnvironment environment = meta.movement();
     Pose pose = environment.pose();
+
     float yawSine = environment.yawSine();
     float yawCosine = environment.yawCosine();
     double positionX = environment.verifiedPositionX();

@@ -24,7 +24,7 @@ import io.netty.buffer.Unpooled;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-import static de.jpx3.intave.module.linker.packet.PacketId.Client.CUSTOM_PAYLOAD;
+import static de.jpx3.intave.module.linker.packet.PacketId.Client.CUSTOM_PAYLOAD_IN;
 
 public final class CustomClientSupportService implements EventProcessor {
   private final static JsonParser jsonParser = new JsonParser();
@@ -46,7 +46,7 @@ public final class CustomClientSupportService implements EventProcessor {
 
   @PacketSubscription(
     packetsIn = {
-      CUSTOM_PAYLOAD
+      CUSTOM_PAYLOAD_IN
     }
   )
   public void receivePayloadPacket(PacketEvent event) {

@@ -137,7 +137,7 @@ public final class Physics extends Check {
       return typeId == BOAT_ID ? Simulators.BOAT : Simulators.HORSE;
     } else {
       boolean inLava = movementData.inLava();
-      boolean inWater = movementData.inWater;
+      boolean inWater = movementData.inWater();
       Pose pose = movementData.pose();
       if (pose == Pose.FALL_FLYING && !inWater && !inLava) {
         return Simulators.ELYTRA;
@@ -516,13 +516,17 @@ public final class Physics extends Check {
           break;
         case SILENT:
           setback = false;
-          manualOverrideDistance = 1;
+          manualOverrideDistance = 1.25;
           break;
       }
 
       // Apply manual setback override when the deviation is greater than a certain amount of blocks
-      if (distance > manualOverrideDistance && !user.trustFactor().atLeast(TrustFactor.BYPASS)) {
+      if (distance > manualOverrideDistance) {
         setback = true;
+      }
+
+      if (user.trustFactor().atLeast(TrustFactor.BYPASS)) {
+        setback = false;
       }
 
       if (setback) {
@@ -552,7 +556,7 @@ public final class Physics extends Check {
 
     if (IntaveControl.DEBUG_MOVEMENT) {
       ChatColor chatColor = violationLevelIncrease == 0 ? ChatColor.GRAY : ChatColor.YELLOW;
-      String poseName = movementData.pose().name();
+//      String poseName = movementData.pose().name();
       String displayPhysicsVL = formatDouble(violationLevelData.physicsVL, 4);
       String displayHorizontalVL = formatDouble(horizontalViolationIncrease, 3);
       String displayVerticalVL = formatDouble(verticalViolationIncrease, 3);

@@ -1,7 +1,7 @@
 package de.jpx3.intave;
 
 public final class IntaveControl {
-  public final static boolean APPLY_GLOBAL_LOW_TRUSTFACTOR = true;
+  public final static boolean APPLY_GLOBAL_LOW_TRUSTFACTOR = false;
   public final static boolean USE_DEBUG_RESOURCES = false;
   public final static boolean DEBUG_MOVEMENT = false;
   public final static boolean DEBUG_EMULATION = false;

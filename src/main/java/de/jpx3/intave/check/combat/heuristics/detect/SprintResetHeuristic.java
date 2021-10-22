@@ -124,7 +124,7 @@ public final class SprintResetHeuristic extends MetaCheckPart<Heuristics, Sprint
     AbilityMetadata abilityData = user.meta().abilities();
 
     boolean sendFlyingPacket = false;
-    if(packetType == PacketType.Play.Client.FLYING || packetType == PacketType.Play.Client.LOOK) {
+    if(packetType.name().equals("FLYING") || packetType == PacketType.Play.Client.LOOK) {
       sendFlyingPacket = true;
     } else if(user.meta().protocol().protocolVersion() >= ProtocolMetadata.VER_1_9) {
       if(movementData.recentlyEncounteredFlyingPacket(2) || movementData.pastFlyingPacketAccurate() <= 2) {

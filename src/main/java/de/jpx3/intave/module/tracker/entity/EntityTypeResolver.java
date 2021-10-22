@@ -89,7 +89,7 @@ public final class EntityTypeResolver {
           HitboxSize boundaries = hitboxBoundariesByDeadEntityType(deadEntityType);
           return new EntityTypeData(name, boundaries, -1, false, 2);
         } catch (FieldAccessException exception) {
-          IntaveLogger.logger().info("Unknown entity identifier: " + entityId);
+//          IntaveLogger.logger().info("Can't access type data of " + entityId);
         }
         return new EntityTypeData("could not be created", HitboxSize.zero(), -2, false, 3);
       } else {

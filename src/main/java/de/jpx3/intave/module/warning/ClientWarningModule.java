@@ -18,7 +18,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
-import static de.jpx3.intave.module.linker.packet.PacketId.Client.CUSTOM_PAYLOAD;
+import static de.jpx3.intave.module.linker.packet.PacketId.Client.CUSTOM_PAYLOAD_IN;
 
 public final class ClientWarningModule extends Module {
   private final IntavePlugin plugin;
@@ -31,7 +31,7 @@ public final class ClientWarningModule extends Module {
 
   @PacketSubscription(
     packetsIn = {
-      CUSTOM_PAYLOAD
+      CUSTOM_PAYLOAD_IN
     }
   )
   public void receivePayloadPacket(PacketEvent event) {

@@ -1,42 +1,38 @@
 package de.jpx3.intave.check.movement.physics;
 
-import de.jpx3.intave.shade.Motion;
-import de.jpx3.intave.user.User;
-import de.jpx3.intave.user.meta.MovementMetadata;
-
 final class HorseSimulator extends BaseSimulator {
   private final static double MAXIMUM_HORSE_MOVEMENT_SPEED = 0.22499999403953552D;//0.3374999970197678;
 
-  @Override
-  @Deprecated
-  public Simulation performSimulation(
-    User user, Motion motion,
-    float forward, float strafe,
-    boolean attackReduce, boolean sprinting, boolean jumped, boolean handActive
-  ) {
-    MovementMetadata movementData = user.meta().movement();
-    float horseForward = forward;
-    float horseStrafe = strafe * 0.5F;
-
-    if (horseForward <= 0.0F) {
-      horseForward *= 0.25F;
-//      this.gallopTime = 0;
-    }
-
-//    if (movementData.onGround /*&& this.jumpPower == 0.0F && this.isRearing() && !this.allowStandSliding*/) {
-//      horseStrafe = 0.0F;
-//      horseForward = 0.0F;
+//  @Override
+//  @Deprecated
+//  public Simulation performSimulation(
+//    User user, Motion motion,
+//    float forward, float strafe,
+//    boolean attackReduce, boolean sprinting, boolean jumped, boolean handActive
+//  ) {
+//    MovementMetadata movementData = user.meta().movement();
+//    float horseForward = forward;
+//    float horseStrafe = strafe * 0.5F;
+//
+//    if (horseForward <= 0.0F) {
+//      horseForward *= 0.25F;
+////      this.gallopTime = 0;
 //    }
-
-//    System.out.println("horseForward:" + horseForward);
-
-    float aiMoveSpeed = 0;
-    movementData.setJumpMovementFactor(0.02f, sprinting);
-    movementData.setAiMoveSpeed(0.2f);
-
-    // highly risky
-    return super.performSimulation(user, motion, horseForward, horseStrafe, attackReduce, sprinting, jumped, handActive);
-  }
+//
+////    if (movementData.onGround /*&& this.jumpPower == 0.0F && this.isRearing() && !this.allowStandSliding*/) {
+////      horseStrafe = 0.0F;
+////      horseForward = 0.0F;
+////    }
+//
+////    System.out.println("horseForward:" + horseForward);
+//
+//    float aiMoveSpeed = 0;
+//    movementData.setJumpMovementFactor(0.02f, sprinting);
+//    movementData.setAiMoveSpeed(0.2f);
+//
+//    // highly risky
+//    return super.performSimulation(user, motion, horseForward, horseStrafe, attackReduce, sprinting, jumped, handActive);
+//  }
 
   @Override
   public String debugName() {

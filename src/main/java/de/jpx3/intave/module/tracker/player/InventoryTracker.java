@@ -32,9 +32,9 @@ import org.bukkit.inventory.ItemStack;
 
 import java.lang.reflect.InvocationTargetException;
 
-import static de.jpx3.intave.module.linker.packet.PacketId.Client.HELD_ITEM_SLOT;
 import static de.jpx3.intave.module.linker.packet.PacketId.Client.*;
-import static de.jpx3.intave.module.linker.packet.PacketId.Server.*;
+import static de.jpx3.intave.module.linker.packet.PacketId.Server.OPEN_WINDOW;
+import static de.jpx3.intave.module.linker.packet.PacketId.Server.RESPAWN;
 
 public final class InventoryTracker extends Module {
   @BukkitEventSubscription
@@ -222,26 +222,26 @@ public final class InventoryTracker extends Module {
     });
   }
 
-  @PacketSubscription(
-    priority = ListenerPriority.HIGH,
-    packetsOut = {
-      COLLECT
-    }
-  )
-  public void receiveHandUpdate(PacketEvent event) {
-    Player player = event.getPlayer();
-    PacketContainer packet = event.getPacket();
-
-    User user = UserRepository.userOf(player);
-    InventoryMetadata inventoryData = user.meta().inventory();
-    Integer entityID = packet.getIntegers().read(0);
-
-    if (entityID == player.getEntityId()) {
-      // sure this is correct? getItemInHand() might needs to be synchronized
-//      ItemStack itemInHand = player.getItemInHand();
-//      inventoryData.heldItemType(itemInHand);
-    }
-  }
+//  @PacketSubscription(
+//    priority = ListenerPriority.HIGH,
+//    packetsOut = {
+//      COLLECT
+//    }
+//  )
+//  public void receiveHandUpdate(PacketEvent event) {
+//    Player player = event.getPlayer();
+//    PacketContainer packet = event.getPacket();
+//
+//    User user = UserRepository.userOf(player);
+//    InventoryMetadata inventoryData = user.meta().inventory();
+//    Integer entityID = packet.getIntegers().read(0);
+//
+//    if (entityID == player.getEntityId()) {
+//      // sure this is correct? getItemInHand() might needs to be synchronized
+////      ItemStack itemInHand = player.getItemInHand();
+////      inventoryData.heldItemType(itemInHand);
+//    }
+//  }
 
   @PacketSubscription(
 //    priority = ListenerPriority.HIGH,
@@ -259,6 +259,7 @@ public final class InventoryTracker extends Module {
 
     PacketContainer packet = event.getPacket();
     ItemStack heldItem = inventoryData.heldItem();
+    ItemStack offhandItem = inventoryData.offhandItem();
 
     boolean requestedItemUse = requestedItemUse(packet);
     boolean sword = heldItem != null && heldItem.getType().name().endsWith("_SWORD");
@@ -268,7 +269,8 @@ public final class InventoryTracker extends Module {
       return;
     }
 
-    boolean useItem = ItemProperties.canItemBeUsed(player, heldItem);
+    boolean useItem = ItemProperties.canItemBeUsed(player, heldItem) || ItemProperties.canItemBeUsed(player, offhandItem);
+
     if (requestedItemUse && useItem) {
       inventoryData.activateHand();
     }

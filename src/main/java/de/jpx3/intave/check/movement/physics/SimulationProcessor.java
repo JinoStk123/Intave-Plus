@@ -9,5 +9,6 @@ public interface SimulationProcessor {
     return simulateWithKeyPress(user, simulator,0, 0, false);
   }
 
+  @Deprecated
   Simulation simulateWithKeyPress(User user, Simulator simulator, int forward, int strafe, boolean jumped);
 }

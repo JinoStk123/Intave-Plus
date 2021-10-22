@@ -15,7 +15,7 @@ import org.bukkit.entity.Player;
 import java.lang.reflect.InvocationTargetException;
 import java.util.function.BiConsumer;
 
-import static de.jpx3.intave.module.linker.packet.PacketId.Client.CUSTOM_PAYLOAD;
+import static de.jpx3.intave.module.linker.packet.PacketId.Client.CUSTOM_PAYLOAD_IN;
 
 @Deprecated
 public final class LabymodClientListener implements PacketEventSubscriber {
@@ -34,7 +34,7 @@ public final class LabymodClientListener implements PacketEventSubscriber {
 
   @PacketSubscription(
     packetsIn = {
-      CUSTOM_PAYLOAD
+      CUSTOM_PAYLOAD_IN
     }
   )
   public void receivePayloadPacket(PacketEvent event) {

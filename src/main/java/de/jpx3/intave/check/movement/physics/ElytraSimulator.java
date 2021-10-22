@@ -14,19 +14,17 @@ import static de.jpx3.intave.shade.ClientMathHelper.sin;
 
 final class ElytraSimulator extends BaseSimulator {
   @Override
-  public Simulation performSimulation(
+  public Simulation simulate(
     User user, Motion motion,
-    float forward, float strafe,
-    boolean attackReduce, boolean sprinting,
-    boolean jumped, boolean handActive
+    SimulationEnvironment environment,
+    MovementConfiguration configuration
   ) {
-    MovementMetadata movementData = user.meta().movement();
-    float rotationPitch = movementData.rotationPitch;
-    Vector lookVector = movementData.lookVector;
+    float rotationPitch = environment.rotationPitch();
+    Vector lookVector = environment.lookVector();
 
-    double positionX = movementData.verifiedPositionX;
-    double positionY = movementData.verifiedPositionY;
-    double positionZ = movementData.verifiedPositionZ;
+    double positionX = environment.verifiedPositionX();
+    double positionY = environment.verifiedPositionY();
+    double positionZ = environment.verifiedPositionZ();
 
     float f = rotationPitch * 0.017453292F;
     double rotationVectorDistance = Math.sqrt(lookVector.getX() * lookVector.getX() + lookVector.getZ() * lookVector.getZ());
@@ -34,7 +32,7 @@ final class ElytraSimulator extends BaseSimulator {
     double rotationVectorLength = Math.sqrt(lookVector.lengthSquared());
     float pitchCosine = cos(f);
     pitchCosine = (float) ((double) pitchCosine * (double) pitchCosine * Math.min(1.0D, rotationVectorLength / 0.4D));
-    motion.motionY += movementData.gravity * (-1 + pitchCosine * 0.75);
+    motion.motionY += environment.gravity() * (-1 + pitchCosine * 0.75);
 
     if (motion.motionY < 0.0D && rotationVectorDistance > 0.0D) {
       double d2 = motion.motionY * -0.1D * (double) pitchCosine;
@@ -59,34 +57,34 @@ final class ElytraSimulator extends BaseSimulator {
     motion.motionY *= 0.98f;
     motion.motionZ *= 0.99f;
 
-    tryRelinkFlyingPosition(user, motion);
+    tryRelinkFlyingPosition(user, motion, environment);
 
     ComplexColliderSimulationResult collisionResult = Collider.complexCollision(
-      user, motion, movementData.inWeb,
+      user, motion, environment.inWeb(),
       positionX, positionY, positionZ
     );
     notePossibleFlyingPacket(user, collisionResult);
-    return Simulation.of(user, /*temporary*/MovementConfiguration.select((int)forward,(int) strafe, attackReduce, sprinting, jumped, handActive), collisionResult);
+    return Simulation.of(user, configuration, collisionResult);
   }
 
-  private void tryRelinkFlyingPosition(User user, Motion context) {
+  private void tryRelinkFlyingPosition(User user, Motion motion, SimulationEnvironment environment) {
     Player player = user.player();
     MovementMetadata movementData = user.meta().movement();
-    float rotationPitch = movementData.rotationPitch;
-    Vector lookVector = movementData.lookVector;
+    float rotationPitch = environment.rotationPitch();
+    Vector lookVector = environment.lookVector();
 
-    double positionX = movementData.verifiedPositionX;
-    double positionY = movementData.verifiedPositionY;
-    double positionZ = movementData.verifiedPositionZ;
+    double positionX = environment.verifiedPositionX();
+    double positionY = environment.verifiedPositionY();
+    double positionZ = environment.verifiedPositionZ();
 
     boolean onGround;
-    double resetMotion = movementData.resetMotion();
-    double jumpUpwardsMotion = movementData.jumpMotion();
+    double resetMotion = environment.resetMotion();
+    double jumpUpwardsMotion = environment.jumpMotion();
 
     int interpolations = 0;
-    double interpolateX = context.motionX;
-    double interpolateY = context.motionY;
-    double interpolateZ = context.motionZ;
+    double interpolateX = motion.motionX;
+    double interpolateY = motion.motionY;
+    double interpolateZ = motion.motionZ;
 
     for (; interpolations <= 2; interpolations++) {
       SimpleColliderSimulationResult colliderResult = Collider.simpleCollision(
@@ -98,13 +96,13 @@ final class ElytraSimulator extends BaseSimulator {
       positionY += colliderResult.motionZ();
       positionZ += colliderResult.motionY();
 
-      double diffX = positionX - movementData.verifiedPositionX;
-      double diffY = positionY - movementData.verifiedPositionY;
-      double diffZ = positionZ - movementData.verifiedPositionZ;
+      double diffX = positionX - environment.verifiedPositionX();
+      double diffY = positionY - environment.verifiedPositionY();
+      double diffZ = positionZ - environment.verifiedPositionZ();
       onGround = colliderResult.onGround();
 
       boolean jumpLessThanExpected = colliderResult.motionY() < jumpUpwardsMotion;
-      boolean jump = onGround && Math.abs(((colliderResult.motionY()) + jumpUpwardsMotion) - movementData.motionY()) < 1e-5 && jumpLessThanExpected;
+      boolean jump = onGround && Math.abs(((colliderResult.motionY()) + jumpUpwardsMotion) - environment.motionY()) < 1e-5 && jumpLessThanExpected;
 
       if (!flyingPacket(diffX, diffY, diffZ) && !jump) {
         break;
@@ -112,34 +110,34 @@ final class ElytraSimulator extends BaseSimulator {
 
       float f = rotationPitch * 0.017453292F;
       double rotationVectorDistance = Math.sqrt(lookVector.getX() * lookVector.getX() + lookVector.getZ() * lookVector.getZ());
-      double dist2 = Math.sqrt(context.motionX * context.motionX + context.motionZ * context.motionZ);
+      double dist2 = Math.sqrt(motion.motionX * motion.motionX + motion.motionZ * motion.motionZ);
       double rotationVectorLength = Math.sqrt(lookVector.lengthSquared());
       float pitchCosine = cos(f);
       pitchCosine = (float) ((double) pitchCosine * (double) pitchCosine * Math.min(1.0D, rotationVectorLength / 0.4D));
-      context.motionY += movementData.gravity * (-1 + pitchCosine * 0.75);
+      motion.motionY += environment.gravity() * (-1 + pitchCosine * 0.75);
 
-      if (context.motionY < 0.0D && rotationVectorDistance > 0.0D) {
-        double d2 = context.motionY * -0.1D * (double) pitchCosine;
-        context.motionY += d2;
-        context.motionX += lookVector.getX() * d2 / rotationVectorDistance;
-        context.motionZ += lookVector.getZ() * d2 / rotationVectorDistance;
+      if (motion.motionY < 0.0D && rotationVectorDistance > 0.0D) {
+        double d2 = motion.motionY * -0.1D * (double) pitchCosine;
+        motion.motionY += d2;
+        motion.motionX += lookVector.getX() * d2 / rotationVectorDistance;
+        motion.motionZ += lookVector.getZ() * d2 / rotationVectorDistance;
       }
 
       if (f < 0.0F && rotationVectorDistance > 0.0D) {
         double d9 = dist2 * (double) (-sin(f)) * 0.04D;
-        context.motionY += d9 * 3.2D;
-        context.motionX += -lookVector.getX() * d9 / rotationVectorDistance;
-        context.motionZ += -lookVector.getZ() * d9 / rotationVectorDistance;
+        motion.motionY += d9 * 3.2D;
+        motion.motionX += -lookVector.getX() * d9 / rotationVectorDistance;
+        motion.motionZ += -lookVector.getZ() * d9 / rotationVectorDistance;
       }
 
       if (rotationVectorDistance > 0.0D) {
-        context.motionX += (lookVector.getX() / rotationVectorDistance * dist2 - context.motionX) * 0.1D;
-        context.motionZ += (lookVector.getZ() / rotationVectorDistance * dist2 - context.motionZ) * 0.1D;
+        motion.motionX += (lookVector.getX() / rotationVectorDistance * dist2 - motion.motionX) * 0.1D;
+        motion.motionZ += (lookVector.getZ() / rotationVectorDistance * dist2 - motion.motionZ) * 0.1D;
       }
 
-      context.motionX *= 0.99f;
-      context.motionY *= 0.98f;
-      context.motionZ *= 0.99f;
+      motion.motionX *= 0.99f;
+      motion.motionY *= 0.98f;
+      motion.motionZ *= 0.99f;
 
       if (Math.abs(interpolateX) < resetMotion) {
         interpolateX = 0;
