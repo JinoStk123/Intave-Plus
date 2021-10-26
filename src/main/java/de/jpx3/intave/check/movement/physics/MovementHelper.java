@@ -1,5 +1,6 @@
 package de.jpx3.intave.check.movement.physics;
 
+import de.jpx3.intave.adapter.MinecraftVersions;
 import de.jpx3.intave.annotate.refactoring.IdoNotBelongHere;
 import de.jpx3.intave.annotate.refactoring.WhyMustIExist;
 import de.jpx3.intave.block.access.BlockWrapper;
@@ -7,8 +8,10 @@ import de.jpx3.intave.block.access.VolatileBlockAccess;
 import de.jpx3.intave.block.collision.Collision;
 import de.jpx3.intave.block.physics.BlockProperties;
 import de.jpx3.intave.block.physics.MaterialMagic;
+import de.jpx3.intave.block.variant.BlockVariant;
 import de.jpx3.intave.player.ItemProperties;
 import de.jpx3.intave.shade.BoundingBox;
+import de.jpx3.intave.shade.Direction;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserRepository;
 import de.jpx3.intave.user.meta.EffectMetadata;
@@ -71,7 +74,7 @@ public final class MovementHelper {
   @WhyMustIExist
   public static float currentSlipperiness(User user, Location location) {
     Material type = VolatileBlockAccess.typeAccess(user, location);
-    return BlockProperties.ofType(type).slipperiness() * 0.91f;
+    return BlockProperties.of(type).slipperiness() * 0.91f;
   }
 
   @Deprecated
@@ -178,16 +181,45 @@ public final class MovementHelper {
       floor(positionY),
       floor(positionZ)
     );
-    if (clientData.combatUpdate() && ItemProperties.isTrapdoor(type) && canGoThroughTrapDoorOnLadder(user, block)) {
+    if (clientData.combatUpdate() && ItemProperties.isTrapdoor(type) && canGoThroughTrapDoorOnLadder(user, block, positionX, positionY, positionZ)) {
       return true;
     }
-    return BlockProperties.ofType(type).climbable();
+    return BlockProperties.of(type).climbable();
+  }
+  
+  @Deprecated
+  @IdoNotBelongHere
+  @WhyMustIExist
+  private static boolean canGoThroughTrapDoorOnLadder(User user, Block block, double positionX, double positionY, double positionZ) {
+    if (MinecraftVersions.VER1_14_0.atOrAbove()) {
+      return modernCanGoThroughTrapDoorOnLadder(user, positionX, positionY, positionZ);
+    } else {
+      return legacyCanGoThroughTrapDoorOnLadder(user, block);
+    }
   }
 
   @Deprecated
   @IdoNotBelongHere
   @WhyMustIExist
-  private static boolean canGoThroughTrapDoorOnLadder(User user, Block block) {
+  private static boolean modernCanGoThroughTrapDoorOnLadder(User user, double positionX, double positionY, double positionZ) {
+    BlockVariant variant = VolatileBlockAccess.variantAccess(user, user.player().getWorld(), positionX, positionY, positionZ);
+    boolean isOpen = (Boolean) variant.propertyOf("open");
+    if (isOpen) {
+      Direction direction = variant.enumProperty(Direction.class, "facing");
+      if (VolatileBlockAccess.typeAccess(user, user.player().getWorld(), positionX, positionY - 1, positionZ) != Material.LADDER) {
+        return false;
+      }
+      BlockVariant variantBelow = VolatileBlockAccess.variantAccess(user, user.player().getWorld(), positionX, positionY - 1, positionZ);
+      Direction directionBelow = variantBelow.enumProperty(Direction.class, "facing");
+      return direction != null && direction == directionBelow;
+    }
+    return false;
+  }
+
+  @Deprecated
+  @IdoNotBelongHere
+  @WhyMustIExist
+  private static boolean legacyCanGoThroughTrapDoorOnLadder(User user, Block block) {
     block = BlockWrapper.emit(user, block);
     Location location = block.getLocation();
     BlockState blockState = block.getState(); // unbelievable heavy

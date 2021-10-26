@@ -7,11 +7,9 @@ import de.jpx3.intave.klass.rewrite.PatchyLoadingInjector;
 import net.minecraft.server.v1_14_R1.*;
 import org.bukkit.Material;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 public final class BlockVariantConverter {
   static {
@@ -21,9 +19,12 @@ public final class BlockVariantConverter {
   }
 
   public static Map<Integer, BlockVariant> translate(Material type, Map<Integer, Object> natives) {
-    Map<Integer, BlockVariant> map = new HashMap<>();
-    natives.forEach((integer, nativeBlock) -> map.put(integer, translate(type, nativeBlock)));
-    return map;
+    return natives.entrySet().stream().collect(
+      Collectors.toMap(
+        Map.Entry::getKey,
+        entry -> translate(type, entry.getValue()),
+        (a, b) -> b)
+    );
   }
 
   public final static BlockVariant EMPTY = new EmptyBlockVariant();
@@ -56,6 +57,9 @@ public final class BlockVariantConverter {
     private static Map<Setting<?>, Comparable<?>> modernSettingsOf(Object blockData) {
       net.minecraft.server.v1_16_R1.IBlockData data = (net.minecraft.server.v1_16_R1.IBlockData) blockData;
       Set<net.minecraft.server.v1_16_R1.IBlockState<?>> states = data.getStateMap().keySet();
+      if (states.isEmpty()) {
+        return Collections.emptyMap();
+      }
       Map<Setting<?>, Comparable<?>> configuration = new HashMap<>();
       for (net.minecraft.server.v1_16_R1.IBlockState<?> state : states) {
         Setting<?> setting = settingCache.get(state);
@@ -63,7 +67,7 @@ public final class BlockVariantConverter {
           setting = modernConvertSetting(state);
           settingCache.put(state, setting);
         }
-        configuration.put(setting, convertData(data.get(state)));
+        configuration.put(setting, convertEnumToIndexIfPresent(data.get(state)));
       }
       return configuration;
     }
@@ -90,6 +94,9 @@ public final class BlockVariantConverter {
     private static Map<Setting<?>, Comparable<?>> aquaticSettingsOf(Object blockData) {
       IBlockData data = (IBlockData) blockData;
       Set<IBlockState<?>> states = data.getStateMap().keySet();
+      if (states.isEmpty()) {
+        return Collections.emptyMap();
+      }
       Map<Setting<?>, Comparable<?>> configuration = new HashMap<>();
       for (IBlockState<?> state : states) {
         Setting<?> setting = settingCache.get(state);
@@ -97,7 +104,7 @@ public final class BlockVariantConverter {
           setting = aquaticConvertSetting(state);
           settingCache.put(state, setting);
         }
-        configuration.put(setting, convertData(data.get(state)));
+        configuration.put(setting, convertEnumToIndexIfPresent(data.get(state)));
       }
       return configuration;
     }
@@ -124,6 +131,9 @@ public final class BlockVariantConverter {
     private static Map<Setting<?>, Comparable<?>> legacySettingsOf(Object blockData) {
       net.minecraft.server.v1_13_R2.IBlockData data = (net.minecraft.server.v1_13_R2.IBlockData) blockData;
       Set<net.minecraft.server.v1_13_R2.IBlockState<?>> states = data.getStateMap().keySet();
+      if (states.isEmpty()) {
+        return Collections.emptyMap();
+      }
       Map<Setting<?>, Comparable<?>> configuration = new HashMap<>();
       for (net.minecraft.server.v1_13_R2.IBlockState<?> state : states) {
         Setting<?> setting = settingCache.get(state);
@@ -131,7 +141,7 @@ public final class BlockVariantConverter {
           setting = legacyConvertSetting(state);
           settingCache.put(state, setting);
         }
-        configuration.put(setting, convertData(data.get(state)));
+        configuration.put(setting, convertEnumToIndexIfPresent(data.get(state)));
       }
       return configuration;
     }
@@ -155,7 +165,7 @@ public final class BlockVariantConverter {
     }
 
     @PatchyAutoTranslation
-    private static Comparable<?> convertData(Comparable<?> initial) {
+    private static Comparable<?> convertEnumToIndexIfPresent(Comparable<?> initial) {
       if (initial.getClass().isEnum()) {
         return ((Enum<?>) initial).ordinal();
       }

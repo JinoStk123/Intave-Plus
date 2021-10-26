@@ -54,11 +54,9 @@ public final class CheckConfiguration {
       ConfigurationSection configurationSection = (ConfigurationSection) access.get(key);
       Map<Integer, List<String>> thresholdMap = new LinkedHashMap<>();
       Set<String> section = configurationSection.getKeys(false);
-
       if (section == null) {
         throw new IntaveInternalException("Unable to locate threshold section " + key + " in check " + configurationCache.check().name());
       }
-
       for (String configurationSectionKey : section) {
         List<String> output = new ArrayList<>();
         if (configurationSection.isList(configurationSectionKey)) {

@@ -52,7 +52,7 @@ public final class TestMovement extends Movement {
     double slipperiness;
     if (lastOnGround) {
       Material blockBelow = BlockAccess.global().typeOf(location.clone().subtract(0.0, 0.500001, 0.0).getBlock());
-      slipperiness = BlockProperties.ofType(blockBelow).slipperiness() * 0.91f;
+      slipperiness = BlockProperties.of(blockBelow).slipperiness() * 0.91f;
     } else {
       slipperiness = 0.91f;
     }
@@ -104,7 +104,7 @@ public final class TestMovement extends Movement {
     if (lastOnGround) {
       Location location = this.location.clone().subtract(0.0, 0.500001, 0.0);
       Material type = BlockAccess.global().typeOf(location.getBlock());
-      float slipperiness = BlockProperties.ofType(type).slipperiness() * 0.91f;
+      float slipperiness = BlockProperties.of(type).slipperiness() * 0.91f;
       float var4 = 0.16277137F / (slipperiness * slipperiness * slipperiness);
       return aiMoveSpeed * var4;
     } else {

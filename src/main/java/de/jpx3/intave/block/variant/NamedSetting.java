@@ -26,9 +26,7 @@ public abstract class NamedSetting<T extends Comparable<T>> implements Setting<T
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
-
     NamedSetting<?> that = (NamedSetting<?>) o;
-
     if (!Objects.equals(name, that.name)) return false;
     return Objects.equals(hashCode, that.hashCode);
   }

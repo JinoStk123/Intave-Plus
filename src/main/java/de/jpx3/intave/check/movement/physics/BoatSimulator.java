@@ -207,7 +207,7 @@ public final class BoatSimulator extends BaseSimulator {
             if (coordinatesNotOnLimit <= 0 || y != minY && y != maxY - 1) {
 
               Material material = VolatileBlockAccess.typeAccess(user, x, y, z);
-              float slipperiness = BlockProperties.ofType(material).slipperiness();
+              float slipperiness = BlockProperties.of(material).slipperiness();
 
 //              ?
 //              BlockState blockstate = this.world.getBlockState(blockpos$mutable);

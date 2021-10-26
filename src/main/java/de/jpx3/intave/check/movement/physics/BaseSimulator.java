@@ -502,7 +502,7 @@ class BaseSimulator extends Simulator {
       int soulSandModifier = Enchantments.resolveSoulSpeedModifier(player);
       if (soulSandModifier == 0 || !movementData.blockOnPositionSoulSpeedAffected()) {
         Material type = VolatileBlockAccess.typeAccess(user, world, positionX, positionY - 0.5000001, positionZ);
-        float speedFactor = BlockProperties.ofType(type).speedFactor();
+        float speedFactor = BlockProperties.of(type).speedFactor();
         motion.motionX *= speedFactor;
         motion.motionZ *= speedFactor;
       }

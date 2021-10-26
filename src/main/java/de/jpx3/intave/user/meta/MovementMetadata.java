@@ -462,7 +462,7 @@ public final class MovementMetadata implements SimulationEnvironment {
   }
 
   private float jumpFactorOf(Material material) {
-    return BlockProperties.ofType(material).jumpFactor();
+    return BlockProperties.of(material).jumpFactor();
   }
 
   public boolean collidedWithBoat() {
@@ -523,7 +523,7 @@ public final class MovementMetadata implements SimulationEnvironment {
   }
 
   public boolean blockOnPositionSoulSpeedAffected() {
-    return BlockProperties.ofType(blockOnPosition()).soulSpeedAffected();
+    return BlockProperties.of(blockOnPosition()).soulSpeedAffected();
   }
 
   private void updateEntityActionStates() {

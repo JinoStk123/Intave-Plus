@@ -1,35 +1,26 @@
 package de.jpx3.intave.check.world.placementanalysis;
 
-import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
-import com.comphenix.protocol.wrappers.WrappedBlockData;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.block.access.BlockInteractionAccess;
-import de.jpx3.intave.block.access.BlockVariantAccess;
 import de.jpx3.intave.block.access.VolatileBlockAccess;
 import de.jpx3.intave.check.MetaCheckPart;
 import de.jpx3.intave.check.world.PlacementAnalysis;
 import de.jpx3.intave.cleanup.GarbageCollector;
-import de.jpx3.intave.executor.Synchronizer;
 import de.jpx3.intave.math.MathHelper;
 import de.jpx3.intave.module.Modules;
 import de.jpx3.intave.module.linker.packet.ListenerPriority;
 import de.jpx3.intave.module.linker.packet.PacketSubscription;
 import de.jpx3.intave.module.violation.Violation;
-import de.jpx3.intave.packet.PacketSender;
 import de.jpx3.intave.packet.reader.BlockInteractionReader;
 import de.jpx3.intave.packet.reader.PacketReaders;
-import de.jpx3.intave.shade.Direction;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.meta.AbilityMetadata;
 import de.jpx3.intave.user.meta.CheckCustomMetadata;
 import de.jpx3.intave.user.meta.MovementMetadata;
 import org.bukkit.GameMode;
-import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
@@ -109,31 +100,6 @@ public final class BlockRotationAnalyzer extends MetaCheckPart<PlacementAnalysis
       meta.vl -= 0.002;
     }
     reader.close();
-  }
-
-  private void refreshBlocksAround(Player player, Location targetLocation) {
-    Synchronizer.synchronize(() -> {
-      player.updateInventory();
-      refreshBlock(player, targetLocation);
-      for (Direction direction : Direction.values()) {
-        Location placedBlock = targetLocation.clone().add(direction.getDirectionVec().convertToBukkitVec());
-        refreshBlock(player, placedBlock);
-      }
-    });
-  }
-
-  private void refreshBlock(Player player, Location location) {
-    PacketContainer packet = ProtocolLibrary.getProtocolManager().createPacket(PacketType.Play.Server.BLOCK_CHANGE);
-    if (!VolatileBlockAccess.isInLoadedChunk(location.getWorld(), location.getBlockX(), location.getBlockZ())) {
-      return;
-    }
-    Block block = VolatileBlockAccess.blockAccess(location);
-    Object handle = BlockVariantAccess.nativeVariantAccess(block);
-    WrappedBlockData blockData = WrappedBlockData.fromHandle(handle);
-    com.comphenix.protocol.wrappers.BlockPosition position = new com.comphenix.protocol.wrappers.BlockPosition(location.getBlockX(), location.getBlockY(), location.getBlockZ());
-    packet.getBlockData().write(0, blockData);
-    packet.getBlockPositionModifier().write(0, position);
-    PacketSender.sendServerPacket(player, packet);
   }
 
   public static class BlockRotationMeta extends CheckCustomMetadata {

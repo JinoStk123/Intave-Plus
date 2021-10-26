@@ -84,7 +84,7 @@ final class PlayerUser implements User {
     this.playerConnection = new WeakReference<>(ReflectiveHandleAccess.playerConnectionOf(player));
     this.metadata = new MetadataBundle(player, this);
     this.permissionCache = new ExpiringPermissionCache(16, TimeUnit.SECONDS);
-    this.blockStateAccess = MultiChunkKeyBlockStateAccess.forPlayer(player());
+    this.blockStateAccess = MultiChunkKeyBlockStateAccess.forPlayer(player);
     this.complexColliderProcessor = Collider.suitableComplexColliderProcessorFor(this);
     this.simpleColliderProcessor = Collider.suitableSimpleColliderProcessorFor(this);
     Synchronizer.synchronize(this::setDefaultMessagingChannel);
@@ -217,21 +217,25 @@ final class PlayerUser implements User {
   }
 
   @Override
+  @Deprecated
   public boolean hasShadow() {
     return hasShadow;
   }
 
   @Override
+  @Deprecated
   public void setShadow(boolean hasShadow) {
     this.hasShadow = hasShadow;
   }
 
   @Override
+  @Deprecated
   public ShadowPacketDataLink shadowLinkage() {
     return shadowRepo;
   }
 
   @Override
+  @Deprecated
   public void setShadowLinkage(ShadowPacketDataLink shadowRepo) {
     this.shadowRepo = shadowRepo;
   }
@@ -368,7 +372,7 @@ final class PlayerUser implements User {
   private boolean disconnectQueued = false;
 
   @Override
-  public void synchronizedDisconnect(String reason) {
+  public synchronized void synchronizedDisconnect(String reason) {
     if (disconnectQueued) {
       return;
     }

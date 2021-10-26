@@ -26,6 +26,14 @@ final class IndexedBlockVariant implements BlockVariant {
   @Override
   public <T extends Enum<T>> T enumProperty(Class<T> clazz, String name) {
     name = name.toLowerCase(Locale.ROOT);
-    return ((UnknownEnumSetting) namedSettings.get(name)).enumType(clazz, (Integer) namedConfig.get(name));
+    Setting<?> setting = namedSettings.get(name);
+    Integer enumIndex = (Integer) namedConfig.get(name);
+    if (setting == null || enumIndex == null) {
+      return null;
+    }
+    if (!(setting instanceof UnknownEnumSetting)) {
+      throw new IllegalStateException(type + "/" + name + " is not a enum property");
+    }
+    return ((UnknownEnumSetting) setting).enumType(clazz, enumIndex);
   }
 }

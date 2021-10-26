@@ -6,8 +6,8 @@ import java.util.*;
 
 public final class UnknownEnumSetting extends NamedSetting<Integer> {
   private final ImmutableSet<Integer> values;
-  private final Map<String, Integer> mapped = new HashMap<>();
-  private final Map<Integer, String> reverseMapped = new HashMap<>();
+  private final Map<String, Integer> enumNameToIndex = new HashMap<>();
+  private final Map<Integer, String> enumIndexToName = new HashMap<>();
 
   public UnknownEnumSetting(String name, Class<?> owner, Collection<?> values) {
     super(name, Integer.TYPE);
@@ -17,8 +17,8 @@ public final class UnknownEnumSetting extends NamedSetting<Integer> {
     for (Object value : values) {
       String key = value.toString().toLowerCase(Locale.ROOT);
       int ordinal = ((Enum<?>) value).ordinal();
-      mapped.put(key, ordinal);
-      reverseMapped.put(ordinal, key);
+      enumNameToIndex.put(key, ordinal);
+      enumIndexToName.put(ordinal, key);
     }
     ImmutableSet.Builder<Integer> builder = ImmutableSet.builder();
     values.stream().mapToInt(value -> ((Enum<?>) value).ordinal()).forEach(builder::add);
@@ -26,7 +26,7 @@ public final class UnknownEnumSetting extends NamedSetting<Integer> {
   }
 
   public <K extends Enum<K>> K enumType(Class<K> enumClass, int index) {
-    return Enum.valueOf(enumClass, reverseMapped.get(index));
+    return Enum.valueOf(enumClass, enumIndexToName.get(index).toUpperCase(Locale.ROOT));
   }
 
   @Override
@@ -36,6 +36,6 @@ public final class UnknownEnumSetting extends NamedSetting<Integer> {
 
   @Override
   public Optional<Integer> findByName(String name) {
-    return Optional.ofNullable(mapped.get(name.toLowerCase(Locale.ROOT)));
+    return Optional.ofNullable(enumNameToIndex.get(name.toLowerCase(Locale.ROOT)));
   }
 }

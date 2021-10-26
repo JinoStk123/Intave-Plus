@@ -6,34 +6,36 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
+import static org.bukkit.Material.*;
+
 public final class BlockProperties {
-  private final static Property DEFAULT_PROPERTY = Property.of(Material.AIR).build();
+  private final static Property DEFAULT_PROPERTY = Property.builderFor(AIR).build();
   private final static Map<Material, Property> registry = new HashMap<>();
 
   public static void setup() {
-    Property.of(Material.ICE).slipperiness(0.98f).build().saveIfPresent();
-    Property.of(Material.SLIME_BLOCK).slipperiness(0.8f).build().saveIfPresent();
-    Property.of(Material.PACKED_ICE).slipperiness(0.98f).build().saveIfPresent();
-    Property.of("FROSTED_ICE").slipperiness(0.98F).build().saveIfPresent();
-    Property.of("BLUE_ICE").slipperiness(0.989F).build().saveIfPresent();
-    Property.of(Material.LADDER).climbable().build().saveIfPresent();
-    Property.of(Material.VINE).climbable().build().saveIfPresent();
-    Property.of("SCAFFOLDING").climbable().build().saveIfPresent();
-    Property.of("WEEPING_VINES").climbable().build().saveIfPresent();
-    Property.of("WEEPING_VINES_PLANT").climbable().build().saveIfPresent();
-    Property.of("TWISTING_VINES").climbable().build().saveIfPresent();
-    Property.of("TWISTING_VINES_PLANT").climbable().build().saveIfPresent();
-    Property.of("CAVE_VINES_PLANT").climbable().build().saveIfPresent();
-    Property.of(Material.SOUL_SAND).speedFactor(0.4f).soulSpeedAffected().build().saveIfPresent();
-    Property.of("SOUL_SOIL").soulSpeedAffected().build().saveIfPresent();
-    Property.of("HONEY_BLOCK").jumpFactor(0.5f).speedFactor(0.4f).build().saveIfPresent();
+    Property.builderFor(ICE).slipperiness(0.98f).build().trySave();
+    Property.builderFor(SLIME_BLOCK).slipperiness(0.8f).build().trySave();
+    Property.builderFor(PACKED_ICE).slipperiness(0.98f).build().trySave();
+    Property.builderFor("FROSTED_ICE").slipperiness(0.98F).build().trySave();
+    Property.builderFor("BLUE_ICE").slipperiness(0.989F).build().trySave();
+    Property.builderFor(LADDER).climbable().build().trySave();
+    Property.builderFor(VINE).climbable().build().trySave();
+    Property.builderFor("SCAFFOLDING").climbable().build().trySave();
+    Property.builderFor("WEEPING_VINES").climbable().build().trySave();
+    Property.builderFor("WEEPING_VINES_PLANT").climbable().build().trySave();
+    Property.builderFor("TWISTING_VINES").climbable().build().trySave();
+    Property.builderFor("TWISTING_VINES_PLANT").climbable().build().trySave();
+    Property.builderFor("CAVE_VINES_PLANT").climbable().build().trySave();
+    Property.builderFor(SOUL_SAND).speedFactor(0.4f).soulSpeedAffected().build().trySave();
+    Property.builderFor("SOUL_SOIL").soulSpeedAffected().build().trySave();
+    Property.builderFor("HONEY_BLOCK").jumpFactor(0.5f).speedFactor(0.4f).build().trySave();
   }
 
   private static void append(Property property, Material material) {
     registry.put(material, property);
   }
 
-  public static Property ofType(Material material) {
+  public static Property of(Material material) {
     return registry.getOrDefault(material, DEFAULT_PROPERTY);
   }
 
@@ -61,7 +63,7 @@ public final class BlockProperties {
       this.soulSpeedAffected = soulSpeedAffected;
     }
 
-    public void saveIfPresent() {
+    public void trySave() {
       ifPresent(BlockProperties::append);
     }
 
@@ -71,12 +73,12 @@ public final class BlockProperties {
       }
     }
 
-    public static Builder of(Material material) {
+    public static Builder builderFor(Material material) {
       return new Builder(material);
     }
 
-    public static Builder of(String material) {
-      return new Builder(Material.getMaterial(material));
+    public static Builder builderFor(String material) {
+      return new Builder(getMaterial(material));
     }
 
     public float slipperiness() {

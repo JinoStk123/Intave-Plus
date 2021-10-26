@@ -85,8 +85,8 @@ public final class InteractionRaytrace extends MetaCheck<InteractionRaytrace.Int
     AbilityMetadata abilityMetadata = user.meta().abilities();
 
     PacketContainer packet = event.getPacket();
-    BlockInteractionReader reader = PacketReaders.readerOf(packet);
 
+    BlockInteractionReader reader = PacketReaders.readerOf(packet);
     try {
       com.comphenix.protocol.wrappers.BlockPosition blockPosition = reader.blockPosition();
       if (blockPosition == null || event.isCancelled() || movementData.hasRidingEntity()) {

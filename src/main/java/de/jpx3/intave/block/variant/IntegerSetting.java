@@ -4,25 +4,16 @@ import com.google.common.collect.ImmutableSet;
 
 import java.util.Collection;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class IntegerSetting extends NamedSetting<Integer> {
-  private final ImmutableSet<Integer> values;
-  private final int from, to;
+  private final Set<Integer> values;
 
   public IntegerSetting(String name, int min, int max) {
     super(name, Integer.TYPE);
-    this.from = min;
-    this.to = max;
-
-    if (min < 0) {
-      throw new IllegalArgumentException("Min value of " + name + " must be 0 or greater");
-    } else if (max <= min) {
-      throw new IllegalArgumentException("Max value of " + name + " must be greater than min (" + min + ")");
-    } else {
-      this.values = ImmutableSet.copyOf(IntStream.rangeClosed(min, max).boxed().collect(Collectors.toSet()));
-    }
+    this.values = ImmutableSet.copyOf(IntStream.rangeClosed(min, max).boxed().collect(Collectors.toSet()));
   }
 
   @Override

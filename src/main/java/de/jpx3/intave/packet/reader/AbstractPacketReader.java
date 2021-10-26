@@ -7,9 +7,9 @@ public abstract class AbstractPacketReader implements PacketReader {
 
   @Override
   public void flush(PacketContainer packet) {
-    if (this.packet != null) {
-      throw new IllegalStateException("Missing reader flush of " + getClass());
-    }
+//    if (this.packet != null) {
+//      throw new IllegalStateException("Missing reader flush of " + getClass());
+//    }
     this.packet = packet;
   }
 
