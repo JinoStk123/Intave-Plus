@@ -87,7 +87,7 @@ public final class RotationStandardDeviationHeuristic extends MetaCheckPart<Heur
       if (heuristicMeta.rotationBalanceYaw++ >= 2) {
         String description = "standard deviation (yaw) (" + MathHelper.formatDouble(standardDeviation, 4) + ")";
         int options = LIMIT_2 | SUGGEST_MINING;
-        Anomaly anomaly = Anomaly.anomalyOf("121", Confidence.PROBABLE, Anomaly.Type.KILLAURA, description, options);
+        Anomaly anomaly = Anomaly.anomalyOf("121", Confidence.MAYBE, Anomaly.Type.KILLAURA, description, options);
         parentCheck().saveAnomaly(player, anomaly);
         heuristicMeta.rotationBalanceYaw--;
         //dmc24
