@@ -105,7 +105,7 @@ public final class PreAttackHeuristic extends MetaCheckPart<Heuristics, PreAttac
     }
     PreAttackMeta meta = metaOf(player);
     try {
-      if (!entity.moving(0.1) || attackData.lastReach() < 1.0) {
+      if (!entity.moving(0.1) || attackData.lastReach() < 1.0 || entity.ticksAlive < 200) {
         return;
       }
       // FishingRod overrides onItemRightClick and sends an arm-animation packet
