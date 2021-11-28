@@ -6,13 +6,12 @@ import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.check.Check;
 import de.jpx3.intave.check.CheckViolationLevelDecrementer;
 import de.jpx3.intave.check.movement.timer.Balance;
-import de.jpx3.intave.check.movement.timer.MovementFrequency;
 
 public final class Timer extends Check {
   private final CheckViolationLevelDecrementer decrementer;
 
   private final boolean highToleranceMode;
-  private final Balance balance = new Balance(this);
+  private final Balance balance;
 
   public Timer(IntavePlugin plugin) {
     super("Timer", "timer");
@@ -22,6 +21,8 @@ public final class Timer extends Check {
     if (highToleranceMode) {
       IntaveLogger.logger().info("Enabled high ping tolerance");
     }
+
+    this.balance = new Balance(this);
 
     appendCheckPart(balance);
   //  appendCheckPart(new MovementFrequency(this));
