@@ -37,6 +37,8 @@ public final class CivbreakHeuristic extends MetaCheckPart<Heuristics, CivbreakH
     
     EnumWrappers.PlayerDigType playerDigType = packet.getPlayerDigTypes().readSafely(0);
     
+    // Note: isMining should set to false on every PlayerDigType except START_DESTROY_BLOCK
+  
     if (playerDigType == EnumWrappers.PlayerDigType.START_DESTROY_BLOCK) {
       meta.isMining = true;
     }
