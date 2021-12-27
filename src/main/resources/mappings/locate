@@ -288,6 +288,10 @@ MinecraftServer -> {
   [17-18] -> "net/minecraft/server/MinecraftServer"
 }
 
+MinecraftKey -> {
+  [17-18] -> "net/minecraft/resources/MinecraftKey"
+}
+
 MovingObjectPosition -> {
   [17-18] -> "net/minecraft/world/phys/MovingObjectPosition"
   fields {

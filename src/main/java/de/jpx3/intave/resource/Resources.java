@@ -18,6 +18,10 @@ public final class Resources {
     return new FileResource(file);
   }
 
+  public static Resource resourceFromFileWithLock(File file) {
+    return new FileResource(file).locked(file);
+  }
+
   public static Resource resourceFromWeb(URL url) {
     return new WebResource(url);
   }
@@ -79,8 +83,8 @@ public final class Resources {
     String identifier,
     long expires
   ) {
-    File file = fileLocationOf(new UUID(~identifier.hashCode(), ~IntavePlugin.version().hashCode()) + "f");
-    Resource cache = fileSpread(file, theFile -> resourceFromFile(theFile).locked(theFile), 8).encrypted();
+    File initialFile = fileLocationOf(new UUID(~identifier.hashCode(), ~IntavePlugin.version().hashCode()) + "f");
+    Resource cache = fileSpread(initialFile, Resources::resourceFromFileWithLock, 8).encrypted();
     Resource access = resourceFromWeb(url);
     return new ResourceCache(cache, access, expires).retryReads(3);
   }

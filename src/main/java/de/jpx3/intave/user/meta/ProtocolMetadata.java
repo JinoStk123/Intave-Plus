@@ -118,7 +118,9 @@ public final class ProtocolMetadata {
       return "1.17";
     if (protocolVersion <= 756)
       return "1.17.1";
-    return "1.17.1";
+    if (protocolVersion <= 757)
+      return "1.18";
+    return "1.18.1";
   }
 
   public int protocolVersion() {

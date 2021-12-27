@@ -653,17 +653,17 @@ public final class EntityTracker extends Module {
     if (!MinecraftVersions.VER1_12_0.atOrAbove()) {
       return;
     }
-
     for (WrappedWatchableObject watchableObject : watchableObjects) {
       if (watchableObject != null) {
         int index = watchableObject.getIndex();
         Object value = watchableObject.getValue();
-
         if (!MinecraftVersions.VER1_13_0.atOrAbove()) {
           if (processFireworkLegacy(player, index, value)) {
+            // ?
             return;
           }
         } else if (processFireworkModern(player, index, value)){
+          // ?
           return;
         }
       }

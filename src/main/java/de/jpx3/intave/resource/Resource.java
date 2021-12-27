@@ -1,47 +1,45 @@
 package de.jpx3.intave.resource;
 
+import de.jpx3.intave.resource.legacy.LegacyResource;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
-public interface Resource {
+public interface Resource extends LegacyResource {
   boolean available();
+
   long lastModified();
+
   void write(InputStream inputStream);
+
   InputStream read();
+
   void delete();
 
-  default List<String> lines() {
-    List<String> lines;
-    try (InputStream inputStream = read()) {
-      Scanner scanner = new Scanner(inputStream, "UTF-8");
-      lines = new ArrayList<>();
-      while (scanner.hasNext()) {
-        lines.add(scanner.next());
-      }
-    } catch (IOException exception) {
-      exception.printStackTrace();
-      return Collections.emptyList();
-    }
-    return lines;
+  default String asString() {
+    return collectLines(Collectors.joining());
   }
 
-  default String asString() {
-    StringBuilder builder = new StringBuilder();
+  default List<String> lines() {
+    return collectLines(Collectors.toList());
+  }
+
+  default <C, R> R collectLines(Collector<? super String, C, R> collector) {
+    C container = collector.supplier().get();
     try (InputStream inputStream = read()) {
       Scanner scanner = new Scanner(inputStream, "UTF-8");
-      while (scanner.hasNext()) {
-        builder.append(scanner.next());
+      while (scanner.hasNextLine()) {
+        collector.accumulator().accept(container, scanner.nextLine());
       }
     } catch (IOException exception) {
       exception.printStackTrace();
-      return "";
     }
-    return builder.toString();
+    return collector.finisher().apply(container);
   }
 
   default Resource compressed() {

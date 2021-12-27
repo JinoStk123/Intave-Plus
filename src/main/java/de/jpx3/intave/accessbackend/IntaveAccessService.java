@@ -1,6 +1,7 @@
 package de.jpx3.intave.accessbackend;
 
 import com.google.common.base.Preconditions;
+import de.jpx3.intave.IntaveControl;
 import de.jpx3.intave.IntaveLogger;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.access.IntaveAccess;
@@ -18,11 +19,11 @@ import de.jpx3.intave.accessbackend.player.PlayerAccessor;
 import de.jpx3.intave.accessbackend.server.ServerAccessor;
 import de.jpx3.intave.annotate.HighOrderService;
 import de.jpx3.intave.annotate.Native;
+import de.jpx3.intave.check.combat.heuristics.detect.LabyModsHeuristic;
 import de.jpx3.intave.user.UserRepository;
 import org.bukkit.entity.Player;
 
 import java.io.PrintStream;
-import java.util.function.BiConsumer;
 
 /**
  * Created by Jpx3 on 01.12.2017.
@@ -76,7 +77,10 @@ public final class IntaveAccessService {
 
       @Override
       @Native
-      public void subscribeINX(BiConsumer<Object, Object> biConsumer) {
+      public void fallback(Object subscription) {
+        if (IntaveControl.GOMME_MODE) {
+          LabyModsHeuristic.enter(subscription);
+        }
       }
 
       @Override

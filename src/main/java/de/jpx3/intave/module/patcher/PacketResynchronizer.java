@@ -2,6 +2,7 @@ package de.jpx3.intave.module.patcher;
 
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
+import de.jpx3.intave.diagnostic.PacketSynchronizations;
 import de.jpx3.intave.executor.Synchronizer;
 import de.jpx3.intave.module.Module;
 import de.jpx3.intave.module.linker.packet.ListenerPriority;
@@ -28,6 +29,7 @@ public final class PacketResynchronizer extends Module {
       Player player = event.getPlayer();
       PacketContainer packet = event.getPacket();
       Synchronizer.synchronize(() -> sendPacket(player, packet));
+      PacketSynchronizations.enterResynchronization(event.getPacketType());
     }
   }
 

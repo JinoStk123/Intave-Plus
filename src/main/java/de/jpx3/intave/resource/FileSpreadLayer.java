@@ -9,13 +9,13 @@ import java.util.function.Function;
 public final class FileSpreadLayer implements Resource {
   private final File targetFile;
   private final Resource targetResource;
-  private final Function<File, Resource> resourcer;
+  private final Function<File, Resource> fileToResource;
   private final Resource[] spread;
 
-  public FileSpreadLayer(File targetFile, Function<File, Resource> resourcer, int spreadAmount) {
+  public FileSpreadLayer(File targetFile, Function<File, Resource> fileToResource, int spreadAmount) {
     this.targetFile = targetFile;
-    this.targetResource = resourcer.apply(targetFile);
-    this.resourcer = resourcer;
+    this.targetResource = fileToResource.apply(targetFile);
+    this.fileToResource = fileToResource;
     this.spread = new Resource[spreadAmount];
     if (targetResource.available()) {
       prepare();
@@ -31,7 +31,7 @@ public final class FileSpreadLayer implements Resource {
     prepared = true;
     for (int i = 0; i < spread.length; i++) {
       File copy = new File(targetFile + ".spr" + i);
-      spread[i] = resourcer.apply(copy);
+      spread[i] = fileToResource.apply(copy);
       boolean exists = copy.exists();
       boolean empty = copy.length() == 0;
       if (!exists || empty) {
@@ -66,7 +66,8 @@ public final class FileSpreadLayer implements Resource {
   @Override
   public InputStream read() {
     prepare();
-    while (available()) {
+    int tries = 1000;
+    while (available() && tries-- > 0) {
       int random = ThreadLocalRandom.current().nextInt(0, spread.length);
       Resource spreadResource = spread[random];
       if (spreadResource.available()) {

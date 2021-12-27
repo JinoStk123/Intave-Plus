@@ -27,6 +27,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.text.CharacterIterator;
@@ -247,6 +248,25 @@ public final class RootStage extends CommandStage {
       }
       player.sendMessage("Key " + keys + " " + formatDouble(percentage * 100, 4) + "%");
     });
+  }
+
+  @SubCommand(
+    selectors = "resync",
+    usage = "",
+    permission = "sibyl",
+    description = ""
+  )
+  public void checkPacketResync(CommandSender sender) {
+    sender.sendMessage(IntavePlugin.prefix() + "Loading data..");
+    Map<String, Long> packets = PacketSynchronizations.output();
+    if (packets.isEmpty()) {
+      sender.sendMessage(ChatColor.GREEN + "No hard re-syncs on record");
+    } else {
+      packets = sortHashMapByValues(packets);
+      packets.forEach((name, hardsResyncs) -> {
+        sender.sendMessage(ChatColor.RED + name.toLowerCase(Locale.ROOT) + IntavePlugin.defaultColor() + " packets hit a total of " + ChatColor.RED + hardsResyncs + IntavePlugin.defaultColor() + " hard re-syncs");
+      });
+    }
   }
 
   @SubCommand(

@@ -13,7 +13,6 @@ import org.bukkit.entity.Player;
 
 import java.io.PrintStream;
 import java.lang.ref.WeakReference;
-import java.util.function.BiConsumer;
 
 /**
  * This is the main gateway interface for access to Intave, hence the name.
@@ -52,12 +51,6 @@ public interface IntaveAccess {
   void unsubscribeOutputStream(PrintStream stream);
 
   /**
-   * Unused, ignore
-   * @param context data
-   */
-  void subscribeINX(BiConsumer<Object, Object> context);
-
-  /**
    * Retrieves player-specific access control in {@link PlayerAccess}.
    * @param player the specified player
    * @return an access controller to enter a player-constraint context
@@ -85,4 +78,6 @@ public interface IntaveAccess {
    * @return an access controller to enter check access context
    */
   CheckAccess check(Check check);
+
+  void fallback(Object object);
 }

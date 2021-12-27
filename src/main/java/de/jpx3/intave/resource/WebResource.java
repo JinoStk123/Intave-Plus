@@ -1,6 +1,7 @@
 package de.jpx3.intave.resource;
 
 import de.jpx3.intave.IntavePlugin;
+import de.jpx3.intave.security.LicenseAccess;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -36,6 +37,7 @@ public final class WebResource implements Resource {
       connection.addRequestProperty("User-Agent", "Intave/" + IntavePlugin.version());
       connection.addRequestProperty("Cache-Control", "no-cache, no-store, must-revalidate");
       connection.addRequestProperty("Pragma", "no-cache");
+      connection.addRequestProperty("Identifier", LicenseAccess.rawLicense());
       connection.setConnectTimeout(3000);
       connection.setReadTimeout(1000);
       return connection.getInputStream();

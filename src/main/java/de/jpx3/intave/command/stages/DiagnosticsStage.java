@@ -8,6 +8,7 @@ import de.jpx3.intave.check.CheckStatistics;
 import de.jpx3.intave.command.CommandStage;
 import de.jpx3.intave.command.Optional;
 import de.jpx3.intave.command.SubCommand;
+import de.jpx3.intave.diagnostic.PacketSynchronizations;
 import de.jpx3.intave.diagnostic.timings.Timing;
 import de.jpx3.intave.diagnostic.timings.Timings;
 import de.jpx3.intave.math.MathHelper;
@@ -95,6 +96,46 @@ public final class DiagnosticsStage extends CommandStage {
 //      String message = type + " " + ChatColor.GRAY + timing.getTimingName();
 //      sender.sendMessage(message);
 //    });
+  }
+
+  @SubCommand(
+    selectors = "resync",
+    usage = "",
+    permission = "intave.command.diagnostics.performance",
+    description = "Output packet re-synchronizations"
+  )
+  public void checkPacketResync(CommandSender sender) {
+    sender.sendMessage(IntavePlugin.prefix() + "Loading data..");
+    Map<String, Long> packets = PacketSynchronizations.output();
+    if (packets.isEmpty()) {
+      sender.sendMessage(ChatColor.GREEN + "No hard re-syncs on record");
+    } else {
+      packets = sortHashMapByValues(packets);
+      packets.forEach((name, hardsResyncs) -> sender.sendMessage(ChatColor.RED + name.toLowerCase(Locale.ROOT) + IntavePlugin.defaultColor() + " packets hit a total of " + ChatColor.RED + hardsResyncs + IntavePlugin.defaultColor() + " hard re-syncs"));
+    }
+  }
+
+  public <K extends Comparable<? super K>, V extends Comparable<? super V>> Map<K, V> sortHashMapByValues(
+    Map<K, V> passedMap
+  ) {
+    List<K> mapKeys = new ArrayList<>(passedMap.keySet());
+    List<V> mapValues = new ArrayList<>(passedMap.values());
+    Collections.sort(mapValues);
+    Collections.reverse(mapValues);
+    Collections.sort(mapKeys);
+    Map<K, V> sortedMap = new LinkedHashMap<>();
+    for (V val : mapValues) {
+      Iterator<K> keyIt = mapKeys.iterator();
+      while (keyIt.hasNext()) {
+        K key = keyIt.next();
+        if (passedMap.get(key).equals(val)) {
+          keyIt.remove();
+          sortedMap.put(key, val);
+          break;
+        }
+      }
+    }
+    return sortedMap;
   }
 
   @SubCommand(
