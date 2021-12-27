@@ -12,6 +12,7 @@ import de.jpx3.intave.shade.BoundingBox;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserRepository;
 import de.jpx3.intave.user.meta.MovementMetadata;
+import de.jpx3.intave.world.WorldHeight;
 import de.jpx3.intave.world.border.WorldBorders;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -36,7 +37,7 @@ public final class Collision {
     int maxY = floor(playerBoundingBox.maxY);
     int minZ = floor(playerBoundingBox.minZ);
     int maxZ = floor(playerBoundingBox.maxZ);
-    int ystart = Math.max(minY - 1, 0);
+    int ystart = Math.max(minY - 1, WorldHeight.LOWER_WORLD_LIMIT);
     User user = UserRepository.userOf(player);
     World world = player.getWorld();
     MovementMetadata movementData = user.meta().movement();
@@ -89,7 +90,7 @@ public final class Collision {
     int maxY = floor(playerBox.maxY);
     int minZ = floor(playerBox.minZ);
     int maxZ = floor(playerBox.maxZ);
-    int ystart = Math.max(minY - 1, 0);
+    int ystart = Math.max(minY - 1, WorldHeight.LOWER_WORLD_LIMIT);
     User user = UserRepository.userOf(player);
     World world = player.getWorld();
     BlockStateAccess blockStates = user.blockStates();
@@ -131,7 +132,7 @@ public final class Collision {
     int maxY = floor(playerBox.maxY);
     int minZ = floor(playerBox.minZ);
     int maxZ = floor(playerBox.maxZ);
-    int ystart = Math.max(minY - 1, 0);
+    int ystart = Math.max(minY - 1, WorldHeight.LOWER_WORLD_LIMIT);
     for (int x = minX; x <= maxX; ++x) {
       for (int z = minZ; z <= maxZ; ++z) {
         for (int y = ystart; y <= maxY; ++y) {
@@ -163,7 +164,7 @@ public final class Collision {
     int maxY = floor(playerBoundingBox.maxY + 1.0D);
     int minZ = floor(playerBoundingBox.minZ);
     int maxZ = floor(playerBoundingBox.maxZ + 1.0D);
-    int ystart = Math.max(minY - 1, 0);
+    int ystart = Math.max(minY - 1, WorldHeight.LOWER_WORLD_LIMIT);
     List<BoundingBox> resolvedBoundingBoxes = null;
     User user = UserRepository.userOf(player);
     MovementMetadata movementData = user.meta().movement();

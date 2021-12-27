@@ -12,6 +12,7 @@ import de.jpx3.intave.executor.TaskTracker;
 import de.jpx3.intave.module.Modules;
 import de.jpx3.intave.packet.PacketSender;
 import de.jpx3.intave.user.UserRepository;
+import de.jpx3.intave.world.WorldHeight;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -105,7 +106,7 @@ public final class InternalsStage extends CommandStage {
   }
 
   private WrappedDataWatcher defaultWatcherOf(World world, EntityType type) {
-    Entity entity = world.spawnEntity(new Location(world, 0, 256, 0), type);
+    Entity entity = world.spawnEntity(new Location(world, 0, WorldHeight.UPPER_WORLD_LIMIT, 0), type);
     WrappedDataWatcher watcher = WrappedDataWatcher.getEntityWatcher(entity).deepClone();
     entity.remove();
     return watcher;

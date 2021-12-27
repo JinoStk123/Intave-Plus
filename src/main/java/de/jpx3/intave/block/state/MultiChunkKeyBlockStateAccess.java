@@ -10,6 +10,7 @@ import de.jpx3.intave.block.type.BlockTypeAccess;
 import de.jpx3.intave.block.variant.BlockVariantAccess;
 import de.jpx3.intave.diagnostic.ShapeAccessFlowStudy;
 import de.jpx3.intave.math.Hypot;
+import de.jpx3.intave.world.WorldHeight;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -22,7 +23,6 @@ import java.util.Map;
 import static de.jpx3.intave.IntaveControl.DISABLE_BLOCK_CACHING_ENTIRELY;
 
 public final class MultiChunkKeyBlockStateAccess implements BlockStateAccess {
-  private final static int BUILD_LIMIT = 255;
   private final Player player;
   private final ShapeResolverPipeline shapeResolver;
   private final Map<Long, BlockState> blockCache = Maps.newConcurrentMap();
@@ -39,7 +39,7 @@ public final class MultiChunkKeyBlockStateAccess implements BlockStateAccess {
 
   @Override
   public @NotNull BlockShape shapeAt(int posX, int posY, int posZ) {
-    if (posY < 0 || BUILD_LIMIT < posY) {
+    if (posY < WorldHeight.LOWER_WORLD_LIMIT || WorldHeight.UPPER_WORLD_LIMIT < posY) {
       return BlockShapes.emptyShape();
     }
     int chunkX = posX >> 4, chunkZ = posZ >> 4;
@@ -74,7 +74,7 @@ public final class MultiChunkKeyBlockStateAccess implements BlockStateAccess {
 
   @Override
   public @NotNull Material typeAt(int posX, int posY, int posZ) {
-    if (posY < 0 || BUILD_LIMIT < posY) {
+    if (posY < WorldHeight.LOWER_WORLD_LIMIT || WorldHeight.UPPER_WORLD_LIMIT < posY) {
       return Material.AIR;
     }
     int chunkX = posX >> 4, chunkZ = posZ >> 4;
@@ -109,7 +109,7 @@ public final class MultiChunkKeyBlockStateAccess implements BlockStateAccess {
 
   @Override
   public int variantIndexAt(int posX, int posY, int posZ) {
-    if (posY < 0 || BUILD_LIMIT < posY) {
+    if (posY < WorldHeight.LOWER_WORLD_LIMIT || WorldHeight.UPPER_WORLD_LIMIT < posY) {
       return 0;
     }
     int chunkX = posX >> 4, chunkZ = posZ >> 4;
@@ -143,7 +143,7 @@ public final class MultiChunkKeyBlockStateAccess implements BlockStateAccess {
   }
 
   private BlockState lookup(World world, Block block, int posX, int posY, int posZ) {
-    if (block.getY() < 0) {
+    if (block.getY() < WorldHeight.LOWER_WORLD_LIMIT) {
       return BlockState.empty();
     }
     Material type = BlockTypeAccess.typeAccess(block, player);

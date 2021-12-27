@@ -5,6 +5,7 @@ import de.jpx3.intave.block.variant.BlockVariant;
 import de.jpx3.intave.shade.BoundingBox;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.meta.MovementMetadata;
+import de.jpx3.intave.world.WorldHeight;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -34,7 +35,7 @@ public final class ScaffoldingCollisionModifier extends CollisionModifier {
 
   private boolean bottomProperty(User user, World world, int posX, int posY, int posZ) {
     Block block = VolatileBlockAccess.blockAccess(world, posX, posY, posZ);
-    if (block.getY() < 0) {
+    if (block.getY() < WorldHeight.LOWER_WORLD_LIMIT) {
       return false;
     }
     BlockVariant blockVariant = VolatileBlockAccess.variantAccess(user, world, posX, posY, posZ);

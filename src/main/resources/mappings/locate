@@ -364,7 +364,7 @@ PlayerInventory -> {
   [17-18] -> "net/minecraft/world/entity/player/PlayerInventory"
   methods {
     18 -> {
-      "getItem(I)RItemStack;" -> "b(I)RItemStack;"
+      "getItem(I)RItemStack;" -> "a(I)RItemStack;"
     }
   }
 }

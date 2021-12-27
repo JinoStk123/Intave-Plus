@@ -9,6 +9,8 @@ import de.jpx3.intave.user.User;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 
+import static de.jpx3.intave.world.WorldHeight.LOWER_WORLD_LIMIT;
+
 @Relocate
 public final class VolatileBlockAccess {
   public static void setup() {
@@ -39,11 +41,11 @@ public final class VolatileBlockAccess {
       Chunk[] loadedChunks = world.getLoadedChunks();
       if (loadedChunks.length > 0) {
         Chunk anyChunk = loadedChunks[0];
-        return world.getBlockAt(anyChunk.getX() << 4, -1, anyChunk.getZ() << 4);
+        return world.getBlockAt(anyChunk.getX() << 4, LOWER_WORLD_LIMIT - 1, anyChunk.getZ() << 4);
       }
       // well.. xd
     }
-    return world.getBlockAt(spawnLocation.getBlockX(), -1, spawnLocation.getBlockZ());
+    return world.getBlockAt(spawnLocation.getBlockX(), LOWER_WORLD_LIMIT - 1, spawnLocation.getBlockZ());
   }
 
   public static Material typeAccess(User user, Location location) {

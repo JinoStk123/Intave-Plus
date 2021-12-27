@@ -83,14 +83,19 @@ public final class InteractionEmulator implements EventProcessor {
     Player player = interaction.player();
     EmulationResult emulationResult;
     InteractionType interactionType = interaction.type();
-    if (interactionType == InteractionType.PLACE) {
-      emulationResult = emulatePlacement(player, interaction);
-    } else if (interactionType == InteractionType.INTERACT) {
-      emulationResult = emulateInteraction(player, interaction);
-    } else if (interactionType == InteractionType.BREAK) {
-      emulationResult = emulateBreak(player, interaction);
-    } else {
-      emulationResult = EmulationResult.FAILED;
+    switch (interactionType) {
+      case PLACE:
+        emulationResult = emulatePlacement(player, interaction);
+        break;
+      case INTERACT:
+        emulationResult = emulateInteraction(player, interaction);
+        break;
+      case BREAK:
+        emulationResult = emulateBreak(player, interaction);
+        break;
+      default:
+        emulationResult = EmulationResult.FAILED;
+        break;
     }
     return emulationResult;
   }
@@ -119,7 +124,7 @@ public final class InteractionEmulator implements EventProcessor {
           user.meta().movement().checkWebStateAgainNextTick = true;
         }
       }
-      blockStateAccess.override(world, blockX, blockY, blockZ, Material.AIR, (byte) 0);
+      blockStateAccess.override(world, blockX, blockY, blockZ, Material.AIR, 0);
     }
     return access ? EmulationResult.SUCCEEDED : EmulationResult.FAILED;
   }

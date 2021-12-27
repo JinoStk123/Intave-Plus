@@ -10,6 +10,7 @@ import de.jpx3.intave.shade.ClientMathHelper;
 import de.jpx3.intave.shade.NativeVector;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.meta.MovementMetadata;
+import de.jpx3.intave.world.WorldHeight;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -20,7 +21,7 @@ public final class v12FluidResolver extends FluidResolver {
   protected Fluid fluidAt(User user, int x, int y, int z) {
     Player player = user.player();
     Block block = VolatileBlockAccess.blockAccess(user.player().getWorld(), x, y, z);
-    if (block.getY() < 0) {
+    if (block.getY() < WorldHeight.LOWER_WORLD_LIMIT) {
       return Fluid.empty();
     }
     float height = LegacyWaterflow.resolveLiquidHeightPercentage(BlockVariantAccess.variantAccess(block));

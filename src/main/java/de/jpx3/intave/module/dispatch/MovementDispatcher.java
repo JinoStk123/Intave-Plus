@@ -37,6 +37,7 @@ import de.jpx3.intave.shade.BoundingBox;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserRepository;
 import de.jpx3.intave.user.meta.*;
+import de.jpx3.intave.world.WorldHeight;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -93,7 +94,7 @@ public final class MovementDispatcher extends Module {
     if (toLocation.getWorld() != player.getWorld() || toLocation.distance(fromLocation) > 8) {
       BoundingBox bb = BoundingBox.fromPosition(user, toLocation);
       int shiftAllowed = 6;
-      while (toLocation.getY() < 256 && shiftAllowed-- > 0 && Collision.unsafePresent(world, player, bb)) {
+      while (toLocation.getY() < WorldHeight.UPPER_WORLD_LIMIT && shiftAllowed-- > 0 && Collision.unsafePresent(world, player, bb)) {
         toLocation.add(0, 0.5, 0);
         bb = BoundingBox.fromPosition(user, toLocation);
       }
@@ -139,7 +140,7 @@ public final class MovementDispatcher extends Module {
     int shiftAllowed = 6;
 
     BoundingBox bb = BoundingBox.fromPosition(user, respawnLocation);
-    while (respawnLocation.getY() < 256 && shiftAllowed-- > 0 && Collision.unsafePresent(world, player, bb)) {
+    while (respawnLocation.getY() < WorldHeight.UPPER_WORLD_LIMIT && shiftAllowed-- > 0 && Collision.unsafePresent(world, player, bb)) {
       respawnLocation.add(0, 0.5, 0);
       bb = BoundingBox.fromPosition(user, respawnLocation);
     }
