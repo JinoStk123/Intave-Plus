@@ -165,7 +165,7 @@ public final class SimulationEvaluator {
         multiplier *= 0.25;
       }
     } else if (movementData.pastElytraFlying < 4 && movementData.motionY() < movementData.jumpMotion()) {
-      multiplier *= movementData.physicsJumped || System.currentTimeMillis() - movementData.lastJump < 1000 ? 0.1 : 0.3;
+      multiplier *= 0.1;
     }
 
     if (criticalWeb) {
@@ -311,17 +311,20 @@ public final class SimulationEvaluator {
     }
 
     Pose pose = movementData.pose();
+    boolean flewWithElytra = movementData.pastElytraFlying <= 3;
+
     if (pose == Pose.FALL_FLYING) {
       if (movementData.motionY() >= 0 && movementData.onGround) {
         abuseHorizontally *= 0.3;
       } else {
         abuseHorizontally *= 0.6;
       }
-    } else if (movementData.pastElytraFlying < 4) {
+    } else if (flewWithElytra) {
       abuseHorizontally *= 0.1;
     }
 
-    boolean movedTooQuicklyCheckable = distanceMoved > 0.3 || violationLevelData.physicsInvalidMovementsInRow >= 8;
+    boolean movedTooQuicklyCheckable = (distanceMoved > 0.3 || violationLevelData.physicsInvalidMovementsInRow >= 8)
+        && !flewWithElytra;
 
     if (movedTooQuickly && movedTooQuicklyCheckable && !movementData.physicsUnpredictableVelocityExpected) {
       //noinspection UnnecessaryLocalVariable
