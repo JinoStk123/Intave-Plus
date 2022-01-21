@@ -1,5 +1,6 @@
 package de.jpx3.intave.command.stages;
 
+import com.comphenix.protocol.utility.MinecraftVersion;
 import de.jpx3.intave.IntaveControl;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.annotate.Native;
@@ -13,10 +14,14 @@ import de.jpx3.intave.diagnostic.timings.Timing;
 import de.jpx3.intave.diagnostic.timings.Timings;
 import de.jpx3.intave.math.MathHelper;
 import de.jpx3.intave.user.User;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.io.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -136,6 +141,68 @@ public final class DiagnosticsStage extends CommandStage {
       }
     }
     return sortedMap;
+  }
+
+  private final static DateTimeFormatter MESSAGE_DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH.mm.ss.SSS");
+
+  @SubCommand(
+    selectors = "threaddump",
+    usage = "",
+    permission = "intave.command.diagnostics.statistics",
+    description = "Create and save thread dumps"
+  )
+  public void createThreadDump(CommandSender sender) {
+    File dumpsFolder = new File(plugin.dataFolder(), "dumps");
+    File threadDumpFile = new File(dumpsFolder, threadDumpFileName());
+
+    try {
+      dumpsFolder.mkdir();
+      threadDumpFile.createNewFile();
+    } catch (IOException exception) {
+      exception.printStackTrace();
+      return;
+    }
+
+    try {
+      FileOutputStream stream = new FileOutputStream(threadDumpFile);
+      PrintStream printStream = new PrintStream(stream);
+      printStream.println("Static environment");
+      printStream.println(" Time: " + LocalDateTime.now().format(MESSAGE_DATE_FORMATTER));
+      printStream.println(" Intave: " + IntavePlugin.version());
+      printStream.println(" ProtocolLib: " + Bukkit.getPluginManager().getPlugin("ProtocolLib").getDescription().getVersion());
+      if (Bukkit.getPluginManager().getPlugin("ViaVersion") != null) {
+        printStream.println(" ViaVersion: " + Bukkit.getPluginManager().getPlugin("ViaVersion").getDescription().getVersion());
+      } else {
+        printStream.println(" ViaVersion not present");
+      }
+      printStream.println(" Server: " + Bukkit.getServerName() + "/" + Bukkit.getVersion() + "/" + Bukkit.getBukkitVersion());
+      printStream.println(" Minecraft: " + MinecraftVersion.getCurrentVersion().toString());
+      printStream.println("Players");
+      printStream.println(" Thread dump creator: " + sender.getName());
+      printStream.println(" Players online: " + Bukkit.getOnlinePlayers().size() + "/" + Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList()));
+      printStream.println(" ");
+      Thread.getAllStackTraces().forEach((thread, stackTraceElements) -> {
+        String threadName = thread.getName();
+        if (threadName.contains("Netty") || threadName.contains("Intave")) {
+          printStream.println("Thread " + threadName);
+          Exception exception = new Exception();
+          exception.setStackTrace(stackTraceElements);
+          exception.printStackTrace(printStream);
+        }
+      });
+      printStream.flush();
+      printStream.close();
+    } catch (FileNotFoundException exception) {
+      exception.printStackTrace();
+    }
+    sender.sendMessage(IntavePlugin.prefix() + ChatColor.GREEN + "Threaddump created");
+    sender.sendMessage(IntavePlugin.prefix() + "You can find it under " + threadDumpFile.getAbsolutePath());
+  }
+
+  private final static DateTimeFormatter FILE_MESSAGE_DATE_FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yyyy-HH-mm-ss");
+
+  private static String threadDumpFileName() {
+    return "intave-threaddump-" + LocalDateTime.now().format(FILE_MESSAGE_DATE_FORMATTER).toLowerCase(Locale.ROOT) + ".txt";
   }
 
   @SubCommand(

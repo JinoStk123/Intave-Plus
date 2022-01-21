@@ -17,6 +17,10 @@ public final class BoundingBoxBuilder {
   private BoundingBoxBuilder() {
   }
 
+  public void cubeShape() {
+    shape(0, 0, 0, 1, 1, 1);
+  }
+
   public void shape(float minX, float minY, float minZ, float maxX, float maxY, float maxZ) {
     this.minX = minX;
     this.minY = minY;

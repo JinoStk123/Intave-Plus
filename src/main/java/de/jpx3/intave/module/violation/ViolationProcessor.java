@@ -41,7 +41,7 @@ public final class ViolationProcessor extends Module {
     Player player = playerSearch.get();
     User user = UserRepository.userOf(player);
     if (user.trustFactor().atLeast(TrustFactor.BYPASS)) {
-      return violationContext.ignoreThreatBecause("Player has bypass trust factor").complete();
+      return violationContext.ignoreThreatBecause("Player has the bypass trust-factor").complete();
     }
     Check check = violation.check();
     if (!check.enabled()) {

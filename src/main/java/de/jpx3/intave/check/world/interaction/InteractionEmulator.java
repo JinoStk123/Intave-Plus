@@ -14,6 +14,7 @@ import de.jpx3.intave.block.variant.BlockVariantAccess;
 import de.jpx3.intave.check.EventProcessor;
 import de.jpx3.intave.executor.Synchronizer;
 import de.jpx3.intave.module.linker.bukkit.BukkitEventSubscription;
+import de.jpx3.intave.module.tracker.player.AbilityTracker;
 import de.jpx3.intave.shade.Direction;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserRepository;
@@ -28,6 +29,8 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
+
+import static de.jpx3.intave.IntaveControl.DUMP_BLOCK_HITBOX_ON_RIGHT_CLICK;
 
 public final class InteractionEmulator implements EventProcessor {
   private final IntavePlugin plugin;
@@ -168,7 +171,8 @@ public final class InteractionEmulator implements EventProcessor {
           user.meta().movement().checkWebStateAgainNextTick = true;
         }
       }
-      BlockStateAccess blockStateAccess = userOf(player).blockStates();
+      user.meta().movement().pastBlockPlacement = 0;
+      BlockStateAccess blockStateAccess = user.blockStates();
       blockStateAccess.override(world, blockX, blockY, blockZ, replacementType, variant);
       // enforce block reset later
       Synchronizer.synchronize(() -> {
@@ -197,11 +201,12 @@ public final class InteractionEmulator implements EventProcessor {
     Location placementLocation,
     Material itemTypeInHand
   ) {
-    BlockStateAccess blockStateAccess = userOf(player).blockStates();
+    User user = userOf(player);
+    BlockStateAccess blockStateAccess = user.blockStates();
     World world = player.getWorld();
     switch (itemTypeInHand) {
       case BUCKET: {
-        Material placementType = VolatileBlockAccess.typeAccess(UserRepository.userOf(player), placementLocation);//placementLocation.getBlock().getType();
+        Material placementType = VolatileBlockAccess.typeAccess(user, placementLocation);//placementLocation.getBlock().getType();
         // remove liquid on location if exists
         if (MaterialMagic.isLiquid(placementType)) {
           // emulate
@@ -213,8 +218,11 @@ public final class InteractionEmulator implements EventProcessor {
       }
       case WATER_BUCKET:
       case LAVA_BUCKET: {
+        Material placementType = VolatileBlockAccess.typeAccess(user, placementLocation);
+        boolean adventureMode = user.meta().abilities().inGameMode(AbilityTracker.GameMode.ADVENTURE);
+
         // emulate
-        if (WorldPermission.bukkitActionPermission(player, BucketAction.EMPTY_BUCKET, clickedBlock, BlockFace.SELF, itemTypeInHand, null)) {
+        if (placementType == Material.AIR && !adventureMode && WorldPermission.bukkitActionPermission(player, BucketAction.EMPTY_BUCKET, clickedBlock, BlockFace.SELF, itemTypeInHand, null)) {
           blockStateAccess.override(world, placementLocation.getBlockX(), placementLocation.getBlockY(), placementLocation.getBlockZ(), itemTypeInHand == Material.WATER_BUCKET ? Material.WATER : Material.LAVA, 15);
         }
         break;
@@ -226,6 +234,11 @@ public final class InteractionEmulator implements EventProcessor {
     World world = player.getWorld();
     BlockStateAccess blockStateAccess = userOf(player).blockStates();
     Material clickedType = BlockTypeAccess.typeAccess(block, player);
+
+    if (DUMP_BLOCK_HITBOX_ON_RIGHT_CLICK) {
+      player.sendMessage(String.valueOf(blockStateAccess.shapeAt(block.getX(), block.getY(), block.getZ())));
+    }
+
     switch (clickedType) {
       case ACACIA_DOOR:
       case DARK_OAK_DOOR:

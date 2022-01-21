@@ -25,7 +25,7 @@ final class FarmlandBlockPatch extends BoundingBoxPatch {
     if (user.meta().protocol().protocolVersion() > 210 /* 1.10.1*/) {
       builder.shape(0, 0, 0, 1, 0.9375f, 1);
     } else {
-      builder.shape(0,0,0,1,1, 1);
+      builder.cubeShape();
     }
     return builder.applyAndResolve();
   }

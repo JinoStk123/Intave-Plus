@@ -141,11 +141,11 @@ public final class Violation {
       return this;
     }
 
-    public Builder withPlaceholder(String placeholder, String replace) {
+    public Builder withPlaceholder(String name, String replacement) {
       if (this.placeholders == null) {
         this.placeholders = new HashMap<>();
       }
-      placeholders.put(placeholder, replace);
+      placeholders.put(name, replacement);
       return this;
     }
 

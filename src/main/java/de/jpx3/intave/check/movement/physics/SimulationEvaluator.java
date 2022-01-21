@@ -117,15 +117,15 @@ public final class SimulationEvaluator {
       && movementData.pastExternalVelocity != 0;
 
     if (movementData.inWeb) {
-      legitimateDeviation = criticalWeb ? 0.000001 : 0.13;
+      legitimateDeviation = Math.max(legitimateDeviation, criticalWeb ? 0.000001 : 0.13);
     }
 
     if (movementData.pastInWeb < 10 && !movementData.inWeb && differenceY < 0.1) {
-      legitimateDeviation = 0.1;
+      legitimateDeviation = Math.max(legitimateDeviation, 0.1);
     }
 
     if (movementData.recentlyEncounteredFlyingPacket(1) && movementData.pastExternalVelocity <= 4) {
-      legitimateDeviation = 0.03;
+      legitimateDeviation = Math.max(legitimateDeviation, 0.03);
     }
 
     // Jump out of water
@@ -153,7 +153,7 @@ public final class SimulationEvaluator {
       multiplier = 5000;
     } else if (abuseVertically > 0.009 && !allowDeviation) {
       abuseVertically = Math.max(abuseVertically, 0.1);
-      multiplier = 200;
+      multiplier = 500;
     } else {
       multiplier = 100;
     }
@@ -183,7 +183,6 @@ public final class SimulationEvaluator {
         abuseVertically = 0;
       }
     }
-
     return abuseVertically * multiplier;
   }
 
@@ -231,15 +230,15 @@ public final class SimulationEvaluator {
     }
 
     if (movementData.collidedHorizontally && movementData.pastVelocity < 20) {
-      legitimateDeviation = 0.027;
+      legitimateDeviation = Math.max(legitimateDeviation, 0.027);
     }
 
     if (pushedByWaterFlow) {
-      legitimateDeviation = 0.018;
+      legitimateDeviation = Math.max(legitimateDeviation, 0.018);
     }
 
     if (movementData.currentlyInBlock && predictedDistanceMoved < distanceMoved * 1.3) {
-      legitimateDeviation = predictedDistanceMoved;
+      legitimateDeviation = Math.max(legitimateDeviation, predictedDistanceMoved);
     }
 
     // Firework
@@ -252,9 +251,9 @@ public final class SimulationEvaluator {
     if (movementData.recentlyEncounteredFlyingPacket(2)) {
       if (movementData.onGround) {
         boolean lessThanExpected = distanceMoved <= predictedDistanceMoved;
-        legitimateDeviation = lessThanExpected ? 0.115 : 0.005;
+        legitimateDeviation = Math.max(legitimateDeviation, lessThanExpected ? 0.115 : 0.005);
       } else {
-        legitimateDeviation = 0.05;
+        legitimateDeviation = Math.max(legitimateDeviation, 0.05);
       }
       if (movementData.pastNearbyCollisionInaccuracy == 0) {
         legitimateDeviation = Math.max(legitimateDeviation, 0.05);
@@ -263,7 +262,7 @@ public final class SimulationEvaluator {
 
     // Riptide
     if (movementData.pastRiptideSpin < 2) {
-      legitimateDeviation = resolveRiptideDeviation(movementData);
+      legitimateDeviation = Math.max(legitimateDeviation, resolveRiptideDeviation(movementData));
     }
 
     boolean recentlySentFlying = movementData.recentlyEncounteredFlyingPacket(2);
@@ -272,8 +271,10 @@ public final class SimulationEvaluator {
 
     if (recentlySentFlying) {
       boolean lessThanExpected = distanceMoved <= predictedDistanceMoved;
-      double baseSpeedMultiplier = inLiquid ? 0.3 : 0.7;
-      if (lessThanExpected || distanceMoved < baseMoveSpeed * baseSpeedMultiplier) {
+      double baseSpeedMultiplier = inLiquid ? 0.3 : (!movementData.sprinting ? 0.5 : 0.7);
+      MovementMetadata movement = user.meta().movement();
+      boolean valid = movement.pastBlockPlacement > 9 || !movement.onGround();
+      if (valid && (lessThanExpected || distanceMoved < baseMoveSpeed * baseSpeedMultiplier)) {
         legitimateDeviation = Math.max(legitimateDeviation, baseMoveSpeed * 0.7);
       }
     }
@@ -328,7 +329,7 @@ public final class SimulationEvaluator {
 
     if (movedTooQuickly && movedTooQuicklyCheckable && !movementData.physicsUnpredictableVelocityExpected) {
       //noinspection UnnecessaryLocalVariable
-      double vl = abuseHorizontally > 0.2 ? 1000 : Math.max(0.1, abuseHorizontally) * 300;
+      double vl = abuseHorizontally > 0.2 ? 1000 : Math.max(30, abuseHorizontally * 300);
 //      Bukkit.broadcastMessage(user.player().getName() + " moved too quickly: vl+" + vl + " abuse:" + abuseHorizontally + " | un:" + movementData.physicsUnpredictableVelocityExpected);
       return vl;
     }

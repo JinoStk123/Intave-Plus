@@ -81,6 +81,29 @@ check:
       100:
         - "intave internals sendnotify &c{player}&7/{trust-color}&7 is interacting suspiciously #2"
 
+  clickpatterns:
+
+    enabled: true
+
+    50: "intave internals sendnotify &c{player}&7/{trust-color}&7 is clicking with suspicious deviancy (auto-clicker)"
+    100:
+      - "intave internals sendnotify &c{player}&7/{trust-color}&7 has been removed for clicking with suspicious deviancy (auto-clicker)"
+      - "intave internals collectivekick {player} &cYou have been kicked, as an account with your ip address was removed from the game"
+      - "kick {player} &cYou have been removed from the game based on data that was collected by the anti-cheat"
+
+  clickspeedlimiter:
+
+    enabled: true
+
+    max-cps: 20
+
+    thresholds:
+      50: "intave internals sendnotify &c{player}&7/{trust-color}&7 is attacking too quickly"
+      100:
+        - "intave internals sendnotify &c{player}&7/{trust-color}&7 has been removed for attacking too quickly"
+        - "intave internals collectivekick {player} &cYou have been kicked, as an account with your ip address was removed from the game"
+        - "kick {player} &cYou have been removed from the game based on data that was collected by the anti-cheat"
+
   breakspeedlimiter:
 
     enabled: true
@@ -129,18 +152,6 @@ check:
         - "intave internals collectivekick {player} &cYou have been kicked, as an account with your ip address was removed from the game"
         - "kick {player} &cYou have been removed from the game based on data that was collected by the anti-cheat"
 
-  clickspeedlimiter:
-
-    enabled: true
-
-    max-cps: 20
-
-    thresholds:
-      50: "intave internals sendnotify &c{player}&7/{trust-color}&7 is attacking too quickly"
-      100:
-        - "intave internals sendnotify &c{player}&7/{trust-color}&7 has been removed for attacking too quickly"
-        - "intave internals collectivekick {player} &cYou have been kicked, as an account with your ip address was removed from the game"
-        - "kick {player} &cYou have been removed from the game based on data that was collected by the anti-cheat"
 
 blacklist:
 
