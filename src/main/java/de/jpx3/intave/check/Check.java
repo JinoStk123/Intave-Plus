@@ -45,6 +45,7 @@ import java.util.function.Consumer;
  public abstract class Check implements EventProcessor {
   private final IntavePlugin plugin;
   private final String checkName;
+  private final de.jpx3.intave.access.check.Check type;
   private final String configurationKey;
   private final CheckStatistics statistics = new CheckStatistics();
   private final Map<TrustFactor, CheckStatistics> perTrustFactorStatistics = new EnumMap<>(TrustFactor.class);
@@ -57,6 +58,7 @@ import java.util.function.Consumer;
   public Check(String checkName, String configurationKey) {
     this.plugin = IntavePlugin.singletonInstance();
     this.checkName = checkName;
+    this.type = de.jpx3.intave.access.check.Check.fromString(checkName);
     this.configurationKey = configurationKey;
     this.enterConfiguration();
     this.enabled = checkConfiguration.settings().checkEnabled();
@@ -145,34 +147,42 @@ import java.util.function.Consumer;
   }
 
   /**
-   * Retrieve the checks name.
-   * @return the checks name
+   * Retrieve the check's name.
+   * @return the check's name
    */
   public String name() {
     return checkName;
   }
 
   /**
-   * Retrieve the checks configuration key.
-   * @return the checks configuration key
+   * Retrieve the check's type.
+   * @return the check's type
+   */
+  public de.jpx3.intave.access.check.Check type() {
+    return type;
+  }
+
+  /**
+   * Retrieve the check's configuration key.
+   * @return the check's configuration key
    */
   public String configurationKey() {
     return configurationKey;
   }
 
   /**
-   * Access the checks configuration.
-   * @return the checks configuraiton
+   * Access the check's configuration.
+   * @return the check's configuraiton
    */
   public CheckConfiguration configuration() {
     return checkConfiguration;
   }
 
   /**
-   * Retrieve a checks mitigation strategy.
+   * Retrieve a check's mitigation strategy.
    * Will return {@link MitigationStrategy#NOT_SUPPORTED} when the child-class
    * does not support {@link MitigationStrategy}s.
-   * @return the checks mitigation strategy
+   * @return the check's mitigation strategy
    */
   public MitigationStrategy mitigationStrategy() {
     if (mitigationStrategy == MitigationStrategy.NOT_SUPPORTED) {

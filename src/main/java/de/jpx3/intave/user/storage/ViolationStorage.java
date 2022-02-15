@@ -3,6 +3,7 @@ package de.jpx3.intave.user.storage;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import de.jpx3.intave.IntavePlugin;
+import de.jpx3.intave.access.check.Check;
 import de.jpx3.intave.module.violation.Violation;
 import de.jpx3.intave.module.violation.ViolationContext;
 
@@ -26,7 +27,7 @@ public final class ViolationStorage implements Storage {
     String checkName = violation.check().name();
     String details = violation.details();
     int violationLevelAfter = (int) violationContext.violationLevelAfter();
-    if (violationInteresting(checkName, details, violationLevelAfter)) {
+    if (susVL(violation.check().type(), details, violationLevelAfter)) {
       Optional<ViolationEvent> violationEventOptional = lastViolationOfCheck(checkName);
       long lastViolationOfCheck = violationEventOptional.map(event -> System.currentTimeMillis() - event.timestamp()).orElseGet(System::currentTimeMillis);
       if (lastViolationOfCheck > VIOLATION_INSERT_CHECK_COOLDOWN) {
@@ -50,18 +51,18 @@ public final class ViolationStorage implements Storage {
     }
   }
 
-  public boolean violationInteresting(String check, String description, int vl) {
-    check = check.toLowerCase(Locale.ROOT);
+  public boolean susVL(Check check, String description, int vl) {
     switch (check) {
-      case "attackraytrace":
+      case ATTACK_RAYTRACE:
         return vl > 100;
-      case "heuristics":
+      case HEURISTICS:
         return description.contains("!");
-      case "physics":
-      case "placementanalysis":
+      case PHYSICS:
+      case PLACEMENT_ANALYSIS:
         return vl > 500;
+      default:
+        return false;
     }
-    return false;
   }
 
   private Optional<ViolationEvent> lastViolationOfCheck(String check) {
