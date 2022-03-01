@@ -92,7 +92,7 @@ public final class EntityTracker extends Module {
     List<EntityShade> validEntities = new ArrayList<>();
     for (EntityShade entity : synchronizeData.entities()) {
       boolean firstSurvive = false;
-      if (entity.typeData != null) {
+      if (entity.typeData() != null) {
         double distance = entity.distance(playerLocation);
         if (distance <= REQUIRED_DISTANCE) {
           validEntities.add(entity);
@@ -356,7 +356,7 @@ public final class EntityTracker extends Module {
     if (entity == null)
       return;
 
-    if (entity.typeData.isLivingEntity() && entity.tracingEnabled()) {
+    if (entity.typeData().isLivingEntity() && entity.tracingEnabled()) {
       FeedbackCallback<PacketEvent> task = (player1, event1) -> {
         entity.verifiedPosition = false;
         entity.handleEntityTeleport(packet);
@@ -416,7 +416,7 @@ public final class EntityTracker extends Module {
       return;
     }
 
-    if (entity.typeData.isLivingEntity() && entity.tracingEnabled()) {
+    if (entity.typeData().isLivingEntity() && entity.tracingEnabled()) {
       FeedbackCallback<PacketEvent> task = (player1, event1) -> {
         entity.verifiedPosition = false;
         entity.handleEntityMovement(packet);
@@ -615,12 +615,12 @@ public final class EntityTracker extends Module {
     if (entity == null) {
       return;
     }
-    EntityTypeData type = entity.typeData;
+    EntityTypeData type = entity.typeData();
     if (type == null) {
       return;
     }
 
-    boolean livingEntity = entity.typeData.isLivingEntity();
+    boolean livingEntity = entity.typeData().isLivingEntity();
     int entityTypeId = type.identifier();
 
     boolean fireWorkRocket = type.name() != null && type.name().contains("Firework");
@@ -636,7 +636,7 @@ public final class EntityTracker extends Module {
       // Entity Size
       EntityTypeData entityTypeData = entityTypeResolver.entityTypeDataOfEntityMetaData(event, entityTypeId, watchableObjects);
       if (entityTypeData != null) {
-        entity.typeData = entityTypeData;
+        entity.setTypeData(entityTypeData);
       } else {
 //        IntaveLogger.logger().info("Unable to update entity metadata of entity " + entityId + " of type " + entityTypeId);
       }
