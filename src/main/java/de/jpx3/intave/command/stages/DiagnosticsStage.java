@@ -13,6 +13,7 @@ import de.jpx3.intave.diagnostic.PacketSynchronizations;
 import de.jpx3.intave.diagnostic.timings.Timing;
 import de.jpx3.intave.diagnostic.timings.Timings;
 import de.jpx3.intave.math.MathHelper;
+import de.jpx3.intave.resource.ResourceRegistry;
 import de.jpx3.intave.user.User;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -143,6 +144,19 @@ public final class DiagnosticsStage extends CommandStage {
     return sortedMap;
   }
 
+  @SubCommand(
+    selectors = "resources",
+    usage = "",
+    permission = "intave.command.diagnostics.performance",
+    description = ""
+  )
+  public void resourceStatus(CommandSender sender) {
+    sender.sendMessage(IntavePlugin.prefix() + "Resources");
+    ResourceRegistry.registeredResources().forEach((identifier, resource) ->
+      sender.sendMessage(IntavePlugin.prefix() + " " + identifier.substring(0, 2) + " of " + resource.lines().size())
+    );
+  }
+
   private final static DateTimeFormatter MESSAGE_DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH.mm.ss.SSS");
 
   @SubCommand(
@@ -175,7 +189,7 @@ public final class DiagnosticsStage extends CommandStage {
       } else {
         printStream.println(" ViaVersion not present");
       }
-      printStream.println(" Server: " + Bukkit.getServerName() + "/" + Bukkit.getVersion() + "/" + Bukkit.getBukkitVersion());
+      printStream.println(" Server: "/* + Bukkit.getServerName() + "/"*/ + Bukkit.getVersion() + "/" + Bukkit.getBukkitVersion());
       printStream.println(" Minecraft: " + MinecraftVersion.getCurrentVersion().toString());
       printStream.println("Players");
       printStream.println(" Thread dump creator: " + sender.getName());

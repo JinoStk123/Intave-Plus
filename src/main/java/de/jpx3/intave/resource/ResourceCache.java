@@ -45,7 +45,10 @@ public final class ResourceCache implements Resource {
     ByteArrayOutputStream inputBytes;
     try {
       if (read == null || read.available() == 0) {
-        return cache.read();
+        read = source.read();
+        if (read == null || read.available() == 0) {
+          return cache.read();
+        }
       }
       inputBytes = new ByteArrayOutputStream();
       byte[] buf = new byte[4096];

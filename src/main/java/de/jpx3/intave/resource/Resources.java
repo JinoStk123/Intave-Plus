@@ -86,7 +86,9 @@ public final class Resources {
     File initialFile = fileLocationOf(new UUID(~identifier.hashCode(), ~IntavePlugin.version().hashCode()) + "f");
     Resource cache = fileSpread(initialFile, Resources::resourceFromFileWithLock, 8).encrypted();
     Resource access = resourceFromWeb(url);
-    return new ResourceCache(cache, access, expires).retryReads(3);
+    Resource resourceCache = new ResourceCache(cache, access, expires).retryReads(3);
+    ResourceRegistry.registerResource(identifier, resourceCache);
+    return resourceCache;
   }
 
   private static File fileLocationOf(String resourceId) {

@@ -4,6 +4,7 @@ import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.security.LicenseAccess;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -44,8 +45,20 @@ public final class WebResource implements Resource {
       connection.addRequestProperty("Pragma", "no-cache");
       connection.addRequestProperty("Identifier", LicenseAccess.rawLicense());
       connection.setConnectTimeout(4000);
-      connection.setReadTimeout(2000);
-      return connection.getInputStream();
+      connection.setReadTimeout(4000);
+      InputStream inputStream = connection.getInputStream();
+      // forcing stream read
+      if (inputStream.available() == 0) {
+        byte[] buff = new byte[4096];
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        int i;
+        while((i = inputStream.read(buff)) != -1) {
+          output.write(buff, 0, i);
+        }
+        byte[] data = output.toByteArray();
+        return new ByteArrayInputStream(data);
+      }
+      return inputStream;
     } catch (Exception exception) {
       return new ByteArrayInputStream(new byte[0]);
     }
