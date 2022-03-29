@@ -6,6 +6,7 @@ import java.util.Map;
 
 public final class IntaveVersion {
   private final String version;
+  private final int versionInteger;
   private final long release;
   private final Status typeClassifier;
 
@@ -13,6 +14,16 @@ public final class IntaveVersion {
     this.version = version;
     this.release = release;
     this.typeClassifier = typeClassifier;
+    this.versionInteger = parseVersion(version);
+  }
+
+  private int parseVersion(String version) {
+    String[] parts = version.split("\\.");
+    int result = 0;
+    for (String part : parts) {
+      result = result * 10 + Integer.parseInt(part);
+    }
+    return result;
   }
 
   public String version() {

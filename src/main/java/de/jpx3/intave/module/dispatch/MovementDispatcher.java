@@ -590,7 +590,6 @@ public final class MovementDispatcher extends Module {
     Pose pose = movementData.pose();
     movementData.width = pose.width(user);
     movementData.height = pose.height(user);
-    ;
   }
 
   @PacketSubscription(

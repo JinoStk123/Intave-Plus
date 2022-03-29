@@ -49,7 +49,7 @@ public final class MethodLocation extends Location {
     String fromSig = methodSignature(from);
     String toSig = methodSignature(to);
     if (!fromSig.equals(toSig)) {
-      throw new IllegalStateException("Signatures must ( still :( ) match: " + fromSig + " != " + toSig);
+      throw new IllegalStateException("Signatures differ: " + fromSig + " != " + toSig);
     }
     Class<?> ownerClass = Lookup.serverClass(classKey());
     Type[] argumentTypes = Type.getArgumentTypes(toSig);

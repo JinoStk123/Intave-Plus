@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
+import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.resource.Resource;
 import de.jpx3.intave.resource.Resources;
 
@@ -40,6 +41,18 @@ public final class IntaveVersionList {
       content.add(version);
       contentLookup.put(version.version().toLowerCase(Locale.ROOT), version);
     }
+  }
+
+  public IntaveVersion current() {
+    return versionInformation(IntavePlugin.version());
+  }
+
+  public IntaveVersion past(int versions) {
+    return content.get(indexOf(current()) - versions);
+  }
+
+  private int indexOf(IntaveVersion version) {
+    return content.indexOf(version);
   }
 
   public IntaveVersion versionInformation(String version) {

@@ -6,7 +6,7 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.WrappedAttribute;
 import com.comphenix.protocol.wrappers.WrappedAttributeModifier;
 import com.google.common.collect.ImmutableMap;
-import de.jpx3.intave.access.IntaveInternalException;
+import de.jpx3.intave.IntaveLogger;
 import de.jpx3.intave.adapter.MinecraftVersions;
 import de.jpx3.intave.annotate.Relocate;
 import de.jpx3.intave.module.tracker.player.AbilityTracker;
@@ -18,6 +18,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Predicate;
 
+import static de.jpx3.intave.module.tracker.player.AbilityTracker.GameMode.NOT_SET;
+
 @Relocate
 public final class AbilityMetadata {
   private static final UUID SPEED_MODIFIER_SPRINTING_UUID = UUID.fromString("662A6B8D-DA3E-4C1C-8813-96EA6097278D");
@@ -27,8 +29,8 @@ public final class AbilityMetadata {
   private boolean flying;
   private boolean allowFlying;
 
-  private AbilityTracker.GameMode gameMode = AbilityTracker.GameMode.NOT_SET;
-  private AbilityTracker.GameMode pendingGameMode = AbilityTracker.GameMode.NOT_SET;
+  private AbilityTracker.GameMode gameMode = NOT_SET;
+  private AbilityTracker.GameMode pendingGameMode = NOT_SET;
 
   private float flySpeed = 0.05f;
   private float walkSpeed = 0.1f;
@@ -66,12 +68,13 @@ public final class AbilityMetadata {
 
   private void setupDefaultGameMode(GameMode gameMode) {
     if (gameMode == null) {
-      throw new IntaveInternalException("Player gameMode reference is null?");
+      IntaveLogger.logger().warn("Player " + player.getName() + " has no game mode set, this is quite dangerous and may lead to unexpected behaviour.");
+//      Thread.dumpStack();
     }
-    int gameModeValue = gameMode.getValue();
+    int gameModeValue = gameMode == null ? -1 : gameMode.getValue();
     this.gameMode = Arrays.stream(AbilityTracker.GameMode.values())
       .filter(mode -> mode.id() == gameModeValue)
-      .findFirst().orElse(AbilityTracker.GameMode.NOT_SET);
+      .findFirst().orElse(NOT_SET);
     this.pendingGameMode = this.gameMode;
   }
 

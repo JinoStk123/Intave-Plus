@@ -151,7 +151,7 @@ public final class IntavePlugin extends JavaPlugin {
     Modules.proceedBoot(BootSegment.STAGE_4);
     
     if (AgentAccessor.agentAvailable()) {
-      logger.info("Using agent :{~"+"-"+"~}:");
+      logger.info("Using agent :{~-~}:");
     }
 
     prefix = ChatColor.translateAlternateColorCodes('&', prefix);

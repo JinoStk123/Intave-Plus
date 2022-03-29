@@ -1,5 +1,6 @@
 package de.jpx3.intave.klass.locate;
 
+import de.jpx3.intave.IntaveLogger;
 import de.jpx3.intave.resource.CompilerStreamFunctionProvider;
 
 import java.util.ArrayList;
@@ -9,14 +10,14 @@ import java.util.stream.Collectors;
 
 public final class LocateFileCompiler implements CompilerStreamFunctionProvider<Locations> {
   public Locations apply(List<String> lines) {
-    lines.removeIf(String::isEmpty);
-    lines.removeIf(s -> s.startsWith("#"));
-    lines.removeIf(string -> string.trim().isEmpty());
     List<ClassLocation> classLocations = new ArrayList<>();
     List<FieldLocation> fieldLocations = new ArrayList<>();
     List<MethodLocation> methodLocations = new ArrayList<>();
     for (int i = 0; i < lines.size(); i++) {
       String line = lines.get(i);
+      if (line.isEmpty() || line.startsWith("#") || line.trim().isEmpty()) {
+        continue;
+      }
       String className;
       try {
         int classNameEndIndex = line.indexOf(" ");
@@ -50,7 +51,8 @@ public final class LocateFileCompiler implements CompilerStreamFunctionProvider<
         fieldLocations.addAll(fieldCompile(className, fieldLines));
         methodLocations.addAll(methodCompile(className, methodLines));
       } catch (Exception exception) {
-        throw new IllegalStateException("Unable to compile line " + i + ": " + line, exception);
+        IntaveLogger.logger().error("Unable to compile line " + i + ": " + line);
+        exception.printStackTrace();
       }
     }
     return new Locations(
@@ -71,11 +73,11 @@ public final class LocateFileCompiler implements CompilerStreamFunctionProvider<
       String matcherInput = firstLine.split("->")[0].trim();
       int exit = affectedLines.indexOf("}");
       if (exit < 0) {
-        throw new IllegalStateException("End block expected in " + className + " of " + affectedLines);
+        throw new IllegalStateException("Unable to locate next end block in class " + className);
       }
       List<String> linesThisSelector = affectedLines.subList(0, exit + 1);
       result.addAll(methodInnerCompile(className, matcherOf(matcherInput), linesThisSelector));
-      affectedLines.removeAll(linesThisSelector);
+      affectedLines.subList(0, exit + 1).clear();
     }
     return result;
   }

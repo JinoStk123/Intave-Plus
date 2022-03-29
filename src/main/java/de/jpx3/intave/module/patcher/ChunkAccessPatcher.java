@@ -72,6 +72,7 @@ public final class ChunkAccessPatcher extends Module {
       }
       IntaveLogger.logger().info("Patched chunk unload queue of \"" + world.getName() + "\" with " + patchName);
     } catch (Exception exception) {
+      IntaveLogger.logger().info("Failed to patch chunk unload queue of \"" + world.getName() + "\": " + exception.getMessage());
       exception.printStackTrace();
     }
   }
