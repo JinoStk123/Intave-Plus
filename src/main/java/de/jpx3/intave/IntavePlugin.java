@@ -95,7 +95,7 @@ public final class IntavePlugin extends JavaPlugin {
   private static String version = "UNKNOWN";
   private static String prefix = ChatColor.translateAlternateColorCodes('&', "&8[&c&lIntave&8]&7 ");
   private static String defaultColor = ChatColor.getLastColors(prefix);;
-  private static boolean offlineMode = false;
+  private static boolean offlineMode = false, successfullyBooted = false;
 
   static {
     // stage 1
@@ -592,6 +592,7 @@ public final class IntavePlugin extends JavaPlugin {
 
     Modules.linker().packetEvents().refreshLinkages();
     displayVersionInformation();
+    successfullyBooted = true;
     logger.info("Intave booted successfully");
 
     Synchronizer.synchronize(() -> {
@@ -802,7 +803,9 @@ public final class IntavePlugin extends JavaPlugin {
     ShutdownTasks.runAll();
     BackgroundExecutor.stopBlocking();
     deleteIntegrityCache();
-    logger.info(randomExitMessage());
+    if (successfullyBooted) {
+      logger.info(randomExitMessage());
+    }
     logger.info("Intave offline");
     logger.shutdown();
   }

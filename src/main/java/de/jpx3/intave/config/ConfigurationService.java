@@ -54,7 +54,6 @@ public final class ConfigurationService {
   }
 
   // stolen from bukkit
-
   public void saveResource(String resourcePath, boolean replace) {
     if (resourcePath != null && !resourcePath.equals("")) {
       resourcePath = resourcePath.replace('\\', '/');

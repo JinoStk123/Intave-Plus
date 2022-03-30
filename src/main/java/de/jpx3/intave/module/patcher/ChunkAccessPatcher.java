@@ -14,6 +14,7 @@ import org.bukkit.World;
 import org.bukkit.event.world.WorldInitEvent;
 
 import java.lang.reflect.Field;
+import java.util.Collections;
 import java.util.Iterator;
 
 public final class ChunkAccessPatcher extends Module {
@@ -52,15 +53,27 @@ public final class ChunkAccessPatcher extends Module {
       Object chunkProviderServer = ChunkProviderServerAccess.chunkProviderServerOf(world);
       Object unloadQueue = unloadQueueField.get(chunkProviderServer);
       String patchName;
-      //noinspection unchecked
-      Iterator<Long> iterator = (Iterator<Long>) unloadQueue.getClass().getMethod("iterator").invoke(unloadQueue);
+      Iterator<Long> iterator;
+      try {
+        //noinspection unchecked
+        iterator = (Iterator<Long>) unloadQueue.getClass().getMethod("iterator").invoke(unloadQueue);
+      } catch (Exception exception) {
+        iterator = Collections.emptyIterator();
+      }
       if (unloadQueueFieldClassName.contains("dsi.fastutil.longs")) {
-        SynchronizedLongArraySet newQueue = new SynchronizedLongArraySet();
-        unloadQueueField.set(chunkProviderServer, newQueue);
-        patchName = "s(dsi/ls)";
-        iterator.forEachRemaining(newQueue::add);
+        if (unloadQueueFieldClassName.endsWith("LongArraySet")) {
+          SynchronizedLongArraySet newQueue = new SynchronizedLongArraySet();
+          unloadQueueField.set(chunkProviderServer, newQueue);
+          patchName = "s(dsi/ls)";
+          iterator.forEachRemaining(newQueue::add);
+        } else {
+          SynchronizedLongHashSet newQueue = new SynchronizedLongHashSet();
+          unloadQueueField.set(chunkProviderServer, newQueue);
+          patchName = "s(dsi/lhs)";
+          iterator.forEachRemaining(newQueue::add);
+        }
       } else if (unloadQueueFieldClassName.endsWith("util.LongHashSet")) {
-        SynchronizedLongHashSet newQueue = new SynchronizedLongHashSet();
+        SynchronizedLongDSIHashSet newQueue = new SynchronizedLongDSIHashSet();
         unloadQueueField.set(chunkProviderServer, newQueue);
         patchName = "s(ut/lhs)";
         iterator.forEachRemaining(newQueue::add);
