@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This class provides a access environment for a specified check in Intave.
+ * This class provides an access environment for a specified check in Intave.
  * All checks have their own and unique {@link CheckAccess} at their disposal.
  * Access to their implementations is granted via {@link IntaveAccess#check(Check)} and {@link IntaveAccess#check(String)}
  */
