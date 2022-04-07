@@ -13,7 +13,6 @@ import de.jpx3.intave.check.combat.Heuristics;
 import de.jpx3.intave.check.combat.heuristics.Anomaly;
 import de.jpx3.intave.check.combat.heuristics.Confidence;
 import de.jpx3.intave.executor.Synchronizer;
-import de.jpx3.intave.module.linker.packet.ListenerPriority;
 import de.jpx3.intave.module.linker.packet.PacketSubscription;
 import de.jpx3.intave.module.mitigate.AttackNerfStrategy;
 import de.jpx3.intave.module.tracker.entity.EntityShade;
@@ -32,7 +31,7 @@ public final class AttackInInvalidStateHeuristic extends MetaCheckPart<Heuristic
   }
 
   @PacketSubscription(
-    priority = ListenerPriority.HIGH,
+//    priority = ListenerPriority.HIGH,
     packetsIn = {
       USE_ENTITY
     }

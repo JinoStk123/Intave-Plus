@@ -51,6 +51,7 @@ import de.jpx3.intave.module.linker.packet.PacketSubscriptionLinker;
 import de.jpx3.intave.module.tracker.entity.EntityShade;
 import de.jpx3.intave.packet.reader.PacketReaders;
 import de.jpx3.intave.player.ItemProperties;
+import de.jpx3.intave.player.fake.IdentifierReserve;
 import de.jpx3.intave.player.fake.event.FakePlayerEventService;
 import de.jpx3.intave.reflect.access.ReflectiveAccess;
 import de.jpx3.intave.resource.Resources;
@@ -191,6 +192,7 @@ public final class IntavePlugin extends JavaPlugin {
       ContextSecrets.setup();
       SibylBroadcast.setup();
       ReflectiveAccess.setup();
+      IdentifierReserve.setup();
       EntityTypeDataAccessor.setup();
       ChunkProviderServerAccess.setup();
 

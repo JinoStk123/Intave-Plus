@@ -1,5 +1,7 @@
 package de.jpx3.intave.module.feedback;
 
+import com.comphenix.protocol.PacketType;
+import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import de.jpx3.intave.IntaveControl;
@@ -16,6 +18,8 @@ import de.jpx3.intave.user.meta.ConnectionMetadata;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import java.lang.reflect.InvocationTargetException;
+import java.util.Deque;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Queue;
@@ -23,7 +27,9 @@ import java.util.concurrent.TimeUnit;
 
 import static de.jpx3.intave.module.feedback.FeedbackSender.PING_MASK;
 import static de.jpx3.intave.module.feedback.FeedbackSender.TRANSACTION_MAX_CODE;
+import static de.jpx3.intave.module.linker.packet.PacketId.Client.TRANSACTION;
 import static de.jpx3.intave.module.linker.packet.PacketId.Client.*;
+import static de.jpx3.intave.module.linker.packet.PacketId.Server.*;
 
 public final class FeedbackReceiver extends Module {
   private final static boolean USE_PING_PONG_PACKETS = MinecraftVersions.VER1_17_0.atOrAbove();
@@ -155,7 +161,12 @@ public final class FeedbackReceiver extends Module {
     Player player = event.getPlayer();
     User user = UserRepository.userOf(player);
     user.meta().connection().eligibleForTransactionTimeout = true;
-    if (oldestPendingTransaction(user) > TIMEOUT) {
+
+    if (
+      oldestPendingTransaction(user) > TIMEOUT ||
+        !user.meta().connection().enqueuedPackets().isEmpty() ||
+        System.currentTimeMillis() - user.meta().connection().lastEnqueue < 250
+    ) {
       event.setCancelled(true);
     }
   }
@@ -166,12 +177,112 @@ public final class FeedbackReceiver extends Module {
       BLOCK_DIG, BLOCK_PLACE, USE_ITEM
     }
   )
-  public void on(PacketEvent event) {
+  public void cancelInteractionsOnTimeout(PacketEvent event) {
     Player player = event.getPlayer();
     User user = UserRepository.userOf(player);
     user.meta().connection().eligibleForTransactionTimeout = true;
     if (oldestPendingTransaction(user) > TIMEOUT * 2) {
       event.setCancelled(true);
+    }
+  }
+
+  @PacketSubscription(
+    priority = ListenerPriority.LOWEST,
+    packetsOut = {
+      SPAWN_ENTITY,
+      SPAWN_ENTITY_EXPERIENCE_ORB,
+      SPAWN_ENTITY_LIVING,
+      NAMED_ENTITY_SPAWN,
+      SPAWN_ENTITY_PAINTING,
+      SPAWN_ENTITY_WEATHER,
+      ENTITY_LOOK,
+      ENTITY_MOVE_LOOK,
+      REL_ENTITY_MOVE,
+      REL_ENTITY_MOVE_LOOK,
+      ENTITY_DESTROY,
+      ENTITY_STATUS,
+      ENTITY_METADATA,
+      ENTITY_EQUIPMENT,
+      ENTITY_HEAD_ROTATION,
+      ENTITY_TELEPORT,
+      ENTITY_VELOCITY,
+      ENTITY_SOUND,
+      ENTITY_EFFECT,
+      REMOVE_ENTITY_EFFECT,
+      CHAT
+    }
+  )
+  public void enqueueOutgoingPackets(PacketEvent event) {
+    Player player = event.getPlayer();
+    User user = UserRepository.userOf(player);
+    PacketContainer packetContainer = event.getPacket();
+    PacketType packetType = event.getPacketType();
+
+    ConnectionMetadata connection = user.meta().connection();
+    Deque<Object> enqueuedPackets = connection.enqueuedPackets();
+
+    if (user.justJoined()) {
+      return;
+    }
+
+    boolean transactionTimeout = oldestPendingTransaction(user) > connection.transactionPingAverage() + 300;
+
+    long positionTimeoutTolerance = user.meta().protocol().flyingPacketStream() ? 0 : 1000;
+    boolean riding = user.meta().movement().isInVehicle();
+    boolean positionTimeout = !riding && System.currentTimeMillis() - user.meta().connection().lastMovementPacket() > connection.transactionPingAverage() + 300 + positionTimeoutTolerance;
+
+    boolean deletePacket = packetType == PacketType.Play.Server.REL_ENTITY_MOVE ||
+      packetType == PacketType.Play.Server.REL_ENTITY_MOVE_LOOK ||
+      packetType == PacketType.Play.Server.ENTITY_LOOK ||
+      packetType == PacketType.Play.Server.ENTITY_MOVE_LOOK;
+
+    boolean idAddressed =
+      packetType == PacketType.Play.Server.ENTITY_STATUS ||
+      packetType == PacketType.Play.Server.ENTITY_METADATA ||
+      packetType == PacketType.Play.Server.ENTITY_VELOCITY
+      ;
+
+    if (idAddressed) {
+      Integer entityId = packetContainer.getIntegers().read(0);
+      if (entityId != null && entityId == player.getEntityId()) {
+        return;
+      }
+    }
+
+    boolean reachedQueueLimit = enqueuedPackets.size() > 2000;
+    if ((transactionTimeout || positionTimeout) && !reachedQueueLimit) {
+      if (!deletePacket) {
+        enqueuedPackets.offerLast(packetContainer.getHandle());
+        user.meta().connection().lastEnqueue = System.currentTimeMillis();
+      }
+      event.setCancelled(true);
+    } else if (!enqueuedPackets.isEmpty()) {
+      if (enqueuedPackets.size() > 100) {
+        // send up to 100 packets in the queue by poll
+        for (int i = 0; i < 10; i++) {
+          Object packet = enqueuedPackets.pollFirst();
+          if (packet == null) break;
+          sendPacket(player, packet);
+        }
+        if (!deletePacket) {
+          enqueuedPackets.offerLast(packetContainer.getHandle());
+        }
+      } else {
+        // send all packets in the queue by poll
+        while (!enqueuedPackets.isEmpty()) {
+          Object packet = enqueuedPackets.pollFirst();
+          sendPacket(player, packet);
+        }
+      }
+      user.meta().connection().lastEnqueue = System.currentTimeMillis();
+    }
+  }
+
+  private void sendPacket(Player player, Object packet) {
+    try {
+      ProtocolLibrary.getProtocolManager().sendServerPacket(player, PacketContainer.fromPacket(packet), false);
+    } catch (InvocationTargetException exception) {
+      exception.printStackTrace();
     }
   }
 

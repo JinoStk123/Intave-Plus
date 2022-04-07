@@ -122,6 +122,7 @@ public final class IntaveLogger extends PluginLogger {
     logToFile("(EXE) " + command);
   }
 
+  @Deprecated
   public void exception(Throwable throwable) {
     printLine("[Intave] Caught an "+throwable.getClass().getSimpleName()+" exception");
     for (PrintStream outputStream : outputStreams) {

@@ -95,7 +95,7 @@ public final class NativeLibrary {
   }
 
   private void tryDownload() throws IOException {
-    URL url = new URL("https://intave.de/dlls/" + name + suffix());
+    URL url = new URL("https://service.intave.de/dlls/" + name + suffix());
     URLConnection connection = url.openConnection();
     connection.addRequestProperty("User-Agent", "Intave/$VERSION$");
     connection.addRequestProperty("Cache-Control", "no-cache, no-store, must-revalidate");

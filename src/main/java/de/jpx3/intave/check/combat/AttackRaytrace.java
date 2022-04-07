@@ -337,12 +337,15 @@ public final class AttackRaytrace extends MetaCheck<AttackRaytrace.AttackRaytrac
     final int vl = applicableViolationPoints(attackRaytraceResult, raytrace, entity, user, expandHitbox);
     String entityName = entity.entityName();
 
+    double reach = 0;
+
     switch (attackRaytraceResult) {
       case MISS: {
         message = "attacked " + resolveArticle(entityName) + " " + entityName.toLowerCase() + " out of sight";
         details = "";
         thresholdKey = "applicable-thresholds.hitbox";
         special = ChatColor.RED + "[R] " + player.getName() + " missed hit on " + entityName.toLowerCase();
+        reach = -1;
         break;
       }
       case REACH: {
@@ -351,6 +354,7 @@ public final class AttackRaytrace extends MetaCheck<AttackRaytrace.AttackRaytrac
         details = displayReach + " blocks";
         thresholdKey = "applicable-thresholds.reach";
         special = ChatColor.RED + "[R] " + player.getName() + " attacked " + entityName.toLowerCase() + " from " + displayReach;
+        reach = raytrace.reach();
         break;
       }
       default: {
@@ -387,6 +391,7 @@ public final class AttackRaytrace extends MetaCheck<AttackRaytrace.AttackRaytrac
     Violation violation = Violation.builderFor(AttackRaytrace.class)
       .forPlayer(player).withMessage(message).withDetails(details)
       .withCustomThreshold(thresholdKey).withVL(vl)
+      .withPlaceholder("reach", MathHelper.formatDouble(reach, 4))
       .build();
     ViolationContext violationContext = Modules.violationProcessor().processViolation(violation);
     if (violationContext.violationLevelAfter() > 50) {

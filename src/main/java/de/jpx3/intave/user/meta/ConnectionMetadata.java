@@ -25,6 +25,9 @@ public final class ConnectionMetadata {
   public boolean sendAsyncMessage = false;
   public boolean eligibleForTransactionTimeout = false;
 
+  private final Deque<Object> enqueuedPackets = new LinkedList<>();
+  public long lastEnqueue = 0;
+
   // Client Synchronization
   public int latency;
   public long lastKeepAliveDifference;
@@ -41,7 +44,6 @@ public final class ConnectionMetadata {
   // Lag identification
   private long lastMovementTimestamps;
   private final List<Long> movementLagSpikeHistory = new ArrayList<>();
-  private final List<Long> transactionPings = new LinkedList<>();
 
   public ConnectionMetadata(Player player) {
     this.player = player;
@@ -58,6 +60,10 @@ public final class ConnectionMetadata {
       }
     }
     this.lastMovementTimestamps = now;
+  }
+
+  public long lastMovementPacket() {
+    return lastMovementTimestamps;
   }
 
   public double averageMovementPacketTimestamp() {
@@ -89,7 +95,7 @@ public final class ConnectionMetadata {
   }
 
   public long transactionPingAverage() {
-    return transactionSum / transactionNum;
+    return transactionNum == 0 ? 0 : transactionSum / transactionNum;
   }
 
 //  public void receivedTransactionAfter(long milliseconds) {
@@ -169,5 +175,9 @@ public final class ConnectionMetadata {
 
   public List<Long> latencyDifferenceBalance() {
     return latencyDifferenceBalance;
+  }
+
+  public Deque<Object> enqueuedPackets() {
+    return enqueuedPackets;
   }
 }

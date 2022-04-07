@@ -2,7 +2,7 @@ package de.jpx3.intave.module;
 
 public enum BootSegment {
   @Deprecated
-  STAGE_1, // IntavePlugin clinit
+  STAGE_1, // IntavePlugin class init
   STAGE_2, // IntavePlugin init
   STAGE_3, // onLoad
   STAGE_4, // onEnable start

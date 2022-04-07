@@ -1,6 +1,7 @@
 package de.jpx3.intave.block.state;
 
 import com.google.common.collect.Maps;
+import de.jpx3.intave.annotate.DoNotFlowObfuscate;
 import de.jpx3.intave.block.access.VolatileBlockAccess;
 import de.jpx3.intave.block.shape.BlockShape;
 import de.jpx3.intave.block.shape.BlockShapes;
@@ -23,6 +24,7 @@ import java.util.Map;
 
 import static de.jpx3.intave.IntaveControl.DISABLE_BLOCK_CACHING_ENTIRELY;
 
+@DoNotFlowObfuscate
 public final class MultiChunkKeyBlockStateAccess implements BlockStateAccess {
   private final Player player;
   private final ShapeResolverPipeline shapeResolver;
@@ -158,8 +160,6 @@ public final class MultiChunkKeyBlockStateAccess implements BlockStateAccess {
       return new BlockState(shape, type, variant);
     }
   }
-
-
 
   @Override
   public void invalidateAll() {

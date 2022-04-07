@@ -129,7 +129,7 @@ public final class ConfigurationLoader {
     this.configuration = configuration;
   }
 
-  @Native
+//  @Native
   public void loadConfiguration() {
     YamlConfiguration configuration;
     if (!configurationCacheExists()) {
@@ -159,7 +159,7 @@ public final class ConfigurationLoader {
     this.configuration = configuration;
   }
 
-  @Native
+//  @Native
   private YamlConfiguration tryDownloadConfiguration() {
     try {
       InputStream inputStream;
@@ -181,6 +181,9 @@ public final class ConfigurationLoader {
         inputStream = new FileInputStream(settingFile);
       } else if (IntaveControl.USE_DEBUG_RESOURCES) {
         inputStream = ConfigurationLoader.class.getResourceAsStream("/settings.yml");
+        if (inputStream == null) {
+          throw new IntaveBootFailureException("Debug resources not found");
+        }
       } else {
         URL url = new URL("https://intave.de/api/configuration-download");
         URLConnection urlConnection = url.openConnection();

@@ -60,7 +60,13 @@ public final class MovementHelper {
         floor(positionY - movementData.frictionPosSubtraction()),
         floor(positionZ)
       );
-      float slipperiness = currentSlipperiness(user, location);
+      float slipperiness = currentSlipperiness(
+        user,
+        world,
+        positionX,
+        positionY - movementData.frictionPosSubtraction(),
+        positionZ
+      );
       float var4 = movementData.frictionMultiplier() / (slipperiness * slipperiness * slipperiness);
       speed = movementData.aiMoveSpeed(sprinting) * var4;
     } else {
@@ -74,6 +80,14 @@ public final class MovementHelper {
   @WhyMustIExist
   public static float currentSlipperiness(User user, Location location) {
     Material type = VolatileBlockAccess.typeAccess(user, location);
+    return BlockProperties.of(type).slipperiness() * 0.91f;
+  }
+
+  @Deprecated
+  @IdoNotBelongHere
+  @WhyMustIExist
+  public static float currentSlipperiness(User user, World world, double blockPositionX, double blockPositionY, double blockPositionZ) {
+    Material type = VolatileBlockAccess.typeAccess(user, world, blockPositionX, blockPositionY, blockPositionZ);
     return BlockProperties.of(type).slipperiness() * 0.91f;
   }
 

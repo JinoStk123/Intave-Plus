@@ -15,7 +15,7 @@ import net.minecraft.world.level.World;
 import java.lang.invoke.MethodHandle;
 
 @PatchyAutoTranslation
-public final class v182FluidResolver extends FluidResolver {
+public final class v18b2FluidResolver extends FluidResolver {
   private static Object TAG_KEY_WATER = null;
   private static Object TAG_KEY_LAVA = null;
 

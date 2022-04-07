@@ -223,7 +223,6 @@ public final class AttackDispatcher extends Module {
     packet.getIntegers().write(0, player.getEntityId());
     WrappedAttribute attribute = WrappedAttribute.newBuilder().packet(packet).attributeKey("generic.attackDamage").baseValue(0).modifiers(Collections.emptyList()).build();
     packet.getAttributeCollectionModifier().write(0, Lists.newArrayList(attribute));
-
     PacketSender.sendServerPacket(player, packet);
   }
 }

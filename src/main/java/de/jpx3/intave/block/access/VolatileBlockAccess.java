@@ -30,7 +30,13 @@ public final class VolatileBlockAccess {
 
   public static Block blockAccess(World blockAccess, int x, int y, int z) {
     if (isInLoadedChunk(blockAccess, x, z) || Bukkit.isPrimaryThread()) {
-      return blockAccess.getBlockAt(x, y, z);
+      try {
+        return blockAccess.getBlockAt(x, y, z);
+      } catch (IllegalStateException exception) {
+        // problems with async chunk loading
+        exception.printStackTrace();
+        return fallbackBlock(blockAccess);
+      }
     }
     return fallbackBlock(blockAccess);
   }
@@ -111,6 +117,10 @@ public final class VolatileBlockAccess {
   }
 
   public static boolean isInLoadedChunk(World world, int x, int z) {
-    return world.isChunkLoaded(x >> 4, z >> 4);
+    int chunkX = x >> 4;
+    int chunkZ = z >> 4;
+    // test me!!!!
+    return world.isChunkLoaded(chunkX, chunkZ) &&
+      world.isChunkInUse(chunkX, chunkZ);
   }
 }

@@ -19,11 +19,7 @@ public final class ModulePool {
   }
 
   public Collection<Module> bootRequests(BootSegment bootSegment) {
-    return new ArrayList<>(modulePick(module -> readyToBoot(module, bootSegment)));
-  }
-
-  private boolean readyToBoot(Module module, BootSegment bootSegment) {
-    return module.settings().bootSegment().equals(bootSegment);
+    return new ArrayList<>(modulePick(module -> module.settings().readyForEnable(bootSegment)));
   }
 
   public void enableModule(Module module) {
@@ -63,11 +59,6 @@ public final class ModulePool {
 
   private void forEach(Consumer<Module> moduleConsumer) {
     moduleClassMappings.values().forEach(moduleConsumer);
-  }
-
-  public <T extends Module> T moduleOf(Class<T> moduleClass) {
-    //noinspection unchecked
-    return (T) moduleClassMappings.get(moduleClass);
   }
 
   private Collection<Module> modulePick(

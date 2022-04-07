@@ -27,6 +27,14 @@ public final class ModuleSettings {
     return linkSubscriptions;
   }
 
+  public boolean readyToLoad(BootSegment segment) {
+    return segment.equals(bootSegment()) && requirementsFulfilled();
+  }
+
+  public boolean readyForEnable(BootSegment segment) {
+    return segment.equals(bootSegment());
+  }
+
   public static ModuleSettings def() {
     return builder().build();
   }
@@ -45,7 +53,7 @@ public final class ModuleSettings {
     }
 
     public Builder bootUsually() {
-      return bootAt(BootSegment.STAGE_8);
+      return bootAt(BootSegment.STAGE_7);
     }
 
     public Builder bootAfterIntave() {
@@ -65,7 +73,7 @@ public final class ModuleSettings {
       if (this.requirement == null) {
         this.requirement = Requirements.none();
       }
-      this.requirement = Requirements.mergeAnd(this.requirement, requirement);
+      this.requirement = this.requirement.and(requirement);
       return this;
     }
 
@@ -73,7 +81,7 @@ public final class ModuleSettings {
       if (this.requirement == null) {
         throw new IllegalStateException("Can not have or operation on empty requirement");
       }
-      this.requirement = Requirements.mergeOr(this.requirement, requirement);
+      this.requirement = this.requirement.or(requirement);
       return this;
     }
 

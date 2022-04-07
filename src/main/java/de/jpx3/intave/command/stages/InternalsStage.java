@@ -72,8 +72,8 @@ public final class InternalsStage extends CommandStage {
     int[] task = new int[]{0};
     task[0] = Bukkit.getScheduler().scheduleAsyncRepeatingTask(plugin, () -> {
       if (!target.isOnline()) {
-        TaskTracker.stopped(task[0]);
         Bukkit.getScheduler().cancelTask(task[0]);
+        TaskTracker.stopped(task[0]);
         return;
       }
       Synchronizer.synchronize(() -> {

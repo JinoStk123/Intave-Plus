@@ -135,5 +135,7 @@ public final class Locate {
 
   public static void close() {
     classLocationCache.clear();
+    methodLocationCache.clear();
+    fieldLocationCache.clear();
   }
 }

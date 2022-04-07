@@ -222,8 +222,7 @@ class BaseSimulator extends Simulator {
     double positionZ = environment.verifiedPositionZ();
 
     boolean onGround;
-    Location location = new Location(player.getWorld(), positionX, positionY, positionZ);
-    double slipperiness = environment.lastOnGround() ? MovementHelper.currentSlipperiness(user, location) : 0.91f;
+    double slipperiness = environment.lastOnGround() ? MovementHelper.currentSlipperiness(user, player.getWorld(), positionX, positionY, positionZ) : 0.91f;
     double resetMotion = environment.resetMotion();
     double jumpUpwardsMotion = environment.jumpMotion();
 
@@ -351,8 +350,7 @@ class BaseSimulator extends Simulator {
       double blockPositionX = floor(movementData.verifiedPositionX);
       double blockPositionY = floor(movementData.verifiedPositionY - movementData.frictionPosSubtraction());
       double blockPositionZ = floor(movementData.verifiedPositionZ);
-      Location blockBelow = new Location(world, blockPositionX, blockPositionY, blockPositionZ);
-      slipperiness = MovementHelper.currentSlipperiness(user, blockBelow);
+      slipperiness = MovementHelper.currentSlipperiness(user, world, blockPositionX, blockPositionY, blockPositionZ);
     } else {
       slipperiness = 0.91f;
     }

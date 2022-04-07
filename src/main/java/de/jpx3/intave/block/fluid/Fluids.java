@@ -17,7 +17,7 @@ public final class Fluids {
     String className;
 
     if (VER1_18_2.atOrAbove()) {
-      className = "de.jpx3.intave.block.fluid.v182FluidResolver";
+      className = "de.jpx3.intave.block.fluid.v18b2FluidResolver";
     } else if (VER1_16_0.atOrAbove()) {
       className = "de.jpx3.intave.block.fluid.v16FluidResolver";
     } else if (VER1_14_0.atOrAbove()) {

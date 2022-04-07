@@ -78,13 +78,13 @@ public final class IdentifierReserve {
     try {
       if (ATOMIC_INTEGER_FIELD) {
         AtomicInteger atomicInteger = (AtomicInteger) ENTITY_COUNT_FIELD.get(null);
-        newId = atomicInteger.getAndAdd(1);
+        newId = atomicInteger.getAndIncrement();
       } else {
         newId = ENTITY_COUNT_FIELD.getInt(null);
         ENTITY_COUNT_FIELD.setInt(null, newId + 1);
       }
-    } catch (IllegalAccessException e) {
-      e.printStackTrace();
+    } catch (IllegalAccessException exception) {
+      exception.printStackTrace();
     }
     return newId;
   }

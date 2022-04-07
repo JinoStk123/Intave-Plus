@@ -16,12 +16,18 @@ public final class ModuleLoader {
 
   @Native
   public void setup() {
-    // linker
-    prepareModule("de.jpx3.intave.module.linker.bukkit.BukkitEventSubscriptionLinker", ModuleSettings.builder().doNotLinkSubscriptions().bootAt(BootSegment.STAGE_3).build());
-    prepareModule("de.jpx3.intave.module.linker.packet.PacketSubscriptionLinker", ModuleSettings.builder().doNotLinkSubscriptions().requireProtocolLib().andRequire(Requirements.intaveEnabled()).bootAt(BootSegment.STAGE_6).build());
+    ModuleSettings eventBoot = ModuleSettings.builder().doNotLinkSubscriptions().bootBeforeIntave().build();
+    ModuleSettings packetBoot = ModuleSettings.builder()
+      .doNotLinkSubscriptions().requireProtocolLib()
+      .andRequire(Requirements.intaveEnabled())
+      .bootAt(BootSegment.STAGE_6)
+      .build();
+    ModuleSettings defaultBoot = ModuleSettings.builder().requireProtocolLib().bootUsually().build();
+    ModuleSettings lateBoot = ModuleSettings.builder().requireProtocolLib().bootAfterIntave().build();
 
-    ModuleSettings defaultBoot = ModuleSettings.builder().requireProtocolLib().bootAt(BootSegment.STAGE_7).build();
-    ModuleSettings lateBoot = ModuleSettings.builder().requireProtocolLib().bootAt(BootSegment.STAGE_10).build();
+    // linker
+    prepareModule("de.jpx3.intave.module.linker.bukkit.BukkitEventSubscriptionLinker", eventBoot);
+    prepareModule("de.jpx3.intave.module.linker.packet.PacketSubscriptionLinker", packetBoot);
 
     // feedback
     prepareModule("de.jpx3.intave.module.feedback.FeedbackSender", defaultBoot);
@@ -30,13 +36,13 @@ public final class ModuleLoader {
     // tracker
     prepareModule("de.jpx3.intave.module.tracker.player.AbilityTracker", defaultBoot);
     prepareModule("de.jpx3.intave.module.tracker.player.AttributeTracker", defaultBoot);
-    prepareModule("de.jpx3.intave.module.tracker.block.BlockUpdateTracker", defaultBoot);
     prepareModule("de.jpx3.intave.module.tracker.player.ConnectionTracker", defaultBoot);
     prepareModule("de.jpx3.intave.module.tracker.player.EffectTracker", defaultBoot);
-    prepareModule("de.jpx3.intave.module.tracker.entity.EntityTracker", defaultBoot);
     prepareModule("de.jpx3.intave.module.tracker.player.InventoryTracker", defaultBoot);
+    prepareModule("de.jpx3.intave.module.tracker.entity.EntityTracker", defaultBoot);
     prepareModule("de.jpx3.intave.module.tracker.entity.LazyEntityCollisionService", defaultBoot);
     prepareModule("de.jpx3.intave.module.tracker.entity.EntityCollisionDisabler", defaultBoot);
+    prepareModule("de.jpx3.intave.module.tracker.block.BlockUpdateTracker", defaultBoot);
 
     // mitigate
     prepareModule("de.jpx3.intave.module.mitigate.CombatMitigator", defaultBoot);
@@ -71,9 +77,11 @@ public final class ModuleLoader {
   }
 
   public Collection<Module> loadRequests(BootSegment bootSegment) {
-    return classPick(segment -> readyToLoad(bootSegment, segment))
-      .stream().map(this::instanceOf).map(o -> /* module cast */(Module) o)
-      .peek(this::initiate).collect(Collectors.toList());
+    return classPick(settings -> settings.readyToLoad(bootSegment))
+      .stream().map(this::instantiateModule)
+      .map(obj -> (Module) obj)
+      .peek(this::initiate)
+      .collect(Collectors.toList());
   }
 
   private Collection<String> classPick(
@@ -84,12 +92,8 @@ public final class ModuleLoader {
       .map(Map.Entry::getKey).collect(Collectors.toList());
   }
 
-  private boolean readyToLoad(BootSegment segment, ModuleSettings moduleSettings) {
-    return segment.equals(moduleSettings.bootSegment()) && moduleSettings.requirementsFulfilled();
-  }
-
   @SuppressWarnings("unchecked")
-  private <T> T instanceOf(String className) {
+  private <T> T instantiateModule(String className) {
     try {
       Class<?> klass = Class.forName(className);
       try {
