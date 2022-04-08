@@ -1,0 +1,97 @@
+package de.jpx3.intave.block.shape.pipe.patch;
+
+import com.comphenix.protocol.utility.MinecraftVersion;
+import de.jpx3.intave.block.shape.BlockShape;
+import de.jpx3.intave.block.shape.BlockShapes;
+import de.jpx3.intave.block.type.BlockTypeAccess;
+import de.jpx3.intave.block.variant.BlockVariant;
+import de.jpx3.intave.block.variant.BlockVariantAccess;
+import de.jpx3.intave.block.variant.BlockVariantRegister;
+import de.jpx3.intave.shade.BoundingBox;
+import de.jpx3.intave.shade.Direction;
+import de.jpx3.intave.user.User;
+import de.jpx3.intave.user.UserRepository;
+import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.entity.Player;
+
+import java.util.List;
+
+import static de.jpx3.intave.user.meta.ProtocolMetadata.VER_1_13;
+
+public final class HopperPatch extends BoundingBoxPatch {
+  private static final float WALL_WIDTH = 2.0f;
+  private static final float BOX_HEIGHT = 5.0f;
+  private final static BlockShape SHAPE_A = BoundingBox.originFromX16(0, 16 - BOX_HEIGHT, 0, WALL_WIDTH, 16, 16);
+  private final static BlockShape SHAPE_B = BoundingBox.originFromX16(WALL_WIDTH, 16 - BOX_HEIGHT, 0, 16, 16, WALL_WIDTH);
+  private final static BlockShape SHAPE_C = BoundingBox.originFromX16(WALL_WIDTH, 16 - BOX_HEIGHT, 16.0 - WALL_WIDTH, 16, 16, 16);
+  private final static BlockShape SHAPE_D = BoundingBox.originFromX16(16.0 - WALL_WIDTH, 16 - BOX_HEIGHT, WALL_WIDTH, 16, 16, 16 - WALL_WIDTH);
+  private final static BlockShape SHAPE_WALLS = BlockShapes.merge(SHAPE_A, SHAPE_B, SHAPE_C, SHAPE_D);
+  private final static BlockShape SHAPE_CLOSURE = BoundingBox.originFromX16(0, 10.0, 0, 16, 16 - BOX_HEIGHT, 16);
+  private final static BlockShape SHAPE_BASE = BoundingBox.originFromX16(4, 4, 4, 12, 10.0, 12);
+  private final static BlockShape MAIN_SHAPE = BlockShapes.merge(SHAPE_WALLS, SHAPE_CLOSURE, SHAPE_BASE);
+
+  private final static BlockShape LEGACY_HOPPER_BOX_SHAPE = BlockShapes.merge(SHAPE_WALLS, BoundingBox.originFromX16(0, 0, 0, 16, 10.0f, 16));
+
+  private final static BlockShape SHAPE_DOWN = BlockShapes.merge(MAIN_SHAPE, BoundingBox.originFromX16(6.0D, 0.0D, 6.0D, 10.0D, 4.0D, 10.0D));
+  private final static BlockShape SHAPE_NORTH = BlockShapes.merge(MAIN_SHAPE, BoundingBox.originFromX16(12.0D, 4.0D, 6.0D, 16.0D, 8.0D, 10.0D));
+  private final static BlockShape SHAPE_EAST = BlockShapes.merge(MAIN_SHAPE, BoundingBox.originFromX16(6.0D, 4.0D, 0.0D, 10.0D, 8.0D, 4.0D));
+  private final static BlockShape SHAPE_SOUTH = BlockShapes.merge(MAIN_SHAPE, BoundingBox.originFromX16(6.0D, 4.0D, 12.0D, 10.0D, 8.0D, 16.0D));
+  private final static BlockShape SHAPE_WEST = BlockShapes.merge(MAIN_SHAPE, BoundingBox.originFromX16(0.0D, 4.0D, 6.0D, 4.0D, 8.0D, 10.0D));
+
+  @Override
+  public List<BoundingBox> patch(World world, Player player, Block block, List<BoundingBox> bbs) {
+    return patch(world, player, block.getX(), block.getY(), block.getZ(), BlockTypeAccess.typeAccess(block, player), BlockVariantAccess.variantAccess(block), bbs);
+  }
+
+  @Override
+  protected List<BoundingBox> patch(World world, Player player, int posX, int posY, int posZ, Material type, int blockState, List<BoundingBox> bbs) {
+    User user = UserRepository.userOf(player);
+    if (user.meta().protocol().protocolVersion() >= VER_1_13) {
+      if (MinecraftVersion.AQUATIC_UPDATE.atOrAbove()) {
+        return bbs;
+      } else {
+        BlockShape shape;
+        Direction direction = directionFrom(blockState);
+        switch (direction) {
+          case DOWN:
+            shape = SHAPE_DOWN;
+            break;
+          case NORTH:
+            shape = SHAPE_NORTH;
+            break;
+          case SOUTH:
+            shape = SHAPE_SOUTH;
+            break;
+          case WEST:
+            shape = SHAPE_WEST;
+            break;
+          case EAST:
+            shape = SHAPE_EAST;
+            break;
+          default:
+            shape = MAIN_SHAPE;
+            break;
+        }
+        return shape.contextualized(posX, posY, posZ).boundingBoxes();
+      }
+    } else {
+      if (MinecraftVersion.AQUATIC_UPDATE.atOrAbove()) {
+        return LEGACY_HOPPER_BOX_SHAPE.contextualized(posX, posY, posZ).boundingBoxes();
+      } else {
+        return bbs;
+      }
+    }
+  }
+
+  private Direction directionFrom(int blockState) {
+    BlockVariant variant = BlockVariantRegister.variantOf(Material.HOPPER, blockState);
+    return variant.enumProperty(Direction.class, "facing");
+  }
+
+  @Override
+  public boolean appliesTo(Material material) {
+    return material.name().contains("HOPPER");
+  }
+}

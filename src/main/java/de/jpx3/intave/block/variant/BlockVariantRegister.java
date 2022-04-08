@@ -3,34 +3,34 @@ package de.jpx3.intave.block.variant;
 import de.jpx3.intave.IntaveLogger;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.adapter.MinecraftVersions;
+import de.jpx3.intave.klass.locate.Locate;
 import de.jpx3.intave.klass.rewrite.PatchyAutoTranslation;
 import de.jpx3.intave.klass.rewrite.PatchyLoadingInjector;
 import net.minecraft.server.v1_14_R1.Block;
 import net.minecraft.server.v1_14_R1.IBlockData;
+import net.minecraft.server.v1_8_R3.BlockStateList;
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_14_R1.block.data.CraftBlockData;
 
+import java.lang.reflect.Method;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
 public final class BlockVariantRegister {
-  private final static boolean REGISTER_ACTIVE = MinecraftVersions.VER1_13_0.atOrAbove();
+  private final static boolean AVOID_LEGACY_IDS = MinecraftVersions.VER1_13_0.atOrAbove();
   private final static Map<Material, Map<Object, Integer>> blockDataIndex = new EnumMap<>(Material.class);
   private final static Map<Material, Map<Integer, Object>> blockDataRegister = new EnumMap<>(Material.class);
   private final static Map<Material, Map<Integer, BlockVariant>> blockVariants = new EnumMap<>(Material.class);
 
   static {
-    if (REGISTER_ACTIVE) {
+    if (AVOID_LEGACY_IDS) {
       PatchyLoadingInjector.loadUnloadedClassPatched(IntavePlugin.class.getClassLoader(), "de.jpx3.intave.block.variant.BlockVariantRegister$Indexer");
     }
   }
 
   public static void indexIfAvailable() {
-    if (!REGISTER_ACTIVE) {
-      return;
-    }
     for (Material type : Material.values()) {
       if (type.isBlock()) {
         Indexer.index(type, blockDataIndex::put, blockDataRegister::put);
@@ -73,8 +73,12 @@ public final class BlockVariantRegister {
       BiConsumer<Material, Map<Object, Integer>> indexApply,
       BiConsumer<Material, Map<Integer, Object>> registerApply
     ) {
-      if (AQUATIC_INDEX) {
-        aquaticIndex(type, indexApply, registerApply);
+      if (AVOID_LEGACY_IDS) {
+        if (AQUATIC_INDEX) {
+          aquaticIndex(type, indexApply, registerApply);
+        } else {
+          modernIndex(type, indexApply, registerApply);
+        }
       } else {
         legacyIndex(type, indexApply, registerApply);
       }
@@ -101,7 +105,7 @@ public final class BlockVariantRegister {
     }
 
     @PatchyAutoTranslation
-    public static void legacyIndex(
+    public static void modernIndex(
       Material type,
       BiConsumer<Material, Map<Object, Integer>> indexApply,
       BiConsumer<Material, Map<Integer, Object>> registerApply
@@ -115,6 +119,36 @@ public final class BlockVariantRegister {
         index.put(nativeState, id);
         register.put(id, nativeState);
         id++;
+      }
+      indexApply.accept(type, index);
+      registerApply.accept(type, register);
+    }
+
+    private static Method getStateListMethod;
+
+    @PatchyAutoTranslation
+    public static void legacyIndex(
+      Material type,
+      BiConsumer<Material, Map<Object, Integer>> indexApply,
+      BiConsumer<Material, Map<Integer, Object>> registerApply
+    ) {
+      int id = type.getId();
+      net.minecraft.server.v1_8_R3.Block block = net.minecraft.server.v1_8_R3.Block.getById(id);
+      Map<Object, Integer> index = new HashMap<>();
+      Map<Integer, Object> register = new HashMap<>();
+      try {
+        if (getStateListMethod == null) {
+          getStateListMethod = Locate.classByKey("Block").getDeclaredMethod("getStateList");
+          getStateListMethod.setAccessible(true);
+        }
+        BlockStateList blockStateList = (BlockStateList) getStateListMethod.invoke(block);
+        for (net.minecraft.server.v1_8_R3.IBlockData blockData : blockStateList.a()) {
+          int legacyData = block.toLegacyData(blockData);
+          index.put(blockData, legacyData);
+          register.put(legacyData, blockData);
+        }
+      } catch (Exception exception) {
+        exception.printStackTrace();
       }
       indexApply.accept(type, index);
       registerApply.accept(type, register);

@@ -241,13 +241,13 @@ public final class FeedbackReceiver extends Module {
 //    }
 
     long playerLatencyGain = connection.transactionPingAverage() - LatencyStudy.transactionPingAverage();
-    boolean significantGain = playerLatencyGain > 150; // trustfactor?
+    boolean significantPingGain = playerLatencyGain > 100; // trustfactor?
 
     long lastMovementPacket = System.currentTimeMillis() - connection.lastMovementPacket();
     long oldestTransactionPacket = oldestPendingTransaction(user);
     long positionTimeoutTolerance = user.meta().protocol().flyingPacketStream() ? 0 : 1050;
 
-    boolean transactionTimeout = oldestTransactionPacket > connection.transactionPingAverage() + LatencyStudy.transactionPingAverage() / 2 + 100;
+    boolean transactionTimeout = oldestTransactionPacket > connection.transactionPingAverage() + LatencyStudy.transactionPingAverage() / 2 + 300;
     boolean riding = movement.isInVehicle();
     boolean positionTimeout = !riding && lastMovementPacket > connection.transactionPingAverage() + LatencyStudy.transactionPingAverage() / 2 + 300 + positionTimeoutTolerance;
 
@@ -265,7 +265,10 @@ public final class FeedbackReceiver extends Module {
     }
 
     boolean tooManyPackets = enqueuedPackets.size() > 4000;
-    if (!tooManyPackets && (transactionTimeout || positionTimeout)) {
+    boolean buffer = !tooManyPackets && (transactionTimeout || positionTimeout);
+//    boolean enqueueLater = significantPingGain
+
+    if (buffer) {
       enqueuedPackets.offerLast(packetContainer.getHandle());
       connection.lastEnqueue = System.currentTimeMillis();
       event.setCancelled(true);

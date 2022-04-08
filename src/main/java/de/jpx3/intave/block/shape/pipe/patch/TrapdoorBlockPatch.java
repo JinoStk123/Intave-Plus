@@ -1,12 +1,17 @@
 package de.jpx3.intave.block.shape.pipe.patch;
 
 import de.jpx3.intave.block.type.BlockTypeAccess;
+import de.jpx3.intave.block.variant.BlockVariant;
+import de.jpx3.intave.block.variant.BlockVariantRegister;
 import de.jpx3.intave.shade.BoundingBox;
+import net.minecraft.server.v1_8_R3.INamable;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
 import java.util.List;
+
+import static de.jpx3.intave.block.shape.pipe.patch.TrapdoorBlockPatch.EnumTrapdoorHalf.TOP;
 
 final class TrapdoorBlockPatch extends BoundingBoxPatch {
   public TrapdoorBlockPatch() {
@@ -19,8 +24,10 @@ final class TrapdoorBlockPatch extends BoundingBoxPatch {
   @Override
   public List<BoundingBox> patch(World world, Player player, int posX, int posY, int posZ, Material type, int blockState, List<BoundingBox> bbs) {
     BoundingBoxBuilder boundingBoxBuilder = BoundingBoxBuilder.create();
-    boolean isTop = (blockState & 8) != 0;
-    boolean isOpen = (blockState & 4) != 0;
+
+    BlockVariant variant = BlockVariantRegister.variantOf(type, blockState);
+    boolean isTop = variant.enumProperty(EnumTrapdoorHalf.class, "half") == TOP;
+    boolean isOpen = (Boolean) variant.propertyOf("open");
 
     if (isOpen) {
       switch (blockState & 3) {
@@ -45,5 +52,24 @@ final class TrapdoorBlockPatch extends BoundingBoxPatch {
       }
     }
     return boundingBoxBuilder.applyAndResolve();
+  }
+
+  public enum EnumTrapdoorHalf implements INamable {
+    TOP("top"),
+    BOTTOM("bottom");
+
+    private final String c;
+
+    EnumTrapdoorHalf(String s) {
+      this.c = s;
+    }
+
+    public String toString() {
+      return this.c;
+    }
+
+    public String getName() {
+      return this.c;
+    }
   }
 }

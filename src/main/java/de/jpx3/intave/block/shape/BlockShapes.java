@@ -3,6 +3,7 @@ package de.jpx3.intave.block.shape;
 import de.jpx3.intave.shade.BoundingBox;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public final class BlockShapes {
@@ -31,6 +32,10 @@ public final class BlockShapes {
       default:
         return new ArrayBlockShape(new ArrayList<>(boundingBoxes));
     }
+  }
+
+  public static BlockShape merge(BlockShape... boundingBoxes) {
+    return new ArrayBlockShape(Arrays.asList(boundingBoxes));
   }
 
   public static BlockShape merge(BlockShape shapeA, BlockShape shapeB) {
