@@ -29,6 +29,7 @@ public final class BoundingBoxPatcher {
     add(EnderPortalFramePatch.class);
     add(CauldronBlockPatch.class);
     add(PointedDripstoneBlockPatch.class);
+    add(CarpetPatch.class);
 //    add(BlockDoorPatch.class);
   }
 

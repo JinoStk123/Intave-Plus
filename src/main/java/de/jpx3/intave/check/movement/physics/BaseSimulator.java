@@ -13,7 +13,7 @@ import de.jpx3.intave.module.tracker.entity.EntityShade;
 import de.jpx3.intave.player.Effects;
 import de.jpx3.intave.player.Enchantments;
 import de.jpx3.intave.player.collider.Collider;
-import de.jpx3.intave.player.collider.complex.ComplexColliderSimulationResult;
+import de.jpx3.intave.player.collider.complex.ColliderSimulationResult;
 import de.jpx3.intave.player.collider.simple.SimpleColliderSimulationResult;
 import de.jpx3.intave.shade.BoundingBox;
 import de.jpx3.intave.shade.ClientMathHelper;
@@ -136,7 +136,7 @@ class BaseSimulator extends Simulator {
       movementData.physicsMotionY = 0;
       movementData.physicsMotionZ = 0;
     }
-    ComplexColliderSimulationResult collisionResult = Collider.complexCollision(
+    ColliderSimulationResult collisionResult = Collider.collision(
       user, motion, environment.inWeb(),
       positionX, positionY, positionZ
     );
@@ -232,7 +232,7 @@ class BaseSimulator extends Simulator {
     double interpolateZ = context.motionZ;
 
     for (; interpolations <= 2; interpolations++) {
-      SimpleColliderSimulationResult colliderResult = Collider.simpleCollision(
+      SimpleColliderSimulationResult colliderResult = Collider.simplifiedCollision(
         player, positionX, positionY, positionZ,
         interpolateX, interpolateY, interpolateZ
       );
@@ -302,14 +302,14 @@ class BaseSimulator extends Simulator {
     double positionX, double positionY, double positionZ,
     double motionX, double motionY, double motionZ
   ) {
-    SimpleColliderSimulationResult colliderResult = Collider.simpleCollision(player, positionX, positionY, positionZ, motionX, motionY, motionZ);
+    SimpleColliderSimulationResult colliderResult = Collider.simplifiedCollision(player, positionX, positionY, positionZ, motionX, motionY, motionZ);
     motion.motionX = colliderResult.motionX();
     motion.motionY = colliderResult.motionY();
     motion.motionZ = colliderResult.motionZ();
   }
 
   @IdoNotBelongHere
-  public void notePossibleFlyingPacket(User user, ComplexColliderSimulationResult collisionResult) {
+  public void notePossibleFlyingPacket(User user, ColliderSimulationResult collisionResult) {
     MovementMetadata movementData = user.meta().movement();
     Motion context = collisionResult.motion();
     if (flyingPacket(context.motionX, context.motionY, context.motionZ)) {

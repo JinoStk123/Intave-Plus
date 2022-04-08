@@ -173,7 +173,7 @@ public final class ConfigurationLoader {
         File settingFile = new File(plugin.dataFolder(), "settings.yml");
         if (!settingFile.exists()) {
           if (plugin.getResource("settings.yml") != null) {
-            plugin.saveResource("settings.yml", false);
+            saveResource("settings.yml", false);
           } else {
             throw new IntaveBootFailureException("Please download Intave again to use file configurations");
           }
@@ -202,6 +202,58 @@ public final class ConfigurationLoader {
     } catch (Exception exception) {
 //      exception.printStackTrace();
       return null;
+    }
+  }
+
+  // stolen from bukkit
+  public void saveResource(String resourcePath, boolean replace) {
+    if (resourcePath != null && !resourcePath.equals("")) {
+      resourcePath = resourcePath.replace('\\', '/');
+      InputStream in = this.getResource(resourcePath);
+      if (in == null) {
+        throw new IllegalArgumentException("The embedded resource '" + resourcePath + "' cannot be found");
+      } else {
+        File dataFolder = IntavePlugin.singletonInstance().dataFolder();
+        File outFile = new File(dataFolder, resourcePath);
+        int lastIndex = resourcePath.lastIndexOf(47);
+        File outDir = new File(dataFolder, resourcePath.substring(0, Math.max(lastIndex, 0)));
+        if (!outDir.exists()) {
+          outDir.mkdirs();
+        }
+        try {
+          if (!outFile.exists() || replace) {
+            OutputStream out = new FileOutputStream(outFile);
+            byte[] buf = new byte[1024];
+            int len;
+            while((len = in.read(buf)) != -1) {
+              out.write(buf, 0, len);
+            }
+            out.close();
+            in.close();
+          }
+        } catch (IOException ignored) {}
+      }
+    } else {
+      throw new IllegalArgumentException("ResourcePath cannot be null or empty");
+    }
+  }
+
+  public InputStream getResource(String filename) {
+    if (filename == null) {
+      throw new IllegalArgumentException("Filename cannot be null");
+    } else {
+      try {
+        URL url = this.getClass().getClassLoader().getResource(filename);
+        if (url == null) {
+          return null;
+        } else {
+          URLConnection connection = url.openConnection();
+          connection.setUseCaches(false);
+          return connection.getInputStream();
+        }
+      } catch (IOException var4) {
+        return null;
+      }
     }
   }
 

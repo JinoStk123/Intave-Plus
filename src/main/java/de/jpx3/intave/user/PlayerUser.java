@@ -25,7 +25,7 @@ import de.jpx3.intave.module.violation.placeholder.PlayerContext;
 import de.jpx3.intave.module.violation.placeholder.UserContext;
 import de.jpx3.intave.packet.PacketSender;
 import de.jpx3.intave.player.collider.Collider;
-import de.jpx3.intave.player.collider.complex.ComplexColliderProcessor;
+import de.jpx3.intave.player.collider.complex.ColliderProcessor;
 import de.jpx3.intave.player.collider.simple.SimpleColliderProcessor;
 import de.jpx3.intave.player.fake.FakePlayer;
 import de.jpx3.intave.reflect.access.ReflectiveHandleAccess;
@@ -63,7 +63,7 @@ final class PlayerUser implements User {
   private final WeakReference<Object> playerConnection;
   private final MetadataBundle metadata;
   private final PermissionCache permissionCache;
-  private final ComplexColliderProcessor complexColliderProcessor;
+  private final ColliderProcessor colliderProcessor;
   private final SimpleColliderProcessor simpleColliderProcessor;
   private final List<MessageChannel> receivingUserChannels = new ArrayList<>();
   private final Map<MessageChannel, Predicate<Player>> channelConstraints = Maps.newEnumMap(MessageChannel.class);
@@ -89,7 +89,7 @@ final class PlayerUser implements User {
     this.metadata = new MetadataBundle(player, this);
     this.permissionCache = new ExpiringPermissionCache(16, TimeUnit.SECONDS);
     this.blockStateAccess = MultiChunkKeyBlockStateAccess.forPlayer(player);
-    this.complexColliderProcessor = Collider.suitableComplexColliderProcessorFor(this);
+    this.colliderProcessor = Collider.suitableComplexColliderProcessorFor(this);
     this.simpleColliderProcessor = Collider.suitableSimpleColliderProcessorFor(this);
     Synchronizer.synchronize(this::setDefaultMessagingChannel);
     this.playerContext = PlayerContext.of(player);
@@ -266,12 +266,12 @@ final class PlayerUser implements User {
   }
 
   @Override
-  public ComplexColliderProcessor complexColliderProcessor() {
-    return complexColliderProcessor;
+  public ColliderProcessor collider() {
+    return colliderProcessor;
   }
 
   @Override
-  public SimpleColliderProcessor simpleColliderProcessor() {
+  public SimpleColliderProcessor simplifiedCollider() {
     return simpleColliderProcessor;
   }
 

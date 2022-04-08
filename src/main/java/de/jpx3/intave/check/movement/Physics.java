@@ -27,7 +27,7 @@ import de.jpx3.intave.module.tracker.entity.EntityShade;
 import de.jpx3.intave.module.violation.Violation;
 import de.jpx3.intave.module.violation.ViolationContext;
 import de.jpx3.intave.player.collider.Collider;
-import de.jpx3.intave.player.collider.complex.ComplexColliderSimulationResult;
+import de.jpx3.intave.player.collider.complex.ColliderSimulationResult;
 import de.jpx3.intave.player.collider.simple.SimpleColliderSimulationResult;
 import de.jpx3.intave.shade.BoundingBox;
 import de.jpx3.intave.shade.Motion;
@@ -103,7 +103,7 @@ public final class Physics extends Check {
       exception.printStackTrace();
       return;
     }
-    ComplexColliderSimulationResult collider = simulation.collider();
+    ColliderSimulationResult collider = simulation.collider();
     movementData.onGround = collider.onGround();
     movementData.collidedHorizontally = collider.collidedHorizontally();
     movementData.collidedVertically = collider.collidedVertically();
@@ -194,7 +194,7 @@ public final class Physics extends Check {
     double motionX = physicsMotionX * 0.91f;
     double motionY = (physicsMotionY - 0.08) * 0.98f;
     double motionZ = physicsMotionZ * 0.91f;
-    SimpleColliderSimulationResult colliderResult = Collider.simpleCollision(
+    SimpleColliderSimulationResult colliderResult = Collider.simplifiedCollision(
       user.player(),
       movementData.verifiedPositionX, movementData.verifiedPositionY, movementData.verifiedPositionZ,
       motionX, motionY, motionZ
@@ -211,7 +211,7 @@ public final class Physics extends Check {
     double motionY = (movementData.physicsMotionYBeforeVelocity - 0.08) * 0.98f;
     double motionZ = movementData.physicsMotionZBeforeVelocity * 0.91f;
     if (motionX != 0 && motionY != 0 && motionZ != 0) {
-      SimpleColliderSimulationResult colliderResult = Collider.simpleCollision(
+      SimpleColliderSimulationResult colliderResult = Collider.simplifiedCollision(
         user.player(),
         movementData.verifiedPositionX, movementData.verifiedPositionY, movementData.verifiedPositionZ,
         motionX, motionY, motionZ
@@ -275,7 +275,7 @@ public final class Physics extends Check {
     AbilityMetadata abilityData = meta.abilities();
     BlockStateAccess blockStateAccess = user.blockStates();
 
-    ComplexColliderSimulationResult expectedMovement = simulation.collider();
+    ColliderSimulationResult expectedMovement = simulation.collider();
     Motion context = expectedMovement.motion();
 
     int keyForward = movementData.keyForward;
@@ -392,9 +392,8 @@ public final class Physics extends Check {
     boolean movedIntoBlock = !boundingBoxIntersectionLast && boundingBoxIntersectionCurrent;
     if (boundingBoxIntersectionCurrent && !spectator) {
       List<BoundingBox> intersectionBoundingBoxesCurrent = Collision.__INVALID__resolveBoxes(user.player(), currentBoundingBox);
-      if (movedIntoBlock) {
+      if (movedIntoBlock && !intersectionBoundingBoxesCurrent.isEmpty()) {
         movementData.invalidMovement = true;
-
         BoundingBox boundingBox = intersectionBoundingBoxesCurrent.get(0);
         double blockPositionX = (boundingBox.minX + boundingBox.maxX) / 2.0;
         double blockPositionY = (boundingBox.minY + boundingBox.maxY) / 2.0;

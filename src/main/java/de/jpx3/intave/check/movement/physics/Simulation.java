@@ -1,6 +1,6 @@
 package de.jpx3.intave.check.movement.physics;
 
-import de.jpx3.intave.player.collider.complex.ComplexColliderSimulationResult;
+import de.jpx3.intave.player.collider.complex.ColliderSimulationResult;
 import de.jpx3.intave.shade.Motion;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserLocal;
@@ -8,11 +8,11 @@ import de.jpx3.intave.user.UserLocal;
 import static de.jpx3.intave.math.MathHelper.distanceOf;
 
 public final class Simulation {
-  private final static Simulation INVALID_SIMULATION = new Simulation(MovementConfiguration.empty(), ComplexColliderSimulationResult.invalid());
+  private final static Simulation INVALID_SIMULATION = new Simulation(MovementConfiguration.empty(), ColliderSimulationResult.invalid());
 
   private final static UserLocal<Simulation> simulationUserLocal = UserLocal.withInitial(Simulation::new);
   private MovementConfiguration configuration;
-  private ComplexColliderSimulationResult colliderResult;
+  private ColliderSimulationResult colliderResult;
   private String details = "";
 
   private Simulation() {
@@ -20,13 +20,13 @@ public final class Simulation {
 
   private Simulation(
     MovementConfiguration configuration,
-    ComplexColliderSimulationResult colliderResult
+    ColliderSimulationResult colliderResult
   ) {
     this.configuration = configuration;
     this.colliderResult = colliderResult;
   }
 
-  public void flush(MovementConfiguration configuration, ComplexColliderSimulationResult colliderResult) {
+  public void flush(MovementConfiguration configuration, ColliderSimulationResult colliderResult) {
     this.configuration = configuration;
     this.colliderResult = colliderResult;
     this.details = "";
@@ -48,7 +48,7 @@ public final class Simulation {
     return details;
   }
 
-  public ComplexColliderSimulationResult collider() {
+  public ColliderSimulationResult collider() {
     return colliderResult;
   }
 
@@ -60,7 +60,7 @@ public final class Simulation {
     return new Simulation(configuration, colliderResult);
   }
 
-  public static Simulation of(User user, MovementConfiguration configuration, ComplexColliderSimulationResult colliderResult) {
+  public static Simulation of(User user, MovementConfiguration configuration, ColliderSimulationResult colliderResult) {
     Simulation simulation = simulationUserLocal.get(user);
     simulation.flush(configuration, colliderResult);
     return simulation;

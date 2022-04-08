@@ -11,9 +11,9 @@ import org.bukkit.entity.Player;
 
 import static de.jpx3.intave.shade.Direction.Axis.*;
 
-public final class ModernComplexColliderProcessor implements ComplexColliderProcessor {
+public final class v14ColliderProcessor implements ColliderProcessor {
   @Override
-  public ComplexColliderSimulationResult collide(User user, Motion motion, boolean inWeb, double positionX, double positionY, double positionZ) {
+  public ColliderSimulationResult collide(User user, Motion motion, boolean inWeb, double positionX, double positionY, double positionZ) {
     Player player = user.player();
     MetadataBundle meta = user.meta();
     MovementMetadata movement = meta.movement();
@@ -127,7 +127,7 @@ public final class ModernComplexColliderProcessor implements ComplexColliderProc
     motion.motionX = newPositionX - positionX;
     motion.motionY = newPositionY - positionY;
     motion.motionZ = newPositionZ - positionZ;
-    return new ComplexColliderSimulationResult(
+    return new ColliderSimulationResult(
       Motion.copyFrom(motion), onGround,
       collidedHorizontally, collidedVertically,
       moveResetX, moveResetZ, step

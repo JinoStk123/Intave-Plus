@@ -3,8 +3,8 @@ package de.jpx3.intave.player.collider.complex;
 import de.jpx3.intave.math.MathHelper;
 import de.jpx3.intave.shade.Motion;
 
-public final class ComplexColliderSimulationResult {
-  private final static ComplexColliderSimulationResult INVALID_SIMULATION = new ComplexColliderSimulationResult(
+public final class ColliderSimulationResult {
+  private final static ColliderSimulationResult INVALID_SIMULATION = new ColliderSimulationResult(
     new Motion(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE), false, false, false, false, false, false
   );
 
@@ -13,7 +13,7 @@ public final class ComplexColliderSimulationResult {
   private final boolean resetMotionX, resetMotionZ;
   private final boolean step;
 
-  public ComplexColliderSimulationResult(
+  public ColliderSimulationResult(
     Motion motion, boolean onGround,
     boolean collidedHorizontally, boolean collidedVertically,
     boolean resetMotionX, boolean resetMotionZ, boolean step
@@ -62,7 +62,7 @@ public final class ComplexColliderSimulationResult {
     return resetMotionZ;
   }
 
-  public static ComplexColliderSimulationResult invalid() {
+  public static ColliderSimulationResult invalid() {
     return INVALID_SIMULATION;
   }
 }

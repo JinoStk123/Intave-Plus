@@ -214,7 +214,7 @@ public final class DiagnosticsStage extends CommandStage {
       printStream.println(" ");
       Thread.getAllStackTraces().forEach((thread, stackTraceElements) -> {
         String threadName = thread.getName();
-        if (threadName.contains("Netty") || threadName.contains("Intave")) {
+        if (threadName.contains("Netty") || threadName.contains("Intave") || threadName.contains("Server thread")) {
           printStream.println("Thread " + threadName);
           Exception exception = new Exception();
           exception.setStackTrace(stackTraceElements);

@@ -65,7 +65,7 @@ public final class Collision {
           Material material = stateAccess.typeAt(x, y, z);
           if (CollisionModifiers.isModified(material)) {
             // this should not happen too often
-            resolve = BlockShapes.shapeOf(CollisionModifiers.modified(material, user, playerBoundingBox, x, y, z, resolve.boundingBoxes()));
+            resolve = CollisionModifiers.modified(material, user, playerBoundingBox, x, y, z, resolve);
           }
           boolean blockOutsideBorder = !blockInsideBorder(world, x, z);
           if (blockOutsideBorder && !movementData.outsideBorder) {
@@ -121,7 +121,7 @@ public final class Collision {
           BlockShape shape = blockStates.shapeAt(x, y, z);
           Material material = blockStates.typeAt(x, y, z);
           if (CollisionModifiers.isModified(material)) {
-            shape = BlockShapes.shapeOf(CollisionModifiers.modified(material, user, playerBox, x, y, z, shape.boundingBoxes()));
+            shape = CollisionModifiers.modified(material, user, playerBox, x, y, z, shape);
           }
           if (shape.intersectsWith(playerBox)) {
             return false;
@@ -216,7 +216,7 @@ public final class Collision {
                 List<BoundingBox> resolve = stateAccess.shapeAt(x, y, z).boundingBoxes();
                 Material material = stateAccess.typeAt(x, y, z);
                 if (CollisionModifiers.isModified(material)) {
-                  resolve = CollisionModifiers.modified(material, user, playerBoundingBox, x, y, z, resolve);
+                  resolve = CollisionModifiers.modified(material, user, playerBoundingBox, x, y, z, BlockShapes.shapeOf(resolve)).boundingBoxes();
                 }
                 boolean blockOutsideBorder = !blockInsideBorder(world, x, z);
                 if (blockOutsideBorder && !movementData.outsideBorder) {

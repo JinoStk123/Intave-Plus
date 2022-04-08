@@ -17,7 +17,7 @@ import de.jpx3.intave.module.mitigate.AttackNerfStrategy;
 import de.jpx3.intave.module.violation.placeholder.Placeholders;
 import de.jpx3.intave.module.violation.placeholder.PlayerContext;
 import de.jpx3.intave.module.violation.placeholder.UserContext;
-import de.jpx3.intave.player.collider.complex.ComplexColliderProcessor;
+import de.jpx3.intave.player.collider.complex.ColliderProcessor;
 import de.jpx3.intave.player.collider.simple.SimpleColliderProcessor;
 import de.jpx3.intave.trustfactor.TrustFactorConfiguration;
 import de.jpx3.intave.user.meta.CheckCustomMetadata;
@@ -180,16 +180,16 @@ public interface User {
   BlockStateAccess blockStates();
 
   /**
-   * Retrieve the {@link User}-associated {@link ComplexColliderProcessor}
+   * Retrieve the {@link User}-associated {@link ColliderProcessor}
    * @return the complex collider processor
    */
-  ComplexColliderProcessor complexColliderProcessor();
+  ColliderProcessor collider();
 
   /**
    * Retrieve the {@link User}-associated {@link SimpleColliderProcessor}
    * @return the simple collider processor
    */
-  SimpleColliderProcessor simpleColliderProcessor();
+  SimpleColliderProcessor simplifiedCollider();
 
   /**
    * Retrieve the placeholder associated with the present {@link Player}

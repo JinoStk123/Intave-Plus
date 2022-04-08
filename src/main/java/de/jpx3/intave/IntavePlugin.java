@@ -468,7 +468,7 @@ public final class IntavePlugin extends JavaPlugin {
             } catch (Exception ignored) {}
             if (lastSuccessfulStart != null) {
               try {
-                String url_path = "https://raw.githubusercontent.com/Jpx3/IntaveStatus/main/availability";
+                String url_path = "https://raw.githubusercontent.com/intave/status/main/availability";
                 URL url = new URL(url_path);
                 URLConnection connection = url.openConnection();
                 connection.setUseCaches(false);

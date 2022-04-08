@@ -1,6 +1,8 @@
 package de.jpx3.intave.block.collision;
 
 import de.jpx3.intave.block.access.VolatileBlockAccess;
+import de.jpx3.intave.block.shape.BlockShape;
+import de.jpx3.intave.block.shape.BlockShapes;
 import de.jpx3.intave.block.variant.BlockVariant;
 import de.jpx3.intave.shade.BoundingBox;
 import de.jpx3.intave.user.User;
@@ -10,25 +12,21 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 
-import java.util.Collections;
-import java.util.List;
-
 public final class ScaffoldingCollisionModifier extends CollisionModifier {
   @Override
-  public List<BoundingBox> modify(User user, BoundingBox userBox, int posX, int posY, int posZ, List<BoundingBox> boxes) {
+  public BlockShape modify(User user, BoundingBox userBox, int posX, int posY, int posZ, BlockShape shape) {
     if (useCustomCollision(user, posY)) {
       double yStart = 14.0 / 16.0;
       double yEnd = 1.0;
-      return Collections.singletonList(BoundingBox.fromBounds(
+      return BoundingBox.fromBounds(
         posX, posY + yStart, posZ,
         posX + 1, posY + yEnd, posZ + 1
-      ));
+      );
     } else {
       if (bottomProperty(user, user.player().getWorld(), posX, posY, posZ) && useCustomCollision(user, posY - 1)) {
-        BoundingBox collisionShapeTwo = BoundingBox.fromBounds(posX, posY, posZ, posX + 1.0, posY + 2.0 / 16.0, posZ + 1.0);
-        return Collections.singletonList(collisionShapeTwo);
+        return BoundingBox.fromBounds(posX, posY, posZ, posX + 1.0, posY + 2.0 / 16.0, posZ + 1.0);
       } else {
-        return Collections.emptyList();
+        return BlockShapes.emptyShape();
       }
     }
   }

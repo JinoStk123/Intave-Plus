@@ -1,9 +1,6 @@
 package de.jpx3.intave.player.collider;
 
-import de.jpx3.intave.player.collider.complex.ComplexColliderProcessor;
-import de.jpx3.intave.player.collider.complex.ComplexColliderSimulationResult;
-import de.jpx3.intave.player.collider.complex.LegacyComplexColliderProcessor;
-import de.jpx3.intave.player.collider.complex.ModernComplexColliderProcessor;
+import de.jpx3.intave.player.collider.complex.*;
 import de.jpx3.intave.player.collider.simple.SimpleColliderProcessor;
 import de.jpx3.intave.player.collider.simple.SimpleColliderSimulationResult;
 import de.jpx3.intave.player.collider.simple.UniversalSimpleColliderProcessor;
@@ -15,54 +12,64 @@ import de.jpx3.intave.user.UserRepository;
 import de.jpx3.intave.user.meta.ProtocolMetadata;
 import org.bukkit.entity.Player;
 
+import static de.jpx3.intave.user.meta.ProtocolMetadata.VER_1_8;
+
 public final class Collider {
-  private static final ComplexColliderProcessor legacyComplexCollisionResolver;
-  private static final ComplexColliderProcessor modernComplexCollisionResolver;
+  private final static ColliderProcessor v7ComplexColliderProcessor;
+  private static final ColliderProcessor v8ComplexColliderProsessor;
+  private static final ColliderProcessor v14ComplexColliderProcessor;
   private static final SimpleColliderProcessor universalSimpleColliderProcessor;
 
   private Collider() {
   }
 
   static {
-    legacyComplexCollisionResolver = new LegacyComplexColliderProcessor();
-    modernComplexCollisionResolver = new ModernComplexColliderProcessor();
+    v7ComplexColliderProcessor = new v7ColliderProcessor();
+    v8ComplexColliderProsessor = new v8ColliderProcessor();
+    v14ComplexColliderProcessor = new v14ColliderProcessor();
     universalSimpleColliderProcessor = new UniversalSimpleColliderProcessor();
   }
 
-  public static ComplexColliderProcessor suitableComplexColliderProcessorFor(User user) {
+  public static ColliderProcessor suitableComplexColliderProcessorFor(User user) {
     ProtocolMetadata clientData = user.meta().protocol();
-    return clientData.applyModernCollider() ? modernComplexCollisionResolver : legacyComplexCollisionResolver;
+    if (clientData.applyModernCollider()) {
+      return v14ComplexColliderProcessor;
+    } else if (clientData.protocolVersion() >= VER_1_8) {
+      return v8ComplexColliderProsessor;
+    } else {
+      return v7ComplexColliderProcessor;
+    }
   }
 
   public static SimpleColliderProcessor suitableSimpleColliderProcessorFor(User user) {
     return universalSimpleColliderProcessor;
   }
 
-  public static ComplexColliderSimulationResult complexCollision(
+  public static ColliderSimulationResult collision(
     User user, Motion motion, boolean inWeb,
     double positionX, double positionY, double positionZ
   ) {
-    return user.complexColliderProcessor().collide(user, motion, inWeb, positionX, positionY, positionZ);
+    return user.collider().collide(user, motion, inWeb, positionX, positionY, positionZ);
   }
 
-  public static SimpleColliderSimulationResult simpleCollision(
+  public static SimpleColliderSimulationResult simplifiedCollision(
     Player player,
     Position position,
     Motion motion
   ) {
     User user = UserRepository.userOf(player);
     BoundingBox boundingBox = BoundingBox.fromPosition(user, position);
-    return user.simpleColliderProcessor().collide(user, boundingBox, motion);
+    return user.simplifiedCollider().collide(user, boundingBox, motion);
   }
 
-  public static SimpleColliderSimulationResult simpleCollision(
+  public static SimpleColliderSimulationResult simplifiedCollision(
     Player player,
     double positionX, double positionY, double positionZ,
     double motionX, double motionY, double motionZ
   ) {
     User user = UserRepository.userOf(player);
     BoundingBox boundingBox = BoundingBox.fromPosition(user, positionX, positionY, positionZ);
-    SimpleColliderProcessor simpleColliderProcessor = user.simpleColliderProcessor();
+    SimpleColliderProcessor simpleColliderProcessor = user.simplifiedCollider();
     return simpleColliderProcessor.collide(user, boundingBox, motionX, motionY, motionZ);
   }
 }
