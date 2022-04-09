@@ -1,5 +1,6 @@
 package de.jpx3.intave.block.shape.pipe.patch;
 
+import de.jpx3.intave.annotate.KeepEnumInternalNames;
 import de.jpx3.intave.block.type.BlockTypeAccess;
 import de.jpx3.intave.block.variant.BlockVariant;
 import de.jpx3.intave.block.variant.BlockVariantRegister;
@@ -53,6 +54,7 @@ final class TrapdoorBlockPatch extends BoundingBoxPatch {
     return boundingBoxBuilder.applyAndResolve();
   }
 
+  @KeepEnumInternalNames
   public enum EnumTrapdoorHalf {
     TOP("top"),
     BOTTOM("bottom");

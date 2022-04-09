@@ -16,8 +16,7 @@ public class BlockPositionReader extends AbstractPacketReader {
     } else {
       return packet.getModifier()
         .withType(Lookup.serverClass("BlockPosition"), BlockPositionConverter.threadConverter())
-        .read(0);
-//      return packet.getBlockPositionModifier().readSafely(0);
+        .readSafely(0);
     }
   }
 }

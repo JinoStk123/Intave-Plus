@@ -4,11 +4,13 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import de.jpx3.intave.annotate.DispatchTarget;
 import de.jpx3.intave.annotate.Relocate;
+import de.jpx3.intave.module.feedback.DelayedPacket;
 import de.jpx3.intave.module.feedback.FeedbackRequest;
 import de.jpx3.intave.module.tracker.entity.EntityShade;
 import org.bukkit.entity.Player;
 
 import java.util.*;
+import java.util.concurrent.DelayQueue;
 
 @Relocate
 public final class ConnectionMetadata {
@@ -25,10 +27,15 @@ public final class ConnectionMetadata {
   public boolean sendAsyncMessage = false;
   public boolean eligibleForTransactionTimeout = false;
 
-  private final Deque<Object> bufferEnqueue = new LinkedList<>();
-  public long lastEnqueue = 0;
-  public boolean ignorePacket;
-  public long packets = 0;
+  private final Deque<Object> bufferEnqueue = new ArrayDeque<>(8500);
+  private final DelayQueue<DelayedPacket> delayQueue = new DelayQueue<>();
+  public long lastBufferNotification = 0;
+  public long lastDelayNotification = 0;
+  public long lastDelaySlot = 0;
+  public long lastBufferEnqueue = 0;
+  public boolean ignorePacketEnqueue;
+  public long delayedPackets = 0;
+  public long lastDelayRequest = 0;
 
   // Client Synchronization
   public int latency;
@@ -160,6 +167,10 @@ public final class ConnectionMetadata {
 
     // using removeIf requires the least amount of locking and array modifications for CopyOnWriteArrayLists
     entities.removeIf(entity -> entity.entityId() == entityId);
+  }
+
+  public DelayQueue<DelayedPacket> delayedPackets() {
+    return delayQueue;
   }
 
   public void enterEntity(EntityShade entity) {

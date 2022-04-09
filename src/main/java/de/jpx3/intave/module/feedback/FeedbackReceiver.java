@@ -7,7 +7,9 @@ import com.comphenix.protocol.events.PacketEvent;
 import de.jpx3.intave.IntaveControl;
 import de.jpx3.intave.IntaveLogger;
 import de.jpx3.intave.IntavePlugin;
+import de.jpx3.intave.access.player.trust.TrustFactor;
 import de.jpx3.intave.adapter.MinecraftVersions;
+import de.jpx3.intave.connect.sibyl.SibylBroadcast;
 import de.jpx3.intave.diagnostic.LatencyStudy;
 import de.jpx3.intave.executor.TaskTracker;
 import de.jpx3.intave.module.Module;
@@ -25,6 +27,7 @@ import java.util.Deque;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.DelayQueue;
 import java.util.concurrent.TimeUnit;
 
 import static de.jpx3.intave.module.feedback.FeedbackSender.PING_MASK;
@@ -169,7 +172,7 @@ public final class FeedbackReceiver extends Module {
     if (
       oldestPendingTransaction(user) > TIMEOUT ||
         !user.meta().connection().enqueuedPackets().isEmpty() ||
-        System.currentTimeMillis() - user.meta().connection().lastEnqueue < 250
+        System.currentTimeMillis() - user.meta().connection().lastBufferEnqueue < 250
     ) {
       event.setCancelled(true);
     }
@@ -212,13 +215,20 @@ public final class FeedbackReceiver extends Module {
       ENTITY_VELOCITY,
       ENTITY_SOUND,
       ENTITY_EFFECT,
-      REMOVE_ENTITY_EFFECT
+      REMOVE_ENTITY_EFFECT,
+      WORLD_PARTICLES,
+      CUSTOM_SOUND_EFFECT,
+      NAMED_SOUND_EFFECT,
+      ANIMATION,
+//      MOUNT,
+      CHAT,
     }
   )
   public void enqueueOutgoingPackets(PacketEvent event) {
-    if (!IntaveControl.GOMME_MODE) {
+    if (!IntaveControl.DISABLE_LICENSE_CHECK) {
       return;
     }
+
     Player player = event.getPlayer();
     User user = UserRepository.userOf(player);
     ConnectionMetadata connection = user.meta().connection();
@@ -226,25 +236,20 @@ public final class FeedbackReceiver extends Module {
 
     PacketContainer packetContainer = event.getPacket();
     PacketType packetType = event.getPacketType();
-    Deque<Object> enqueuedPackets = connection.enqueuedPackets();
 
-    if (user.justJoined()) {
+    if (user.justJoined() || user.trustFactor().atLeast(TrustFactor.ORANGE)) {
       return;
     }
 
-    if (connection.ignorePacket) {
-      connection.ignorePacket = false;
+    if (connection.ignorePacketEnqueue) {
+      connection.ignorePacketEnqueue = false;
       return;
     }
-
-//    if (connection.packets++ % 100 == 0) {
-//      Synchronizer.synchronize(() -> {
-//        player.setLevel((int) connection.transactionPingAverage());
-//      });
-//    }
 
     long playerLatencyGain = connection.transactionPingAverage() - LatencyStudy.transactionPingAverage();
-    boolean significantPingGain = playerLatencyGain > 100; // trustfactor?
+    boolean significantPingGain = playerLatencyGain > 75; // trustfactor?
+    boolean delayRequested = System.currentTimeMillis() - connection.lastDelayRequest < 60 * 1000;
+    boolean delayPackets = significantPingGain || delayRequested;
 
     long lastMovementPacket = System.currentTimeMillis() - connection.lastMovementPacket();
     long oldestTransactionPacket = oldestPendingTransaction(user);
@@ -255,6 +260,8 @@ public final class FeedbackReceiver extends Module {
     boolean positionTimeout = !riding && lastMovementPacket > connection.transactionPingAverage() + LatencyStudy.transactionPingAverage() / 2 + 300 + positionTimeoutTolerance;
 
     boolean idAddressed =
+//      packetType == PacketType.Play.Server.ATTACH_ENTITY ||
+      packetType == PacketType.Play.Server.ANIMATION ||
       packetType == PacketType.Play.Server.ENTITY_STATUS ||
       packetType == PacketType.Play.Server.ENTITY_METADATA ||
       packetType == PacketType.Play.Server.ENTITY_VELOCITY
@@ -267,21 +274,33 @@ public final class FeedbackReceiver extends Module {
       }
     }
 
-    boolean tooManyPackets = enqueuedPackets.size() > 4000;
-    boolean buffer = !tooManyPackets && (transactionTimeout || positionTimeout);
+    Deque<Object> enqueuedPackets = connection.enqueuedPackets();
+    DelayQueue<DelayedPacket> delayedPackets = connection.delayedPackets();
+
+    boolean tooManyPackets = enqueuedPackets.size() > 8000;
+    boolean buffer = !tooManyPackets && !player.isDead() && (transactionTimeout || positionTimeout);
 //    boolean enqueueLater = significantPingGain
 
     if (buffer) {
+      // put all delayed packets into the enqueuedPacket queue
+      if (!delayedPackets.isEmpty()) {
+        DelayedPacket[] delayedObjectsArray = delayedPackets.toArray(new DelayedPacket[0]);
+        delayedPackets.clear();
+        for (DelayedPacket delayedPacket : delayedObjectsArray) {
+          enqueuedPackets.offerLast(delayedPacket.packet());
+        }
+      }
       enqueuedPackets.offerLast(packetContainer.getHandle());
-      connection.lastEnqueue = System.currentTimeMillis();
+      connection.lastBufferEnqueue = System.currentTimeMillis();
       event.setCancelled(true);
     } else if (!enqueuedPackets.isEmpty()) {
-      if (enqueuedPackets.size() > 100) {
-        // send up to 100 packets in the queue by poll
+      int enqueuedPacketAmount = enqueuedPackets.size();
+      if (enqueuedPacketAmount > 100) {
+        // send up to 10 packets in the queue by poll
         for (int i = 0; i < 10; i++) {
           Object packet = enqueuedPackets.pollFirst();
           if (packet == null) break;
-          connection.ignorePacket = true;
+          connection.ignorePacketEnqueue = true;
           sendPacket(player, packet);
         }
         enqueuedPackets.offerLast(packetContainer.getHandle());
@@ -290,11 +309,39 @@ public final class FeedbackReceiver extends Module {
         // send all packets in the queue by poll
         while (!enqueuedPackets.isEmpty()) {
           Object packet = enqueuedPackets.pollFirst();
-          connection.ignorePacket = true;
+          connection.ignorePacketEnqueue = true;
           sendPacket(player, packet);
         }
       }
-      connection.lastEnqueue = System.currentTimeMillis();
+      if (connection.lastBufferNotification + 30000 < System.currentTimeMillis()) {
+        connection.lastBufferNotification = System.currentTimeMillis();
+        SibylBroadcast.broadcast("[AYCN] " + player.getName() + " had himself " + enqueuedPacketAmount + " packets buffered.");
+//        player.sendMessage(ChatColor.RED + "You have " + enqueuedPacketAmount + " packets buffered.");
+      }
+      connection.lastBufferEnqueue = System.currentTimeMillis();
+    } else if (!delayedPackets.isEmpty()) {
+      DelayedPacket obj;
+      while ((obj = delayedPackets.poll()) != null) {
+        Object packet = obj.packet();
+        connection.ignorePacketEnqueue = true;
+        sendPacket(player, packet);
+      }
+    }
+    if (delayPackets) {
+      long requestedDelay = Math.max(delayRequested ? 100 : 0, (long) (Math.max(playerLatencyGain, 100) / 2d));
+      long delay = Math.min(connection.delayedPackets++ / 2 , requestedDelay);
+      long scheduledTime = System.nanoTime() + delay * 1_000_000;
+      scheduledTime = Math.max(connection.lastDelaySlot + 1, scheduledTime);
+      connection.lastDelaySlot = scheduledTime;
+      delayedPackets.add(new DelayedPacket(packetContainer.getHandle(), scheduledTime));
+      event.setCancelled(true);
+      if (connection.lastDelayNotification + 30000 < System.currentTimeMillis()) {
+        connection.lastDelayNotification = System.currentTimeMillis();
+        SibylBroadcast.broadcast("[AYCN] " + player.getName() + " is being delayed by " + requestedDelay + "ms.");
+//        player.sendMessage(ChatColor.RED + "You are being delayed by " + requestedDelay + "ms.");
+      }
+    } else {
+      connection.delayedPackets = 0;
     }
   }
 

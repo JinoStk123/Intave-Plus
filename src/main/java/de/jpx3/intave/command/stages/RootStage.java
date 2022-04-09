@@ -270,7 +270,7 @@ public final class RootStage extends CommandStage {
   }
 
   @SubCommand(
-    selectors = "atlat",
+    selectors = "latencies",
     usage = "",
     description = "",
     permission = "sibyl"
@@ -278,7 +278,7 @@ public final class RootStage extends CommandStage {
   @Native
   public void outputAttackLatencies(User user) {
     Player player = user.player();
-    player.sendMessage("The average attack latency is " + formatDouble(LatencyStudy.average(), 2) + " ticks");
+    player.sendMessage("The average attack latency is " + formatDouble(LatencyStudy.attackLatency(), 2) + " ticks");
   }
 
   @SubCommand(
@@ -431,7 +431,6 @@ public final class RootStage extends CommandStage {
   @Native
   public void trustfactorMap(User user) {
     Map<TrustFactor, AtomicLong> trustfactorDistribution = new HashMap<>();
-
     for (Player player : Bukkit.getOnlinePlayers()) {
       if (UserRepository.hasUser(player)) {
         TrustFactor trustFactor = UserRepository.userOf(player).trustFactor();
@@ -440,13 +439,12 @@ public final class RootStage extends CommandStage {
           .incrementAndGet();
       }
     }
-    Map.Entry<TrustFactor, AtomicLong> max = trustfactorDistribution.entrySet()
-      .stream()
-      .max(Comparator.comparingLong(trustFactorAtomicLongEntry -> trustFactorAtomicLongEntry.getValue().longValue()))
-      .orElse(null);
-
-
-
+    Player player = user.player();
+    player.sendMessage(ChatColor.GRAY + "Trustfactor distribution:");
+    for (TrustFactor value : TrustFactor.values()) {
+      long count = trustfactorDistribution.getOrDefault(value, new AtomicLong()).get();
+      player.sendMessage((count > 0 ? ChatColor.RED + "" + count : ChatColor.GRAY + "0") + ChatColor.GRAY + "x " + value.chatColor() + value.name());
+    }
   }
 
   @SubCommand(

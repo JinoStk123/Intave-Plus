@@ -12,9 +12,6 @@ import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserRepository;
 import org.bukkit.entity.Player;
 
-import java.util.LinkedList;
-import java.util.List;
-
 @Relocate
 public final class AttackMetadata {
   private final Player player;
@@ -43,8 +40,6 @@ public final class AttackMetadata {
 
   public boolean inBreakProcess;
   public long lastBreak;
-
-  private List<Integer> last1000AttackLatencies = new LinkedList<>();
 
   public AttackMetadata(Player player) {
     this.player = player;

@@ -1,28 +1,28 @@
 package de.jpx3.intave.diagnostic;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 
 public final class LatencyStudy {
-  private final static Map<Short, AtomicLong> hitDelays = new ConcurrentHashMap<>();
+//  private final static Map<Short, AtomicLong> hitDelays = new ConcurrentHashMap<>();
+  private static long hitDelayCount;
+  private static long hitDelayNum;
 
   private static long transPingCount;
   private static long transPingNum;
 
   public static void enterHit(short tickLatency) {
-    hitDelays.computeIfAbsent(tickLatency, x -> new AtomicLong(0L)).incrementAndGet();
+//    hitDelays.computeIfAbsent(tickLatency, x -> new AtomicLong(0L)).incrementAndGet();
+    hitDelayNum += tickLatency;
+    hitDelayCount++;
+
+    if (hitDelayNum > Integer.MAX_VALUE / 2) {
+      hitDelayNum /= 2;
+      hitDelayCount /= 2;
+    }
   }
 
-  public static double average() {
-    AtomicLong score = new AtomicLong();
-    AtomicLong count = new AtomicLong();
-    hitDelays.forEach((aShort, atomicLong) -> {
-      score.addAndGet(aShort * atomicLong.get());
-      count.addAndGet(atomicLong.get());
-    });
-    return (double) score.get() / Math.max((double) count.get(), 1);
+  public static double attackLatency() {
+    return hitDelayNum == 0 ? 0 : (double) hitDelayNum / hitDelayCount;
   }
 
   public static void receivedTransactionAfter(long milliseconds) {
@@ -46,7 +46,7 @@ public final class LatencyStudy {
 
   public static double cachedAverage() {
     if (System.currentTimeMillis() - lastCachedAverageReset > CACHE_EXPIRY) {
-      cachedAverage = average();
+      cachedAverage = attackLatency();
       lastCachedAverageReset = System.currentTimeMillis();
     }
     return cachedAverage;
