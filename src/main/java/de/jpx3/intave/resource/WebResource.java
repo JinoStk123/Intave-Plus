@@ -1,5 +1,6 @@
 package de.jpx3.intave.resource;
 
+import de.jpx3.intave.IntaveControl;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.security.LicenseAccess;
 
@@ -49,7 +50,6 @@ public final class WebResource implements Resource {
       InputStream inputStream = connection.getInputStream();
       // forcing stream read
       if (inputStream.available() == 0) {
-        System.out.println("InputStream is empty, trying to manually read");
         byte[] buff = new byte[4096];
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         int i;
@@ -57,6 +57,9 @@ public final class WebResource implements Resource {
           output.write(buff, 0, i);
         }
         byte[] data = output.toByteArray();
+        if (IntaveControl.DISABLE_LICENSE_CHECK) {
+          System.out.println("[debug] Manually read " + data.length + " bytes from " + url);
+        }
         return new ByteArrayInputStream(data);
       }
       return inputStream;

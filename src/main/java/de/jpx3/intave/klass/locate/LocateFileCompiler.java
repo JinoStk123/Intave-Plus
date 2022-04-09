@@ -112,7 +112,7 @@ public final class LocateFileCompiler implements CompilerStreamFunctionProvider<
       }
       List<String> linesThisSelector = affectedLines.subList(0, exit + 1);
       result.addAll(fieldInnerCompile(className, matcherOf(matcherInput), linesThisSelector));
-      affectedLines.removeAll(linesThisSelector);
+      affectedLines.subList(0, exit + 1).clear();
     }
     return result;
   }
