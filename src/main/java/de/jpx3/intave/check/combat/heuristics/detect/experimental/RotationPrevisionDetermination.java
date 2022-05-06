@@ -10,13 +10,13 @@ import static de.jpx3.intave.check.combat.heuristics.detect.experimental.Rotatio
 
 public final class RotationPrevisionDetermination extends RotationPrevisionBlueprint<RotationPrevisionDeterminationMeta> {
   public RotationPrevisionDetermination(Heuristics parentCheck) {
-    super(parentCheck, RotationPrevisionDeterminationMeta.class, 30);
+    super(parentCheck, RotationPrevisionDeterminationMeta.class, 60);
   }
 
   @Override
   public void check(User user, List<RotationData> rotationValues) {
     double determination = determinationCoefficientYaw(rotationValues);
-    user.player().sendMessage("Determination: " + determination);
+//    user.player().sendMessage("Determination: " + determination);
   }
 
   public static class RotationPrevisionDeterminationMeta extends RotationPrevisionBlueprintMeta {
