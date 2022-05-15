@@ -121,7 +121,6 @@ public final class PlaybackPlayerContainer extends SinkPlayerContainer {
     this.environment = environment;
   }
 
-
   @Override
   public void debug(String message) {
     System.out.println("[nayoro/debug] " + message);

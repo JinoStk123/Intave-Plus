@@ -103,6 +103,7 @@ public final class PlayerMoveEvent extends Event {
       return 0;
     }
   }
+
   public double x() {
     return x;
   }

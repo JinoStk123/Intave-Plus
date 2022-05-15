@@ -29,7 +29,7 @@ public abstract class Playback extends SinkEnvironment {
   public abstract void stop();
 
   protected Event nextEvent() throws IOException {
-    long offset = dataInputStream.readLong();
+    long offset = dataInputStream.readInt();
     int packetId = dataInputStream.readByte();
     Event event = EventRegistry.eventOf(packetId);
     event.deserialize(environment, dataInputStream);
@@ -55,12 +55,19 @@ public abstract class Playback extends SinkEnvironment {
       if (position == null) {
         position = new Position();
       }
-      position.setX(event.x());
-      position.setY(event.y());
-      position.setZ(event.z());
+      if (event.applyX()) {
+        position.setX(event.x());
+      }
+      if (event.applyY()) {
+        position.setY(event.y());
+      }
+      if (event.applyZ()) {
+        position.setZ(event.z());
+      }
       return position;
     });
     inSight.compute(entityId, (id, last) -> event.inSight());
+    visitAny(event);
   }
 
   @Override

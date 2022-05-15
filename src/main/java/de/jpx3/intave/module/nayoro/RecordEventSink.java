@@ -5,7 +5,7 @@ import java.io.DataOutput;
 import java.io.IOException;
 
 public class RecordEventSink extends EventSink {
-  private final long start = System.currentTimeMillis();
+  private long last = System.currentTimeMillis();
   private final Environment environment;
   private final DataOutput dataOutput;
   private boolean setup = false;
@@ -27,12 +27,13 @@ public class RecordEventSink extends EventSink {
   public void visitAny(Event event) {
     setupIfNeeded();
     try {
-      dataOutput.writeLong(System.currentTimeMillis() - start);
+      dataOutput.writeInt((int) (System.currentTimeMillis() - last));
       dataOutput.writeByte(EventRegistry.idOf(event));
       event.serialize(environment, dataOutput);
     } catch (IOException exception) {
       throw new IllegalStateException("Could not serialize event " + event.getClass().getName(), exception);
     }
+    last = System.currentTimeMillis();
   }
 
   @Override

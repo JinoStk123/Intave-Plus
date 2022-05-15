@@ -6,6 +6,7 @@ import de.jpx3.intave.check.combat.Heuristics;
 import de.jpx3.intave.module.linker.nayoro.NayoroRelay;
 import de.jpx3.intave.module.linker.packet.PacketSubscription;
 import de.jpx3.intave.module.nayoro.ClickEvent;
+import de.jpx3.intave.module.nayoro.EntityMoveEvent;
 import de.jpx3.intave.module.nayoro.PlayerContainer;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.meta.CheckCustomMetadata;
@@ -25,6 +26,11 @@ public final class TestingHeuristic extends MetaCheckPart<Heuristics, TestingHeu
   public void on(PlayerContainer player, ClickEvent event) {
     ExampleMeta meta = player.meta(ExampleMeta.class);
     player.debug("This is a test, " + meta.uniqueId);
+  }
+
+  @NayoroRelay
+  public void on(PlayerContainer player, EntityMoveEvent event) {
+    player.debug("Entity " + event.entityId() + " moved to " + event.x() + "," + event.y() + "," + event.z());
   }
 
   @PacketSubscription(

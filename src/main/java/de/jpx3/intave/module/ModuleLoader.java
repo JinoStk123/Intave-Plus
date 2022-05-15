@@ -41,7 +41,7 @@ public final class ModuleLoader {
     prepareModule("de.jpx3.intave.module.tracker.player.ConnectionTracker", defaultBoot);
     prepareModule("de.jpx3.intave.module.tracker.player.EffectTracker", defaultBoot);
     prepareModule("de.jpx3.intave.module.tracker.player.InventoryTracker", defaultBoot);
-    prepareModule("de.jpx3.intave.module.tracker.entity.EntityTracker", defaultBoot);
+    prepareModule("de.jpx3.intave.module.tracker.entity.EntityTracker", lateBoot);
     prepareModule("de.jpx3.intave.module.tracker.entity.LazyEntityCollisionService", defaultBoot);
     prepareModule("de.jpx3.intave.module.tracker.entity.EntityCollisionDisabler", defaultBoot);
     prepareModule("de.jpx3.intave.module.tracker.block.BlockUpdateTracker", defaultBoot);
@@ -56,7 +56,7 @@ public final class ModuleLoader {
     prepareModule("de.jpx3.intave.module.dispatch.MovementDispatcher", lateBoot);
 
     // misc
-    prepareModule("de.jpx3.intave.module.nayoro.Nayoro", lateBoot);
+    prepareModule("de.jpx3.intave.module.nayoro.Nayoro", defaultBoot);
     prepareModule("de.jpx3.intave.module.warning.ClientWarningModule", defaultBoot);
     prepareModule("de.jpx3.intave.module.event.CustomEvents", defaultBoot);
     prepareModule("de.jpx3.intave.module.patcher.PacketResynchronizer", defaultBoot);

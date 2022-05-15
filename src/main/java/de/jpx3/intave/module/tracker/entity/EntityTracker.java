@@ -20,6 +20,8 @@ import de.jpx3.intave.module.feedback.FeedbackCallback;
 import de.jpx3.intave.module.feedback.FeedbackTracker;
 import de.jpx3.intave.module.linker.packet.ListenerPriority;
 import de.jpx3.intave.module.linker.packet.PacketSubscription;
+import de.jpx3.intave.module.nayoro.EntityMoveEvent;
+import de.jpx3.intave.module.nayoro.EventSink;
 import de.jpx3.intave.packet.reader.EntityDestroyReader;
 import de.jpx3.intave.packet.reader.PacketReaders;
 import de.jpx3.intave.player.fake.FakePlayer;
@@ -40,6 +42,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.OptionalInt;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import static de.jpx3.intave.module.linker.packet.PacketId.Client.POSITION;
 import static de.jpx3.intave.module.linker.packet.PacketId.Client.*;
@@ -320,7 +324,11 @@ public final class EntityTracker extends Module {
       return;
     }
     for (EntityShade value : synchronizeData.entities()) {
+      int ticksAfterPositionChange = value.position.newPosRotationIncrements;
       value.onUpdate();
+      if (value.tracingEnabled() && ticksAfterPositionChange > 0) {
+        nayoroEntityPositionUpdate(player, value);
+      }
     }
   }
 
@@ -345,6 +353,7 @@ public final class EntityTracker extends Module {
         entity.verifiedPosition = false;
         entity.handleEntityTeleport(packet);
         entity.clientSynchronized = true;
+        nayoroEntityPositionUpdate(player, entity);
       };
       FeedbackTracker feedbackTracker = entity.feedbackTracker();
 //      if (entity.doubleVerification) {
@@ -403,6 +412,7 @@ public final class EntityTracker extends Module {
       FeedbackCallback<PacketEvent> task = (player1, event1) -> {
         entity.verifiedPosition = false;
         entity.handleEntityMovement(packet);
+        nayoroEntityPositionUpdate(player, entity);
       };
       FeedbackTracker tracker = entity.feedbackTracker();
 //      if (entity.doubleVerification) {
@@ -415,6 +425,27 @@ public final class EntityTracker extends Module {
       entity.handleEntityMovement(packet);
       entity.clientSynchronized = false;
     }
+  }
+
+  private final BiConsumer<User, Consumer<EventSink>> sinkCallback = Modules.nayoro().sinkCallback();
+
+  private void nayoroEntityPositionUpdate(Player player, EntityShade entity)  {
+    EntityShade.EntityPositionContext position = entity.position;
+    EntityShade.EntityPositionContext lastPosition = entity.lastPosition;
+    EntityMoveEvent event = new EntityMoveEvent(
+      entity.entityId(),
+      position.posX,
+      position.posY,
+      position.posZ,
+      lastPosition.posX,
+      lastPosition.posY,
+      lastPosition.posZ,
+      0,
+      0,
+      0,
+      0
+    );
+    sinkCallback.accept(UserRepository.userOf(player), event::accept);
   }
 
   private EntityShade spawnMobByBukkitEntity(User user, Entity bukkitEntity) {

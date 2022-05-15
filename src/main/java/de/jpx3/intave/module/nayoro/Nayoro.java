@@ -8,6 +8,7 @@ import de.jpx3.intave.user.UserLocal;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
 
@@ -35,8 +37,14 @@ public final class Nayoro extends Module {
     try {
       sampleFile.createNewFile();
       OutputStream outputStream = Files.newOutputStream(sampleFile.toPath());
-      outputStream = new DeflaterOutputStream(outputStream);
+      outputStream = new DeflaterOutputStream(outputStream, new Deflater(Deflater.BEST_COMPRESSION));
       outputStream = new BufferedOutputStream(outputStream, 1024 * 1024);
+
+      OutputStream outputStream2 = Files.newOutputStream(Paths.get(sampleFile.getAbsolutePath() + ".uncompressed"));
+      outputStream2 = new BufferedOutputStream(outputStream2, 1024 * 1024);
+
+      outputStream = new MultiplexOutputStream(outputStream, outputStream2);
+
       DataOutputStream dataOutput = new DataOutputStream(outputStream);
       RecordEventSink recordEventSink = new RecordEventSink(new LiveEnvironment(user), dataOutput);
       eventSinks.get(user).add(recordEventSink);

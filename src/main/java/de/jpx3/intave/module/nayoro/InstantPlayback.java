@@ -31,6 +31,8 @@ public final class InstantPlayback extends Playback implements Runnable {
       Event event;
       // ignore schedule time
       while ((event = nextEvent()) != null && !interrupted) {
+//        Thread.sleep(5);
+//        System.out.println(event);
         visitSelect(event);
       }
     } catch (EOFException e) {
