@@ -14,6 +14,7 @@ public final class CollisionModifiers {
   public static void setup() {
     setup(ScaffoldingCollisionModifier.class);
     setup(CarpetCollisionModifier.class);
+    setup(ShulkerCollisionModifier.class);
   }
 
   private static void setup(Class<? extends CollisionModifier> modifierClass) {

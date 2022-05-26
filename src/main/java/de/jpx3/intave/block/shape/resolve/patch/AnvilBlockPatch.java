@@ -70,6 +70,6 @@ final class AnvilBlockPatch extends BoundingBoxPatch {
           return Direction.Axis.X_AXIS;
       }
     }
-    return Direction.getHorizontal(state & 3).getAxis();
+    return Direction.getHorizontal(state & 3).axis();
   }
 }

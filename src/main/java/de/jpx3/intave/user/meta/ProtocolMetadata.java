@@ -98,8 +98,12 @@ public final class ProtocolMetadata {
     this.clientBrand = clientBrand;
   }
 
+  private static final boolean SERVER_DROPPED_FLYING_PACKETS = MinecraftVersions.VER1_9_0.atOrAbove();
+
   public boolean flyingPacketStream() {
-    return protocolVersion <= VER_1_8 && !outdatedClient();
+    // flying packets are guaranteed in 1.8 and below
+    // but if the server is 1.9+ then the client does not send flying packets
+    return protocolVersion <= VER_1_8 && !SERVER_DROPPED_FLYING_PACKETS;
   }
 
   public boolean supportsInventoryAchievementPacket() {
@@ -116,6 +120,14 @@ public final class ProtocolMetadata {
 
   public boolean canUseElytra() {
     return protocolVersion >= VER_1_9;
+  }
+
+  public boolean clientsideElytra() {
+    return canUseElytra() && protocolVersion < VER_1_15;
+  }
+
+  public boolean serversideElytra() {
+    return canUseElytra() && protocolVersion >= VER_1_15;
   }
 
   public boolean affectedByLevitation() {

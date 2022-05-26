@@ -10,4 +10,8 @@ final class EmptyBlockVariant implements BlockVariant {
   public <T extends Enum<T>> T enumProperty(Class<T> klass, String name) {
     return null;
   }
+
+  @Override
+  public void dumpStates() {
+  }
 }

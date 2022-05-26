@@ -37,4 +37,9 @@ final class IndexedBlockVariant implements BlockVariant {
     }
     return ((EnumSetting) setting).enumType(klass, enumIndex);
   }
+
+  @Override
+  public void dumpStates() {
+    nativeConfig.forEach((setting, comparable) -> System.out.println(setting.name() + ": " + comparable));
+  }
 }

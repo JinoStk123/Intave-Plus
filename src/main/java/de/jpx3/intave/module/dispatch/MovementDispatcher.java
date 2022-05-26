@@ -12,7 +12,11 @@ import com.comphenix.protocol.wrappers.WrappedWatchableObject;
 import de.jpx3.intave.IntaveControl;
 import de.jpx3.intave.adapter.MinecraftVersions;
 import de.jpx3.intave.annotate.Relocate;
+import de.jpx3.intave.block.access.VolatileBlockAccess;
 import de.jpx3.intave.block.collision.Collision;
+import de.jpx3.intave.block.tick.ShulkerBox;
+import de.jpx3.intave.block.type.MaterialSearch;
+import de.jpx3.intave.block.variant.BlockVariant;
 import de.jpx3.intave.check.CheckService;
 import de.jpx3.intave.check.movement.Physics;
 import de.jpx3.intave.check.movement.Timer;
@@ -34,14 +38,18 @@ import de.jpx3.intave.module.violation.Violation;
 import de.jpx3.intave.packet.PacketSender;
 import de.jpx3.intave.packet.converter.PlayerAction;
 import de.jpx3.intave.packet.converter.PlayerActionResolver;
+import de.jpx3.intave.packet.reader.BlockActionReader;
+import de.jpx3.intave.packet.reader.PacketReaders;
 import de.jpx3.intave.player.ItemProperties;
 import de.jpx3.intave.player.fake.FakePlayer;
 import de.jpx3.intave.shade.BoundingBox;
+import de.jpx3.intave.shade.Direction;
 import de.jpx3.intave.shade.Motion;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserRepository;
 import de.jpx3.intave.user.meta.*;
 import de.jpx3.intave.world.WorldHeight;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -55,7 +63,10 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static de.jpx3.intave.module.feedback.FeedbackOptions.SELF_SYNCHRONIZATION;
 import static de.jpx3.intave.module.linker.packet.PacketId.Client.POSITION;
@@ -488,7 +499,7 @@ public final class MovementDispatcher extends Module {
     User user = UserRepository.userOf(player);
 
     MetadataBundle meta = user.meta();
-    MovementMetadata movementData = meta.movement();
+    MovementMetadata movement = meta.movement();
     AbilityMetadata abilityData = meta.abilities();
     InventoryMetadata inventoryData = meta.inventory();
 
@@ -497,94 +508,129 @@ public final class MovementDispatcher extends Module {
     boolean hasMovement = vehicleMove || packet.getBooleans().read(1);
     boolean hasRotation = vehicleMove || packet.getBooleans().read(2);
 
-    for (Superposition<?> superposition : movementData.superpositions()) {
+    for (Superposition<?> superposition : movement.superpositions()) {
       superposition.completeTick();
     }
 
-    if (player.isDead() || movementData.awaitTeleport) {
+    if (player.isDead() || movement.awaitTeleport) {
       return;
     }
 
-    if (movementData.isInVehicle() && !vehicleMove && hasRotation && !hasMovement) {
-      movementData.applyGroundInformationToPacket(packet);
+    if (movement.isInVehicle() && !vehicleMove && hasRotation && !hasMovement) {
+      movement.applyGroundInformationToPacket(packet);
       return;
     }
 
     // onGround == true -> falldamage
 
-    if (!event.isCancelled() && !movementData.isTeleportConfirmationPacket && !movementData.dropPostTickMotionProcessing) {
+    if (!event.isCancelled() && !movement.isTeleportConfirmationPacket && !movement.dropPostTickMotionProcessing) {
       physicsCheck.endMovement(user, hasMovement);
     }
 
     // if event is cancelled, we must flush certain states
     if (event.isCancelled()) {
-      movementData.inWeb = false;
+      movement.inWeb = false;
     }
 
-    if (!movementData.isTeleportConfirmationPacket) {
-      movementData.lastTeleport++;
+    if (!movement.isTeleportConfirmationPacket) {
+      movement.lastTeleport++;
     }
 
-    movementData.invalidMovement = false;
-    movementData.suspiciousMovement = false;
-    movementData.isTeleportConfirmationPacket = false;
-    movementData.dropPostTickMotionProcessing = false;
+    movement.invalidMovement = false;
+    movement.suspiciousMovement = false;
+    movement.isTeleportConfirmationPacket = false;
+    movement.dropPostTickMotionProcessing = false;
 
-    boolean flyingWithElytra = movementData.pose() == Pose.FALL_FLYING;
+    Map<BlockPosition, ShulkerBox> shulkerData = movement.shulkerData;
+    if (!shulkerData.isEmpty()) {
+      int shulkerLimit = 2048;
+      for (Iterator<BlockPosition> iterator = movement.shulkers.iterator(); iterator.hasNext(); ) {
+        if (shulkerLimit-- <= 0) {
+          break;
+        }
+        BlockPosition shulkerBlock = iterator.next();
+        ShulkerBox shulkerBox = shulkerData.get(shulkerBlock);
+        if (shulkerBox == null) {
+          iterator.remove();
+          continue;
+        }
+        if (shulkerBox.complete()) {
+          iterator.remove();
+          shulkerData.remove(shulkerBlock);
+        } else if (shulkerBox.shouldTick()) {
+          shulkerBox.tick();
+        }
+      }
+    }
+    if (movement.shulkerXToleranceRemaining > 0) {
+      movement.shulkerXToleranceRemaining--;
+    }
+    if (movement.shulkerYToleranceRemaining > 0) {
+      movement.shulkerYToleranceRemaining--;
+    }
+    if (movement.shulkerZToleranceRemaining > 0) {
+      movement.shulkerZToleranceRemaining--;
+    }
+
+    boolean flyingWithElytra = movement.elytraFlying;//movement.pose() == Pose.FALL_FLYING;
     if (flyingWithElytra) {
-      movementData.pastElytraFlying = 0;
+      movement.pastElytraFlying = 0;
     } else {
-      movementData.pastElytraFlying++;
+      movement.pastElytraFlying++;
     }
-    if (movementData.inWeb) {
-      movementData.pastInWeb = 0;
+//    if (movement.onGround && movement.elytraFlying) {
+//      player.sendMessage(ChatColor.RED + "Deactivated elytra flying");
+//      movement.elytraFlying = false;
+//    }
+    if (movement.inWeb) {
+      movement.pastInWeb = 0;
     } else {
-      movementData.pastInWeb++;
+      movement.pastInWeb++;
     }
     if (inventoryData.inventoryOpen()) {
-      movementData.pastInventoryOpen = 0;
+      movement.pastInventoryOpen = 0;
     } else {
-      movementData.pastInventoryOpen++;
+      movement.pastInventoryOpen++;
     }
-    if (movementData.physicsJumped) {
-      movementData.lastJump = System.currentTimeMillis();
+    if (movement.physicsJumped) {
+      movement.lastJump = System.currentTimeMillis();
     }
-    if (movementData.isSneaking()) {
-      movementData.sneakingTicks++;
-      if (movementData.sneakingTicks > 1) {
-        movementData.lastSneakingTimestamps = System.currentTimeMillis();
+    if (movement.isSneaking()) {
+      movement.sneakingTicks++;
+      if (movement.sneakingTicks > 1) {
+        movement.lastSneakingTimestamps = System.currentTimeMillis();
       }
     } else {
-      movementData.sneakingTicks = 0;
+      movement.sneakingTicks = 0;
     }
-    movementData.pastBlockPlacement++;
+    movement.pastBlockPlacement++;
     inventoryData.pastHotBarSlotChange++;
     inventoryData.pastItemUsageTransition++;
-    movementData.pastWaterMovement++;
-    movementData.pastVelocity++;
-    movementData.ignoredAttackReduce = false;
+    movement.pastWaterMovement++;
+    movement.pastVelocity++;
+    movement.ignoredAttackReduce = false;
     if (hasMovement || hasRotation) {
-      movementData.pastExternalVelocity++;
+      movement.pastExternalVelocity++;
     }
-    movementData.pastLongTeleport++;
+    movement.pastLongTeleport++;
     abilityData.ticksToLastHealthUpdate++;
     inventoryData.pastSlotSwitch++;
-    movementData.physicsUnpredictableVelocityExpected = false;
-    movementData.step = false;
-    movementData.lastSprinting = movementData.sprintingAllowed();
-    movementData.lastSneaking = movementData.sneaking;
-    movementData.fireworkRocketsTicks++;
-    movementData.attachVehicleTicks++;
+    movement.physicsUnpredictableVelocityExpected = false;
+    movement.step = false;
+    movement.lastSprinting = movement.sprintingAllowed();
+    movement.lastSneaking = movement.sneaking;
+    movement.fireworkRocketsTicks++;
+    movement.attachVehicleTicks++;
 
     if (!inventoryData.handActive() && inventoryData.pastHandActiveTicks > 2) {
-      movementData.physicsEatingSlotSwitchVL = 0;
+      movement.physicsEatingSlotSwitchVL = 0;
     }
 
-    if (!event.isCancelled() /*&& !movementData.isTeleportConfirmationPacket && !movementData.dropPostTickMotionProcessing*/) {
-      movementData.lastOnGround = movementData.onGround;
-      movementData.verifiedPositionX = movementData.positionX;
-      movementData.verifiedPositionY = movementData.positionY;
-      movementData.verifiedPositionZ = movementData.positionZ;
+    if (!event.isCancelled() /*&& !movement.isTeleportConfirmationPacket && !movement.dropPostTickMotionProcessing*/) {
+      movement.lastOnGround = movement.onGround;
+      movement.verifiedPositionX = movement.positionX;
+      movement.verifiedPositionY = movement.positionY;
+      movement.verifiedPositionZ = movement.positionZ;
     }
 
     if (inventoryData.handActive()) {
@@ -595,13 +641,13 @@ public final class MovementDispatcher extends Module {
       inventoryData.handActiveTicks = 0;
     }
 
-    if (movementData.disabledFlying || !abilityData.allowFlying()) {
+    if (movement.disabledFlying || !abilityData.allowFlying()) {
       abilityData.setFlying(false);
-      movementData.disabledFlying = false;
+      movement.disabledFlying = false;
     }
 
     updateSize(user);
-    movementData.externalKeyApply = false;
+    movement.externalKeyApply = false;
   }
 
   private void updateSize(User user) {
@@ -682,7 +728,8 @@ public final class MovementDispatcher extends Module {
     User user = UserRepository.userOf(player);
     MetadataBundle meta = user.meta();
     MovementMetadata movement = meta.movement();
-    if (!meta.protocol().canUseElytra()) {
+    ProtocolMetadata protocol = meta.protocol();
+    if (!protocol.canUseElytra()) {
       return;
     }
     byte data = (byte) watchableObject.getValue();
@@ -690,6 +737,8 @@ public final class MovementDispatcher extends Module {
     FeedbackCallback<Boolean> callback = (p, g) -> {
       movement.elytraFlying = g;
       movement.updatePose();
+//      ChatColor color = g ? ChatColor.GREEN : ChatColor.RED;
+//      p.sendMessage(color + "Elytra flying toggled to " + g);
     };
     Modules.feedback().synchronize(player, gliding, callback);
   }
@@ -852,6 +901,56 @@ public final class MovementDispatcher extends Module {
     movementData.willReceiveSetbackVelocity = movementData.willReceiveSetbackVelocityResetCache;
   }
 
+  private static final Set<Material> shulkerBoxes = MaterialSearch.materialsThatContain("SHULKER_BOX");
+
+  @PacketSubscription(
+    packetsOut = {
+      BLOCK_ACTION
+    }
+  )
+  public void onBlockAction(PacketEvent event) {
+    Player player = event.getPlayer();
+    User user = UserRepository.userOf(player);
+    MovementMetadata movement = user.meta().movement();
+    PacketContainer packet = event.getPacket();
+    BlockActionReader reader = PacketReaders.readerOf(packet);
+    Material material = reader.blockType();
+
+    if (shulkerBoxes.contains(material)) {
+      BlockPosition blockPosition = reader.blockPosition();
+      World world = player.getWorld();
+      BlockVariant variant = VolatileBlockAccess.variantAccess(user, blockPosition.toLocation(world));
+      Direction facing = variant.enumProperty(Direction.class, "facing");
+      boolean opening = reader.data() == 1;
+      Modules.feedback().synchronize(player, (p, n) -> {
+        if (movement.shulkerData.containsKey(blockPosition)) {
+          ShulkerBox shulkerBox = movement.shulkerData.get(blockPosition);
+          if (opening) {
+            shulkerBox.open();
+          } else {
+            shulkerBox.close();
+          }
+        } else {
+          ShulkerBox box = opening ? ShulkerBox.opening(facing) : ShulkerBox.closing(facing);
+          movement.shulkerData.put(blockPosition, box);
+          movement.shulkers.add(blockPosition);
+        }
+        switch (facing.axis()) {
+          case X_AXIS:
+            movement.shulkerXToleranceRemaining = 10;
+            break;
+          case Y_AXIS:
+            movement.shulkerYToleranceRemaining = 10;
+            break;
+          case Z_AXIS:
+            movement.shulkerZToleranceRemaining = 10;
+            break;
+        }
+      });
+    }
+    reader.release();
+  }
+
   @PacketSubscription(
     priority = ListenerPriority.HIGH,
     packetsIn = {
@@ -863,7 +962,7 @@ public final class MovementDispatcher extends Module {
     User user = UserRepository.userOf(player);
     MetadataBundle meta = user.meta();
     MovementMetadata movementData = meta.movement();
-    ProtocolMetadata clientData = meta.protocol();
+    ProtocolMetadata protocol = meta.protocol();
     PunishmentMetadata punishmentData = meta.punishment();
     PacketContainer packet = event.getPacket();
     PlayerAction playerAction = PlayerActionResolver.resolveActionFromPacket(packet);
@@ -897,9 +996,11 @@ public final class MovementDispatcher extends Module {
 //        movementData.setPose(Pose.STANDING);
         break;
       case START_FALL_FLYING:
-        if (movementData.hasElytraEquipped() && clientData.canUseElytra()) {
-          movementData.elytraFlying = true;
-          movementData.setPose(Pose.FALL_FLYING);
+        if (movementData.hasElytraEquipped() && protocol.canUseElytra()) {
+          if (protocol.serversideElytra()) {
+            movementData.elytraFlying = true;
+            movementData.setPose(Pose.FALL_FLYING);
+          }
         }
     }
   }

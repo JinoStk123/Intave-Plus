@@ -181,7 +181,7 @@ public final class BlockPosition extends NativeVector {
   }
 
   public BlockPosition move(Direction facing, int n) {
-    return new BlockPosition(this.xCoord + facing.getXOffset() * n, this.yCoord + facing.getYOffset() * n, this.zCoord + facing.getZOffset() * n);
+    return new BlockPosition(this.xCoord + facing.offsetX() * n, this.yCoord + facing.offsetY() * n, this.zCoord + facing.offsetZ() * n);
   }
 
   /**

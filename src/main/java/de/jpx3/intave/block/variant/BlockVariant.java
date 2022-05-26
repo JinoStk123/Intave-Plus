@@ -4,4 +4,6 @@ public interface BlockVariant {
   <T> T propertyOf(String name);
 
   <T extends Enum<T>> T enumProperty(Class<T> klass, String name);
+
+  void dumpStates();
 }

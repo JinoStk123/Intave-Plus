@@ -102,7 +102,7 @@ public final class Physics extends Check {
     try {
       simulation = simulationProcessor.simulate(user, movementData.simulator());
     } catch (IllegalStateException exception) {
-      user.kick("Internal error, contact the servers administrator.");
+      user.kick("Internal error, please contact the servers administrator.");
       exception.printStackTrace();
       return;
     }
@@ -152,8 +152,8 @@ public final class Physics extends Check {
     } else {
       boolean inLava = movementData.inLava();
       boolean inWater = movementData.inWater();
-      Pose pose = movementData.pose();
-      if (pose == Pose.FALL_FLYING && !inWater && !inLava) {
+//      Pose pose = movementData.pose();
+      if (movementData.elytraFlying/*pose == Pose.FALL_FLYING*/ && !inWater && !inLava) {
         return Simulators.ELYTRA;
       }
     }
@@ -586,6 +586,7 @@ public final class Physics extends Check {
       }
       debug += "(" + key + ")";
       debug += " " + violationLevelInfo;
+      debug += " " + pose.name();
 //      debug += " frt" + movementData.fireworkRocketsTicks;
 //      debug += " web (a: " + shortenBoolean(movementData.inWeb) + ", r: " + shortenBoolean(collidesWeb(user, currentBoundingBox)) + ")";
 //      debug += "cia " + movementData.pastNearbyCollisionInaccuracy;

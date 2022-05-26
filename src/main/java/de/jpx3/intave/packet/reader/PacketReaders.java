@@ -21,6 +21,7 @@ public final class PacketReaders {
   private static final Map<PacketType, ThreadLocal<? extends PacketReader>> readerLocals = new ConcurrentHashMap<>();
 
   public static void setup() {
+    setup(BLOCK_ACTION, BlockActionReader::new);
     setup(BLOCK_CHANGE, SingleBlockChangeReader::new);
     setup(BLOCK_BREAK, SingleBlockChangeReader::new);
     setup(MULTI_BLOCK_CHANGE, MultiBlockChangeReader::new);

@@ -104,7 +104,7 @@ public final class RotationAccuracyYawHeuristic extends MetaCheckPart<Heuristics
             if (heuristicMeta.rotationAccuracyVL++ > 3) {
               String description = "high accuracy rotation yaw vl:" + suspiciousLevel;
               int options = LIMIT_2 | DELAY_32s | SUGGEST_MINING;
-              Anomaly anomaly = Anomaly.anomalyOf("83", Confidence.LIKELY, Anomaly.Type.KILLAURA, description, options);
+              Anomaly anomaly = Anomaly.anomalyOf("83", Confidence.PROBABLE, Anomaly.Type.KILLAURA, description, options);
               parentCheck().saveAnomaly(player, anomaly);
               //dmc18
               user.applyAttackNerfer(AttackNerfStrategy.HT_MEDIUM, "18");
@@ -143,7 +143,7 @@ public final class RotationAccuracyYawHeuristic extends MetaCheckPart<Heuristics
       if (heuristicMeta.bitBoxCornerBalance > 30) {
         long lastDetection = System.currentTimeMillis() - heuristicMeta.lastHARYAnomaly;
         int options = SUGGEST_MINING | DELAY_16s | LIMIT_2;
-        Confidence confidence = lastDetection < 2000 ? Confidence.LIKELY : Confidence.PROBABLE;
+        Confidence confidence = /*lastDetection < 2000 ? Confidence.LIKELY :*/ Confidence.PROBABLE;
         Anomaly anomaly = Anomaly.anomalyOf("85", confidence, Anomaly.Type.KILLAURA, "high accuracy rotation yaw on hit-box corners", options);
         parentCheck().saveAnomaly(player, anomaly);
         heuristicMeta.bitBoxCornerBalance -= 20;

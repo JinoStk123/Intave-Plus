@@ -86,8 +86,11 @@ public final class BoundingBox extends MemoryTraced implements BlockShape {
     } else if (z > 0.0D) {
       d5 += z;
     }
-
-    return new BoundingBox(d0, d1, d2, d3, d4, d5);
+    BoundingBox resulting = new BoundingBox(d0, d1, d2, d3, d4, d5);
+    if (isOriginBox()) {
+      resulting.makeOriginBox();
+    }
+    return resulting;
   }
 
   public boolean contains(double x, double y, double z) {

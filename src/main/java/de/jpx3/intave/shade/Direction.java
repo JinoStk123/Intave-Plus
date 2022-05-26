@@ -213,18 +213,18 @@ public enum Direction {
    * Returns a offset that addresses the block in front of this facing.
    */
   public int getFrontOffsetX() {
-    return this.axis == X_AXIS ? this.axisDirection.getOffset() : 0;
+    return this.axis == X_AXIS ? this.axisDirection.offset() : 0;
   }
 
   public int getFrontOffsetY() {
-    return this.axis == Y_AXIS ? this.axisDirection.getOffset() : 0;
+    return this.axis == Y_AXIS ? this.axisDirection.offset() : 0;
   }
 
   /**
    * Returns a offset that addresses the block in front of this facing.
    */
   public int getFrontOffsetZ() {
-    return this.axis == Z_AXIS ? this.axisDirection.getOffset() : 0;
+    return this.axis == Z_AXIS ? this.axisDirection.offset() : 0;
   }
 
   /**
@@ -234,20 +234,20 @@ public enum Direction {
     return this.name;
   }
 
-  public Direction.Axis getAxis() {
+  public Direction.Axis axis() {
     return this.axis;
   }
 
-  public int getXOffset() {
-    return this.axis == X_AXIS ? this.axisDirection.getOffset() : 0;
+  public int offsetX() {
+    return this.axis == X_AXIS ? this.axisDirection.offset() : 0;
   }
 
-  public int getYOffset() {
-    return this.axis == Y_AXIS ? this.axisDirection.getOffset() : 0;
+  public int offsetY() {
+    return this.axis == Y_AXIS ? this.axisDirection.offset() : 0;
   }
 
-  public int getZOffset() {
-    return this.axis == Z_AXIS ? this.axisDirection.getOffset() : 0;
+  public int offsetZ() {
+    return this.axis == Z_AXIS ? this.axisDirection.offset() : 0;
   }
 
   /**
@@ -313,7 +313,7 @@ public enum Direction {
 
   public static Direction func_181076_a(Direction.AxisDirection p_181076_0_, Direction.Axis p_181076_1_) {
     for (Direction enumfacing : values()) {
-      if (enumfacing.getAxisDirection() == p_181076_0_ && enumfacing.getAxis() == p_181076_1_) {
+      if (enumfacing.getAxisDirection() == p_181076_0_ && enumfacing.axis() == p_181076_1_) {
         return enumfacing;
       }
     }
@@ -331,7 +331,7 @@ public enum Direction {
   static {
     for (Direction enumfacing : values()) {
       VALUES[enumfacing.index] = enumfacing;
-      if (enumfacing.getAxis().isHorizontal()) {
+      if (enumfacing.axis().isHorizontal()) {
         HORIZONTALS[enumfacing.horizontalIndex] = enumfacing;
       }
       NAME_LOOKUP.put(enumfacing.getName2().toLowerCase(), enumfacing);
@@ -393,7 +393,7 @@ public enum Direction {
     }
 
     public boolean appliesTo(Direction direction) {
-      return direction != null && direction.getAxis() == this;
+      return direction != null && direction.axis() == this;
     }
 
     public Direction.Plane plane() {
@@ -431,7 +431,7 @@ public enum Direction {
       this.description = description;
     }
 
-    public int getOffset() {
+    public int offset() {
       return this.offset;
     }
 
@@ -461,7 +461,7 @@ public enum Direction {
     }
 
     public boolean apply(Direction p_apply_1_) {
-      return p_apply_1_ != null && p_apply_1_.getAxis().plane() == this;
+      return p_apply_1_ != null && p_apply_1_.axis().plane() == this;
     }
 
     public Iterator<Direction> iterator() {

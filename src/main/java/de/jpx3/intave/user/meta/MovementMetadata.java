@@ -2,6 +2,7 @@ package de.jpx3.intave.user.meta;
 
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.reflect.StructureModifier;
+import com.comphenix.protocol.wrappers.BlockPosition;
 import com.comphenix.protocol.wrappers.WrappedAttribute;
 import com.comphenix.protocol.wrappers.WrappedAttributeModifier;
 import com.google.common.collect.ImmutableList;
@@ -16,6 +17,7 @@ import de.jpx3.intave.block.collision.Collision;
 import de.jpx3.intave.block.fluid.Fluid;
 import de.jpx3.intave.block.fluid.Fluids;
 import de.jpx3.intave.block.physics.BlockProperties;
+import de.jpx3.intave.block.tick.ShulkerBox;
 import de.jpx3.intave.block.type.BlockTypeAccess;
 import de.jpx3.intave.check.movement.physics.*;
 import de.jpx3.intave.entity.datawatcher.DataWatcherAccess;
@@ -29,17 +31,13 @@ import de.jpx3.intave.shade.Motion;
 import de.jpx3.intave.shade.Rotation;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserRepository;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
 import java.lang.ref.WeakReference;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.comphenix.protocol.wrappers.WrappedAttributeModifier.Operation.ADD_PERCENTAGE;
@@ -63,8 +61,6 @@ public final class MovementMetadata implements SimulationEnvironment {
   public double widthRounded, heightRounded;
   private double resetMotion, frictionPosSubtraction;
 
-  @Deprecated
-  // Use #pose for checking a player's pose
   public boolean elytraFlying;
   public int fireworkRocketsTicks = 100;
 
@@ -143,6 +139,13 @@ public final class MovementMetadata implements SimulationEnvironment {
   public int keyForward, keyStrafe;
   public int lastKeyForward, lastKeyStrafe;
   public boolean ignoredAttackReduce = false;
+
+  public int shulkerXToleranceRemaining;
+  public int shulkerYToleranceRemaining;
+  public int shulkerZToleranceRemaining;
+
+  public List<BlockPosition> shulkers = new ArrayList<>();
+  public Map<BlockPosition, ShulkerBox> shulkerData = new HashMap<>();
 
   // Will be set to true if the player sends a flying packet and receives server velocity later
   public boolean physicsUnpredictableVelocityExpected;
@@ -275,7 +278,7 @@ public final class MovementMetadata implements SimulationEnvironment {
     PacketContainer packet,
     boolean hasMovement, boolean hasRotation
   ) {
-    ProtocolMetadata clientData = user.meta().protocol();
+    ProtocolMetadata protocol = user.meta().protocol();
     if (!boundingBoxSetup) {
       setupDefaults();
     }
@@ -321,9 +324,11 @@ public final class MovementMetadata implements SimulationEnvironment {
     }
     recheckWebStateFromLastTick();
     updateEntityMovement();
-    if (clientData.canUseElytra()) {
-      updateElytra();
-    }
+
+    // completely useless
+//    if (protocol.canUseElytra() && protocol.serversideElytra()) {
+//      updateElytra();
+//    }
     updatePose();
   }
 
@@ -368,10 +373,12 @@ public final class MovementMetadata implements SimulationEnvironment {
   }
 
   private void updateElytra() {
-    if (elytraFlying && !this.onGround && !this.inWater && !Effects.isPotionLevitationActive(player)) {
+    if (elytraFlying && !this.onGround /*&& !this.inWater*/ && !Effects.isPotionLevitationActive(player)) {
       elytraFlying = hasElytraEquipped();
-    } else {
+    } else if (elytraFlying) {
+//      player.sendMessage(ChatColor.RED + "Deactivated elytra flying");
       elytraFlying = false;
+      updatePose();
     }
   }
 
@@ -417,10 +424,10 @@ public final class MovementMetadata implements SimulationEnvironment {
       if (this.isPoseClear(Pose.SWIMMING)) {
         if (isSwimming(user)) {
           pose = Pose.SWIMMING;
-        } else if (player.isSleeping()) {
-          pose = Pose.SLEEPING;
         } else if (elytraFlying) {
           pose = Pose.FALL_FLYING;
+        } else if (player.isSleeping()) {
+          pose = Pose.SLEEPING;
         } else if (poseSneaking(user)) {
           pose = Pose.CROUCHING;
         } else {
@@ -473,17 +480,17 @@ public final class MovementMetadata implements SimulationEnvironment {
 
   private boolean isSwimming(User user) {
     MetadataBundle meta = user.meta();
-    MovementMetadata movementData = meta.movement();
-    ProtocolMetadata clientData = meta.protocol();
-    if (!clientData.swimmingMechanics()) {
+    MovementMetadata movement = meta.movement();
+    ProtocolMetadata protocol = meta.protocol();
+    if (!protocol.swimmingMechanics()) {
       return false;
     }
-    boolean sprinting = movementData.lastSprinting;
-    boolean swimming = movementData.pose() == Pose.SWIMMING;
+    boolean sprinting = movement.lastSprinting;
+    boolean swimming = movement.pose() == Pose.SWIMMING;
     if (swimming) {
-      return sprinting && movementData.inWater;
+      return sprinting && movement.inWater;
     } else {
-      return sprinting && ((movementData.pose() == Pose.FALL_FLYING && movementData.inWater) || movementData.areEyesInWater());
+      return sprinting && ((movement.pose() == Pose.FALL_FLYING && movement.inWater) || movement.areEyesInWater());
     }
   }
 
