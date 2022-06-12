@@ -25,11 +25,10 @@ public final class InventoryMetadata {
   public long lastWCCReset;
   public int windowClickCounter;
   public boolean forceInventoryOnClickOpen = true;
-  public volatile int pastSlotSwitch = 100;
   public boolean blockNextArrow = false;
   public boolean releaseItemNextTick = false;
   public Material releaseItemType = Material.AIR;
-  public SlotSwitchData slotSwitchData;
+  public volatile SlotSwitchData slotSwitchData;
   private int handSlot;
   private boolean handActive;
   private Material activeItem;

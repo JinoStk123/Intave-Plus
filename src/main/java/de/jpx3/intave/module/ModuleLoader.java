@@ -41,6 +41,8 @@ public final class ModuleLoader {
     prepareModule("de.jpx3.intave.module.tracker.player.ConnectionTracker", defaultBoot);
     prepareModule("de.jpx3.intave.module.tracker.player.EffectTracker", defaultBoot);
     prepareModule("de.jpx3.intave.module.tracker.player.InventoryTracker", defaultBoot);
+    prepareModule("de.jpx3.intave.module.tracker.player.ItemCrashTracker", defaultBoot);
+    prepareModule("de.jpx3.intave.module.tracker.player.PlayerHandTracker", defaultBoot);
     prepareModule("de.jpx3.intave.module.tracker.entity.EntityTracker", lateBoot);
     prepareModule("de.jpx3.intave.module.tracker.entity.LazyEntityCollisionService", defaultBoot);
     prepareModule("de.jpx3.intave.module.tracker.entity.EntityCollisionDisabler", defaultBoot);

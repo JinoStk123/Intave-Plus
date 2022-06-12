@@ -78,10 +78,71 @@ import static de.jpx3.intave.user.meta.ProtocolMetadata.VER_1_9;
 
 @Relocate
 public final class MovementDispatcher extends Module {
+  private static final Set<Material> shulkerBoxes = MaterialSearch.materialsThatContain("SHULKER_BOX");
+  private final boolean ELYTRA_SUPPORTED = MinecraftVersions.VER1_9_0.atOrAbove();
   private TeleportApplyEnforcer teleportApplyEnforcer;
   private Physics physicsCheck;
   private InteractionRaytrace interactionRaytraceCheck;
   private Timer timerCheck;
+
+  public static void applyVelocitySuperposition(User user, Motion velocity) {
+    MetadataBundle meta = user.meta();
+    MovementMetadata movementData = meta.movement();
+    ViolationMetadata violationLevelData = meta.violationLevel();
+
+    movementData.pastExternalVelocityResetCache = movementData.pastExternalVelocity;
+    movementData.physicsMotionXBeforeVelocityResetCache = movementData.physicsMotionXBeforeVelocity;
+    movementData.physicsMotionYBeforeVelocityResetCache = movementData.physicsMotionYBeforeVelocity;
+    movementData.physicsMotionZBeforeVelocityResetCache = movementData.physicsMotionZBeforeVelocity;
+    movementData.physicsMotionXResetCache = movementData.physicsMotionX;
+    movementData.physicsMotionYResetCache = movementData.physicsMotionY;
+    movementData.physicsMotionZResetCache = movementData.physicsMotionZ;
+    movementData.willReceiveSetbackVelocityResetCache = movementData.willReceiveSetbackVelocity;
+
+    if (!violationLevelData.isInActiveTeleportBundle) {
+      movementData.physicsMotionXBeforeVelocity = movementData.physicsMotionX;
+      movementData.physicsMotionYBeforeVelocity = movementData.physicsMotionY;
+      movementData.physicsMotionZBeforeVelocity = movementData.physicsMotionZ;
+      movementData.physicsMotionX = velocity.motionX();
+      movementData.physicsMotionY = velocity.motionY();
+      movementData.physicsMotionZ = velocity.motionZ();
+//      user.player().sendMessage("Applied velocity " + velocity);
+      movementData.lastVelocity = new Vector(velocity.motionX(), velocity.motionY(), velocity.motionZ());
+    }
+  }
+
+  public static void collapseVelocitySuperposition(User user, @Nullable Motion velocity) {
+    if (velocity != null) {
+      MetadataBundle meta = user.meta();
+      MovementMetadata movementData = meta.movement();
+      Synchronizer.synchronize(() -> movementData.emulationVelocity = null);
+      movementData.pastVelocity = 0;
+      movementData.pendingVelocityPackets.decrementAndGet();
+      if (!movementData.willReceiveSetbackVelocity) {
+        movementData.pastExternalVelocity = 0;
+      }
+      movementData.willReceiveSetbackVelocity = false;
+//      user.player().sendMessage("Collapsed velocity " + velocity);
+//      if (!movementData.willReceiveSetbackVelocity) {
+//        movementData.pastExternalVelocity = 0;
+//      }
+//      movementData.willReceiveSetbackVelocity = false;
+    }
+  }
+
+  public static void resetVelocitySuperposition(User user) {
+    MetadataBundle meta = user.meta();
+    MovementMetadata movementData = meta.movement();
+
+    movementData.pastExternalVelocity = movementData.pastExternalVelocityResetCache;
+    movementData.physicsMotionXBeforeVelocity = movementData.physicsMotionXBeforeVelocityResetCache;
+    movementData.physicsMotionYBeforeVelocity = movementData.physicsMotionYBeforeVelocityResetCache;
+    movementData.physicsMotionZBeforeVelocity = movementData.physicsMotionZBeforeVelocityResetCache;
+    movementData.physicsMotionX = movementData.physicsMotionXResetCache;
+    movementData.physicsMotionY = movementData.physicsMotionYResetCache;
+    movementData.physicsMotionZ = movementData.physicsMotionZResetCache;
+    movementData.willReceiveSetbackVelocity = movementData.willReceiveSetbackVelocityResetCache;
+  }
 
   @Override
   public void enable() {
@@ -622,7 +683,6 @@ public final class MovementDispatcher extends Module {
     }
     movement.pastLongTeleport++;
     abilityData.ticksToLastHealthUpdate++;
-    inventoryData.pastSlotSwitch++;
     movement.physicsUnpredictableVelocityExpected = false;
     movement.step = false;
     movement.lastSprinting = movement.sprintingAllowed();
@@ -708,8 +768,6 @@ public final class MovementDispatcher extends Module {
     };
     Modules.feedback().synchronize(player, originalFoodLevel, callback, SELF_SYNCHRONIZATION);
   }
-
-  private final boolean ELYTRA_SUPPORTED = MinecraftVersions.VER1_9_0.atOrAbove();
 
   @PacketSubscription(
     priority = ListenerPriority.HIGH,
@@ -849,67 +907,6 @@ public final class MovementDispatcher extends Module {
     movementData.pastVelocity = 0;
     movementData.pendingVelocityPackets.decrementAndGet();
   }
-
-  public static void applyVelocitySuperposition(User user, Motion velocity) {
-    MetadataBundle meta = user.meta();
-    MovementMetadata movementData = meta.movement();
-    ViolationMetadata violationLevelData = meta.violationLevel();
-
-    movementData.pastExternalVelocityResetCache = movementData.pastExternalVelocity;
-    movementData.physicsMotionXBeforeVelocityResetCache = movementData.physicsMotionXBeforeVelocity;
-    movementData.physicsMotionYBeforeVelocityResetCache = movementData.physicsMotionYBeforeVelocity;
-    movementData.physicsMotionZBeforeVelocityResetCache = movementData.physicsMotionZBeforeVelocity;
-    movementData.physicsMotionXResetCache = movementData.physicsMotionX;
-    movementData.physicsMotionYResetCache = movementData.physicsMotionY;
-    movementData.physicsMotionZResetCache = movementData.physicsMotionZ;
-    movementData.willReceiveSetbackVelocityResetCache = movementData.willReceiveSetbackVelocity;
-
-    if (!violationLevelData.isInActiveTeleportBundle) {
-      movementData.physicsMotionXBeforeVelocity = movementData.physicsMotionX;
-      movementData.physicsMotionYBeforeVelocity = movementData.physicsMotionY;
-      movementData.physicsMotionZBeforeVelocity = movementData.physicsMotionZ;
-      movementData.physicsMotionX = velocity.motionX();
-      movementData.physicsMotionY = velocity.motionY();
-      movementData.physicsMotionZ = velocity.motionZ();
-//      user.player().sendMessage("Applied velocity " + velocity);
-      movementData.lastVelocity = new Vector(velocity.motionX(), velocity.motionY(), velocity.motionZ());
-    }
-  }
-
-  public static void collapseVelocitySuperposition(User user, @Nullable Motion velocity) {
-    if (velocity != null) {
-      MetadataBundle meta = user.meta();
-      MovementMetadata movementData = meta.movement();
-      Synchronizer.synchronize(() -> movementData.emulationVelocity = null);
-      movementData.pastVelocity = 0;
-      movementData.pendingVelocityPackets.decrementAndGet();
-      if (!movementData.willReceiveSetbackVelocity) {
-        movementData.pastExternalVelocity = 0;
-      }
-      movementData.willReceiveSetbackVelocity = false;
-//      user.player().sendMessage("Collapsed velocity " + velocity);
-//      if (!movementData.willReceiveSetbackVelocity) {
-//        movementData.pastExternalVelocity = 0;
-//      }
-//      movementData.willReceiveSetbackVelocity = false;
-    }
-  }
-
-  public static void resetVelocitySuperposition(User user) {
-    MetadataBundle meta = user.meta();
-    MovementMetadata movementData = meta.movement();
-
-    movementData.pastExternalVelocity = movementData.pastExternalVelocityResetCache;
-    movementData.physicsMotionXBeforeVelocity = movementData.physicsMotionXBeforeVelocityResetCache;
-    movementData.physicsMotionYBeforeVelocity = movementData.physicsMotionYBeforeVelocityResetCache;
-    movementData.physicsMotionZBeforeVelocity = movementData.physicsMotionZBeforeVelocityResetCache;
-    movementData.physicsMotionX = movementData.physicsMotionXResetCache;
-    movementData.physicsMotionY = movementData.physicsMotionYResetCache;
-    movementData.physicsMotionZ = movementData.physicsMotionZResetCache;
-    movementData.willReceiveSetbackVelocity = movementData.willReceiveSetbackVelocityResetCache;
-  }
-
-  private static final Set<Material> shulkerBoxes = MaterialSearch.materialsThatContain("SHULKER_BOX");
 
   @PacketSubscription(
     packetsOut = {

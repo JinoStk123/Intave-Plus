@@ -338,9 +338,9 @@ public final class MovementMetadata implements SimulationEnvironment {
   }
 
   private void updateSlotSwitch() {
-    InventoryMetadata.SlotSwitchData slotSwitchData = user.meta().inventory().slotSwitchData;
+    InventoryMetadata inventory = user.meta().inventory();
+    InventoryMetadata.SlotSwitchData slotSwitchData = inventory.slotSwitchData;
     if (slotSwitchData != null) {
-      InventoryMetadata inventory = user.meta().inventory();
 
       int slot = slotSwitchData.slot();
       ItemStack item = slotSwitchData.item();
@@ -355,6 +355,8 @@ public final class MovementMetadata implements SimulationEnvironment {
       }
       inventory.setHeldItemSlot(slot);
       inventory.pastHotBarSlotChange = 0;
+
+      inventory.slotSwitchData = null;
     }
   }
 
