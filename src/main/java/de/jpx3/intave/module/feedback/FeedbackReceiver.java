@@ -6,6 +6,7 @@ import de.jpx3.intave.IntaveControl;
 import de.jpx3.intave.IntaveLogger;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.adapter.MinecraftVersions;
+import de.jpx3.intave.check.movement.timer.Balance;
 import de.jpx3.intave.diagnostic.LatencyStudy;
 import de.jpx3.intave.executor.TaskTracker;
 import de.jpx3.intave.module.Module;
@@ -17,10 +18,9 @@ import de.jpx3.intave.user.meta.ConnectionMetadata;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-import java.util.Locale;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 
 import static de.jpx3.intave.module.feedback.FeedbackSender.PING_MASK;
 import static de.jpx3.intave.module.feedback.FeedbackSender.TRANSACTION_MAX_CODE;
@@ -130,6 +130,12 @@ public final class FeedbackReceiver extends Module {
     receiveRequest(user, transactionResponse);
     long passedTime = transactionResponse.passedTime();
     connection.receivedTransactionAfter(passedTime);
+
+    // to be changed (!)
+    Balance.BalanceMeta balanceMeta = (Balance.BalanceMeta) user.checkMetadata(Balance.BalanceMeta.class);
+    balanceMeta.timerBalance = Math.max(balanceMeta.timerBalance, balanceMeta.confirmedBalance);
+    balanceMeta.nextConfirmedBalance = -passedTime;
+
     LatencyStudy.receivedTransactionAfter(passedTime);
     event.setCancelled(true);
   }

@@ -1,20 +1,16 @@
 package de.jpx3.intave.check.movement.timer;
 
 import com.comphenix.protocol.events.PacketEvent;
-import de.jpx3.intave.IntaveControl;
-import de.jpx3.intave.access.player.trust.TrustFactor;
 import de.jpx3.intave.annotate.DispatchTarget;
 import de.jpx3.intave.check.CheckStatistics;
 import de.jpx3.intave.check.CheckViolationLevelDecrementer;
 import de.jpx3.intave.check.MetaCheckPart;
 import de.jpx3.intave.check.movement.Timer;
-import de.jpx3.intave.connect.sibyl.SibylBroadcast;
 import de.jpx3.intave.executor.Synchronizer;
 import de.jpx3.intave.math.MathHelper;
 import de.jpx3.intave.module.Modules;
 import de.jpx3.intave.module.linker.bukkit.BukkitEventSubscription;
 import de.jpx3.intave.module.linker.packet.PacketSubscription;
-import de.jpx3.intave.module.mitigate.AttackNerfStrategy;
 import de.jpx3.intave.module.violation.Violation;
 import de.jpx3.intave.module.violation.ViolationContext;
 import de.jpx3.intave.user.User;
@@ -66,7 +62,7 @@ public final class Balance extends MetaCheckPart<Timer, Balance.BalanceMeta> {
   )
   public void sentPosition(PacketEvent event) {
     User user = userOf(event.getPlayer());
-    double leniency = user.meta().violationLevel().isInActiveTeleportBundle ? 2 : 12.5;
+    double leniency = user.meta().violationLevel().isInActiveTeleportBundle ? 10 : 60;
     BalanceMeta timerData = metaOf(user);
     timerData.timerBalance -= leniency;
     timerData.lastFlyingPacket = System.currentTimeMillis();
@@ -84,8 +80,7 @@ public final class Balance extends MetaCheckPart<Timer, Balance.BalanceMeta> {
     long time = System.currentTimeMillis();
     long delta = time - timerData.lastFlyingPacket;
     timerData.lastFlyingPacket = System.currentTimeMillis();
-    timerData.timerBalance -= delta / 5.0;
-    timerData.timerBalance += 10;
+    timerData.timerBalance += 50 - delta;
     int allowedLagInMilliseconds = trustFactorSetting("buffer-size", player);
     if (highToleranceMode || meta.abilities().probablyFlying()) {
       allowedLagInMilliseconds *= 1.5;
@@ -96,41 +91,19 @@ public final class Balance extends MetaCheckPart<Timer, Balance.BalanceMeta> {
     if (System.currentTimeMillis() - timerData.lastLagSpike < 12000 && !highToleranceMode) {
       allowedLagInMilliseconds = Math.max(allowedLagInMilliseconds / 2, 500);
     }
-    double lowerPacketBalanceLimit = (allowedLagInMilliseconds / 1000d) * -(20 * 10);
-    timerData.timerBalance = MathHelper.minmax(lowerPacketBalanceLimit, timerData.timerBalance, 200);
-    if (delta > 500) {
-      timerData.lastLagSpike = System.currentTimeMillis();
-      Synchronizer.synchronize(() -> Modules.feedback().synchronize(player, (player1, target) -> {
-        // Lag spike - requesting feedback to reset balance
-        timerData.timerBalance = Math.max(0, timerData.timerBalance);
-      }));
+    timerData.timerBalance = MathHelper.minmax(-allowedLagInMilliseconds, timerData.timerBalance, 1000);
+    if (timerData.nextConfirmedBalance != -1) {
+      timerData.confirmedBalance = timerData.nextConfirmedBalance;
+      timerData.nextConfirmedBalance = -1;
     }
-
-    // God, please tell me a better way to solve packet buffer cheats.
-    long transactionPingAvg = user.meta().connection().transactionPingAverage();
-    TrustFactor trustFactor = user.trustFactor();
-    long sinceLastRespawn = System.currentTimeMillis() - timerData.lastRespawn;
-    MovementMetadata movement = meta.movement();
-    boolean mightBeSkippedMovement = !meta.protocol().flyingPacketStream() && (Math.abs(movement.motionX()) > 0.1 || Math.abs(movement.motionY()) > 0.15 || Math.abs(movement.motionZ()) > 0.1);
-    boolean userSuspicious = transactionPingAvg <= 300 && !mightBeSkippedMovement && sinceLastRespawn > 500 && !trustFactor.atLeast(TrustFactor.ORANGE);
-    if (delta >= 100 && userSuspicious && IntaveControl.GOMME_MODE) {
-      if (timerData.spikeVL > 400) {
-        user.applyShortAttackStimulus(AttackNerfStrategy.DMG_HIGH, "XX");
-      }
-      SibylBroadcast.broadcast(ChatColor.RED + player.getName() + " #->#  " + transactionPingAvg + " " + delta + " " + timerData.spikeVL);
-      timerData.spikeVL += 100;
-    } else {
-      timerData.spikeVL--;
-    }
-
-    if (timerData.timerBalance < -50 && System.currentTimeMillis() - timerData.lastLagSpike > 500) {
-      int adder = timerData.timerBalance < -400 ? 9 : 3;
-      timerData.timerBalance += adder;
+    if (timerData.timerBalance < -250 && System.currentTimeMillis() - timerData.lastLagSpike > 500) {
+      timerData.timerBalance += timerData.timerBalance < -400 ? 45 : 15;
     }
     statisticApply(user, CheckStatistics::increaseTotal);
-    int overflowLimit = highToleranceMode ? 150 : 20;
+    int overflowLimit = highToleranceMode ? 750 : 100;
+
     if (timerData.timerBalance > overflowLimit && !user.meta().movement().isInVehicle()) {
-      String balanceAsString = MathHelper.formatDouble(timerData.timerBalance / 10, 2);
+      String balanceAsString = MathHelper.formatDouble(timerData.timerBalance / 50, 2);
       statisticApply(user, CheckStatistics::increaseFails);
       Violation violation = Violation.builderFor(Timer.class).forPlayer(player)
         .withMessage("moved too frequently").withDetails(balanceAsString + " ticks ahead").withVL(0.5)
@@ -143,11 +116,11 @@ public final class Balance extends MetaCheckPart<Timer, Balance.BalanceMeta> {
         Modules.mitigate().movement().emulationSetBack(player, setback, 12, false);
       }
       timerData.lastTimerFlag = System.currentTimeMillis();
-      timerData.timerBalance -= highToleranceMode || timerData.timerBalance > overflowLimit ? 2.5 : 0.5;
+      timerData.timerBalance -= highToleranceMode || timerData.timerBalance > overflowLimit ? 12.5 : 2.5;
     } else {
       statisticApply(user, CheckStatistics::increasePasses);
       if (timerData.timerBalance > 0) {
-        timerData.timerBalance -= highToleranceMode ? 0.075 : 0.025;
+        timerData.timerBalance -= 0.375;
       }
       if (System.currentTimeMillis() - timerData.lastTimerFlag > 10000) {
         decrementer.decrement(user, 0.01);
@@ -233,8 +206,7 @@ public final class Balance extends MetaCheckPart<Timer, Balance.BalanceMeta> {
     public long lastTimerFlag;
     public long lastLagSpike;
     public long lastRespawn;
-    public int spikeVL;
-    public boolean receivedMovingPacket;
-    public boolean flagTick;
+    public long nextConfirmedBalance;
+    public long confirmedBalance;
   }
 }
