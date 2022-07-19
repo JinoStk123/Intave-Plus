@@ -1,6 +1,7 @@
 package de.jpx3.intave.check.movement.timer;
 
 import com.comphenix.protocol.events.PacketEvent;
+import de.jpx3.intave.access.player.trust.TrustFactor;
 import de.jpx3.intave.annotate.DispatchTarget;
 import de.jpx3.intave.check.CheckStatistics;
 import de.jpx3.intave.check.CheckViolationLevelDecrementer;
@@ -88,9 +89,9 @@ public final class Balance extends MetaCheckPart<Timer, Balance.BalanceMeta> {
     if (System.currentTimeMillis() - timerData.lastRespawn < 6000) {
       allowedLagInMilliseconds = Math.max(allowedLagInMilliseconds, 8000);
     }
-    if (System.currentTimeMillis() - timerData.lastLagSpike < 12000 && !highToleranceMode) {
-      allowedLagInMilliseconds = Math.max(allowedLagInMilliseconds / 2, 500);
-    }
+//    if (System.currentTimeMillis() - timerData.lastLagSpike < 1000 && !highToleranceMode) {
+//      allowedLagInMilliseconds = Math.max(allowedLagInMilliseconds / 2, 500);
+//    }
     timerData.timerBalance = MathHelper.minmax(-allowedLagInMilliseconds, timerData.timerBalance, 1000);
     if (timerData.nextConfirmedBalance != -1) {
       timerData.confirmedBalance = timerData.nextConfirmedBalance;
@@ -100,7 +101,8 @@ public final class Balance extends MetaCheckPart<Timer, Balance.BalanceMeta> {
       timerData.timerBalance += timerData.timerBalance < -400 ? 45 : 15;
     }
     statisticApply(user, CheckStatistics::increaseTotal);
-    int overflowLimit = highToleranceMode ? 750 : 250;
+    boolean suspicious = violationLevelOf(user) > 10 && !user.trustFactor().atLeast(TrustFactor.ORANGE) && System.currentTimeMillis() - timerData.lastTimerFlag < 2000;
+    int overflowLimit = highToleranceMode ? 750 : (suspicious ? 100 : 250);
 
     if (timerData.timerBalance > overflowLimit && !user.meta().movement().isInVehicle()) {
       String balanceAsString = MathHelper.formatDouble(timerData.timerBalance / 50, 2);
@@ -173,17 +175,21 @@ public final class Balance extends MetaCheckPart<Timer, Balance.BalanceMeta> {
     BalanceMeta timerData = metaOf(user);
     long lastTimerFlag = timerData.lastTimerFlag;
     long msSinceFlag = System.currentTimeMillis() - lastTimerFlag;
+    if (violationLevelOf(user) > threshold && msSinceFlag < delay) {
+      cancellable.setCancelled(true);
+      player.updateInventory();
+    }
+  }
+
+  private double violationLevelOf(User user) {
     ViolationMetadata violationLevelData = user.meta().violationLevel();
     Map<String, Map<String, Double>> violationLevel = violationLevelData.violationLevel;
     String name = name().toLowerCase();
     if (!violationLevel.containsKey(name)) {
-      return;
+      return 0;
     }
     Map<String, Double> stringDoubleMap = violationLevel.get(name);
-    if (stringDoubleMap.get("thresholds") > threshold && msSinceFlag < delay) {
-      cancellable.setCancelled(true);
-      player.updateInventory();
-    }
+    return stringDoubleMap.get("thresholds");
   }
 
 //  @Deprecated
