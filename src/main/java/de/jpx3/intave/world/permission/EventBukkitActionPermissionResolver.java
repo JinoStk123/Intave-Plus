@@ -10,7 +10,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-public final class EventBukkitActionPermissionResolver implements BucketActionPermissionCheck {
+final class EventBukkitActionPermissionResolver implements BucketActionPermissionCheck {
   private final IntavePlugin plugin;
 
   public EventBukkitActionPermissionResolver(IntavePlugin plugin) {

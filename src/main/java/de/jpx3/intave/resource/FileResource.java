@@ -1,12 +1,9 @@
 package de.jpx3.intave.resource;
 
 import java.io.*;
-import java.nio.channels.Channels;
-import java.nio.channels.FileChannel;
-import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 
-public final class FileResource implements Resource {
+final class FileResource implements Resource {
   private final File file;
 
   public FileResource(File file) {

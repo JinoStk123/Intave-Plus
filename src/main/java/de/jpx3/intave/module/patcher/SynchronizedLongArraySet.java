@@ -2,7 +2,7 @@ package de.jpx3.intave.module.patcher;
 
 import it.unimi.dsi.fastutil.longs.LongArraySet;
 
-public final class SynchronizedLongArraySet extends LongArraySet {
+final class SynchronizedLongArraySet extends LongArraySet {
   @Override
   public synchronized boolean add(long l) {
     return super.add(l);

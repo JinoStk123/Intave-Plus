@@ -1,5 +1,6 @@
 package de.jpx3.intave.check.combat.heuristics.detect.clickpatterns;
 
+import de.jpx3.intave.annotate.PartnerOnly;
 import de.jpx3.intave.check.combat.Heuristics;
 import de.jpx3.intave.check.combat.heuristics.Anomaly;
 import de.jpx3.intave.check.combat.heuristics.Confidence;
@@ -10,6 +11,7 @@ import java.util.List;
 
 import static de.jpx3.intave.check.combat.heuristics.detect.clickpatterns.SwingDeviationHeuristics.SwingDeviationBlueprintMeta;
 
+@PartnerOnly
 public final class SwingDeviationHeuristics extends SwingBlueprint<SwingDeviationBlueprintMeta> {
   public SwingDeviationHeuristics(Heuristics parentCheck) {
     super(parentCheck, SwingDeviationBlueprintMeta.class, 100, true, false);

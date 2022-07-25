@@ -3,10 +3,10 @@ package de.jpx3.intave.user;
 import de.jpx3.intave.access.UnsupportedFallbackOperationException;
 import de.jpx3.intave.access.player.trust.TrustFactor;
 import de.jpx3.intave.access.player.trust.TrustFactorResolver;
-import de.jpx3.intave.block.state.BlockStateExtendedCache;
-import de.jpx3.intave.block.state.BlockStateInvalidatableCache;
 import de.jpx3.intave.block.state.BlockStateCache;
-import de.jpx3.intave.block.state.BlockStateOverridableCache;
+import de.jpx3.intave.block.state.ExtendedBlockStateCache;
+import de.jpx3.intave.block.state.InvalidatableBlockStateCache;
+import de.jpx3.intave.block.state.OverridableBlockStateCache;
 import de.jpx3.intave.check.MetaCheck;
 import de.jpx3.intave.check.MetaCheckPart;
 import de.jpx3.intave.check.movement.physics.Pose;
@@ -183,10 +183,10 @@ public interface User {
    *
    * @return the player's block state cache
    * @see BlockStateCache
-   * @see BlockStateInvalidatableCache
-   * @see BlockStateOverridableCache
+   * @see InvalidatableBlockStateCache
+   * @see OverridableBlockStateCache
    */
-  BlockStateExtendedCache blockStates();
+  ExtendedBlockStateCache blockStates();
 
   /**
    * Retrieve the {@link User}-associated {@link Collider}

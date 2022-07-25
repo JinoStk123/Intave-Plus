@@ -7,7 +7,7 @@ import de.jpx3.intave.user.User;
 import org.bukkit.Location;
 import org.bukkit.Material;
 
-import java.util.List;
+import java.util.Collection;
 
 public interface BlockPhysic {
   void setupFor(MinecraftVersion serverVersion);
@@ -39,5 +39,5 @@ public interface BlockPhysic {
     return true;
   }
 
-  List<Material> applicableMaterials();
+  Collection<Material> applicableMaterials();
 }

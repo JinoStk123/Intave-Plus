@@ -2,20 +2,17 @@ package de.jpx3.intave.security.blacklist;
 
 import com.google.common.collect.ImmutableList;
 
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 import java.util.UUID;
 
-public final class BlackList {
+public final class Blacklist {
   private final List<String> blacklistedHashes;
   private final MessageDigest sha256Digest;
 
-  private BlackList(List<String> blacklistedHashes) {
+  private Blacklist(List<String> blacklistedHashes) {
     this.blacklistedHashes = blacklistedHashes;
     try {
       this.sha256Digest = MessageDigest.getInstance("SHA-256");
@@ -33,7 +30,12 @@ public final class BlackList {
   }
 
   private boolean hashBlacklisted(String input) {
-    return blacklistedHashes.stream().anyMatch(blacklistedHash -> blacklistedHash.equals(input));
+    for (String blacklistedHash : blacklistedHashes) {
+      if (blacklistedHash.equals(input)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private String hashOf(String input) {
@@ -52,11 +54,11 @@ public final class BlackList {
     return hexString.toString();
   }
 
-  public static BlackList empty() {
-    return new BlackList(ImmutableList.of());
+  public static Blacklist empty() {
+    return new Blacklist(ImmutableList.of());
   }
 
-  public static BlackList fromLines(List<String> lines) {
-    return new BlackList(lines);
+  public static Blacklist fromLines(List<String> lines) {
+    return new Blacklist(lines);
   }
 }

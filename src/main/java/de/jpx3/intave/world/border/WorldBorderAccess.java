@@ -8,7 +8,7 @@ import org.bukkit.World;
  * Created by Richard Strunk 2021
  */
 
-public interface WorldBorderAccess {
+interface WorldBorderAccess {
   double sizeOf(World world);
 
   Location centerOf(World world);

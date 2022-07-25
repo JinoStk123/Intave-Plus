@@ -64,7 +64,7 @@ public final class ItemProperties {
     materialListConvert(nonFoodLevelConstraintFoodItemNames, nonFoodLevelConstraintFoodItems);
   }
 
-  private static void materialListConvert(List<String> input, Set<Material> output) {
+  private static void materialListConvert(List<String> input, Set<? super Material> output) {
     input.stream().map(ItemProperties::materialByName).forEach(output::add);
   }
 
@@ -159,9 +159,12 @@ public final class ItemProperties {
     if (material != null) {
       return material;
     }
-    return Arrays.stream(Material.values())
-      .filter(materiall -> materiall.name().equalsIgnoreCase(name))
-      .findFirst().orElse(null);
+    for (Material materiall : Material.values()) {
+      if (materiall.name().equalsIgnoreCase(name)) {
+        return materiall;
+      }
+    }
+    return null;
   }
 
   private static boolean inventoryContains(Player player, Collection<Material> items) {

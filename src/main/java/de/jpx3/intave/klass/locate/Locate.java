@@ -1,10 +1,12 @@
 package de.jpx3.intave.klass.locate;
 
+import de.jpx3.intave.IntaveControl;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.cleanup.ShutdownTasks;
 import de.jpx3.intave.resource.Resource;
 import de.jpx3.intave.resource.Resources;
 
+import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Map;
@@ -12,7 +14,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 public final class Locate {
-  private static final Resource LOCATE_RESOURCE = Resources.cacheResourceChain("https://service.intave.de/locate/" + IntavePlugin.version(), "locate", TimeUnit.DAYS.toMillis(14));
+  private static final Resource LOCATE_RESOURCE =
+    IntaveControl.DEBUG_LOCATE_RESOURCE ?
+      Resources.resourceFromFile(new File(IntavePlugin.singletonInstance().dataFolder(), "locate.yml")) :
+      Resources.cacheResourceChain("https://service.intave.de/locate/" + IntavePlugin.version(), "locate", TimeUnit.DAYS.toMillis(14));
   private static final Locations CLASS_AND_FIELD_LOCATIONS = LocateFileCompiler.create().fromResource(LOCATE_RESOURCE).reduced();
   private static final ClassLocations classLocations = CLASS_AND_FIELD_LOCATIONS.classLocations();
   private static final FieldLocations fieldLocations = CLASS_AND_FIELD_LOCATIONS.fieldLocations();

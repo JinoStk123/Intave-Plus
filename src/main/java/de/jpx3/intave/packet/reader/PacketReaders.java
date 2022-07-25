@@ -66,7 +66,7 @@ public final class PacketReaders {
     return availableTypes;
   }
 
-  private static PacketType searchByName(Collection<PacketType> packetPool, String name) {
+  private static PacketType searchByName(Collection<? extends PacketType> packetPool, String name) {
     return packetPool.stream().filter(packetType -> matches(packetType, name)).findFirst().orElse(null);
   }
 

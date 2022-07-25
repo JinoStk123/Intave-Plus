@@ -12,7 +12,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 
-public final class ScaffoldingCollisionModifier extends CollisionModifier {
+final class ScaffoldingCollisionModifier extends CollisionModifier {
   @Override
   public BlockShape modify(User user, BoundingBox userBox, int posX, int posY, int posZ, BlockShape shape) {
     if (useCustomCollision(user, posY)) {

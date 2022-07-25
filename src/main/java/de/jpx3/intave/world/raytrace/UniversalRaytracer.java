@@ -2,7 +2,7 @@ package de.jpx3.intave.world.raytrace;
 
 import de.jpx3.intave.block.shape.BlockRaytrace;
 import de.jpx3.intave.block.shape.BlockShape;
-import de.jpx3.intave.block.state.BlockStateExtendedCache;
+import de.jpx3.intave.block.state.ExtendedBlockStateCache;
 import de.jpx3.intave.share.*;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserRepository;
@@ -22,7 +22,7 @@ public final class UniversalRaytracer implements Raytracer {
 
   public MovingObjectPosition raytrace(Player player, Position observerPosition, Position targetPosition) {
     User user = UserRepository.userOf(player);
-    BlockStateExtendedCache blockStateAccess = user.blockStates();
+    ExtendedBlockStateCache blockStateAccess = user.blockStates();
     if (observerPosition.hasNaNCoordinate() || targetPosition.hasNaNCoordinate()) {
       return MovingObjectPosition.none();
     }

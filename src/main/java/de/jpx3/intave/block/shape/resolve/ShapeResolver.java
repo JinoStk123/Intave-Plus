@@ -4,10 +4,11 @@ import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.access.IntaveInternalException;
 import de.jpx3.intave.adapter.MinecraftVersions;
 import de.jpx3.intave.block.shape.ShapeResolverPipeline;
-import de.jpx3.intave.block.state.BlockStateExtendedCache;
+import de.jpx3.intave.block.state.ExtendedBlockStateCache;
 import de.jpx3.intave.klass.rewrite.PatchyLoadingInjector;
 
-import static de.jpx3.intave.adapter.MinecraftVersions.*;
+import static de.jpx3.intave.adapter.MinecraftVersions.VER1_13_0;
+import static de.jpx3.intave.adapter.MinecraftVersions.VER1_9_0;
 
 /**
  * The {@link ShapeResolver} is a factory object that constructs the main bounding box resolver pipeline.
@@ -26,7 +27,7 @@ import static de.jpx3.intave.adapter.MinecraftVersions.*;
  * Use {@link ShapeResolver#pipelineHead()} to retrieve the pipelines head.
  *
  * @see ShapeResolverPipeline
- * @see BlockStateExtendedCache
+ * @see ExtendedBlockStateCache
  */
 public final class ShapeResolver {
   private static ShapeResolverPipeline resolver;

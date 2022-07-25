@@ -7,7 +7,7 @@ import de.jpx3.intave.share.BoundingBox;
 import de.jpx3.intave.user.User;
 import org.bukkit.Material;
 
-public final class ShulkerCollisionModifier extends CollisionModifier {
+final class ShulkerCollisionModifier extends CollisionModifier {
   @Override
   public BlockShape modify(User user, BoundingBox userBox, int posX, int posY, int posZ, BlockShape shape) {
     BlockPosition blockPosition = new BlockPosition(posX, posY, posZ);

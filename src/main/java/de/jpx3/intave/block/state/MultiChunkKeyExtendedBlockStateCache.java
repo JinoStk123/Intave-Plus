@@ -23,7 +23,7 @@ import java.util.Map;
 import static de.jpx3.intave.IntaveControl.DISABLE_BLOCK_CACHING_ENTIRELY;
 
 @DoNotFlowObfuscate
-final class MultiChunkKeyBlockStateExtendedCache implements BlockStateExtendedCache {
+final class MultiChunkKeyExtendedBlockStateCache implements ExtendedBlockStateCache {
   private final Player player;
   private final ShapeResolverPipeline shapeResolver;
   private final Map<Long, BlockState> blockCache = Maps.newConcurrentMap();
@@ -31,7 +31,7 @@ final class MultiChunkKeyBlockStateExtendedCache implements BlockStateExtendedCa
   private int originChunkX, originChunkZ;
   private int chunkX, chunkZ;
 
-  public MultiChunkKeyBlockStateExtendedCache(
+  public MultiChunkKeyExtendedBlockStateCache(
     Player player, ShapeResolverPipeline resolver
   ) {
     this.player = player;

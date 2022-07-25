@@ -15,7 +15,7 @@ import de.jpx3.intave.annotate.Relocate;
 import de.jpx3.intave.block.access.BlockInteractionAccess;
 import de.jpx3.intave.block.access.VolatileBlockAccess;
 import de.jpx3.intave.block.collision.Collision;
-import de.jpx3.intave.block.state.BlockStateExtendedCache;
+import de.jpx3.intave.block.state.ExtendedBlockStateCache;
 import de.jpx3.intave.block.type.BlockTypeAccess;
 import de.jpx3.intave.block.variant.BlockVariantAccess;
 import de.jpx3.intave.check.CheckViolationLevelDecrementer;
@@ -377,7 +377,7 @@ public final class InteractionRaytrace extends MetaCheck<InteractionRaytrace.Int
     Player player = interaction.player();
     User user = userOf(player);
     ResponseType response = interaction.type().response();
-    BlockStateExtendedCache blockStateAccess = user.blockStates();
+    ExtendedBlockStateCache blockStateAccess = user.blockStates();
     if (enforceCancel) {
       response = ResponseType.CANCEL;
     }

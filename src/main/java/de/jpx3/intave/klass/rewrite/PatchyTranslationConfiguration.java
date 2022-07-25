@@ -2,7 +2,6 @@ package de.jpx3.intave.klass.rewrite;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import de.jpx3.intave.annotate.Native;
 import de.jpx3.intave.lib.asm.Type;
 import de.jpx3.intave.lib.asm.tree.AnnotationNode;
 import de.jpx3.intave.lib.asm.tree.ClassNode;

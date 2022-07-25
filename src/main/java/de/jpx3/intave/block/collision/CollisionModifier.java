@@ -7,7 +7,7 @@ import org.bukkit.Material;
 
 import java.util.Arrays;
 
-public abstract class CollisionModifier {
+abstract class CollisionModifier {
   private Material[] materials;
 
   protected CollisionModifier() {

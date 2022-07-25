@@ -4,7 +4,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
 
 final class ProtocolVersionRanges implements Iterable<ProtocolVersionRange> {
   private final Collection<ProtocolVersionRange> versionRanges;

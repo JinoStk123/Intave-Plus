@@ -3,7 +3,7 @@ package de.jpx3.intave.resource;
 import java.io.File;
 import java.io.InputStream;
 
-public final class FileAccessTimeRefreshLayer implements Resource {
+final class FileAccessTimeRefreshLayer implements Resource {
   private final Resource target;
   private final File targetFile;
 

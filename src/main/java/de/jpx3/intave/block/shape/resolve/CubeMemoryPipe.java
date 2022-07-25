@@ -9,7 +9,6 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 
 import java.util.Set;
-import java.util.function.Supplier;
 
 final class CubeMemoryPipe implements ShapeResolverPipeline {
   private final ShapeResolverPipeline forward;

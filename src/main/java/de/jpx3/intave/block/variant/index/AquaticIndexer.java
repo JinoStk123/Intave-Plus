@@ -5,7 +5,6 @@ import org.bukkit.Material;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.BiConsumer;
 
 class AquaticIndexer implements Indexer {
   @Override

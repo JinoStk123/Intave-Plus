@@ -8,7 +8,6 @@ import org.bukkit.Material;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.BiConsumer;
 
 class LegacyIndexer implements Indexer {
   private static Method getStateListMethod;

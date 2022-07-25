@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 public final class MethodSearchBySignature {
@@ -55,6 +56,10 @@ public final class MethodSearchBySignature {
     return ofClass(target).withParameters(params).withReturnType(returnVal).search();
   }
 
+  public static MethodSearchBySignature withManualFilter(Class<?> target, Class<?>[] params, Class<?> returnVal, Predicate<Method> filter) {
+    return ofClass(target).withParameters(params).withReturnType(returnVal).withFilter(filter).search();
+  }
+
   @Deprecated
   public static MethodSearchBySignature publicSearch(Class<?> target, Class<?>[] params, Class<?> returnVal) {
     return ofClass(target).withParameters(params).withReturnType(returnVal).publicLookup().search();
@@ -68,6 +73,7 @@ public final class MethodSearchBySignature {
     private final Class<?> targetClass;
     private Type[] parameters;
     private Type returnType;
+    private Predicate<Method> filter = method -> true;
     private boolean mustHaveResult;
     private boolean publicLookup;
 
@@ -101,6 +107,11 @@ public final class MethodSearchBySignature {
       return this;
     }
 
+    public Builder withFilter(Predicate<Method> filter) {
+      this.filter = filter;
+      return this;
+    }
+
     public MethodSearchBySignature search() {
       if (targetClass == null) {
         throw new IllegalStateException();
@@ -114,7 +125,7 @@ public final class MethodSearchBySignature {
       List<MethodHandle> methodHandles = new ArrayList<>();
       Type methodType = Type.getMethodType(returnType, parameters);
       for (Method matchedMethod : targetClass.getDeclaredMethods()) {
-        if (Type.getType(matchedMethod).equals(methodType)) {
+        if (Type.getType(matchedMethod).equals(methodType) && filter.test(matchedMethod)) {
           methodHandles.add(createMethodHandleFor(matchedMethod));
         }
       }

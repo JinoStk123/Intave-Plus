@@ -8,7 +8,6 @@ import org.bukkit.craftbukkit.v1_14_R1.block.data.CraftBlockData;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.BiConsumer;
 
 class ModernIndexer implements Indexer {
   @Override

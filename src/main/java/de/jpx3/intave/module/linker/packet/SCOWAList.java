@@ -8,7 +8,7 @@ import java.util.*;
 // successfully copy-pasted from ProtocolLib
 
 // SortedCopyOnWriteArray-List
-public final class SCOWAList<T extends Comparable<T>> implements Collection<T> {
+final class SCOWAList<T extends Comparable<T>> implements Collection<T> {
   private volatile List<T> list;
 
   public SCOWAList() {

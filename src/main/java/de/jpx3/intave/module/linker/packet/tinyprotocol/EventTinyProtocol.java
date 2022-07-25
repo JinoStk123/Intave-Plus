@@ -13,7 +13,7 @@ import org.bukkit.entity.Player;
 import java.util.Collection;
 
 @DoNotFlowObfuscate
-public final class EventTinyProtocol extends TinyProtocol {
+final class EventTinyProtocol extends TinyProtocol {
   private final InjectionService injectionService;
 
   public EventTinyProtocol(IntavePlugin plugin, InjectionService injectionService) {

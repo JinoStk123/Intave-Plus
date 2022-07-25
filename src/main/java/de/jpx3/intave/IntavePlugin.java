@@ -57,7 +57,7 @@ import de.jpx3.intave.reflect.access.ReflectiveAccess;
 import de.jpx3.intave.resource.Resources;
 import de.jpx3.intave.resource.legacy.EncryptedLegacyResource;
 import de.jpx3.intave.security.*;
-import de.jpx3.intave.security.blacklist.BlackListService;
+import de.jpx3.intave.security.blacklist.BlacklistService;
 import de.jpx3.intave.security.letis.Letis;
 import de.jpx3.intave.share.link.WrapperConverter;
 import de.jpx3.intave.trustfactor.TrustFactorService;
@@ -117,7 +117,7 @@ public final class IntavePlugin extends JavaPlugin {
   private CustomClientSupportService customClientSupportService;
   private IntaveAccessService accessService;
   private IntaveAccess access;
-  private BlackListService blackListService;
+  private BlacklistService blackListService;
   private ScheduledUploadService uploadService;
   private Letis letis;
   private Analytics analytics;
@@ -617,7 +617,7 @@ public final class IntavePlugin extends JavaPlugin {
       fakePlayerEventService = new FakePlayerEventService(this);
       proxyMessenger = new ProxyMessenger(this);
       sibylIntegrationService = new SibylIntegrationService(this);
-      blackListService = new BlackListService(this);
+      blackListService = new BlacklistService(this);
       uploadService = new ScheduledUploadService();
       uploadService.enable();
       letis = new Letis(this);

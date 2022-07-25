@@ -1,6 +1,5 @@
 package de.jpx3.intave.resource;
 
-import de.jpx3.intave.IntaveControl;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.annotate.Native;
 import de.jpx3.intave.lib.asm.ByteVector;

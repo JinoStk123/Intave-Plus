@@ -4,7 +4,7 @@ import de.jpx3.intave.IntaveControl;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.access.player.trust.TrustFactor;
 import de.jpx3.intave.annotate.Native;
-import de.jpx3.intave.block.state.BlockStateExtendedCache;
+import de.jpx3.intave.block.state.ExtendedBlockStateCache;
 import de.jpx3.intave.check.Check;
 import de.jpx3.intave.check.CheckStatistics;
 import de.jpx3.intave.check.combat.Heuristics;
@@ -367,7 +367,7 @@ public final class RootStage extends CommandStage {
   @Native
   public void outputReplacements(User user) {
     Player player = user.player();
-    BlockStateExtendedCache bba = user.blockStates();
+    ExtendedBlockStateCache bba = user.blockStates();
     player.sendMessage(ChatColor.RED + "You have " + bba.numOfLocatedReplacements() + "/" + bba.numOfIndexedReplacements() + " replacements");
   }
 

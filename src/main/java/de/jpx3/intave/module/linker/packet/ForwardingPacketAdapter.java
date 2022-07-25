@@ -44,9 +44,6 @@ public final class ForwardingPacketAdapter extends WeakReferencePacketAdapter {
       return;
     }
     User user = UserRepository.userOf(player);
-    if (user == null) {
-      return;
-    }
     if (user.shouldIgnoreNextOutboundPacket()) {
 //      user.receiveNextOutboundPacketAgain();
       return;
@@ -66,9 +63,6 @@ public final class ForwardingPacketAdapter extends WeakReferencePacketAdapter {
       }
     }
     User user = UserRepository.userOf(event.getPlayer());
-    if (user == null) {
-      return;
-    }
     if (user.shouldIgnoreNextInboundPacket()) {
       user.receiveNextInboundPacketAgain();
       return;

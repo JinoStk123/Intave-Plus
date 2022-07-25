@@ -3,12 +3,13 @@ package de.jpx3.intave.player;
 import com.google.common.collect.Maps;
 import de.jpx3.intave.cleanup.GarbageCollector;
 import de.jpx3.intave.executor.BackgroundExecutor;
-import de.jpx3.intave.resource.WebResource;
+import de.jpx3.intave.resource.Resources;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -34,8 +35,7 @@ public final class ProfileLookup {
   private static UUID loadIfFromName(String name) {
     try {
       String url = String.format(NAME_TO_ID_LOOKUP_URL, name);
-      WebResource webResource = new WebResource(url);
-      String profileResponse = webResource.asString();
+      String profileResponse = Resources.resourceFromWeb(new URL(url)).asString();
       if (profileResponse.isEmpty()) {
         return null;
       }

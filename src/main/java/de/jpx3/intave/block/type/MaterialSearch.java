@@ -7,7 +7,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 public final class MaterialSearch {
-  public static Set<Material> findBy(Predicate<Material> predicate) {
+  public static Set<Material> findBy(Predicate<? super Material> predicate) {
     Set<Material> materials = EnumSet.noneOf(Material.class);
     for (Material material : Material.values()) {
       if (predicate.test(material)) {

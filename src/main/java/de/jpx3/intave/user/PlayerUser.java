@@ -9,8 +9,8 @@ import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.access.IntaveInternalException;
 import de.jpx3.intave.access.player.trust.TrustFactor;
 import de.jpx3.intave.annotate.Relocate;
-import de.jpx3.intave.block.state.BlockStateExtendedCache;
 import de.jpx3.intave.block.state.BlockStateCaches;
+import de.jpx3.intave.block.state.ExtendedBlockStateCache;
 import de.jpx3.intave.block.type.BlockTypeAccess;
 import de.jpx3.intave.check.movement.physics.Pose;
 import de.jpx3.intave.connect.customclient.CustomClientSupportConfig;
@@ -70,7 +70,7 @@ final class PlayerUser implements User {
   private final Map<MessageChannel, Predicate<Player>> channelConstraints = Maps.newEnumMap(MessageChannel.class);
   private final Map<Material, Material> typeTranslations = Maps.newHashMap();
   private Map<Pose, HitboxSize> poseSizes;
-  private final BlockStateExtendedCache blockStateAccess;
+  private final ExtendedBlockStateCache blockStateAccess;
   private boolean ignoreNextInboundPacket;
   private boolean ignoreNextOutboundPacket;
   private CustomClientSupportConfig customClientConfig = CustomClientSupportConfig.createDefault();
@@ -252,7 +252,7 @@ final class PlayerUser implements User {
   }
 
   @Override
-  public BlockStateExtendedCache blockStates() {
+  public ExtendedBlockStateCache blockStates() {
     return blockStateAccess;
   }
 

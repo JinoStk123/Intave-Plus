@@ -4,7 +4,7 @@ import de.jpx3.intave.access.UnsupportedFallbackOperationException;
 import de.jpx3.intave.access.player.trust.TrustFactor;
 import de.jpx3.intave.annotate.Relocate;
 import de.jpx3.intave.block.state.BlockStateCaches;
-import de.jpx3.intave.block.state.BlockStateExtendedCache;
+import de.jpx3.intave.block.state.ExtendedBlockStateCache;
 import de.jpx3.intave.check.movement.physics.Pose;
 import de.jpx3.intave.connect.customclient.CustomClientSupportConfig;
 import de.jpx3.intave.entity.size.HitboxSize;
@@ -37,7 +37,7 @@ public final class FallbackUser implements User {
   private final Collider collider;
   private final SimpleCollider simpleCollider;
   private final Map<Pose, HitboxSize> poseSizes;
-  private final BlockStateExtendedCache blockStateAccess;
+  private final ExtendedBlockStateCache blockStateAccess;
   private final CustomClientSupportConfig customClientSupportConfig = CustomClientSupportConfig.createDefault();
 
   private final UserContext userContext = new UserContext(this);
@@ -164,7 +164,7 @@ public final class FallbackUser implements User {
   }
 
   @Override
-  public BlockStateExtendedCache blockStates() {
+  public ExtendedBlockStateCache blockStates() {
     return blockStateAccess;
   }
 

@@ -10,7 +10,6 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 
 import java.util.Map;
-import java.util.PriorityQueue;
 import java.util.concurrent.ConcurrentHashMap;
 
 final class VariantCachePipe implements ShapeResolverPipeline {

@@ -9,7 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
 import org.bukkit.inventory.ItemStack;
 
-public final class EventInteractionPermissionResolver implements BlockInteractionPermissionCheck {
+final class EventInteractionPermissionResolver implements BlockInteractionPermissionCheck {
   private final IntavePlugin plugin;
 
   public EventInteractionPermissionResolver(IntavePlugin plugin) {

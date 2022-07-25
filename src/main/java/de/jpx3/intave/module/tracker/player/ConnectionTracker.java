@@ -27,7 +27,7 @@ public final class ConnectionTracker extends Module {
       for (Player player : Bukkit.getOnlinePlayers()) {
         User user = UserRepository.userOf(player);
         long dur = System.currentTimeMillis() - lastKeepAliveResponse(user);
-        if (TIMEOUT_DURATION < dur) {
+        if (dur > TIMEOUT_DURATION) {
           IntaveLogger.logger().printLine("[Intave] " + player.getName() + " was not responding to keep-alive packets for at least 30 seconds");
           user.kick("Timed out");
           if (IntaveControl.NETTY_DUMP_ON_TIMEOUT) {
@@ -109,8 +109,11 @@ public final class ConnectionTracker extends Module {
       return;
     }
     if (!remainingPingPackets.containsKey(id)) {
-      IntaveLogger.logger().error(player.getName() + " sent keep-alive id " + id + ", but expected one of " + remainingPingPackets.keySet());
-      user.kick("Unknown keep-alive identifier");
+      event.setCancelled(true);
+      if (!user.justJoined()) {
+        IntaveLogger.logger().error(player.getName() + " sent keep-alive id " + id + ", but expected one of " + remainingPingPackets.keySet());
+        user.kick("Unknown keep-alive identifier");
+      }
       return;
     }
     List<Long> differenceBalance = synchronizeData.latencyDifferenceBalance();
@@ -125,8 +128,15 @@ public final class ConnectionTracker extends Module {
     }
     differenceBalance.add(pingChange);
     if (enoughPingDataAvailable) {
+      long sum = 0;
+      long count = 0;
+      for (Long value : differenceBalance) {
+        long l = value;
+        sum += l;
+        count++;
+      }
       user.meta().connection().latencyJitter =
-        (int) differenceBalance.stream().mapToLong(value -> value).average().orElse(0d);
+        (int) (count > 0 ? (double) sum / count : 0d);
     }
     plugin.accessService()
       .playerAccessor()

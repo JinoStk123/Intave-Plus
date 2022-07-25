@@ -3,7 +3,7 @@ package de.jpx3.intave.resource;
 import java.io.IOException;
 import java.io.InputStream;
 
-public final class RetryReadLayer implements Resource {
+final class RetryReadLayer implements Resource {
   private final Resource target;
   private final int attempts;
 

@@ -18,7 +18,7 @@ import de.jpx3.intave.block.access.VolatileBlockAccess;
 import de.jpx3.intave.block.collision.Collision;
 import de.jpx3.intave.block.fluid.Fluids;
 import de.jpx3.intave.block.fluid.LegacyWaterflow;
-import de.jpx3.intave.block.state.BlockStateExtendedCache;
+import de.jpx3.intave.block.state.ExtendedBlockStateCache;
 import de.jpx3.intave.block.type.BlockTypeAccess;
 import de.jpx3.intave.block.variant.BlockVariantAccess;
 import de.jpx3.intave.check.Check;
@@ -303,7 +303,7 @@ public final class Physics extends Check {
     ProtocolMetadata protocolMetadata = meta.protocol();
     ViolationMetadata violationLevelData = meta.violationLevel();
     AbilityMetadata abilityData = meta.abilities();
-    BlockStateExtendedCache blockStateAccess = user.blockStates();
+    ExtendedBlockStateCache blockStateAccess = user.blockStates();
 
     ColliderResult expectedMovement = simulation.collider();
     Motion context = expectedMovement.motion();

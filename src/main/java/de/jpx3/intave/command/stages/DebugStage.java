@@ -8,7 +8,6 @@ import de.jpx3.intave.diagnostic.message.*;
 import de.jpx3.intave.user.User;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
-import org.bukkit.util.Vector;
 
 import java.util.Locale;
 

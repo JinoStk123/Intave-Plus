@@ -18,9 +18,10 @@ import de.jpx3.intave.user.meta.ConnectionMetadata;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-import java.util.*;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
 
 import static de.jpx3.intave.module.feedback.FeedbackSender.PING_MASK;
 import static de.jpx3.intave.module.feedback.FeedbackSender.TRANSACTION_MAX_CODE;

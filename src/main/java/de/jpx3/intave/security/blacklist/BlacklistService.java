@@ -16,12 +16,12 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @HighOrderService
-public final class BlackListService implements BukkitEventSubscriber {
+public final class BlacklistService implements BukkitEventSubscriber {
   private final IntavePlugin plugin;
   private final Resource resource = Resources.cacheResourceChain("https://service.intave.de/blacklist", "blacklist", TimeUnit.DAYS.toMillis(7));
-  private BlackList blackList;
+  private Blacklist blackList;
 
-  public BlackListService(IntavePlugin plugin) {
+  public BlacklistService(IntavePlugin plugin) {
     this.plugin = plugin;
   }
 
@@ -39,7 +39,7 @@ public final class BlackListService implements BukkitEventSubscriber {
   }
 
   private void loadFilterList() {
-    blackList = BlackList.fromLines(resource.lines());
+    blackList = Blacklist.fromLines(resource.lines());
   }
 
   private void linkEvents() {

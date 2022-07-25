@@ -3,7 +3,6 @@ package de.jpx3.intave.check.other.inventoryclickanalysis;
 import com.comphenix.protocol.events.PacketEvent;
 import de.jpx3.intave.check.MetaCheckPart;
 import de.jpx3.intave.check.other.InventoryClickAnalysis;
-import de.jpx3.intave.connect.sibyl.SibylBroadcast;
 import de.jpx3.intave.module.linker.packet.PacketSubscription;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.meta.CheckCustomMetadata;

@@ -6,7 +6,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.jetbrains.annotations.NotNull;
 
-final class EmptyBlockStateExtendedCache implements BlockStateExtendedCache {
+final class EmptyExtendedBlockStateCache implements ExtendedBlockStateCache {
   @Override
   public @NotNull BlockShape outlineShapeAt(int posX, int posY, int posZ) {
     return BlockShapes.emptyShape();

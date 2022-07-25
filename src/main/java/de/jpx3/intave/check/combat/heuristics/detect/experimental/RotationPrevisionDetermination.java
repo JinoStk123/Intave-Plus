@@ -1,18 +1,19 @@
 package de.jpx3.intave.check.combat.heuristics.detect.experimental;
 
+import de.jpx3.intave.annotate.PartnerOnly;
 import de.jpx3.intave.check.combat.Heuristics;
 import de.jpx3.intave.check.combat.heuristics.Anomaly;
 import de.jpx3.intave.check.combat.heuristics.Confidence;
-import de.jpx3.intave.check.combat.heuristics.detect.clickpatterns.SwingLimitHeuristics;
 import de.jpx3.intave.user.User;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static de.jpx3.intave.check.combat.heuristics.Anomaly.AnomalyOption.*;
+import static de.jpx3.intave.check.combat.heuristics.Anomaly.AnomalyOption.DELAY_64s;
 import static de.jpx3.intave.check.combat.heuristics.detect.experimental.RotationPrevisionBlueprintMeta.RotationData;
 import static de.jpx3.intave.check.combat.heuristics.detect.experimental.RotationPrevisionDetermination.RotationPrevisionDeterminationMeta;
 
+@PartnerOnly
 public final class RotationPrevisionDetermination extends RotationPrevisionBlueprint<RotationPrevisionDeterminationMeta> {
   public RotationPrevisionDetermination(Heuristics parentCheck) {
     super(parentCheck, RotationPrevisionDeterminationMeta.class, 100, true);

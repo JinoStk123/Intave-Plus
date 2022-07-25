@@ -5,15 +5,15 @@ import de.jpx3.intave.block.shape.resolve.ShapeResolver;
 import org.bukkit.entity.Player;
 
 public final class BlockStateCaches {
-  public static BlockStateExtendedCache forPlayer(Player player) {
+  public static ExtendedBlockStateCache forPlayer(Player player) {
     return forPlayerWithResolver(player, ShapeResolver.pipelineHead());
   }
 
-  public static BlockStateExtendedCache forPlayerWithResolver(Player player, ShapeResolverPipeline resolver) {
-    return new MultiChunkKeyBlockStateExtendedCache(player, resolver);
+  public static ExtendedBlockStateCache forPlayerWithResolver(Player player, ShapeResolverPipeline resolver) {
+    return new MultiChunkKeyExtendedBlockStateCache(player, resolver);
   }
 
-  public static BlockStateExtendedCache empty() {
-    return new EmptyBlockStateExtendedCache();
+  public static ExtendedBlockStateCache empty() {
+    return new EmptyExtendedBlockStateCache();
   }
 }

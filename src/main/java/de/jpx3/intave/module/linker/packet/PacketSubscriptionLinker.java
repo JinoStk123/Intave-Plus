@@ -202,7 +202,7 @@ public final class PacketSubscriptionLinker extends Module {
     return availableTypes;
   }
 
-  private PacketType searchByName(Collection<PacketType> packetPool, String name) {
+  private PacketType searchByName(Collection<? extends PacketType> packetPool, String name) {
     return packetPool.stream().filter(packetType -> matches(packetType, name)).findFirst().orElse(null);
   }
 

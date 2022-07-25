@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 
-public final class FileSpreadLayer implements Resource {
+final class FileSpreadLayer implements Resource {
   private final File targetFile;
   private final Resource targetResource;
   private final Function<File, Resource> fileToResource;

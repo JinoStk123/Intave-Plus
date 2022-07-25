@@ -9,7 +9,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.*;
 
-public final class WebResource implements Resource {
+final class WebResource implements Resource {
   private final URL url;
 
   public WebResource(String url) throws MalformedURLException {

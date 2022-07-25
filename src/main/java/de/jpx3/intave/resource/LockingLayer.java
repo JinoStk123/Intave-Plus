@@ -12,7 +12,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public final class LockingLayer implements Resource {
+final class LockingLayer implements Resource {
   private final Lock javaLock = new ReentrantLock();
 
   private final File lockFile;

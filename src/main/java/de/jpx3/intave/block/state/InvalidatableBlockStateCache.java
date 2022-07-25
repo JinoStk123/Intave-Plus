@@ -1,15 +1,15 @@
 package de.jpx3.intave.block.state;
 
 /**
- * The {@link BlockStateInvalidatableCache} extends the functionality of the
+ * The {@link InvalidatableBlockStateCache} extends the functionality of the
  * {@link BlockStateCache} by adding methods related to cache invalidation.
  *
  * @see BlockStateCache
- * @see BlockStateOverridableCache
- * @see BlockStateExtendedCache
+ * @see OverridableBlockStateCache
+ * @see ExtendedBlockStateCache
  */
 
-public interface BlockStateInvalidatableCache {
+public interface InvalidatableBlockStateCache {
   /**
    * Invalidate all caches
    */

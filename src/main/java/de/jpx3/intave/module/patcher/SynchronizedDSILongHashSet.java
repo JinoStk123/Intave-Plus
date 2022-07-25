@@ -2,8 +2,7 @@ package de.jpx3.intave.module.patcher;
 
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 
-public final class SynchronizedDSILongHashSet extends LongOpenHashSet {
-
+final class SynchronizedDSILongHashSet extends LongOpenHashSet {
   public SynchronizedDSILongHashSet() {
     super();
   }

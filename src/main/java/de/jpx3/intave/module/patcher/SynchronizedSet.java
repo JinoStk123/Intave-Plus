@@ -6,7 +6,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
 
-public final class SynchronizedSet<E> implements Set<E> {
+final class SynchronizedSet<E> implements Set<E> {
   private final Set<E> parent;
 
   public SynchronizedSet(Set<E> parent) {

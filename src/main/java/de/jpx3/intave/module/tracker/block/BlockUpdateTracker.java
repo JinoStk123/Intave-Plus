@@ -6,7 +6,7 @@ import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.BlockPosition;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.comphenix.protocol.wrappers.WrappedBlockData;
-import de.jpx3.intave.block.state.BlockStateExtendedCache;
+import de.jpx3.intave.block.state.ExtendedBlockStateCache;
 import de.jpx3.intave.block.variant.BlockVariantAccess;
 import de.jpx3.intave.module.Module;
 import de.jpx3.intave.module.Modules;
@@ -67,7 +67,7 @@ public final class BlockUpdateTracker extends Module {
   private void chunkInvalidate(Player player, int chunkX, int chunkZ) {
     int chunkXMinPos = chunkX << 4, chunkXMaxPos = chunkXMinPos + 16;
     int chunkZMinPos = chunkZ << 4, chunkZMaxPos = chunkZMinPos + 16;
-    BlockStateExtendedCache blockStateAccess = UserRepository.userOf(player).blockStates();
+    ExtendedBlockStateCache blockStateAccess = UserRepository.userOf(player).blockStates();
     blockStateAccess.invalidateOverridesInBounds(chunkXMinPos, chunkXMaxPos, chunkZMinPos, chunkZMaxPos);
   }
 
@@ -133,7 +133,7 @@ public final class BlockUpdateTracker extends Module {
     World world = player.getWorld();
     FeedbackCallback<Object> process = (player1, target) -> {
       User user = UserRepository.userOf(player1);
-      BlockStateExtendedCache blockStateAccess = user.blockStates();
+      ExtendedBlockStateCache blockStateAccess = user.blockStates();
       Location verifiedLocation = user.meta().movement().verifiedLocation();
       for (int i = 0; i < blockPositions.size(); i++) {
         BlockPosition blockPosition = blockPositions.get(i);

@@ -5,7 +5,9 @@ import com.google.common.collect.MapMaker;
 import com.mojang.authlib.GameProfile;
 import de.jpx3.intave.IntaveLogger;
 import de.jpx3.intave.IntavePlugin;
+import de.jpx3.intave.adapter.MinecraftVersions;
 import de.jpx3.intave.executor.Synchronizer;
+import de.jpx3.intave.klass.locate.MethodSearchBySignature;
 import io.netty.channel.*;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -17,6 +19,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.plugin.Plugin;
 
+import java.lang.invoke.MethodHandle;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -41,7 +44,7 @@ public class TinyProtocol {
 
   // Packets we have to intercept
   private static final Class<?> PACKET_LOGIN_IN_START = getMinecraftClass("PacketLoginInStart");
-  private static final FieldAccessor<GameProfile> getGameProfile = getField(PACKET_LOGIN_IN_START, GameProfile.class, 0);
+//  private static final FieldAccessor<GameProfile> getGameProfile = getField(PACKET_LOGIN_IN_START, GameProfile.class, 0);
 
   // Speedup channel lookup
   private final Map<String, Channel> channelLookup = new MapMaker().weakValues().makeMap();
@@ -467,10 +470,27 @@ public class TinyProtocol {
       }
     }
 
+    private final Class<?> LOGIN_PACKET_METHOD_RETURN_TYPE = MinecraftVersions.VER1_19.atOrAbove() ? String.class : GameProfile.class;
+    private final MethodHandle FROM_PACKET = MethodSearchBySignature.withManualFilter(
+      PACKET_LOGIN_IN_START,
+      new Class[0],
+      LOGIN_PACKET_METHOD_RETURN_TYPE,
+      method -> !"toString".equals(method.getName())
+    ).findAnyOrThrow();
+
     private void handleLoginStart(Channel channel, Object packet) {
       if (PACKET_LOGIN_IN_START.isInstance(packet)) {
-        GameProfile profile = getGameProfile.get(packet);
-        channelLookup.put(profile.getName(), channel);
+        try {
+          String name;
+          if (MinecraftVersions.VER1_19.atOrAbove()) {
+            name = (String) FROM_PACKET.invoke(packet);
+          } else {
+            name = ((GameProfile) FROM_PACKET.invoke(packet)).getName();
+          }
+          channelLookup.put(name, channel);
+        } catch (Throwable throwable) {
+          throwable.printStackTrace();
+        }
       }
     }
   }

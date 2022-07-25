@@ -10,7 +10,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
-public final class HashProtectedLayer implements Resource {
+final class HashProtectedLayer implements Resource {
   private final String path;
   private final Resource target;
   private final Resource hashResource;

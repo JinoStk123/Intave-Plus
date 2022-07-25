@@ -23,6 +23,7 @@ public final class IntaveControl {
   public static final boolean SETBACK_WITH_PRESSED_KEYS = false;
   public static final boolean USE_SUPERPOSITIONS = false;
   public static final boolean CLICKPATTERNS_OUTPUT = false;
+  public static final boolean DEBUG_LOCATE_RESOURCE = true;
 
   public static final boolean USE_EXTERNAL_CONFIGURATION_FILE = true;
   public static final boolean GOMME_MODE = false;

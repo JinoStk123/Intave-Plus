@@ -4,16 +4,16 @@ import org.bukkit.Material;
 import org.bukkit.World;
 
 /**
- * The {@link BlockStateOverridableCache} extends the {@link BlockStateCache} in the definition of additional functions for overrides.
+ * The {@link OverridableBlockStateCache} extends the {@link BlockStateCache} in the definition of additional functions for overrides.
  * A override temporarily replaces a block cache, making the cache ignore the resolved type.
  * The {@link BlockStateCache} is eligible to delete overrides after 5 seconds after their initialization.
  *
  * @see BlockStateCache
- * @see BlockStateInvalidatableCache
- * @see BlockStateExtendedCache
+ * @see InvalidatableBlockStateCache
+ * @see ExtendedBlockStateCache
  */
 
-public interface BlockStateOverridableCache extends BlockStateCache {
+public interface OverridableBlockStateCache extends BlockStateCache {
   /**
    * Retrieves if this position is currently being overridden
    *

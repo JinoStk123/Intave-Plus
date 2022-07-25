@@ -24,6 +24,7 @@ public final class BlockPhysics {
     setup(WebPhysics.class);
     setup(FluidPhysics.class);
     setup(BubbleColumnPhysics.class);
+    setup(PowderSnowPhysics.class);
   }
 
   private static void setup(Class<? extends BlockPhysic> blockPhysicClass) {

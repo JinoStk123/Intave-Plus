@@ -4,7 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 
-public final class ResourceCache implements Resource {
+final class ResourceCache implements Resource {
   private final Resource cache, source;
   private final long expireDuration;
 

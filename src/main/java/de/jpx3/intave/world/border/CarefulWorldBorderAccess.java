@@ -8,7 +8,7 @@ import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_8_R3.CraftWorld;
 
 @PatchyAutoTranslation
-public final class CarefulWorldBorderAccess implements WorldBorderAccess {
+final class CarefulWorldBorderAccess implements WorldBorderAccess {
   @Override
   @PatchyAutoTranslation
   public double sizeOf(World world) {

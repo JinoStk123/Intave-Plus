@@ -6,7 +6,7 @@ import de.jpx3.intave.module.Modules;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
-public final class EventBreakPermissionResolver implements BlockBreakPermissionCheck {
+final class EventBreakPermissionResolver implements BlockBreakPermissionCheck {
   private final IntavePlugin plugin;
 
   public EventBreakPermissionResolver(IntavePlugin plugin) {

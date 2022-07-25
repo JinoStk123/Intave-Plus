@@ -86,34 +86,36 @@ public final class Heuristics extends MetaCheck<Heuristics.HeuristicMeta> {
     boolean enterprise = (ProtocolMetadata.VERSION_DETAILS & 0x200) != 0;
     boolean partner = (ProtocolMetadata.VERSION_DETAILS & 0x100) != 0;
 
-    // For enterprise users
-    if (enterprise) {
-      appendCheckPart(new OldAirClickLimitHeuristic(this));
-      appendCheckPart(new AttackReduceIgnoreHeuristic(this));
-      appendCheckPart(new RotationStandardDeviationHeuristic(this));
-      appendCheckPart(new RotationSnapHeuristic(this));
-      appendCheckPart(new LongTermClickAccuracyHeuristic(this));
+    try {
+      if (partner) {
+        // For enterprise users
+//        if (enterprise) {
+          appendCheckPart(new OldAirClickLimitHeuristic(this));
+          appendCheckPart(new AttackReduceIgnoreHeuristic(this));
+          appendCheckPart(new RotationStandardDeviationHeuristic(this));
+          appendCheckPart(new RotationSnapHeuristic(this));
+          appendCheckPart(new LongTermClickAccuracyHeuristic(this));
+//        }
+        // for Gomme
+        if (IntaveControl.GOMME_MODE || IntaveControl.DISABLE_LICENSE_CHECK) {
+          appendCheckPart(new SameRotationHeuristic(this));
+          appendCheckPart(new AttackRequiredHeuristic(this));
+          appendCheckPart(new LabyModsHeuristic(this));
+        }
+        // for testing
+        if (!IntaveControl.GOMME_MODE && IntaveControl.DISABLE_LICENSE_CHECK) {
+          appendCheckPart(new RotationPrevisionFluctuation(this));
+          appendCheckPart(new TestingHeuristic(this));
+        }
+        // Lucky experimental heuristics
+        appendCheckPart(new RotationPrevisionDetermination(this));
+        appendCheckPart(new SwingLimitHeuristics(this));
+        appendCheckPart(new SwingDeviationHeuristics(this));
+        appendCheckPart(new PreAttackHeuristic(this));
+      }
+    } catch (Exception | Error e) {
+      // we will remove those classes, so this error is not critical
     }
-
-    // for Gomme
-    if (IntaveControl.GOMME_MODE || IntaveControl.DISABLE_LICENSE_CHECK) {
-      appendCheckPart(new SameRotationHeuristic(this));
-      appendCheckPart(new AttackRequiredHeuristic(this));
-      appendCheckPart(new LabyModsHeuristic(this));
-    }
-
-    // for testing
-    if (!IntaveControl.GOMME_MODE && IntaveControl.DISABLE_LICENSE_CHECK) {
-      appendCheckPart(new RotationPrevisionFluctuation(this));
-      appendCheckPart(new TestingHeuristic(this));
-    }
-
-    // Lucky experimental heuristics
-    appendCheckPart(new RotationPrevisionDetermination(this));
-    appendCheckPart(new SwingLimitHeuristics(this));
-    appendCheckPart(new SwingDeviationHeuristics(this));
-
-    appendCheckPart(new PreAttackHeuristic(this));
 //    appendCheckPart(new RotationAngleHeuristic(this));
 
     appendCheckPart(new ReshapedJumpHeuristic(this));

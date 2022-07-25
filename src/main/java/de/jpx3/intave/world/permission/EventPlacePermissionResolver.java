@@ -7,7 +7,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
-public final class EventPlacePermissionResolver implements BlockPlacePermissionCheck {
+final class EventPlacePermissionResolver implements BlockPlacePermissionCheck {
   private final IntavePlugin plugin;
 
   public EventPlacePermissionResolver(IntavePlugin plugin) {

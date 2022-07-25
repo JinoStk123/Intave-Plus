@@ -21,7 +21,7 @@ import java.util.Random;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-public final class EncryptionLayer implements Resource {
+final class EncryptionLayer implements Resource {
   private final Resource target;
 
   public EncryptionLayer(Resource target) {
