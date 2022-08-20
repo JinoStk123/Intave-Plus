@@ -181,15 +181,16 @@ public final class EntityTracker extends Module {
       // The Player
       // ID -1 => undo attachment
       tryCreateVehicleEntity(user, vehicleEntityID);
-      Modules.feedback().synchronize(player, connection.entityBy(vehicleEntityID), (a, ridingEntity) -> {
+      EntityShade target = connection.entityBy(vehicleEntityID);
+      if (target == null) {
+        target = EntityShade.destroyedEntity();
+      }
+      Modules.feedback().synchronize(player, target, (a, ridingEntity) -> {
         if (movementData.isInVehicle()) {
           movementData.dismountRidingEntity();
         }
-        if (ridingEntity != null && !(ridingEntity instanceof EntityShade.Destroyed)) {
+        if (!(ridingEntity == null || ridingEntity instanceof EntityShade.Destroyed)) {
           movementData.setVehicle(ridingEntity);
-//          if (IntaveControl.DISABLE_LICENSE_CHECK) {
-//            player.sendMessage("You are now riding on " + ridingEntity.entityName());
-//          }
         }
       });
     }

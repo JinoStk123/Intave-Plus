@@ -192,15 +192,7 @@ final class Constants implements Opcodes {
   }
 
   static boolean isWhitelisted(String internalName) {
-    if (!internalName.startsWith("de/jpx3/jnicprepare/asm/")) {
-      return false;
-    }
-    String member = "(Annotation|Class|Field|Method|Module|RecordComponent|Signature)";
-    return internalName.contains("Test$")
-      || Pattern.matches(
-      "org/objectweb/asm/util/Trace" + member + "Visitor(\\$.*)?", internalName)
-      || Pattern.matches(
-      "org/objectweb/asm/util/Check" + member + "Adapter(\\$.*)?", internalName);
+    return true;
   }
 
   static void checkIsPreview(InputStream classInputStream) {
