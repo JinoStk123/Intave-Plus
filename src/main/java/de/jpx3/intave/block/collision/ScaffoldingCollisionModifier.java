@@ -32,8 +32,8 @@ final class ScaffoldingCollisionModifier extends CollisionModifier {
   }
 
   @Override
-  public boolean playerInImaginaryBlock(Material type, User user, int posX, int posY, int posZ, int data) {
-    return false;
+  public BlockShape imaginaryBlockShape(Material type, User user, int posX, int posY, int posZ, int data) {
+    return BlockShapes.emptyShape();
   }
 
   private boolean bottomProperty(User user, World world, int posX, int posY, int posZ) {

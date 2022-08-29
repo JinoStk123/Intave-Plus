@@ -6,7 +6,7 @@ public final class IntaveControl {
   public static final boolean DEBUG_MOVEMENT = true;
   public static final boolean DEBUG_EMULATION = false;
   public static final boolean DEBUG_HEURISTICS = false;
-  public static final boolean DEBUG_TELEPORT_CAUSE_AND_CAUSER = true;
+  public static final boolean DEBUG_TELEPORT_CAUSE_AND_CAUSER = false;
   public static final boolean DEBUG_INTAVE_TELEPORT_EVENT_CANCELS = false;
   public static final boolean DISABLE_BLOCK_CACHING_ENTIRELY = false;
   public static final boolean IGNORE_CHUNK_PACKETS = false;

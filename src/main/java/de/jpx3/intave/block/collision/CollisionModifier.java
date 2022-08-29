@@ -19,9 +19,8 @@ abstract class CollisionModifier {
   public abstract BlockShape modify(
       User user, BoundingBox userBox, int posX, int posY, int posZ, BlockShape shape);
 
-  public boolean playerInImaginaryBlock(Material type, User user, int posX, int posY, int posZ, int data) {
-    return Collision.playerInImaginaryBlock(
-        user, user.player().getWorld(), posX, posY, posZ, type, data);
+  public BlockShape imaginaryBlockShape(Material type, User user, int posX, int posY, int posZ, int data) {
+    return null;
   }
 
   public boolean matches(Material material) {

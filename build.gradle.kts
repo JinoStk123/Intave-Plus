@@ -13,7 +13,7 @@ val simpleName = "Intave"
 
 group = "de.jpx3"
 
-version = "14.5.0"
+version = "14.4.6"
 
 description = "$simpleName is a cheat detection software, providing fair play"
 
