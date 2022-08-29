@@ -36,6 +36,10 @@ public final class CollisionModifiers {
     return repository.get(type).modify(user, userBox, posX, posY, posZ, shape);
   }
 
+  public static boolean playerInImaginaryBlock(Material type, User user, int posX, int posY, int posZ, int data) {
+    return repository.get(type).playerInImaginaryBlock(type, user, posX, posY, posZ, data);
+  }
+
   public static boolean isModified(Material type) {
     return repository.containsKey(type);
   }

@@ -9,7 +9,8 @@ import org.bukkit.Material;
 
 final class ShulkerCollisionModifier extends CollisionModifier {
   @Override
-  public BlockShape modify(User user, BoundingBox userBox, int posX, int posY, int posZ, BlockShape shape) {
+  public BlockShape modify(
+      User user, BoundingBox userBox, int posX, int posY, int posZ, BlockShape shape) {
     BlockPosition blockPosition = new BlockPosition(posX, posY, posZ);
     ShulkerBox shulker = user.meta().movement().shulkerData.get(blockPosition);
     return shulker != null ? shulker.originShape().contextualized(posX, posY, posZ) : shape;

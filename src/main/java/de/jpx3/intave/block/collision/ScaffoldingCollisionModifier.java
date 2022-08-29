@@ -31,6 +31,11 @@ final class ScaffoldingCollisionModifier extends CollisionModifier {
     }
   }
 
+  @Override
+  public boolean playerInImaginaryBlock(Material type, User user, int posX, int posY, int posZ, int data) {
+    return false;
+  }
+
   private boolean bottomProperty(User user, World world, int posX, int posY, int posZ) {
     Block block = VolatileBlockAccess.blockAccess(world, posX, posY, posZ);
     if (block.getY() < WorldHeight.LOWER_WORLD_LIMIT) {

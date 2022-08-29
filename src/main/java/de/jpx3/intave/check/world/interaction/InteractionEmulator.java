@@ -9,6 +9,7 @@ import de.jpx3.intave.annotate.Relocate;
 import de.jpx3.intave.block.access.BlockInteractionAccess;
 import de.jpx3.intave.block.access.VolatileBlockAccess;
 import de.jpx3.intave.block.collision.Collision;
+import de.jpx3.intave.block.collision.CollisionModifiers;
 import de.jpx3.intave.block.physics.MaterialMagic;
 import de.jpx3.intave.block.state.ExtendedBlockStateCache;
 import de.jpx3.intave.block.type.BlockTypeAccess;
@@ -54,7 +55,7 @@ public final class InteractionEmulator implements EventProcessor {
       Block block = place.getBlock();
       ExtendedBlockStateCache blockStateAccess = userOf(place.getPlayer()).blockStates();
       blockStateAccess.invalidateCacheAt(block.getX(), block.getY(), block.getZ());
-//      blockStateAccess.invalidateOverride(block.getX(), block.getY(), block.getZ());
+      //      blockStateAccess.invalidateOverride(block.getX(), block.getY(), block.getZ());
     }
   }
 
@@ -82,7 +83,7 @@ public final class InteractionEmulator implements EventProcessor {
       Block block = breeak.getBlock();
       ExtendedBlockStateCache blockStateAccess = userOf(breeak.getPlayer()).blockStates();
       blockStateAccess.invalidateCacheAt(block.getX(), block.getY(), block.getZ());
-//      blockStateAccess.invalidateOverride(block.getX(), block.getY(), block.getZ());
+      //      blockStateAccess.invalidateOverride(block.getX(), block.getY(), block.getZ());
     }
   }
 
@@ -113,9 +114,9 @@ public final class InteractionEmulator implements EventProcessor {
     plugin.analytics().recorderOf(GlobalStatisticsRecorder.class).recordBlockDestroyed();
     BlockPosition blockPosition = interaction.targetBlock();
     Location blockBreakLocation = blockPosition.toLocation(world);
-    boolean access = WorldPermission.blockBreakPermission(
-      player, VolatileBlockAccess.blockAccess(blockBreakLocation)
-    );
+    boolean access =
+        WorldPermission.blockBreakPermission(
+            player, VolatileBlockAccess.blockAccess(blockBreakLocation));
     if (access) {
       int blockX = blockBreakLocation.getBlockX();
       int blockY = blockBreakLocation.getBlockY();
@@ -124,15 +125,16 @@ public final class InteractionEmulator implements EventProcessor {
       ExtendedBlockStateCache blockStateAccess = userOf(player).blockStates();
 
       Location verifiedLocation = user.meta().movement().verifiedLocation();
-      if (distance(verifiedLocation, blockPosition) < 2 && blockPosition.getY() < verifiedLocation.getBlockY()) {
+      if (distance(verifiedLocation, blockPosition) < 2
+          && blockPosition.getY() < verifiedLocation.getBlockY()) {
         user.meta().movement().pastNearbyCollisionInaccuracy = 0;
       }
 
       Material material = blockStateAccess.typeAt(blockX, blockY, blockZ);
       if (material == BlockTypeAccess.WEB) {
-        boolean playerInsideWeb = Collision.playerInImaginaryBlock(
-          user, world, blockX, blockY, blockZ, Material.STONE, 0
-        );
+        boolean playerInsideWeb =
+            Collision.playerInImaginaryBlock(
+                user, world, blockX, blockY, blockZ, Material.STONE, 0);
         if (playerInsideWeb) {
           user.meta().movement().checkWebStateAgainNextTick = true;
         }
@@ -145,10 +147,9 @@ public final class InteractionEmulator implements EventProcessor {
 
   private static double distance(Location playerLocation, BlockPosition blockPosition) {
     return Math.sqrt(
-      NumberConversions.square(playerLocation.getBlockX() - blockPosition.getX()) +
-        NumberConversions.square(playerLocation.getBlockY() - blockPosition.getY()) +
-        NumberConversions.square(playerLocation.getBlockZ() - blockPosition.getZ())
-    );
+        NumberConversions.square(playerLocation.getBlockX() - blockPosition.getX())
+            + NumberConversions.square(playerLocation.getBlockY() - blockPosition.getY())
+            + NumberConversions.square(playerLocation.getBlockZ() - blockPosition.getZ()));
   }
 
   private EmulationResult emulatePlacement(Player player, Interaction interaction) {
@@ -156,37 +157,49 @@ public final class InteractionEmulator implements EventProcessor {
     World world = interaction.world();
     plugin.analytics().recorderOf(GlobalStatisticsRecorder.class).recordBlockPlaced();
     Location blockAgainstLocation = interaction.targetBlock().toLocation(world);
-    Location defaultPlacementLocation = blockAgainstLocation.clone().add(Direction.getFront(interaction.targetDirection()).getDirectionVec().convertToBukkitVec());
-    boolean replace = BlockInteractionAccess.replacedOnPlacement(world, player, new BlockPosition(blockAgainstLocation.toVector()));
+    Location defaultPlacementLocation =
+        blockAgainstLocation
+            .clone()
+            .add(
+                Direction.getFront(interaction.targetDirection())
+                    .getDirectionVec()
+                    .convertToBukkitVec());
+    boolean replace =
+        BlockInteractionAccess.replacedOnPlacement(
+            world, player, new BlockPosition(blockAgainstLocation.toVector()));
     Location blockPlacementLocation = replace ? blockAgainstLocation : defaultPlacementLocation;
     Material itemTypeInHand = interaction.itemTypeInHand();
     int blockX = blockPlacementLocation.getBlockX();
     int blockY = blockPlacementLocation.getBlockY();
     int blockZ = blockPlacementLocation.getBlockZ();
     int dat = 0;
-    boolean raytraceCollidesWithPosition = Collision.playerInImaginaryBlock(
-      user, world, blockX, blockY, blockZ, itemTypeInHand, dat
-    );
+    boolean raytraceCollidesWithPosition =
+        Collision.playerInImaginaryBlock(user, world, blockX, blockY, blockZ, itemTypeInHand, dat);
     if (raytraceCollidesWithPosition) {
       return EmulationResult.FAILED;
     }
     Material replacementType = interaction.itemTypeInHand();
     int variant = 0;
     EnumWrappers.Hand hand = interaction.hand();
-    boolean access = WorldPermission.blockPlacePermission(
-      player, world,
-      hand == null || hand == EnumWrappers.Hand.MAIN_HAND,
-      blockX, blockY, blockZ, interaction.targetDirection(), replacementType,
-      variant
-    );
+    boolean access =
+        WorldPermission.blockPlacePermission(
+            player,
+            world,
+            hand == null || hand == EnumWrappers.Hand.MAIN_HAND,
+            blockX,
+            blockY,
+            blockZ,
+            interaction.targetDirection(),
+            replacementType,
+            variant);
     if (access) {
       /*
-        This hardcode is required
-       */
+       This hardcode is required
+      */
       if (replacementType == BlockTypeAccess.WEB) {
-        boolean playerInsideWeb = Collision.playerInImaginaryBlock(
-          user, world, blockX, blockY, blockZ, Material.STONE, 0
-        );
+        boolean playerInsideWeb =
+            Collision.playerInImaginaryBlock(
+                user, world, blockX, blockY, blockZ, Material.STONE, 0);
         if (playerInsideWeb) {
           user.meta().movement().checkWebStateAgainNextTick = true;
         }
@@ -196,9 +209,10 @@ public final class InteractionEmulator implements EventProcessor {
       blockStates.override(world, blockX, blockY, blockZ, replacementType, variant);
       blockStates.invalidateCacheAt(blockX, blockY, blockZ);
       // enforce block reset later
-//      Synchronizer.synchronize(() -> {
-//        Synchronizer.synchronize(() -> blockStates.invalidateOverride(blockX, blockY, blockZ));
-//      });
+      //      Synchronizer.synchronize(() -> {
+      //        Synchronizer.synchronize(() -> blockStates.invalidateOverride(blockX, blockY,
+      // blockZ));
+      //      });
     } else {
       return EmulationResult.FAILED;
     }
@@ -210,44 +224,77 @@ public final class InteractionEmulator implements EventProcessor {
     Location clickedBlockLocation = interaction.targetBlock().toLocation(world);
     Block clickedBlock = VolatileBlockAccess.blockAccess(clickedBlockLocation);
     Material itemTypeInHand = interaction.itemTypeInHand();
-    Location placementLocation = clickedBlockLocation.clone().add(Direction.getFront(interaction.targetDirection()).getDirectionVec().convertToBukkitVec());
+    Location placementLocation =
+        clickedBlockLocation
+            .clone()
+            .add(
+                Direction.getFront(interaction.targetDirection())
+                    .getDirectionVec()
+                    .convertToBukkitVec());
     emulateInteractWithHandItem(player, clickedBlock, placementLocation, itemTypeInHand);
     emulatePhysicalInteract(player, clickedBlock);
     return EmulationResult.SUCCEEDED;
   }
 
   private void emulateInteractWithHandItem(
-    Player player,
-    Block clickedBlock,
-    Location placementLocation,
-    Material itemTypeInHand
-  ) {
+      Player player, Block clickedBlock, Location placementLocation, Material itemTypeInHand) {
     User user = userOf(player);
     ExtendedBlockStateCache blockStateAccess = user.blockStates();
     World world = player.getWorld();
     switch (itemTypeInHand) {
-      case BUCKET: {
-        Material placementType = VolatileBlockAccess.typeAccess(user, placementLocation);//placementLocation.getBlock().getType();
-        // remove liquid on location if exists
-        if (MaterialMagic.isLiquid(placementType)) {
-          // emulate
-          if (WorldPermission.bukkitActionPermission(player, BucketAction.FILL_BUCKET, clickedBlock, BlockFace.SELF, itemTypeInHand, null)) {
-            blockStateAccess.override(world, placementLocation.getBlockX(), placementLocation.getBlockY(), placementLocation.getBlockZ(), Material.AIR, 0);
+      case BUCKET:
+        {
+          Material placementType =
+              VolatileBlockAccess.typeAccess(
+                  user, placementLocation); // placementLocation.getBlock().getType();
+          // remove liquid on location if exists
+          if (MaterialMagic.isLiquid(placementType)) {
+            // emulate
+            if (WorldPermission.bukkitActionPermission(
+                player,
+                BucketAction.FILL_BUCKET,
+                clickedBlock,
+                BlockFace.SELF,
+                itemTypeInHand,
+                null)) {
+              blockStateAccess.override(
+                  world,
+                  placementLocation.getBlockX(),
+                  placementLocation.getBlockY(),
+                  placementLocation.getBlockZ(),
+                  Material.AIR,
+                  0);
+            }
           }
+          break;
         }
-        break;
-      }
       case WATER_BUCKET:
-      case LAVA_BUCKET: {
-        Material placementType = VolatileBlockAccess.typeAccess(user, placementLocation);
-        boolean adventureMode = user.meta().abilities().inGameMode(AbilityTracker.GameMode.ADVENTURE);
+      case LAVA_BUCKET:
+        {
+          Material placementType = VolatileBlockAccess.typeAccess(user, placementLocation);
+          boolean adventureMode =
+              user.meta().abilities().inGameMode(AbilityTracker.GameMode.ADVENTURE);
 
-        // emulate
-        if (placementType == Material.AIR && !adventureMode && WorldPermission.bukkitActionPermission(player, BucketAction.EMPTY_BUCKET, clickedBlock, BlockFace.SELF, itemTypeInHand, null)) {
-          blockStateAccess.override(world, placementLocation.getBlockX(), placementLocation.getBlockY(), placementLocation.getBlockZ(), itemTypeInHand == Material.WATER_BUCKET ? Material.WATER : Material.LAVA, 15);
+          // emulate
+          if (placementType == Material.AIR
+              && !adventureMode
+              && WorldPermission.bukkitActionPermission(
+                  player,
+                  BucketAction.EMPTY_BUCKET,
+                  clickedBlock,
+                  BlockFace.SELF,
+                  itemTypeInHand,
+                  null)) {
+            blockStateAccess.override(
+                world,
+                placementLocation.getBlockX(),
+                placementLocation.getBlockY(),
+                placementLocation.getBlockZ(),
+                itemTypeInHand == Material.WATER_BUCKET ? Material.WATER : Material.LAVA,
+                15);
+          }
+          break;
         }
-        break;
-      }
     }
   }
 
@@ -257,7 +304,9 @@ public final class InteractionEmulator implements EventProcessor {
     Material clickedType = BlockTypeAccess.typeAccess(block, player);
 
     if (DUMP_BLOCK_HITBOX_ON_RIGHT_CLICK) {
-      player.sendMessage(String.valueOf(blockStateAccess.collisionShapeAt(block.getX(), block.getY(), block.getZ())));
+      player.sendMessage(
+          String.valueOf(
+              blockStateAccess.collisionShapeAt(block.getX(), block.getY(), block.getZ())));
     }
 
     switch (clickedType) {
@@ -266,52 +315,65 @@ public final class InteractionEmulator implements EventProcessor {
       case BIRCH_DOOR:
       case JUNGLE_DOOR:
       case WOOD_DOOR:
-      case WOODEN_DOOR: {
-        int upperData = BlockVariantAccess.variantAccess(block);
-        int lowerData;
+      case WOODEN_DOOR:
+        {
+          int upperData = BlockVariantAccess.variantAccess(block);
+          int lowerData;
 
-        boolean isUpper = (upperData & 8) != 0;
-        if (isUpper) {
-          lowerData = BlockVariantAccess.variantAccess(block = block.getRelative(BlockFace.DOWN));
-        } else {
-          lowerData = upperData;
-          upperData = BlockVariantAccess.variantAccess(block.getRelative(BlockFace.UP));
+          boolean isUpper = (upperData & 8) != 0;
+          if (isUpper) {
+            lowerData = BlockVariantAccess.variantAccess(block = block.getRelative(BlockFace.DOWN));
+          } else {
+            lowerData = upperData;
+            upperData = BlockVariantAccess.variantAccess(block.getRelative(BlockFace.UP));
+          }
+
+          // toggle close
+          lowerData = (lowerData & 4) != 0 ? lowerData ^ 4 : lowerData | 4;
+
+          blockStateAccess.override(
+              world, block.getX(), block.getY(), block.getZ(), clickedType, lowerData);
+          blockStateAccess.override(
+              world, block.getX(), block.getY() + 1, block.getZ(), clickedType, upperData);
+
+          Block finalBlock = block;
+          Synchronizer.synchronize(
+              () -> {
+                blockStateAccess.invalidateOverride(
+                    finalBlock.getX(), finalBlock.getY() - 1, finalBlock.getZ());
+                blockStateAccess.invalidateOverride(
+                    finalBlock.getX(), finalBlock.getY(), finalBlock.getZ());
+                blockStateAccess.invalidateOverride(
+                    finalBlock.getX(), finalBlock.getY() + 1, finalBlock.getZ());
+              });
+          break;
         }
-
-        // toggle close
-        lowerData = (lowerData & 4) != 0 ? lowerData ^ 4 : lowerData | 4;
-
-        blockStateAccess.override(world, block.getX(), block.getY(), block.getZ(), clickedType, lowerData);
-        blockStateAccess.override(world, block.getX(), block.getY() + 1, block.getZ(), clickedType, upperData);
-
-        Block finalBlock = block;
-        Synchronizer.synchronize(() -> {
-          blockStateAccess.invalidateOverride(finalBlock.getX(), finalBlock.getY() - 1, finalBlock.getZ());
-          blockStateAccess.invalidateOverride(finalBlock.getX(), finalBlock.getY(), finalBlock.getZ());
-          blockStateAccess.invalidateOverride(finalBlock.getX(), finalBlock.getY() + 1, finalBlock.getZ());
-        });
-        break;
-      }
       case ACACIA_FENCE_GATE:
       case BIRCH_FENCE_GATE:
       case DARK_OAK_FENCE_GATE:
       case FENCE_GATE:
       case JUNGLE_FENCE_GATE:
-      case SPRUCE_FENCE_GATE: {
-        //TODO
-        break;
-      }
-      case TRAP_DOOR: {
-        int data = BlockVariantAccess.variantAccess(block);
-        boolean newOpen = (data & 4) != 0;
-        int bitMask = 4;
-        byte newData = (byte) (!newOpen ? (data | bitMask) : (data & ~bitMask));
-        Material material = BlockTypeAccess.typeAccess(block, player);
-        blockStateAccess.override(world, block.getX(), block.getY(), block.getZ(), material, newData);
-        Block finalBlock1 = block;
-        Synchronizer.synchronize(() -> blockStateAccess.invalidateOverride(finalBlock1.getX(), finalBlock1.getY(), finalBlock1.getZ()));
-        break;
-      }
+      case SPRUCE_FENCE_GATE:
+        {
+          // TODO
+          break;
+        }
+      case TRAP_DOOR:
+        {
+          int data = BlockVariantAccess.variantAccess(block);
+          boolean newOpen = (data & 4) != 0;
+          int bitMask = 4;
+          byte newData = (byte) (!newOpen ? (data | bitMask) : (data & ~bitMask));
+          Material material = BlockTypeAccess.typeAccess(block, player);
+          blockStateAccess.override(
+              world, block.getX(), block.getY(), block.getZ(), material, newData);
+          Block finalBlock1 = block;
+          Synchronizer.synchronize(
+              () ->
+                  blockStateAccess.invalidateOverride(
+                      finalBlock1.getX(), finalBlock1.getY(), finalBlock1.getZ()));
+          break;
+        }
     }
   }
 
