@@ -738,8 +738,11 @@ public final class MovementMetadata implements SimulationEnvironment {
     if (!isInVehicle()) {
       return;
     }
-    // player.getLocation() is assumed to be correct
-    player.teleport(player.getLocation());
+    setVerifiedLocation(player.getLocation(), "Entity dismount location");
+    Synchronizer.synchronize(() -> {
+      // player.getLocation() is assumed to be correct
+      player.teleport(player.getLocation());
+    });
     this.vehicle = null;
   }
 
