@@ -1,7 +1,6 @@
 package de.jpx3.intave.block.shape.resolve.patch;
 
 import de.jpx3.intave.IntavePlugin;
-import de.jpx3.intave.access.IntaveInternalException;
 import de.jpx3.intave.adapter.MinecraftVersions;
 import de.jpx3.intave.block.access.VolatileBlockAccess;
 import de.jpx3.intave.block.shape.BlockShape;
@@ -26,28 +25,28 @@ public class CobbleStoneWallPatch extends BoundingBoxPatch {
   private static final boolean AQUATIC_UPDATE = MinecraftVersions.VER1_13_0.atOrAbove();
   private static final boolean COLOR_UPDATE = MinecraftVersions.VER1_12_0.atOrAbove();
   private static final boolean COMBAT_UPDATE = MinecraftVersions.VER1_9_0.atOrAbove();
-  private static final WallConnectResolver connectResolver;
+  private static WallConnectResolver connectResolver;
   private static final BoundingBox[] BOUNDING_BOXES =
-    new BoundingBox[]{
-      BoundingBox.fromBounds(0.25D, 0.0D, 0.25D, 0.75D, 1.0D, 0.75D),
-      BoundingBox.fromBounds(0.25D, 0.0D, 0.25D, 0.75D, 1.0D, 1.0D),
-      BoundingBox.fromBounds(0.0D, 0.0D, 0.25D, 0.75D, 1.0D, 0.75D),
-      BoundingBox.fromBounds(0.0D, 0.0D, 0.25D, 0.75D, 1.0D, 1.0D),
-      BoundingBox.fromBounds(0.25D, 0.0D, 0.0D, 0.75D, 1.0D, 0.75D),
-      BoundingBox.fromBounds(0.3125D, 0.0D, 0.0D, 0.6875D, 0.875D, 1.0D),
-      BoundingBox.fromBounds(0.0D, 0.0D, 0.0D, 0.75D, 1.0D, 0.75D),
-      BoundingBox.fromBounds(0.0D, 0.0D, 0.0D, 0.75D, 1.0D, 1.0D),
-      BoundingBox.fromBounds(0.25D, 0.0D, 0.25D, 1.0D, 1.0D, 0.75D),
-      BoundingBox.fromBounds(0.25D, 0.0D, 0.25D, 1.0D, 1.0D, 1.0D),
-      BoundingBox.fromBounds(0.0D, 0.0D, 0.3125D, 1.0D, 0.875D, 0.6875D),
-      BoundingBox.fromBounds(0.0D, 0.0D, 0.25D, 1.0D, 1.0D, 1.0D),
-      BoundingBox.fromBounds(0.25D, 0.0D, 0.0D, 1.0D, 1.0D, 0.75D),
-      BoundingBox.fromBounds(0.25D, 0.0D, 0.0D, 1.0D, 1.0D, 1.0D),
-      BoundingBox.fromBounds(0.0D, 0.0D, 0.0D, 1.0D, 1.0D, 0.75D),
-      BoundingBox.fromBounds(0.0D, 0.0D, 0.0D, 1.0D, 1.0D, 1.0D)
-    };
+      new BoundingBox[] {
+        BoundingBox.fromBounds(0.25D, 0.0D, 0.25D, 0.75D, 1.0D, 0.75D),
+        BoundingBox.fromBounds(0.25D, 0.0D, 0.25D, 0.75D, 1.0D, 1.0D),
+        BoundingBox.fromBounds(0.0D, 0.0D, 0.25D, 0.75D, 1.0D, 0.75D),
+        BoundingBox.fromBounds(0.0D, 0.0D, 0.25D, 0.75D, 1.0D, 1.0D),
+        BoundingBox.fromBounds(0.25D, 0.0D, 0.0D, 0.75D, 1.0D, 0.75D),
+        BoundingBox.fromBounds(0.3125D, 0.0D, 0.0D, 0.6875D, 0.875D, 1.0D),
+        BoundingBox.fromBounds(0.0D, 0.0D, 0.0D, 0.75D, 1.0D, 0.75D),
+        BoundingBox.fromBounds(0.0D, 0.0D, 0.0D, 0.75D, 1.0D, 1.0D),
+        BoundingBox.fromBounds(0.25D, 0.0D, 0.25D, 1.0D, 1.0D, 0.75D),
+        BoundingBox.fromBounds(0.25D, 0.0D, 0.25D, 1.0D, 1.0D, 1.0D),
+        BoundingBox.fromBounds(0.0D, 0.0D, 0.3125D, 1.0D, 0.875D, 0.6875D),
+        BoundingBox.fromBounds(0.0D, 0.0D, 0.25D, 1.0D, 1.0D, 1.0D),
+        BoundingBox.fromBounds(0.25D, 0.0D, 0.0D, 1.0D, 1.0D, 0.75D),
+        BoundingBox.fromBounds(0.25D, 0.0D, 0.0D, 1.0D, 1.0D, 1.0D),
+        BoundingBox.fromBounds(0.0D, 0.0D, 0.0D, 1.0D, 1.0D, 0.75D),
+        BoundingBox.fromBounds(0.0D, 0.0D, 0.0D, 1.0D, 1.0D, 1.0D)
+      };
 
-  private static final Direction[] SIDE_DIRECTIONS = new Direction[]{SOUTH, WEST, NORTH, EAST};
+  private static final Direction[] SIDE_DIRECTIONS = new Direction[] {SOUTH, WEST, NORTH, EAST};
 
   static {
     // Only apply on 1.9.0-1.13.2
@@ -56,18 +55,25 @@ public class CobbleStoneWallPatch extends BoundingBoxPatch {
     } else {
       ClassLoader classLoader = IntavePlugin.class.getClassLoader();
       // ! Only full class paths (without concatenations) are supported, CHANGE THIS
-      String packageName = "de.jpx3.intave.block.shape.resolve.patch.cobblewall.";
       String className = "";
       if (AQUATIC_UPDATE) {
-        className = "v13WallConnectResolver";
+        className = "de.jpx3.intave.block.shape.resolve.patch.cobblewall.v13WallConnectResolver";
       } else if (COLOR_UPDATE) {
-        className = "v12WallConnectResolver";
+        className = "de.jpx3.intave.block.shape.resolve.patch.cobblewall.v12WallConnectResolver";
       } else {
-        className = "v9WallConnectResolver";
+        className = "de.jpx3.intave.block.shape.resolve.patch.cobblewall.v9WallConnectResolver";
       }
-      String combined = packageName + className;
-      PatchyLoadingInjector.loadUnloadedClassPatched(classLoader, combined);
-      connectResolver = instanceOf(combined);
+      Class<WallConnectResolver> resolverClass =
+          PatchyLoadingInjector.loadUnloadedClassPatched(classLoader, className);
+      if (resolverClass != null) {
+        try {
+          connectResolver = resolverClass.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+          e.printStackTrace();
+        }
+      } else {
+        connectResolver = null;
+      }
     }
   }
 
@@ -77,14 +83,14 @@ public class CobbleStoneWallPatch extends BoundingBoxPatch {
 
   @Override
   protected BlockShape collisionPatch(
-    World world,
-    Player player,
-    int posX,
-    int posY,
-    int posZ,
-    Material type,
-    int blockState,
-    BlockShape shape) {
+      World world,
+      Player player,
+      int posX,
+      int posY,
+      int posZ,
+      Material type,
+      int blockState,
+      BlockShape shape) {
     // Only apply on 1.9.0-1.13.2
     if (connectResolver == null) {
       return shape;
@@ -113,9 +119,9 @@ public class CobbleStoneWallPatch extends BoundingBoxPatch {
     }
     for (Direction sideDirection : SIDE_DIRECTIONS) {
       if (connectResolver.canConnectTo(
-        world,
-        new BlockPosition(posX, posY, posZ).add(sideDirection.getDirectionVec()),
-        sideDirection)) {
+          world,
+          new BlockPosition(posX, posY, posZ).add(sideDirection.getDirectionVec()),
+          sideDirection)) {
         connected.add(sideDirection);
       }
     }
@@ -137,14 +143,5 @@ public class CobbleStoneWallPatch extends BoundingBoxPatch {
       index |= 1 << WEST.getHorizontalIndex();
     }
     return index;
-  }
-
-  private static <T> T instanceOf(String className) {
-    try {
-      //noinspection unchecked
-      return (T) Class.forName(className).newInstance();
-    } catch (InstantiationException | IllegalAccessException | ClassNotFoundException exception) {
-      throw new IntaveInternalException(exception);
-    }
   }
 }
