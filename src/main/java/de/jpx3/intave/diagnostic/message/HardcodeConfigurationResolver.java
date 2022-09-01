@@ -14,7 +14,8 @@ final class HardcodeConfigurationResolver implements ConfigurationResolver {
     switch (owner.toString()) {
       case "5ee6db6d-6751-4081-9cbf-28eb0f6cc055":
         return richysConfiguration();
-
+      case "975b9c57-1c0e-4a50-bb2d-7650b6c51b3a":
+        return lennoxConfiguration();
 
       default:
         return defaultConfiguration();
@@ -53,9 +54,38 @@ final class HardcodeConfigurationResolver implements ConfigurationResolver {
           MessageCategory.ATLALI, player -> true,
           MessageCategory.ATRAFLT, player -> true,
           MessageCategory.HERAN, player -> true,
-          MessageCategory.SIMFLT, player -> player.getUniqueId().equals(owner)
-        )
-      )
+          MessageCategory.SIMFLT, player -> player.getUniqueId().equals(owner)))
+      .defaultDetailSelect(MessageDetail.FULL)
+      .build();
+  }
+
+  private OutputConfiguration lennoxConfiguration() {
+    UUID owner = UUID.fromString("975b9c57-1c0e-4a50-bb2d-7650b6c51b3a");
+    EnumSet<MessageCategory> categories = EnumSet.allOf(MessageCategory.class);
+    categories.remove(MessageCategory.SIMFUL);
+
+    Map<MessageCategory, ChatColor> colors = new HashMap<>();
+    colors.put(MessageCategory.ATLALI, ChatColor.YELLOW);
+    colors.put(MessageCategory.ATRAFLT, ChatColor.YELLOW);
+    colors.put(MessageCategory.HERAN, ChatColor.RED);
+    colors.put(MessageCategory.SIMFLT, ChatColor.DARK_GRAY);
+    colors.put(MessageCategory.SIMFUL, ChatColor.DARK_GRAY);
+    colors.put(MessageCategory.PKBF, ChatColor.GRAY);
+    colors.put(MessageCategory.PKDL, ChatColor.GRAY);
+    colors.put(MessageCategory.TRUSTSET, ChatColor.GOLD);
+
+    return OutputConfiguration.builder()
+      .setOwner(owner)
+      .setMinimumSeverity(MessageSeverity.LOW)
+      .setPrefixDetail(PrefixDetail.REDUCED)
+      .setActiveCategories(categories)
+      .setOutputColors(colors)
+      .setCategoryConstraints(
+        ImmutableMap.of(
+          MessageCategory.ATLALI, player -> true,
+          MessageCategory.ATRAFLT, player -> true,
+          MessageCategory.HERAN, player -> true,
+          MessageCategory.SIMFLT, player -> player.getUniqueId().equals(owner)))
       .defaultDetailSelect(MessageDetail.FULL)
       .build();
   }
