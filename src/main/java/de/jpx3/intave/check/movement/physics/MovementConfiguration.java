@@ -2,6 +2,7 @@ package de.jpx3.intave.check.movement.physics;
 
 final class MovementConfiguration {
   private static final int BOOLEANS = 4;
+  private static final double BOOLEAN_POW_2 = Math.pow(BOOLEANS, 2);
   private static final MovementConfiguration[] UNIVERSE = new MovementConfiguration[(int) (Math.pow(4, 2) * Math.pow(2, BOOLEANS)) + 1];
 
   private final int index;
@@ -93,7 +94,7 @@ final class MovementConfiguration {
   }
 
   private MovementConfiguration emptyKeypress() {
-    return keyLookup(index & (int) (Math.pow(BOOLEANS, 2) - 1));
+    return keyLookup(index & (int) (BOOLEAN_POW_2 - 1));
   }
 
   public static MovementConfiguration keyLookup(int key) {
@@ -121,19 +122,6 @@ final class MovementConfiguration {
   @Override
   public int hashCode() {
     return index;
-  }
-
-  @Override
-  public String toString() {
-    return "MovementConfiguration{" +
-      "index=" + index +
-      ", forward=" + forward +
-      ", strafe=" + strafe +
-      ", attackReduce=" + attackReduce +
-      ", sprinting=" + sprinting +
-      ", jumped=" + jumped +
-      ", handActive=" + handActive +
-      '}';
   }
 
   public static MovementConfiguration select(

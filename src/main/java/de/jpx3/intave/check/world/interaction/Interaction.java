@@ -88,16 +88,4 @@ public final class Interaction {
   public boolean entered() {
     return entered;
   }
-
-  @Override
-  public String toString() {
-    return "Interaction{" +
-      "targetBlock=" + targetBlock +
-      ", targetDirection=" + targetDirection +
-      ", type=" + type +
-      ", itemTypeInHand=" + itemTypeInHand +
-      ", hand=" + hand +
-      ", entered=" + entered +
-      '}';
-  }
 }

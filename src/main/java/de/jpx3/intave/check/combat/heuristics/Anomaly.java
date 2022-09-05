@@ -77,16 +77,6 @@ public final class Anomaly {
     return type;
   }
 
-  @Override
-  public String toString() {
-    return "Anomaly{" +
-      "key='" + key + '\'' +
-      ", description='" + description + '\'' +
-      ", confidence=" + confidence +
-      ", options=" + options +
-      '}';
-  }
-
   private static final long ANOMALY_EXPIRE_DURATION = TimeUnit.MINUTES.toMillis(5);
 
   public static Anomaly anomalyOf(String key, Confidence confidence, Type type, String description, int options, long expireDuration) {

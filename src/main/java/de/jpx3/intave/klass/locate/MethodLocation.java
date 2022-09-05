@@ -98,11 +98,6 @@ final class MethodLocation extends Location {
     return classKey;
   }
 
-  @Override
-  public String toString() {
-    return "MethodLocation{" + classKey + "." + key() + "/" + translatedKey() + " -> " + target + " @" + versionMatcher() + "}";
-  }
-
   public static MethodLocation defaultFor(String classKey, String initialSignature) {
     return new MethodLocation(classKey, initialSignature, IntegerMatcher.between(80, 170), initialSignature);
   }

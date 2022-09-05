@@ -78,15 +78,6 @@ public final class Motion {
     return new Vector(this.motionX, this.motionY, this.motionZ);
   }
 
-  @Override
-  public String toString() {
-    return "Motion{" +
-      "x=" + motionX +
-      ", y=" + motionY +
-      ", z=" + motionZ +
-      '}';
-  }
-
   public static Motion copyFrom(Motion context) {
     return new Motion(context.motionX, context.motionY, context.motionZ);
   }

@@ -189,19 +189,6 @@ public final class IntaveViolationEvent extends IntaveEvent implements Cancellab
     punished = null;
   }
 
-  @Override
-  public String toString() {
-    return "IntaveViolationEvent{" +
-      "punished=" + punished +
-      ", checkName='" + checkName + '\'' +
-      ", message='" + message + '\'' +
-      ", details='" + details + '\'' +
-      ", vlBefore=" + vlBefore +
-      ", vlAfter=" + vlAfter +
-      ", reaction=" + reaction +
-      '}';
-  }
-
   public static IntaveViolationEvent empty() {
     return new IntaveViolationEvent();
   }

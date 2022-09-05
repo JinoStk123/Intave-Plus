@@ -169,7 +169,7 @@ public final class EntityMoveEvent extends Event {
 
   @Override
   public String toString() {
-    return "EntityMoveEvent(" + entityId + ", " + x + ", " + y + ", " + z + ", " + yaw + ", " + pitch + ", " + inSight + ")";
+    return "(" + entityId + ", " + x + ", " + y + ", " + z + ", " + yaw + ", " + pitch + ", " + inSight + ")";
   }
 
   private static class Flag {
