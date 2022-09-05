@@ -27,13 +27,4 @@ public final class PluginInvocation {
   public String methodName() {
     return methodName;
   }
-
-  @Override
-  public String toString() {
-    return "PluginInvokationInfo{" +
-      "pluginName='" + pluginName + '\'' +
-      ", className='" + className + '\'' +
-      ", methodName='" + methodName + '\'' +
-      '}';
-  }
 }

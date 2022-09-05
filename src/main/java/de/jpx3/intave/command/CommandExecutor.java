@@ -199,11 +199,4 @@ public final class CommandExecutor {
   public String description() {
     return description;
   }
-
-  @Override
-  public String toString() {
-    return "IntaveSubCommand{" +
-      "selectors=" + Arrays.toString(selectors) +
-      '}';
-  }
 }

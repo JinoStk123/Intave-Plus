@@ -3,6 +3,7 @@ package de.jpx3.intave.block.access;
 import de.jpx3.intave.annotate.Relocate;
 import de.jpx3.intave.block.variant.BlockVariant;
 import de.jpx3.intave.block.variant.BlockVariantRegister;
+import de.jpx3.intave.cleanup.GarbageCollector;
 import de.jpx3.intave.share.BlockPosition;
 import de.jpx3.intave.share.Position;
 import de.jpx3.intave.user.User;
@@ -10,6 +11,8 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 
 import java.util.ConcurrentModificationException;
+import java.util.HashMap;
+import java.util.Map;
 
 import static de.jpx3.intave.world.WorldHeight.LOWER_WORLD_LIMIT;
 
@@ -37,15 +40,15 @@ public final class VolatileBlockAccess {
       } catch (IllegalStateException exception) {
         // problems with async chunk loading
         exception.printStackTrace();
-        return fallbackBlock(blockAccess, 0);
+        return fallbackBlock(blockAccess);
       }
     }
-    return fallbackBlock(blockAccess, 0);
+    return fallbackBlock(blockAccess);
   }
 
-  private static final int MAX_ATTEMPTS = 10;
+  private static final Map<World, Block> EMERGENCY_FALLBACK_BLOCKS = GarbageCollector.watch(new HashMap<>());
 
-  private static Block fallbackBlock(World world, int attempts) {
+  private static Block fallbackBlock(World world) {
     Location spawnLocation = world.getSpawnLocation();
     if (!world.isChunkLoaded(spawnLocation.getBlockX(), spawnLocation.getBlockZ())) {
       try {
@@ -54,13 +57,10 @@ public final class VolatileBlockAccess {
           Chunk anyChunk = loadedChunks[0];
           return world.getBlockAt(anyChunk.getX() << 4, LOWER_WORLD_LIMIT - 1, anyChunk.getZ() << 4);
         }
-      } catch (ConcurrentModificationException exception) {
-        if (attempts < MAX_ATTEMPTS) {
-          exception.getStackTrace(); // takes some time...
-          return fallbackBlock(world, attempts + 1);
-        }
-      }
-      // well.. xd
+      } catch (ConcurrentModificationException ignored) {}
+      return EMERGENCY_FALLBACK_BLOCKS.computeIfAbsent(
+        world, FakeFallbackBlock::new
+      );
     }
     return world.getBlockAt(spawnLocation.getBlockX(), LOWER_WORLD_LIMIT - 1, spawnLocation.getBlockZ());
   }

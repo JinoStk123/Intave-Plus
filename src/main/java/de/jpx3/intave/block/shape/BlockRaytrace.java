@@ -25,13 +25,6 @@ public final class BlockRaytrace {
     return lengthOffset;
   }
 
-  @Override
-  public String toString() {
-    return "BlockRaytrace{" +
-      "direction=" + direction +
-      ", lengthOffset=" + lengthOffset +
-      '}';
-  }
 
   @Override
   public boolean equals(Object obj) {

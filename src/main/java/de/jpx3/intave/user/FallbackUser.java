@@ -295,9 +295,4 @@ final class FallbackUser implements User {
   @Override
   public void refreshSprintState() {
   }
-
-  @Override
-  public String toString() {
-    return "FallbackUser{}";
-  }
 }

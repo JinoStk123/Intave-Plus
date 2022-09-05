@@ -135,14 +135,6 @@ public class NeuralNetwork implements Serializable {
     }
     return new NeuralNetwork(weights, biases);
   }
-
-  @Override
-  public String toString() {
-    return "NeuralNetwork{" +
-      ", biases=" + Arrays.toString(biases) +
-      ", weights=" + Arrays.toString(weights) +
-      '}';
-  }
 }
 
 class TestNeuralNetwork {

@@ -46,7 +46,8 @@ class BaseSimulator extends Simulator {
     User user,
     Motion motion,
     SimulationEnvironment environment,
-    MovementConfiguration configuration) {
+    MovementConfiguration configuration
+  ) {
     // guessed movement configuration
     float forward = configuration.forward();
     float strafe = configuration.strafe();
@@ -76,8 +77,7 @@ class BaseSimulator extends Simulator {
     strafe = ((int) strafe) * 0.98f;
     if ((pose == Pose.CROUCHING) || (!clientData.beeUpdate() && environment.isSneaking())) {
       double sneakingModifier =
-        clamp_double(
-          0.3 + Enchantments.resolveSwiftSpeedModifier(user.player()) * 0.15f, 0.0f, 1.0f);
+        clamp_double(0.3 + Enchantments.resolveSwiftSpeedModifier(user.player()) * 0.15f, 0.0f, 1.0f);
       forward = (float) ((double) forward * sneakingModifier);
       strafe = (float) ((double) strafe * sneakingModifier);
     }

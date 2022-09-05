@@ -68,10 +68,6 @@ public class MovingObjectPosition {
     return this.blockPos;
   }
 
-  public String toString() {
-    return "HitResult{type=" + this.typeOfHit + ", blockpos=" + this.blockPos + ", f=" + this.sideHit + ", pos=" + this.hitVec + ", entity=" + this.entityHit + '}';
-  }
-
   public static MovingObjectPosition fromNativeMovingObjectPosition(Object movingObjectPosition) {
     if (movingObjectPosition == null) {
       // just to make IntelliJ happy..

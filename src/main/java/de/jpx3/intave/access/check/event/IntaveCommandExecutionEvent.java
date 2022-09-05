@@ -139,20 +139,6 @@ public final class IntaveCommandExecutionEvent extends IntaveEvent implements Ca
     punished = null;
   }
 
-  @Override
-  public String toString() {
-    return "IntaveCommandExecutionEvent{" +
-      "punished=" + punished +
-      ", command='" + command + '\'' +
-      ", check='" + check + '\'' +
-      ", violationMessage='" + violationMessage + '\'' +
-      ", violationDetails='" + violationDetails + '\'' +
-      ", activationVL=" + activationVL +
-      ", delayedExecution=" + delayedExecution +
-      ", cancelled=" + cancelled +
-      '}';
-  }
-
   public static IntaveCommandExecutionEvent empty() {
     return new IntaveCommandExecutionEvent();
   }
