@@ -24,6 +24,7 @@ import java.util.List;
 
 import static de.jpx3.intave.check.combat.heuristics.Anomaly.AnomalyOption.*;
 import static de.jpx3.intave.module.linker.packet.PacketId.Client.*;
+import static de.jpx3.intave.user.meta.ProtocolMetadata.VER_1_9;
 
 @Reserved
 public final class SameRotationHeuristic extends MetaCheckPart<Heuristics, SameRotationHeuristic.SameRotationHeuristicMeta> {
@@ -43,6 +44,11 @@ public final class SameRotationHeuristic extends MetaCheckPart<Heuristics, SameR
       return;
     }
     User user = userOf(player);
+    // Exclude 1.9+ due to falses
+    // TODO: This is a really temporary and shit fix so players on gomme don't get false kicked
+    if (user.protocolVersion() >= VER_1_9) {
+      return;
+    }
     SameRotationHeuristicMeta meta = metaOf(user);
     MetadataBundle metadata = user.meta();
     MovementMetadata movementData = metadata.movement();
