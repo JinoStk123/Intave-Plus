@@ -316,7 +316,7 @@ public final class InteractionRaytrace extends MetaCheck<InteractionRaytrace.Int
     User user = userOf(player);
     InteractionMeta interactionMeta = metaOf(player);
     boolean usable = ItemProperties.canItemBeUsed(player, interaction.itemInHand())
-           && interaction.itemTypeInHand() != Material.SPLASH_POTION;
+           && !ItemProperties.isPotion(interaction.itemTypeInHand());
 
     if (interaction.digType() == START_DESTROY_BLOCK) {
       interactionMeta.remainingBlockStart--;
