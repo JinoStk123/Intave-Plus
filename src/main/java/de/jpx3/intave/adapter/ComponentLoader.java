@@ -2,6 +2,7 @@ package de.jpx3.intave.adapter;
 
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.access.IntaveInternalException;
+import de.jpx3.intave.connect.IntaveDomains;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.InvalidDescriptionException;
@@ -31,7 +32,7 @@ public final class ComponentLoader {
     if (Bukkit.getVersion().contains("MC: 1.19")) {
       essentialComponents.put("ProtocolLib", "https://ci.dmulloy2.net/job/ProtocolLib/lastSuccessfulBuild/artifact/target/ProtocolLib.jar");
     } else {
-      essentialComponents.put("ProtocolLib", "https://service.intave.de/resource/ProtocolLib-4-8-0.jar");
+      essentialComponents.put("ProtocolLib", "https://" + IntaveDomains.primaryServiceDomain() + "/resource/ProtocolLib-4-8-0.jar");
     }
   }
 

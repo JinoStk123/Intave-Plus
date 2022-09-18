@@ -220,7 +220,7 @@ public final class IntavePlugin extends JavaPlugin {
 
       // causes interceptor output
       for (int i = 0; i < 1; i++) {
-        URL url = new URL("https://"+IntaveDomains.firstServiceDomain()+"/versions");
+        URL url = new URL("https://"+IntaveDomains.primaryServiceDomain()+"/versions");
         url.getDefaultPort();
       }
 
@@ -319,7 +319,7 @@ public final class IntavePlugin extends JavaPlugin {
         }
 
         try {
-          String path = "https://" + IntaveDomains.firstServiceDomain() + "/auth.php";
+          String path = "https://" + IntaveDomains.primaryServiceDomain() + "/auth.php";
           URL url = new URL(path);
           URLConnection connection = url.openConnection();
           connection.setUseCaches(false);

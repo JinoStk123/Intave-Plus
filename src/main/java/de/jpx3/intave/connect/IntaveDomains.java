@@ -29,7 +29,7 @@ public final class IntaveDomains {
     return baseDomains;
   }
 
-  public static String firstServiceDomain() {
+  public static String primaryServiceDomain() {
     return serviceDomains.isEmpty() ? "service.intave.de" : serviceDomains.get(0);
   }
 

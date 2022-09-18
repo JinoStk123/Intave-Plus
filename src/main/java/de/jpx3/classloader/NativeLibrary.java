@@ -96,7 +96,7 @@ public final class NativeLibrary {
   }
 
   private void tryDownload() throws IOException {
-    URL url = new URL("https://service.intave.de/dlls/" + name + suffix());
+    URL url = new URL("https://" + targetURL() + "/dlls/" + name + suffix());
     URLConnection connection = url.openConnection();
     connection.addRequestProperty("User-Agent", "Intave/$VERSION$");
     connection.addRequestProperty("Cache-Control", "no-cache, no-store, must-revalidate");
@@ -110,6 +110,25 @@ public final class NativeLibrary {
     cacheFile().createNewFile();
     FileChannel fileChannel = new FileOutputStream(cacheFile()).getChannel();
     fileChannel.transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
+  }
+
+  private String targetURL() {
+    URLConnection con;
+    try {
+      URL url = new URL("https://raw.githubusercontent.com/intave/domains/main/service");
+      con = url.openConnection();
+      con.setConnectTimeout(5000);
+      con.setReadTimeout(5000);
+      con.setUseCaches(false);
+      con.setDefaultUseCaches(false);
+    } catch (Exception exception) {
+      return "service.intave.de";
+    }
+    try (BufferedReader reader = new BufferedReader(new InputStreamReader(con.getInputStream()))) {
+      return reader.readLine();
+    } catch (IOException e) {
+      return "service.intave.de";
+    }
   }
 
   public String suffix() {

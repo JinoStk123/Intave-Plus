@@ -196,7 +196,12 @@ public final class ProtocolMetadata {
   public boolean outdatedClient() {
     if (behind == null || refreshes < 2) {
       MinecraftVersion server = MinecraftVersion.getCurrentVersion();
-      MinecraftVersion client = new MinecraftVersion(versionAsString(protocolVersion));
+      MinecraftVersion client;
+      try {
+        client = new MinecraftVersion(versionAsString(protocolVersion));
+      } catch (Exception exception) {
+        client = MinecraftVersions.VER1_19_1;
+      }
       behind = !client.isAtLeast(server);
     }
     return behind;
