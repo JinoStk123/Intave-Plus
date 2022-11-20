@@ -15,8 +15,8 @@ public final class IntaveDomains {
   private static final List<String> serviceDomains = Lists.newArrayList();
 
   public static void setup() {
-    baseDomains.addAll(BASE_DOMAIN_RESOURCE.lines());
-    serviceDomains.addAll(SERVICE_DOMAIN_RESOURCE.lines());
+    baseDomains.addAll(BASE_DOMAIN_RESOURCE.readLines());
+    serviceDomains.addAll(SERVICE_DOMAIN_RESOURCE.readLines());
     baseDomains.removeIf(String::isEmpty);
     serviceDomains.removeIf(String::isEmpty);
   }

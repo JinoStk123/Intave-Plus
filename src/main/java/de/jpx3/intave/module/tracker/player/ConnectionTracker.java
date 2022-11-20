@@ -54,7 +54,7 @@ public final class ConnectionTracker extends Module {
         System.out.println("Thread:" + thread.getName());
         Exception exception = new Exception();
         exception.setStackTrace(stackTraceElements);
-        exception.printStackTrace();
+        exception.printStackTrace(System.out);
 //        }
       }
     });

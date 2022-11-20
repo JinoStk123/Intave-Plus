@@ -12,6 +12,7 @@ import de.jpx3.intave.diagnostic.message.MessageCategory;
 import de.jpx3.intave.diagnostic.message.MessageSeverity;
 import de.jpx3.intave.module.Module;
 import de.jpx3.intave.module.linker.packet.ListenerPriority;
+import de.jpx3.intave.module.linker.packet.PacketId;
 import de.jpx3.intave.module.linker.packet.PacketSubscription;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserRepository;
@@ -23,17 +24,45 @@ import java.util.Deque;
 import java.util.Map;
 import java.util.concurrent.DelayQueue;
 
+import static de.jpx3.intave.module.linker.packet.PacketId.Client.USE_ENTITY;
 import static de.jpx3.intave.module.linker.packet.PacketId.Server.*;
 
 public final class PacketDelayer extends Module {
   private boolean reverseBlink;
   private boolean reverseLag;
+  private boolean microLag;
 
   @Override
   public void enable() {
     Timer timerCheck = plugin.checks().searchCheck(Timer.class);
     this.reverseBlink = timerCheck.reverseBlink();
     this.reverseLag = timerCheck.reverseLag();
+    this.microLag = timerCheck.combatMicroLag();
+  }
+
+  @PacketSubscription(
+    priority = ListenerPriority.LOWEST,
+    packetsIn = {
+      USE_ENTITY
+    }
+  )
+  public void microLagDelayAttack(PacketEvent event) {
+    Player player = event.getPlayer();
+    User user = UserRepository.userOf(player);
+    ConnectionMetadata connection = user.meta().connection();
+    MovementMetadata movement = user.meta().movement();
+
+    PacketContainer packetContainer = event.getPacket();
+    PacketType packetType = event.getPacketType();
+
+    if (user.justJoined() || !(microLag) || user.trustFactor().atLeast(TrustFactor.YELLOW)) {
+      return;
+    }
+
+
+    if (connection.eligibleForTransactionTimeout) {
+
+    }
   }
 
   @PacketSubscription(

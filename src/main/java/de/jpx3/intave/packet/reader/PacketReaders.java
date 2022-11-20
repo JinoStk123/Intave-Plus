@@ -36,6 +36,7 @@ public final class PacketReaders {
     setup(NAMED_ENTITY_SPAWN, EntityReader::new);
     setup(UPDATE_ATTRIBUTES, EntityReader::new);
     setup(BLOCK_BREAK_ANIMATION, EntityReader::new);
+    setup(ABILITIES_OUT, AbilityOutReader::new);
 
     setup(ENTITY_DESTROY, EntityDestroyReader::new);
     setup(CUSTOM_PAYLOAD_IN, PayloadInReader::new);
@@ -43,6 +44,7 @@ public final class PacketReaders {
     setup(USE_ITEM, BlockInteractionReader::new);
     setup(USE_ENTITY, EntityUseReader::new);
     setup(BLOCK_DIG, BlockPositionReader::new);
+    setup(ABILITIES_IN, AbilityInReader::new);
   }
 
   private static void setup(Server serverPacket, Supplier<? extends PacketReader> supplier) {

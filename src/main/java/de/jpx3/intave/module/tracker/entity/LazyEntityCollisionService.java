@@ -12,11 +12,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerMoveEvent;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 public final class LazyEntityCollisionService extends Module {
   private static final double DISTANCE_TO_ENTITY = 1.5f * 1.2;
-  private static final List<EntityType> BOAT_ENTITIES = new ArrayList<>();
+  private static final Set<EntityType> BOAT_ENTITIES = EnumSet.noneOf(EntityType.class);
 
   static {
     for (EntityType entity : EntityType.values()) {
@@ -32,9 +34,6 @@ public final class LazyEntityCollisionService extends Module {
     User user = UserRepository.userOf(player);
     List<Entity> entities = player.getNearbyEntities(5, 5, 5);
     searchCollisions(user, entities);
-    if (!user.hasPlayer()) {
-      user.kick("Please reconnect");
-    }
   }
 
   private void searchCollisions(User user, List<Entity> entities) {

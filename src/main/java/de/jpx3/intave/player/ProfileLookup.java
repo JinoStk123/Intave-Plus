@@ -33,7 +33,7 @@ public final class ProfileLookup {
   private static UUID loadIfFromName(String name) {
     try {
       String url = String.format(NAME_TO_ID_LOOKUP_URL, name);
-      String profileResponse = Resources.resourceFromWeb(new URL(url)).asString();
+      String profileResponse = Resources.resourceFromWeb(new URL(url)).readAsString();
       if (profileResponse.isEmpty()) {
         return null;
       }

@@ -37,11 +37,11 @@ public interface Resource extends LegacyResource {
 
   void delete();
 
-  default String asString() {
+  default String readAsString() {
     return collectLines(Collectors.joining());
   }
 
-  default List<String> lines() {
+  default List<String> readLines() {
     return collectLines(Collectors.toList());
   }
 

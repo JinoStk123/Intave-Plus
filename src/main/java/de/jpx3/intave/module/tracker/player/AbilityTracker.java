@@ -10,6 +10,9 @@ import de.jpx3.intave.module.linker.packet.ListenerPriority;
 import de.jpx3.intave.module.linker.packet.PacketId;
 import de.jpx3.intave.module.linker.packet.PacketSubscription;
 import de.jpx3.intave.module.tracker.entity.EntityTracker;
+import de.jpx3.intave.packet.reader.AbilityInReader;
+import de.jpx3.intave.packet.reader.AbilityOutReader;
+import de.jpx3.intave.packet.reader.PacketReaders;
 import de.jpx3.intave.share.ClientMathHelper;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserRepository;
@@ -20,8 +23,8 @@ import org.bukkit.entity.Player;
 
 import java.lang.reflect.Field;
 
-import static de.jpx3.intave.module.linker.packet.PacketId.Server.CAMERA;
-import static de.jpx3.intave.module.linker.packet.PacketId.Server.GAME_STATE_CHANGE;
+import static de.jpx3.intave.module.linker.packet.PacketId.Client.ABILITIES_IN;
+import static de.jpx3.intave.module.linker.packet.PacketId.Server.*;
 
 public final class AbilityTracker extends Module {
   @PacketSubscription(
@@ -33,10 +36,13 @@ public final class AbilityTracker extends Module {
     Player player = event.getPlayer();
     PacketContainer packet = event.getPacket();
     Integer entityId = packet.getIntegers().read(0);
-    Modules.feedback().synchronize(player, EntityTracker.serverEntityByIdentifier(player, entityId), this::synchronizeCameraUpdate);
+    Modules.feedback().synchronize(
+      player, EntityTracker.serverEntityByIdentifier(player, entityId),
+      this::synchronizedCameraUpdate
+    );
   }
 
-  private void synchronizeCameraUpdate(Player player, Entity entity) {
+  private void synchronizedCameraUpdate(Player player, Entity entity) {
     User user = UserRepository.userOf(player);
     AbilityMetadata abilityData = user.meta().abilities();
     abilityData.hasViewEntity = entity != player;
@@ -45,7 +51,7 @@ public final class AbilityTracker extends Module {
   @PacketSubscription(
     priority = ListenerPriority.HIGH,
     packetsIn = {
-      PacketId.Client.ABILITIES
+      ABILITIES_IN
     }
   )
   public void receiveAbilities(PacketEvent event) {
@@ -56,7 +62,9 @@ public final class AbilityTracker extends Module {
     AbilityMetadata abilityData = user.meta().abilities();
     MovementMetadata movementData = user.meta().movement();
 
-    boolean flying = requestedFlying(packet);
+    AbilityInReader reader = PacketReaders.readerOf(packet);
+
+    boolean flying = reader.requestedFlying();
     if (abilityData.allowFlying()) {
       if (flying) {
         abilityData.setFlying(true);
@@ -64,56 +72,32 @@ public final class AbilityTracker extends Module {
         movementData.disabledFlying = true;
       }
     }
+
+    reader.release();
   }
 
-  private static final boolean BIT_FIELD = MinecraftVersions.VER1_16_0.atOrAbove();
-
-  private static boolean requestedFlying(PacketContainer packet) {
-    return packet.getBooleans().read(BIT_FIELD ? 0 : 1);
-  }
 
   @PacketSubscription(
     priority = ListenerPriority.HIGH,
     packetsOut = {
-      PacketId.Server.ABILITIES
+      ABILITIES_OUT
     }
   )
   public void sentAbilities(PacketEvent event) {
     Player player = event.getPlayer();
+    User user = UserRepository.userOf(player);
+    AbilityMetadata abilityData = user.meta().abilities();
     PacketContainer packet = event.getPacket();
-
-    Float walkingSpeed = packet.getFloat().readSafely(1);
-    if (walkingSpeed != null) {
-      Modules.feedback().synchronize(player, walkingSpeed, this::retrieveWalkingSpeed);
-    }
-
-    Float flySpeed = packet.getFloat().readSafely(0);
-    if (flySpeed != null) {
-      Modules.feedback().synchronize(player, flySpeed, this::retrieveFlyingSpeed);
-    }
-
-    Boolean allowedFlight = packet.getBooleans().read(2);
-    if (allowedFlight != null) {
-      Modules.feedback().synchronize(player, allowedFlight, this::retrieveAllowedFlight);
-    }
-  }
-
-  private void retrieveWalkingSpeed(Player player, float walkSpeed) {
-    User user = UserRepository.userOf(player);
-    AbilityMetadata abilityData = user.meta().abilities();
-    abilityData.setWalkSpeed(walkSpeed);
-  }
-
-  private void retrieveFlyingSpeed(Player player, float flySpeed) {
-    User user = UserRepository.userOf(player);
-    AbilityMetadata abilityData = user.meta().abilities();
-    abilityData.setFlySpeed(flySpeed);
-  }
-
-  private void retrieveAllowedFlight(Player player, boolean allowedFlight) {
-    User user = UserRepository.userOf(player);
-    AbilityMetadata abilityData = user.meta().abilities();
-    abilityData.setAllowFlying(allowedFlight);
+    AbilityOutReader reader = PacketReaders.readerOf(packet);
+    float flyingSpeed = reader.flyingSpeed();
+    float walkingSpeed = reader.walkingSpeed();
+    boolean allowedFlight = reader.flyingAllowed();
+    user.tickFeedback(x -> {
+      abilityData.setWalkSpeed(walkingSpeed);
+      abilityData.setFlySpeed(flyingSpeed);
+      abilityData.setAllowFlying(allowedFlight);
+    });
+    reader.release();
   }
 
   @PacketSubscription(

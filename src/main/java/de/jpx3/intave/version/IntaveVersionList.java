@@ -28,7 +28,7 @@ public final class IntaveVersionList {
       TimeUnit.DAYS.toMillis(2)
     );
     try {
-      JsonReader json = new JsonReader(new StringReader(cachedResource.asString()));
+      JsonReader json = new JsonReader(new StringReader(cachedResource.readAsString()));
       json.setLenient(true);
       JsonArray jsonArray = new JsonParser().parse(json).getAsJsonArray();
       for (JsonElement jsonElement : jsonArray) {

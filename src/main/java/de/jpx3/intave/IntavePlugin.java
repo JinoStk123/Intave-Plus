@@ -34,6 +34,7 @@ import de.jpx3.intave.connect.sibyl.SibylBroadcast;
 import de.jpx3.intave.connect.sibyl.SibylIntegrationService;
 import de.jpx3.intave.connect.upload.ScheduledUploadService;
 import de.jpx3.intave.diagnostic.natives.NativeCheck;
+import de.jpx3.intave.entity.EntityLookup;
 import de.jpx3.intave.entity.size.HitboxSizeAccess;
 import de.jpx3.intave.entity.type.EntityTypeDataAccessor;
 import de.jpx3.intave.executor.BackgroundExecutor;
@@ -602,6 +603,7 @@ public final class IntavePlugin extends JavaPlugin {
       BlockProperties.setup();
       ItemProperties.setup();
       BoundingBoxPatcher.setup();
+      EntityLookup.setup();
 
       versions = new IntaveVersionList();
       try {
@@ -703,7 +705,7 @@ public final class IntavePlugin extends JavaPlugin {
     Modules.linker().packetEvents().refreshLinkages();
     displayVersionInformation();
     successfullyBooted = true;
-    randomExitMessages = Resources.localServiceCacheResource("exitmessages","exitmessages", TimeUnit.DAYS.toMillis(7)).lines();
+    randomExitMessages = Resources.localServiceCacheResource("exitmessages","exitmessages", TimeUnit.DAYS.toMillis(7)).readLines();
     logger.info("Intave booted successfully");
 
     Synchronizer.synchronize(() -> {

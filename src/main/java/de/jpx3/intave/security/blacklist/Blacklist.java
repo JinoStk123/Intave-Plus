@@ -1,6 +1,7 @@
 package de.jpx3.intave.security.blacklist;
 
 import com.google.common.collect.ImmutableList;
+import de.jpx3.intave.resource.Resource;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -58,7 +59,7 @@ public final class Blacklist {
     return new Blacklist(ImmutableList.of());
   }
 
-  public static Blacklist fromLines(List<String> lines) {
-    return new Blacklist(lines);
+  public static Blacklist from(Resource resource) {
+    return new Blacklist(resource.readLines());
   }
 }

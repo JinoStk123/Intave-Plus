@@ -22,7 +22,7 @@ public interface CompilerStreamFunctionProvider<O> extends Function<List<String>
   }
 
   default O fromResource(Resource resource) {
-    return apply(resource.lines());
+    return apply(resource.readLines());
   }
 
   default O fromResourceInJar(String path) {

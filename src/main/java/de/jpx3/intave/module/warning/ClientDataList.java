@@ -29,7 +29,7 @@ public final class ClientDataList {
     if (!CACHED_RESOURCE.available()) {
       return new ClientDataList(new ArrayList<>());
     }
-    return new ClientDataList(parseClientData(CACHED_RESOURCE.asString()));
+    return new ClientDataList(parseClientData(CACHED_RESOURCE.readAsString()));
   }
 
   private static List<ClientData> parseClientData(String rawJson) {

@@ -180,6 +180,9 @@ public final class FeedbackReceiver extends Module {
     ConnectionMetadata connection = user.meta().connection();
     connection.eligibleForTransactionTimeout = true;
     if (oldestPendingTransaction(user) > TIMEOUT ||
+      // Logically, this is part of the PacketDelayer,
+      // but I've put this stuff in this if-clause to have a common place for
+      // any transaction-related attack cancels
       !connection.enqueuedPackets().isEmpty() ||
       System.currentTimeMillis() - connection.lastBufferEnqueue < 250
     ) {

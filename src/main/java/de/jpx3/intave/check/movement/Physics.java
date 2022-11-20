@@ -127,7 +127,7 @@ public final class Physics extends Check {
     try {
       simulation = simulationProcessor.simulate(user, movementData.simulator());
     } catch (IllegalStateException exception) {
-      user.kick("Internal error, please contact the servers administrator.");
+      user.kick("Exception while simulating movement");
       exception.printStackTrace();
       return;
     }

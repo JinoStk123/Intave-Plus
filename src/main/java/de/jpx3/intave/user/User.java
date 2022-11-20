@@ -12,6 +12,7 @@ import de.jpx3.intave.check.MetaCheckPart;
 import de.jpx3.intave.check.movement.physics.Pose;
 import de.jpx3.intave.connect.customclient.CustomClientSupportConfig;
 import de.jpx3.intave.entity.size.HitboxSize;
+import de.jpx3.intave.module.feedback.FeedbackCallback;
 import de.jpx3.intave.module.mitigate.AttackNerfStrategy;
 import de.jpx3.intave.module.violation.placeholder.Placeholders;
 import de.jpx3.intave.module.violation.placeholder.PlayerContext;
@@ -27,6 +28,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 /**
@@ -392,4 +394,10 @@ public interface User {
    * Resets a players sprint variant synchronously
    */
   void refreshSprintState();
+
+  void tickFeedback(FeedbackCallback<Void> callback);
+
+  default void tickFeedback(Consumer<Void> consumer) {
+    tickFeedback((player, target) -> consumer.accept(null));
+  }
 }

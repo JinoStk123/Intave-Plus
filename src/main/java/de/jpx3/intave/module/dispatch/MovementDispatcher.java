@@ -359,7 +359,7 @@ public final class MovementDispatcher extends Module {
       StructureModifier<Double> modifier = packet.getDoubles();
       for (int i = 0; i < 3; i++) {
         if (Double.isInfinite(modifier.read(i)) && FaultKicks.POSITION_FAULTS) {
-          user.kick("Infinite position?");
+          user.kick("Intolerable position fault");
           return;
         }
       }
@@ -369,7 +369,7 @@ public final class MovementDispatcher extends Module {
       StructureModifier<Float> modifier = packet.getFloat();
       for (int i = 0; i < 2; i++) {
         if (Double.isInfinite(modifier.read(i)) && FaultKicks.POSITION_FAULTS) {
-          user.kick("Infinite rotation?");
+          user.kick("Intolerable position fault");
           return;
         }
       }
@@ -378,7 +378,7 @@ public final class MovementDispatcher extends Module {
     if (hasMovement || movementData.isInVehicle()) {
       movementData.lastPositionUpdate = 0;
     } else if (++movementData.lastPositionUpdate > 20 && FaultKicks.MISSING_POSITION_UPDATE) {
-      user.kick("Missing position update after 20 ticks");
+      user.kick("Missing position update");
     }
 
     // garbage fix for sending POSITION_LOOK packets on newer client versions when rightclicking

@@ -33,4 +33,8 @@ public final class UserContext implements PlaceholderContext {
 
     return builder.build();
   }
+
+  public static UserContext createFor(User user) {
+    return new UserContext(user);
+  }
 }

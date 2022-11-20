@@ -6,6 +6,7 @@ import de.jpx3.intave.block.state.ExtendedBlockStateCache;
 import de.jpx3.intave.check.movement.physics.Pose;
 import de.jpx3.intave.connect.customclient.CustomClientSupportConfig;
 import de.jpx3.intave.entity.size.HitboxSize;
+import de.jpx3.intave.module.feedback.FeedbackCallback;
 import de.jpx3.intave.module.mitigate.AttackNerfStrategy;
 import de.jpx3.intave.module.violation.placeholder.PlayerContext;
 import de.jpx3.intave.module.violation.placeholder.UserContext;
@@ -289,6 +290,11 @@ final class TestUser implements User {
 
   @Override
   public void refreshSprintState() {
+
+  }
+
+  @Override
+  public void tickFeedback(FeedbackCallback<Void> callback) {
 
   }
 }

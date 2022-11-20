@@ -8,7 +8,7 @@ public final class ExpiringPermissionCache implements PermissionCache {
   private final long cacheExpiration;
   private final Map<String, ExpiringPermissionCacheEntry> permissionEntries = new ConcurrentHashMap<>();
 
-  public ExpiringPermissionCache(long cacheExpires, TimeUnit unit) {
+  ExpiringPermissionCache(long cacheExpires, TimeUnit unit) {
     cacheExpiration = unit.toMillis(cacheExpires);
   }
 
@@ -30,6 +30,14 @@ public final class ExpiringPermissionCache implements PermissionCache {
       .computeIfAbsent(permission, s ->
         new ExpiringPermissionCacheEntry(cacheExpiration))
       .setAccess(access);
+  }
+
+  public static ExpiringPermissionCache withDefaultExpirationTime() {
+    return expiringAfter(16, TimeUnit.SECONDS);
+  }
+
+  public static ExpiringPermissionCache expiringAfter(long value, TimeUnit unit) {
+    return new ExpiringPermissionCache(value, unit);
   }
 
   public static class ExpiringPermissionCacheEntry {

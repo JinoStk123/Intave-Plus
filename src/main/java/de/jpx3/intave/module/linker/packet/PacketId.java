@@ -4,7 +4,7 @@ public final class PacketId {
   public enum Client {
     @Deprecated
     ALL("*"),
-    ABILITIES("ABILITIES"),
+    ABILITIES_IN("ABILITIES"),
     ADVANCEMENTS("ADVANCEMENTS"),
     ARM_ANIMATION("ARM_ANIMATION"),
     AUTO_RECIPE("AUTO_RECIPE"),
@@ -70,7 +70,7 @@ public final class PacketId {
   public enum Server {
     @Deprecated
     ALL("*"),
-    ABILITIES("ABILITIES"),
+    ABILITIES_OUT("ABILITIES"),
     ADVANCEMENTS("ADVANCEMENTS"),
     ANIMATION("ANIMATION"),
     ATTACH_ENTITY("ATTACH_ENTITY"),

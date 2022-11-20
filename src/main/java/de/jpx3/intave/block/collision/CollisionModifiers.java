@@ -1,5 +1,6 @@
 package de.jpx3.intave.block.collision;
 
+import com.google.common.collect.Maps;
 import de.jpx3.intave.block.shape.BlockShape;
 import de.jpx3.intave.share.BoundingBox;
 import de.jpx3.intave.user.User;
@@ -7,10 +8,9 @@ import org.bukkit.Material;
 
 import java.util.EnumSet;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public final class CollisionModifiers {
-  private static final Map<Material, CollisionModifier> repository = new ConcurrentHashMap<>();
+  private static final Map<Material, CollisionModifier> repository = Maps.newEnumMap(Material.class);
   private static final EnumSet<Material> activeMaterials = EnumSet.noneOf(Material.class);
 
   public static void setup() {

@@ -8,6 +8,7 @@ import de.jpx3.intave.block.state.ExtendedBlockStateCache;
 import de.jpx3.intave.check.movement.physics.Pose;
 import de.jpx3.intave.connect.customclient.CustomClientSupportConfig;
 import de.jpx3.intave.entity.size.HitboxSize;
+import de.jpx3.intave.module.feedback.FeedbackCallback;
 import de.jpx3.intave.module.mitigate.AttackNerfStrategy;
 import de.jpx3.intave.module.violation.placeholder.PlayerContext;
 import de.jpx3.intave.module.violation.placeholder.UserContext;
@@ -47,8 +48,8 @@ final class FallbackUser implements User {
 
   FallbackUser() {
     this.metadata = new MetadataBundle(null, this);
-    this.permissionCache = new ExpiringPermissionCache(16, TimeUnit.SECONDS);
-    this.blockStateAccess = BlockStateCaches.empty();
+    this.permissionCache = ExpiringPermissionCache.withDefaultExpirationTime();
+    this.blockStateAccess = BlockStateCaches.emptyCache();
     this.collider = Colliders.suitableComplexColliderProcessorFor(this);
     this.simpleCollider = Colliders.suitableSimpleColliderProcessorFor(this);
     this.poseSizes = Pose.AT_LEAST_1_8_POSE;
@@ -294,5 +295,10 @@ final class FallbackUser implements User {
 
   @Override
   public void refreshSprintState() {
+  }
+
+  @Override
+  public void tickFeedback(FeedbackCallback<Void> callback) {
+
   }
 }

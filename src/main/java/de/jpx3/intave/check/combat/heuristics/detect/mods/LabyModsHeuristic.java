@@ -46,7 +46,7 @@ public final class LabyModsHeuristic extends CheckPart<Heuristics> {
   }
 
   public void compile() {
-    String raw = hashResource.asString();
+    String raw = hashResource.readAsString();
     if (!raw.isEmpty()) {
       JsonReader json = new JsonReader(new StringReader(raw));
       json.setLenient(true);

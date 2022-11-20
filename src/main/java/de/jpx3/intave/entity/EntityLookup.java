@@ -26,6 +26,10 @@ public final class EntityLookup {
       .expireAfterAccess(16, TimeUnit.SECONDS).weakValues()
       .concurrencyLevel(8).build();
 
+  public static void setup() {
+
+  }
+
   public static @Nullable Entity findEntity(World world, int identifier) {
     Entity entity = entityAccessCache.getIfPresent(identifier);
     if (entity != null) return entity;

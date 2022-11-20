@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
 @HighOrderService
 public final class TestService implements EventProcessor {
   private static final Resource environmentHashResource = Resources.fileCache("environmentHashes");
-  private static final Map<String, Long> supportedEnvironments = environmentHashResource.lines().stream()
+  private static final Map<String, Long> supportedEnvironments = environmentHashResource.readLines().stream()
     .filter(s -> s.contains(":"))
     .map(line -> line.split(":"))
     .collect(Collectors.toMap(split -> split[0], split -> Long.parseLong(split[1])));

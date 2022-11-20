@@ -4,11 +4,11 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.PacketContainer;
 import com.google.common.collect.Maps;
+import com.sun.org.apache.xpath.internal.operations.Mod;
 import de.jpx3.intave.IntaveLogger;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.access.IntaveInternalException;
 import de.jpx3.intave.access.player.trust.TrustFactor;
-import de.jpx3.intave.adapter.ViaVersionAdapter;
 import de.jpx3.intave.annotate.Relocate;
 import de.jpx3.intave.block.state.BlockStateCaches;
 import de.jpx3.intave.block.state.ExtendedBlockStateCache;
@@ -18,6 +18,7 @@ import de.jpx3.intave.connect.customclient.CustomClientSupportConfig;
 import de.jpx3.intave.entity.size.HitboxSize;
 import de.jpx3.intave.executor.Synchronizer;
 import de.jpx3.intave.module.Modules;
+import de.jpx3.intave.module.feedback.FeedbackCallback;
 import de.jpx3.intave.module.feedback.FeedbackSender;
 import de.jpx3.intave.module.mitigate.AttackNerfStrategy;
 import de.jpx3.intave.module.mitigate.HurttimeModifier;
@@ -52,7 +53,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
 import static de.jpx3.intave.module.feedback.FeedbackOptions.SELF_SYNCHRONIZATION;
@@ -70,7 +70,7 @@ final class PlayerUser implements User {
   private SimpleCollider simpleCollider;
   private final List<MessageChannel> receivingUserChannels = new ArrayList<>();
   private final Map<MessageChannel, Predicate<Player>> channelConstraints = Maps.newEnumMap(MessageChannel.class);
-  private final Map<Material, Material> typeTranslations = Maps.newHashMap();
+  private final Map<Material, Material> typeTranslations = Maps.newEnumMap(Material.class);
   private Map<Pose, HitboxSize> poseSizes;
   private final ExtendedBlockStateCache blockStateAccess;
   private boolean ignoreNextInboundPacket;
@@ -78,7 +78,7 @@ final class PlayerUser implements User {
   private CustomClientSupportConfig customClientConfig = CustomClientSupportConfig.createDefault();
   private final long birth = System.currentTimeMillis();
 
-  private final UserContext playerPlaceholderContext = new UserContext(this);
+  private final UserContext playerPlaceholderContext = UserContext.createFor(this);
   private final PlayerContext playerContext;
   private TrustFactor trustFactor = TrustFactor.DARK_RED;
   private final PlayerStorage storage;
@@ -88,8 +88,8 @@ final class PlayerUser implements User {
     this.playerHandle = new WeakReference<>(ReflectiveHandleAccess.handleOf(player));
     this.playerConnection = new WeakReference<>(ReflectiveHandleAccess.playerConnectionOf(player));
     this.metadata = new MetadataBundle(player, this);
-    this.permissionCache = new ExpiringPermissionCache(16, TimeUnit.SECONDS);
-    this.blockStateAccess = BlockStateCaches.forPlayer(player);
+    this.permissionCache = ExpiringPermissionCache.withDefaultExpirationTime();
+    this.blockStateAccess = BlockStateCaches.cacheForPlayer(player);
     this.collider = Colliders.suitableComplexColliderProcessorFor(this);
     this.simpleCollider = Colliders.suitableSimpleColliderProcessorFor(this);
     Synchronizer.synchronize(this::setDefaultMessagingChannel);
@@ -395,9 +395,9 @@ final class PlayerUser implements User {
   @Override
   public void noteHardTransactionResponse() {
     ConnectionMetadata connectionData = metadata.connection();
+    // why is the limit at 100? I don't know!
     if (connectionData.hardTransactionResponse++ > 100 && FaultKicks.FEEDBACK_FAULTS) {
-      Player player = player();
-      IntaveLogger.logger().error(player.getName() + " has been removed for repeated feedback faults");
+      IntaveLogger.logger().info(player().getName() + " has been removed for repeated feedback faults");
       kick("Repeated feedback faults");
     }
   }
@@ -448,6 +448,11 @@ final class PlayerUser implements User {
         }, SELF_SYNCHRONIZATION);
       }, SELF_SYNCHRONIZATION);
     }, SELF_SYNCHRONIZATION);
+  }
+
+  @Override
+  public void tickFeedback(FeedbackCallback<Void> callback) {
+    Modules.feedback().synchronize(player(), (player1, target) -> callback.success(player1, null));
   }
 
   private void sendStatsUpdate(Player player, int foodLevel, float saturationLevel) {
