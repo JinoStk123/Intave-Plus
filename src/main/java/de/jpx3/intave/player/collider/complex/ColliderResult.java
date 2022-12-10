@@ -5,18 +5,18 @@ import de.jpx3.intave.share.Motion;
 
 public final class ColliderResult {
   private static final ColliderResult INVALID_SIMULATION = new ColliderResult(
-    new Motion(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE), false, false, false, false, false, false
-  );
+    new Motion(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE), false, false, false, false, false, false, false);
 
   private final Motion motion;
   private final boolean onGround, collidedHorizontally, collidedVertically;
   private final boolean resetMotionX, resetMotionZ;
-  private final boolean step;
+  private final boolean step, edgeSneak;
 
   public ColliderResult(
     Motion motion, boolean onGround,
     boolean collidedHorizontally, boolean collidedVertically,
-    boolean resetMotionX, boolean resetMotionZ, boolean step
+    boolean resetMotionX, boolean resetMotionZ,
+    boolean step, boolean edgeSneak
   ) {
     if (motion == null) {
       throw new IllegalArgumentException("Context cannot be null");
@@ -28,6 +28,7 @@ public final class ColliderResult {
     this.resetMotionX = resetMotionX;
     this.resetMotionZ = resetMotionZ;
     this.step = step;
+    this.edgeSneak = edgeSneak;
   }
 
   public double accuracy(Motion motionVector) {
@@ -60,6 +61,10 @@ public final class ColliderResult {
 
   public boolean resetMotionZ() {
     return resetMotionZ;
+  }
+
+  public boolean edgeSneak() {
+    return edgeSneak;
   }
 
   public static ColliderResult invalid() {

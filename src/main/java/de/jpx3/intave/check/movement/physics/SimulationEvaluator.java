@@ -15,7 +15,6 @@ import de.jpx3.intave.user.meta.ViolationMetadata;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-import java.util.HashSet;
 import java.util.Set;
 
 @SplitMeUp
@@ -121,7 +120,7 @@ public final class SimulationEvaluator {
       } else if (Math.abs(Math.abs(receivedMotionY - crouchingHeightGap) - movement.jumpMotion()) < 0.01) {
         scuffed = true;
       }
-      boolean collides = Collision.present(player, BoundingBox.fromPosition(user, movement.positionX, movement.positionY, movement.positionZ)
+      boolean collides = Collision.present(player, BoundingBox.fromPosition(user, movement.positionX, movement.positionY + 0.0001, movement.positionZ)
         .expand(movement.motionX(), Math.abs(receivedMotionY + 0.1), movement.motionZ()));
 //      player.sendMessage(scuffed + " " + movement.isSneaking() + " " + Math.abs(receivedMotionY - crouchingHeightGap) + " " + Math.abs(receivedMotionY - standingHeightGap));
       if (scuffed && collides) {
@@ -384,8 +383,11 @@ public final class SimulationEvaluator {
     }
 
     if (movement.sneaking || movement.lastSneaking) {
-      if (Math.abs(movement.motionX()) < 0.05 || Math.abs(movement.motionZ()) < 0.05) {
-        horizontalLegitimateDeviation = Math.max(horizontalLegitimateDeviation, 0.1);
+      if ((Math.abs(movement.motionX()) < 0.08 || Math.abs(movement.motionZ()) < 0.08)) {
+        boolean smallMovement = Math.abs(movement.motionX()) < 0.08 && Math.abs(movement.motionZ()) < 0.08 && movement.onGround();
+        double limit = movement.pastEdgeSneak == 1 ? 0.12 : (smallMovement ? 0.099 : (movement.pastEdgeSneak < 10 ? 0.05 : 0.035));
+        horizontalLegitimateDeviation = Math.max(horizontalLegitimateDeviation, limit);
+//        player.sendMessage(String.format("Deviation extra granted: %s %s %s", extraGranted, limit, movement.pastEdgeSneak));
       }
     }
 

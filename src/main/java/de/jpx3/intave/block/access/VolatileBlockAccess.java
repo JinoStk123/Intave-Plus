@@ -134,7 +134,6 @@ public final class VolatileBlockAccess {
   public static boolean isInLoadedChunk(World world, int x, int z) {
     int chunkX = x >> 4;
     int chunkZ = z >> 4;
-    // test me!!!!
     return world.isChunkLoaded(chunkX, chunkZ) &&
       world.isChunkInUse(chunkX, chunkZ);
   }

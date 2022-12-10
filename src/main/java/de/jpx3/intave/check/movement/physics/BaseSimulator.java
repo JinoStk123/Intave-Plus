@@ -447,8 +447,12 @@ class BaseSimulator extends Simulator {
       }
     }
     movementData.increaseFlyingPacket();
-    movementData.pastPlayerAttackPhysics++;
-    movementData.pastPushedByWaterFlow++;
+    if (movementData.pastPlayerAttackPhysics < 100) {
+      movementData.pastPlayerAttackPhysics++;
+    }
+    if (movementData.pastPushedByWaterFlow < 100) {
+      movementData.pastPushedByWaterFlow++;
+    }
 
     if (movementData.onGround) {
       movementData.physicsPacketRelinkFlyVL = 0;
@@ -458,8 +462,12 @@ class BaseSimulator extends Simulator {
     boolean climbingInPowderSnow = POWDER_SNOW != null && type == POWDER_SNOW && PowderSnowCollisionModifier.canWalkOnPowderSnow(player);
     if (climbingInPowderSnow) {
       movementData.pastInPowderSnow = 0;
-    } else {
+    } else if (movementData.pastInPowderSnow < 100) {
       movementData.pastInPowderSnow++;
+    }
+
+    if (movementData.pastEdgeSneakTickGrants < 100) {
+      movementData.pastEdgeSneakTickGrants++;
     }
   }
 

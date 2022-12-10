@@ -423,7 +423,12 @@ public final class IntavePlugin extends JavaPlugin {
               continue;
             }
             String[] split1 = propertyPair.split("=");
-            properties.put(split1[0], split1[1]);
+            try {
+              properties.put(split1[0], split1[1]);
+            } catch (Exception e) {
+              System.out.println("Unable to parse property pair: " + propertyPair);
+              e.printStackTrace();
+            }
           }
           if (properties.isEmpty()) {
             logger.error("Invalid server response " + response);
@@ -575,10 +580,12 @@ public final class IntavePlugin extends JavaPlugin {
             }
             String textString = text.toString();
             if (textString.startsWith("success")) {
-              long lastSuccessfulStart = Long.parseLong(textString.split("/")[1]);
-              if (System.currentTimeMillis() - lastSuccessfulStart < TimeUnit.DAYS.toMillis(2)) {
-                writeSuccessLog = false;
-              }
+              try {
+                long lastSuccessfulStart = Long.parseLong(textString.split("/")[1]);
+                if (System.currentTimeMillis() - lastSuccessfulStart < TimeUnit.DAYS.toMillis(2)) {
+                  writeSuccessLog = false;
+                }
+              } catch (Exception ignored) {}
             }
           }
         } catch (Exception ignored) {

@@ -76,14 +76,14 @@ public final class PunishmentMetadata {
       ),
       new AttackNerfer(AttackNerfStrategy.HT_MEDIUM, DAMAGE_CANCEL_MEDIUM_DURATION, event -> {
         // Perform hurt-time change
-        int ticks = -ThreadLocalRandom.current().nextInt(4, 7);
+        int ticks = -ThreadLocalRandom.current().nextInt(0, 3);
         HurttimeModifier.applyHurtTimeChangeTo(player, (int) (DAMAGE_CANCEL_MEDIUM_DURATION / 50), ticks);
         // Perform hurt-time change on entity
         performEntityHurtTimeChange(event.getEntity());
       }),
       new AttackNerfer(AttackNerfStrategy.HT_LIGHT, DAMAGE_CANCEL_LIGHT_DURATION, event -> {
         // Perform hurt-time change
-        int ticks = -ThreadLocalRandom.current().nextInt(3, 4);
+        int ticks = -ThreadLocalRandom.current().nextInt(0, 1);
         HurttimeModifier.applyHurtTimeChangeTo(player, (int) (DAMAGE_CANCEL_LIGHT_DURATION / 50), ticks);
       }),
       new AttackNerfer(AttackNerfStrategy.BLOCKING, BLOCKING_DAMAGE_CANCEL_DURATION, event -> {

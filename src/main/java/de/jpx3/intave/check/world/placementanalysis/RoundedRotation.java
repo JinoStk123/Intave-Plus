@@ -5,6 +5,7 @@ import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.annotate.Native;
 import de.jpx3.intave.check.MetaCheckPart;
 import de.jpx3.intave.check.world.PlacementAnalysis;
+import de.jpx3.intave.connect.sibyl.SibylMessageTransmitter;
 import de.jpx3.intave.module.linker.packet.PacketSubscription;
 import de.jpx3.intave.user.MessageChannelSubscriptions;
 import de.jpx3.intave.user.User;
@@ -73,7 +74,7 @@ public class RoundedRotation extends MetaCheckPart<PlacementAnalysis, RoundedRot
   private void sendDebug(String message) {
     for (Player authenticatedPlayer : MessageChannelSubscriptions.sibylReceiver()) {
       if (plugin.sibylIntegrationService().isAuthenticated(authenticatedPlayer)) {
-        authenticatedPlayer.sendMessage(message);
+        SibylMessageTransmitter.sendMessage(authenticatedPlayer, message);
       }
     }
   }

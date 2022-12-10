@@ -29,8 +29,9 @@ public final class v14Collider implements Collider {
       motion.motionY *= 0.05f;
       motion.motionZ *= 0.25D;
     }
+    boolean edgeSneak = false;
     if (movement.onGround() && movement.isSneaking()) {
-      calculateBackOffFromEdge(user, movement.stepHeight, motion);
+      edgeSneak = calculateBackOffFromEdge(user, movement.stepHeight, motion);
     }
     double startMotionX = motion.motionX();
     double startMotionY = motion.motionY();
@@ -140,33 +141,41 @@ public final class v14Collider implements Collider {
       collidedVertically,
       moveResetX,
       moveResetZ,
-      step);
+      step, edgeSneak
+    );
   }
 
-  private void calculateBackOffFromEdge(User user, double length, Motion context) {
+  private boolean calculateBackOffFromEdge(User user, double length, Motion context) {
     Player player = user.player();
     MovementMetadata movementData = user.meta().movement();
     BoundingBox boundingBox = movementData.boundingBox();
     double motionX = context.motionX;
     double motionZ = context.motionZ;
+    boolean edgeSneak = false;
     while (motionX != 0.0D
       && Collision.nonePresent(player, boundingBox.offset(motionX, -length, 0.0D))) {
       if (motionX < 0.05D && motionX >= -0.05D) {
         motionX = 0.0D;
+        edgeSneak = true;
       } else if (motionX > 0.0D) {
         motionX -= 0.05D;
+        edgeSneak = true;
       } else {
         motionX += 0.05D;
+        edgeSneak = true;
       }
     }
     while (motionZ != 0.0D
       && Collision.nonePresent(player, boundingBox.offset(0.0D, -length, motionZ))) {
       if (motionZ < 0.05D && motionZ >= -0.05D) {
         motionZ = 0.0D;
+        edgeSneak = true;
       } else if (motionZ > 0.0D) {
         motionZ -= 0.05D;
+        edgeSneak = true;
       } else {
         motionZ += 0.05D;
+        edgeSneak = true;
       }
     }
     while (motionX != 0.0D
@@ -174,10 +183,13 @@ public final class v14Collider implements Collider {
       && Collision.nonePresent(player, boundingBox.offset(motionX, -length, motionZ))) {
       if (motionX < 0.05D && motionX >= -0.05D) {
         motionX = 0.0D;
+        edgeSneak = true;
       } else if (motionX > 0.0D) {
         motionX -= 0.05D;
+        edgeSneak = true;
       } else {
         motionX += 0.05D;
+        edgeSneak = true;
       }
       if (motionZ < 0.05D && motionZ >= -0.05D) {
         motionZ = 0.0D;
@@ -189,5 +201,6 @@ public final class v14Collider implements Collider {
     }
     context.motionX = motionX;
     context.motionZ = motionZ;
+    return edgeSneak;
   }
 }

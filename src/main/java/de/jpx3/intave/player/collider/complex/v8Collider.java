@@ -26,34 +26,44 @@ public final class v8Collider implements Collider {
     double startMotionY = context.motionY;
     double startMotionZ = context.motionZ;
     boolean step = false;
+    boolean edgeSneak = false;
     if (movement.onGround() && movement.isSneaking()) {
       BoundingBox boundingBox = movement.boundingBox();
       double size;
       for (size = 0.05D; context.motionX != 0.0D && Collision.nonePresent(player, boundingBox.offset(context.motionX, -1.0D, 0.0D)); startMotionX = context.motionX) {
         if (context.motionX < size && context.motionX >= -size) {
           context.motionX = 0.0D;
+          edgeSneak = true;
         } else if (context.motionX > 0.0D) {
           context.motionX -= size;
+          edgeSneak = true;
         } else {
           context.motionX += size;
+          edgeSneak = true;
         }
       }
       for (; context.motionZ != 0.0D && Collision.nonePresent(player, boundingBox.offset(0.0D, -1.0D, context.motionZ)); startMotionZ = context.motionZ) {
         if (context.motionZ < size && context.motionZ >= -size) {
           context.motionZ = 0.0D;
+          edgeSneak = true;
         } else if (context.motionZ > 0.0D) {
           context.motionZ -= size;
+          edgeSneak = true;
         } else {
           context.motionZ += size;
+          edgeSneak = true;
         }
       }
       for (; context.motionX != 0.0D && context.motionZ != 0.0D && Collision.nonePresent(player, boundingBox.offset(context.motionX, -1.0D, context.motionZ)); startMotionZ = context.motionZ) {
         if (context.motionX < size && context.motionX >= -size) {
           context.motionX = 0.0D;
+          edgeSneak = true;
         } else if (context.motionX > 0.0D) {
           context.motionX -= size;
+          edgeSneak = true;
         } else {
           context.motionX += size;
+          edgeSneak = true;
         }
         startMotionX = context.motionX;
         if (context.motionZ < size && context.motionZ >= -size) {
@@ -141,7 +151,8 @@ public final class v8Collider implements Collider {
     context.motionZ = newPositionZ - positionZ;
     return new ColliderResult(
       Motion.copyFrom(context), onGround,
-      collidedHorizontally, collidedVertically, moveResetX, moveResetZ, step
+      collidedHorizontally, collidedVertically, moveResetX, moveResetZ,
+      step, edgeSneak
     );
   }
 }

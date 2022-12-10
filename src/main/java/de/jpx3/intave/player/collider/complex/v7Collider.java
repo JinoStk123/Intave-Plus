@@ -71,6 +71,8 @@ public final class v7Collider implements Collider {
       startMotionZ = var37.allowedOffset(Direction.Axis.Z_AXIS, entityBoundingBox, startMotionZ);
       entityBoundingBox.offset(0, 0, startMotionZ);
 
+      // where is the sneak limiter?
+
       if (var38 * var38 + var27 * var27 >= startMotionX * startMotionX + startMotionZ * startMotionZ) {
         startMotionX = var38;
         startMotionY = var25;
@@ -94,7 +96,8 @@ public final class v7Collider implements Collider {
     context.motionZ = newPositionZ - positionZ;
     return new ColliderResult(
       Motion.copyFrom(context), onGround,
-      collidedHorizontally, collidedVertically, moveResetX, moveResetZ, step
+      collidedHorizontally, collidedVertically, moveResetX, moveResetZ,
+      step, false
     );
   }
 }

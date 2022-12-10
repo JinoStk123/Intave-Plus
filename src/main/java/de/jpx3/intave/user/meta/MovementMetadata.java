@@ -8,7 +8,6 @@ import com.comphenix.protocol.wrappers.WrappedAttributeModifier;
 import com.google.common.collect.ImmutableList;
 import de.jpx3.intave.IntaveControl;
 import de.jpx3.intave.adapter.MinecraftVersions;
-import de.jpx3.intave.adapter.ProtocolLibraryAdapter;
 import de.jpx3.intave.annotate.DispatchTarget;
 import de.jpx3.intave.annotate.Nullable;
 import de.jpx3.intave.annotate.Relocate;
@@ -102,6 +101,7 @@ public final class MovementMetadata implements SimulationEnvironment {
   public int pastLongTeleport = 100;
   public int pastInventoryOpen = 100;
   public int pastBlockPlacement = 100;
+  public int pastEdgeSneak = 100;
   public boolean onLadderLast;
   public boolean aquaticUpdateInLava;
   public boolean sprintResetNextTick;
@@ -115,6 +115,7 @@ public final class MovementMetadata implements SimulationEnvironment {
   public int pastRiptideSpin = 100;
   public int pastPlayerAttackPhysics = 100;
   public int pastInPowderSnow = 100;
+  public int pastEdgeSneakTickGrants;
   public boolean physicsResetMotionX, physicsResetMotionZ;
   public int keyForward, keyStrafe;
   public int lastKeyForward, lastKeyStrafe;

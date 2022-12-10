@@ -17,6 +17,8 @@ import de.jpx3.intave.user.meta.CheckCustomMetadata;
 import de.jpx3.intave.user.meta.MovementMetadata;
 import org.bukkit.entity.Player;
 
+import static de.jpx3.intave.check.combat.heuristics.Anomaly.AnomalyOption.DELAY_16s;
+import static de.jpx3.intave.check.combat.heuristics.Anomaly.AnomalyOption.LIMIT_1;
 import static de.jpx3.intave.module.linker.packet.PacketId.Client.*;
 
 public final class SprintOnAttackHeuristic extends MetaCheckPart<Heuristics, SprintOnAttackHeuristic.SprintOnAttackHeuristicMeta> {
@@ -94,7 +96,8 @@ public final class SprintOnAttackHeuristic extends MetaCheckPart<Heuristics, Spr
           "200",
           Confidence.NONE,
           Anomaly.Type.KILLAURA,
-          "sprint-toggles aligned with attacks (" + MathHelper.formatDouble(ratioBefore, 2) + "%)", Anomaly.AnomalyOption.DELAY_16s
+          "sprint-toggles aligned with attacks (" + MathHelper.formatDouble(ratioBefore, 2) + "%)",
+          DELAY_16s | LIMIT_1
         );
         parentCheck().saveAnomaly(player, anomaly);
       }

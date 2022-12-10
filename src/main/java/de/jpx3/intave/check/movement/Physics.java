@@ -138,6 +138,9 @@ public final class Physics extends Check {
     movementData.physicsResetMotionX = collider.resetMotionX();
     movementData.physicsResetMotionZ = collider.resetMotionZ();
     movementData.step = collider.step();
+    if (collider.edgeSneak()) {
+      movementData.pastEdgeSneak = 0;
+    }
     Timings.CHECK_PHYSICS_PROC_TOT.stop();
     Timings.CHECK_PHYSICS_EVAL.start();
     // evaluation
@@ -661,6 +664,10 @@ public final class Physics extends Check {
 //      debug += " web (a: " + shortenBoolean(movementData.inWeb) + ", r: " + shortenBoolean(collidesWeb(user, currentBoundingBox)) + ")";
       if (movementData.pastNearbyCollisionInaccuracy < 3) {
         debug += ChatColor.ITALIC + " pci:" + movementData.pastNearbyCollisionInaccuracy + chatColor;
+      }
+
+      if (movementData.pastEdgeSneak < 4) {
+        debug += ChatColor.ITALIC + " esnk:" + movementData.pastEdgeSneak + chatColor;
       }
 //      debug += " ai ?" + movementData.aiMoveSpeed();
 //      debug += " sprint " + shortenBoolean(movementData.sprinting) + "/" + shortenBoolean(movementData.hasSprintSpeed);

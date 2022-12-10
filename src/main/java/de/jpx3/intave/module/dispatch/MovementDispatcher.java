@@ -717,6 +717,7 @@ public final class MovementDispatcher extends Module {
     inventoryData.pastItemUsageTransition++;
     movement.pastWaterMovement++;
     movement.pastVelocity++;
+    movement.pastEdgeSneak++;
     movement.ignoredAttackReduce = false;
     if (hasMovement || hasRotation) {
       movement.pastExternalVelocity++;
