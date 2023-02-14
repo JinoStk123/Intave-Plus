@@ -388,10 +388,12 @@ public final class SimulationEvaluator {
         if (movement.motionY() >= 0.1 && protocol.cavesAndCliffsUpdate() && movement.pastEdgeSneak <= 1 && movement.sprinting && distanceMoved <= 0.5) {
           limit = 0.3;
         }
+        if (movement.pastEdgeSneak <= 3 && !protocol.flyingPacketsAreSent()) {
+          limit = 0.07;
+        }
       } else {
         if (movement.pastEdgeSneak <= 3) {
           boolean smallMovement = (Math.abs(movement.motionX()) < 0.099 && Math.abs(movement.motionZ()) < 0.2) || (Math.abs(movement.motionZ()) < 0.099 && Math.abs(movement.motionX()) < 0.2) && movement.onGround();
-//          player.sendMessage(movement.motionX() + " " + movement.motionZ() + " " + smallMovement);
           limit = smallMovement ? 0.2 : 0.02;
         }
       }
