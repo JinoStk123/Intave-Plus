@@ -108,7 +108,7 @@ public final class PacketDelayer extends Module {
     PacketContainer packetContainer = event.getPacket();
     PacketType packetType = event.getPacketType();
 
-    if (user.justJoined() || !(reverseBlink || reverseLag) || user.trustFactor().atLeast(TrustFactor.YELLOW)) {
+    if (user.justJoined() || !(reverseBlink || reverseLag)) {
       return;
     }
 

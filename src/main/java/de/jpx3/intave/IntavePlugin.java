@@ -751,7 +751,7 @@ public final class IntavePlugin extends JavaPlugin {
     if (viaBackwards != null) {
       if (!viaBackwards.getConfig().getBoolean("handle-pings-as-inv-acknowledgements", false)) {
         logger.warn("ViaBackwards is not configured to replace ping packets with inventory acknowledgement packets");
-        logger.warn("This will lead to incorrect, feedback-related termination of connections");
+        logger.warn("This will lead to incorrect, feedback-related disconnects");
       }
     }
 
