@@ -155,40 +155,33 @@ public final class v14Collider implements Collider {
       && Collision.nonePresent(player, boundingBox.offset(motionX, -length, 0.0D))) {
       if (motionX < 0.05D && motionX >= -0.05D) {
         motionX = 0.0D;
-        edgeSneak = true;
       } else if (motionX > 0.0D) {
         motionX -= 0.05D;
-        edgeSneak = true;
       } else {
         motionX += 0.05D;
-        edgeSneak = true;
       }
+      edgeSneak = true;
     }
     while (motionZ != 0.0D
       && Collision.nonePresent(player, boundingBox.offset(0.0D, -length, motionZ))) {
       if (motionZ < 0.05D && motionZ >= -0.05D) {
         motionZ = 0.0D;
-        edgeSneak = true;
       } else if (motionZ > 0.0D) {
         motionZ -= 0.05D;
-        edgeSneak = true;
       } else {
         motionZ += 0.05D;
-        edgeSneak = true;
       }
+      edgeSneak = true;
     }
     while (motionX != 0.0D
       && motionZ != 0.0D
       && Collision.nonePresent(player, boundingBox.offset(motionX, -length, motionZ))) {
       if (motionX < 0.05D && motionX >= -0.05D) {
         motionX = 0.0D;
-        edgeSneak = true;
       } else if (motionX > 0.0D) {
         motionX -= 0.05D;
-        edgeSneak = true;
       } else {
         motionX += 0.05D;
-        edgeSneak = true;
       }
       if (motionZ < 0.05D && motionZ >= -0.05D) {
         motionZ = 0.0D;
@@ -197,6 +190,7 @@ public final class v14Collider implements Collider {
       } else {
         motionZ += 0.05D;
       }
+      edgeSneak = true;
     }
     context.motionX = motionX;
     context.motionZ = motionZ;
