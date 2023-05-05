@@ -49,22 +49,22 @@ public final class SneakAndPlace extends MetaCheckPart<PlacementAnalysis, SneakA
         // difference to last sneak start
         long diff = meta.startSneakInThisTick ? 0 : meta.tickCount - meta.lastSneakStart;
 
-        boolean suspiciousSneaking = diff <= 2 && meta.lastSneakDuration <= 2;
+        boolean suspiciousSneaking = diff <= 2 && meta.lastSneakDuration < 2;
         if (!suspiciousSneaking && meta.violationLevel > 0) {
-          meta.violationLevel -= 0.05;
+          meta.violationLevel -= 0.1;
         } else if (suspiciousSneaking) {
-          meta.violationLevel += diff > 1 ? 0.1 : 1;
+          meta.violationLevel += diff > 1 ? 0.1 : 0.5;
 //          player.sendMessage(ChatColor.YELLOW + "Sneak start -> Place: " + diff + " last duration: " + meta.lastSneakDuration);
         }
       }
       if (meta.sneakChangedInThisTick) {
         // difference to last place
         long diff = meta.placedInThisTick ? 0 : meta.tickCount - meta.lastPlace;
-        boolean suspiciousSneaking = diff <= 2 && meta.lastSneakDuration <= 2;
+        boolean suspiciousSneaking = diff <= 2 && meta.lastSneakDuration < 2;
         if (!suspiciousSneaking && meta.violationLevel > 0) {
-          meta.violationLevel -= 0.05;
+          meta.violationLevel -= 0.1;
         } else if (suspiciousSneaking) {
-          meta.violationLevel += diff > 1 ? 0.1 : 1;
+          meta.violationLevel += diff > 1 ? 0.1 : 0.75;
 //          player.sendMessage(ChatColor.YELLOW +"Place -> Sneak start: " + diff + " last duration: " + meta.lastSneakDuration);
         }
       }
