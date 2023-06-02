@@ -35,34 +35,37 @@ public final class SneakAndPlace extends MetaCheckPart<PlacementAnalysis, SneakA
   }
 
   @PacketSubscription(
-    priority = ListenerPriority.HIGH,
-    packetsIn = {
-      FLYING, LOOK, POSITION, POSITION_LOOK
-    }
+      priority = ListenerPriority.HIGH,
+      packetsIn = {
+          FLYING, LOOK, POSITION, POSITION_LOOK
+      }
   )
   public void clientTickUpdate(PacketEvent event) {
     Player player = event.getPlayer();
     SneakAndPlaceMeta meta = metaOf(player);
     if (meta.placedInThisTick || meta.sneakChangedInThisTick) {
+//      player.sendMessage(meta.sneakInThisTick + "("+meta.startSneakInThisTick+","+meta.stopSneakInThisTick+")/" + meta.placedInThisTick);
       if (meta.placedInThisTick) {
         // difference to last sneak start
         long diff = meta.startSneakInThisTick ? 0 : meta.tickCount - meta.lastSneakStart;
 
-        boolean suspiciousSneaking = diff <= 2 && meta.lastSneakDuration <= 2;
+        boolean suspiciousSneaking = diff <= 2 && meta.lastSneakDuration < 2;
         if (!suspiciousSneaking && meta.violationLevel > 0) {
-          meta.violationLevel -= 0.05;
+          meta.violationLevel -= 0.1;
         } else if (suspiciousSneaking) {
-          meta.violationLevel += diff > 1 ? 0.1 : 1;
+          meta.violationLevel += diff > 1 ? 0.1 : 0.5;
+//          player.sendMessage(ChatColor.YELLOW + "Sneak start -> Place: " + diff + " last duration: " + meta.lastSneakDuration);
         }
       }
       if (meta.sneakChangedInThisTick) {
         // difference to last place
         long diff = meta.placedInThisTick ? 0 : meta.tickCount - meta.lastPlace;
-        boolean suspiciousSneaking = diff <= 2 && meta.lastSneakDuration <= 2;
+        boolean suspiciousSneaking = diff <= 2 && meta.lastSneakDuration < 2;
         if (!suspiciousSneaking && meta.violationLevel > 0) {
-          meta.violationLevel -= 0.05;
+          meta.violationLevel -= 0.1;
         } else if (suspiciousSneaking) {
-          meta.violationLevel += diff > 1 ? 0.1 : 1;
+          meta.violationLevel += diff > 1 ? 0.1 : 0.75;
+//          player.sendMessage(ChatColor.YELLOW +"Place -> Sneak start: " + diff + " last duration: " + meta.lastSneakDuration);
         }
       }
     }
@@ -81,10 +84,10 @@ public final class SneakAndPlace extends MetaCheckPart<PlacementAnalysis, SneakA
   }
 
   @PacketSubscription(
-    priority = ListenerPriority.HIGH,
-    packetsIn = {
-      BLOCK_PLACE
-    }
+      priority = ListenerPriority.HIGH,
+      packetsIn = {
+          BLOCK_PLACE
+      }
   )
   public void receivePlacementPacket(PacketEvent event) {
     PacketContainer packet = event.getPacket();
@@ -108,10 +111,10 @@ public final class SneakAndPlace extends MetaCheckPart<PlacementAnalysis, SneakA
   }
 
   @PacketSubscription(
-    priority = ListenerPriority.HIGH,
-    packetsIn = {
-      ENTITY_ACTION_IN
-    }
+      priority = ListenerPriority.HIGH,
+      packetsIn = {
+          ENTITY_ACTION_IN
+      }
   )
   public void receiveEntityActionPacket(PacketEvent event) {
     Player player = event.getPlayer();
@@ -120,16 +123,22 @@ public final class SneakAndPlace extends MetaCheckPart<PlacementAnalysis, SneakA
     PlayerActionReader reader = PacketReaders.readerOf(packet);
 
     PlayerAction action = reader.playerAction();
-    if (action.isStartSneak()) {
-      meta.startSneakInThisTick = true;
-      meta.sneakChangedInThisTick = true;
-      meta.sneakDuration = 0;
-    } else if (action.isStopSneak()) {
-      meta.stopSneakInThisTick = true;
-      meta.sneakChangedInThisTick = true;
-      meta.lastSneakDuration = meta.sneakDuration;
-      meta.sneakDuration = 0;
+    switch (action) {
+      case START_SNEAKING:
+        meta.startSneakInThisTick = true;
+        meta.sneakChangedInThisTick = true;
+        meta.isSneaking = true;
+        meta.sneakDuration = 0;
+        break;
+      case STOP_SNEAKING:
+        meta.stopSneakInThisTick = true;
+        meta.sneakChangedInThisTick = true;
+        meta.isSneaking = false;
+        meta.lastSneakDuration = meta.sneakDuration;
+        meta.sneakDuration = 0;
+        break;
     }
+
     reader.release();
   }
 
@@ -142,10 +151,10 @@ public final class SneakAndPlace extends MetaCheckPart<PlacementAnalysis, SneakA
     if (place.getBlock().getY() < player.getLocation().getBlockY() && isOneLine(meta.lastBlocksPlaced) && blockAgainstWasPlaced(user, place.getBlockAgainst())) {
       if (meta.violationLevel > 5) {
         Violation violation = Violation.builderFor(PlacementAnalysis.class)
-          .forPlayer(player).withDefaultThreshold()
-          .withMessage(COMMON_FLAG_MESSAGE)
-          .withDetails("sneaking seems to be automated")
-          .withDefaultThreshold().withVL(Math.min(meta.violationLevel / 1.5, 5)).build();
+            .forPlayer(player).withDefaultThreshold()
+            .withMessage(COMMON_FLAG_MESSAGE)
+            .withDetails("sneaking seems to be automated")
+            .withDefaultThreshold().withVL(Math.min(meta.violationLevel / 1.5, 5)).build();
         Modules.violationProcessor().processViolation(violation);
       }
     } else {
@@ -162,10 +171,10 @@ public final class SneakAndPlace extends MetaCheckPart<PlacementAnalysis, SneakA
 
   private boolean isOneLine(List<? extends Vector> blocks) {
     int lastBlockX = 0,
-      lastBlockY = 0,
-      lastBlockZ = 0;
+        lastBlockY = 0,
+        lastBlockZ = 0;
     boolean lockedOnX = false,
-      lockedOnZ = false;
+        lockedOnZ = false;
     boolean first = true;
     int yTolerance = 2;
     for (Vector block : blocks) {
@@ -212,6 +221,8 @@ public final class SneakAndPlace extends MetaCheckPart<PlacementAnalysis, SneakA
     private boolean stopSneakInThisTick;
     private boolean sneakChangedInThisTick;
     private boolean placedInThisTick;
+    private boolean isSneaking;
+    private boolean suspicious;
     private long lastSneakStart;
     private long lastPlace;
     private long lastSneakDuration = 10;
