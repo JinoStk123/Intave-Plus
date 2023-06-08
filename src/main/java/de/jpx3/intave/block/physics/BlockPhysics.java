@@ -21,7 +21,6 @@ public final class BlockPhysics {
     setup(SoulSandPhysics.class);
     setup(BerryBushPhysics.class);
     setup(HoneyPhysics.class);
-    setup(WebPhysics.class);
     setup(FluidPhysics.class);
     setup(BubbleColumnPhysics.class);
     setup(PowderSnowPhysics.class);

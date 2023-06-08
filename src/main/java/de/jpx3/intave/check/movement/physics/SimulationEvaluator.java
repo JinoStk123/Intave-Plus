@@ -389,7 +389,7 @@ public final class SimulationEvaluator {
 //      player.sendMessage("Gave you " + (velocityDistance * 1.2 - distanceMoved) + " tolerance for velocity, plus extra " + velocityDistance + " for distance, " + distanceMoved + " for distance moved");
     }
 
-    if (movement.sneaking || movement.lastSneaking) {
+    if (movement.sneakingTicks <= 1) {
       double limit = 0;
       if ((Math.abs(movement.motionX()) < 0.08 || Math.abs(movement.motionZ()) < 0.08) || (movement.sprinting && protocol.cavesAndCliffsUpdate())) {
         boolean smallMovement = Math.abs(movement.motionX()) < 0.08 && Math.abs(movement.motionZ()) < 0.08 && movement.onGround();
