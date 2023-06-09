@@ -427,7 +427,7 @@ public final class AttackRaytrace extends MetaCheck<AttackRaytrace.AttackRaytrac
       vl /= 2f;
     }
     attackRaytraceMeta.lastPosition = raytrace.targetPosition();
-    return 0;
+    return vl;
   }
 
   /**
