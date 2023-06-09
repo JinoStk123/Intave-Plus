@@ -49,7 +49,7 @@ public final class InventoryClickOnMoveCheck extends CheckPart<InventoryClickAna
     }
 
     // Be more lenient when a flying packet was sent
-    if (movementData.inWeb || movementData.recentlyEncounteredFlyingPacket(2)) {
+    if (movementData.inWeb || movementData.receivedFlyingPacketIn(2)) {
       return;
     }
 

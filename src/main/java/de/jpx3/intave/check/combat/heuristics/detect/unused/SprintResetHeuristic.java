@@ -127,7 +127,7 @@ public final class SprintResetHeuristic extends MetaCheckPart<Heuristics, Sprint
     if (packetType.name().equals("FLYING") || packetType == PacketType.Play.Client.LOOK) {
       sendFlyingPacket = true;
     } else if (user.protocolVersion() >= ProtocolMetadata.VER_1_9) {
-      if (movementData.recentlyEncounteredFlyingPacket(2) || movementData.pastFlyingPacketAccurate() <= 2) {
+      if (movementData.receivedFlyingPacketIn(2) || movementData.pastFlyingPacketAccurate() <= 2) {
         sendFlyingPacket = true;
       }
     }
@@ -141,7 +141,7 @@ public final class SprintResetHeuristic extends MetaCheckPart<Heuristics, Sprint
       && movementData.lastTeleport != 0
       && movementData.keyForward == 1
       && !meta.startSneak
-      && !movementData.recentlyEncounteredFlyingPacket(2)
+      && !movementData.receivedFlyingPacketIn(2)
       && movementData.pastFlyingPacketAccurate() > 2
       // could also use other values to activate the check (for example could a scaffold walk flag this check)
       && meta.lastAttack < 80

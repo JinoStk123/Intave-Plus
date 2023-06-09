@@ -51,7 +51,7 @@ public final class AttackReduceIgnoreHeuristic extends MetaCheckPart<Heuristics,
       return;
     }
 
-    if (movementData.recentlyEncounteredFlyingPacket(1)) {
+    if (movementData.receivedFlyingPacketIn(1)) {
       return;
     }
 

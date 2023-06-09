@@ -1130,13 +1130,13 @@ public final class MovementDispatcher extends Module {
   }
 
   @PacketSubscription(
-      priority = ListenerPriority.HIGH,
-      packetsIn = {
-          ENTITY_ACTION_IN
-      }
+    priority = ListenerPriority.HIGH,
+    packetsIn = {
+      ENTITY_ACTION_IN
+    }
   )
   public void receiveEntityActionPacket(
-      User user, PlayerActionReader reader, Cancellable cancelable
+    User user, PlayerActionReader reader, Cancellable cancelable
   ) {
     MetadataBundle meta = user.meta();
     MovementMetadata movementData = meta.movement();

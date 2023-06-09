@@ -77,7 +77,7 @@ public final class PacketPlayerActionToggleHeuristic extends MetaCheckPart<Heuri
 
     if (flag) {
       boolean flyingPacketStream = clientData.flyingPacketsAreSent();
-      boolean checkable = flyingPacketStream || !movementData.recentlyEncounteredFlyingPacket(20);
+      boolean checkable = flyingPacketStream || !movementData.receivedFlyingPacketIn(20);
       if (checkable) {
         String description = sprint
           ? "sent too many sprint toggles per tick (" + heuristicMeta.sprintTogglesInTick + ")"

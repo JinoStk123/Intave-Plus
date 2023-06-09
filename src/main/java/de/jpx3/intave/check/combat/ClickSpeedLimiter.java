@@ -83,7 +83,7 @@ public final class ClickSpeedLimiter extends MetaCheck<ClickSpeedLimiter.ClickSp
       // 1.9+
       MovementMetadata movementData = user.meta().movement();
 
-      if (movementData.recentlyEncounteredFlyingPacket(0)
+      if (movementData.receivedFlyingPacketIn(0)
         || meta.lastMovePacketType.name().equals("FLYING") || meta.lastMovePacketType == PacketType.Play.Client.LOOK
       ) {
         meta.countAccuratePositionPackets = 0;

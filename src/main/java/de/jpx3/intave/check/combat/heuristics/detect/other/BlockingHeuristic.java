@@ -160,7 +160,7 @@ public final class BlockingHeuristic extends MetaCheckPart<Heuristics, BlockingH
       return;
     }
     // checks if the client version is above 1.8 for disabling the check if the player is standing still
-    if (!movementData.recentlyEncounteredFlyingPacket(2) || clientData.protocolVersion() < VER_1_9) {
+    if (!movementData.receivedFlyingPacketIn(2) || clientData.protocolVersion() < VER_1_9) {
       if (meta.heldItemOperations > 0) {
         if (meta.blocksPlacedThisTick == 0 || meta.heldItemOperations > 2) {
           String description = "sent too many item operations (operations: " + meta.heldItemOperations + ")";

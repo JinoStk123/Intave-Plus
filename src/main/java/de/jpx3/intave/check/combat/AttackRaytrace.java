@@ -2,7 +2,7 @@ package de.jpx3.intave.check.combat;
 
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
-import com.comphenix.protocol.wrappers.EnumWrappers;
+import com.comphenix.protocol.wrappers.EnumWrappers.EntityUseAction;
 import de.jpx3.intave.IntaveLogger;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.access.player.trust.TrustFactor;
@@ -16,7 +16,6 @@ import de.jpx3.intave.diagnostic.message.MessageCategory;
 import de.jpx3.intave.diagnostic.message.MessageSeverity;
 import de.jpx3.intave.math.MathHelper;
 import de.jpx3.intave.module.Modules;
-import de.jpx3.intave.module.linker.packet.ListenerPriority;
 import de.jpx3.intave.module.linker.packet.PacketSubscription;
 import de.jpx3.intave.module.mitigate.AttackNerfStrategy;
 import de.jpx3.intave.module.tracker.entity.Entity;
@@ -24,12 +23,13 @@ import de.jpx3.intave.module.tracker.entity.EntityTracker;
 import de.jpx3.intave.module.violation.Violation;
 import de.jpx3.intave.module.violation.ViolationContext;
 import de.jpx3.intave.packet.PacketSender;
+import de.jpx3.intave.packet.reader.EntityUseReader;
+import de.jpx3.intave.packet.reader.PacketReaders;
 import de.jpx3.intave.share.Position;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.meta.*;
 import de.jpx3.intave.world.raytrace.Raytrace;
 import de.jpx3.intave.world.raytrace.Raytracing;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
@@ -37,6 +37,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.function.Function;
 
+import static com.comphenix.protocol.wrappers.EnumWrappers.EntityUseAction.ATTACK;
+import static de.jpx3.intave.module.linker.packet.ListenerPriority.*;
 import static de.jpx3.intave.module.linker.packet.PacketId.Client.*;
 import static de.jpx3.intave.module.violation.Violation.ViolationFlags.DONT_PROCESS_VIOSTAT;
 import static de.jpx3.intave.user.meta.ProtocolMetadata.VER_1_9;
@@ -53,49 +55,48 @@ public final class AttackRaytrace extends MetaCheck<AttackRaytrace.AttackRaytrac
   public AttackRaytrace(IntavePlugin plugin) {
     super("AttackRaytrace", "attackraytrace", AttackRaytraceMeta.class);
     this.plugin = plugin;
-    this.hitboxDecrementer =
-        new CheckViolationLevelDecrementer(
-            this, "applicable-thresholds.hitbox", VL_DECREMENT_PER_ATTACK * 0.5);
-    this.reachDecrementer =
-        new CheckViolationLevelDecrementer(
-            this, "applicable-thresholds.reach", VL_DECREMENT_PER_ATTACK * 2);
+    this.hitboxDecrementer = new CheckViolationLevelDecrementer(this, "applicable-thresholds.hitbox", VL_DECREMENT_PER_ATTACK * 0.5);
+    this.reachDecrementer = new CheckViolationLevelDecrementer(this, "applicable-thresholds.reach", VL_DECREMENT_PER_ATTACK * 2);
     this.zeroNetworkTolerance = plugin.getConfig().getBoolean("checks.timer.low-tolerance", false) && plugin.getConfig().getBoolean("checks.timer.block-stutter-hits", false);
     // Send a notice message to the server owner if zero tolerance is enabled
     if (zeroNetworkTolerance) {
-      IntaveLogger.logger().info("Zero network tolerance is enabled.");
+      IntaveLogger.logger().info("Zero network tolerance enabled");
     }
   }
 
   @PacketSubscription(
-      priority = ListenerPriority.LOW,
-      packetsIn = {USE_ENTITY})
+      priority = LOW,
+      packetsIn = USE_ENTITY
+  )
   public void receiveUseEntityPacket(PacketEvent event) {
     Player player = event.getPlayer();
     User user = userOf(player);
-    AttackRaytraceMeta attackRaytraceMeta = metaOf(user);
+    AttackRaytraceMeta meta = metaOf(user);
     AbilityMetadata abilities = user.meta().abilities();
+
     PacketContainer packet = event.getPacket();
-    EnumWrappers.EntityUseAction action = packet.getEntityUseActions().readSafely(0);
-    if (action == null) {
-      action = packet.getEnumEntityUseActions().read(0).getAction();
-    }
+    EntityUseReader reader = PacketReaders.readerOf(packet);
+    EntityUseAction action = reader.useAction();
+
     // Only process attacks, interactions should not be checked
-    if (action == EnumWrappers.EntityUseAction.ATTACK) {
-      List<Attack> pendingAttacks = attackRaytraceMeta.pendingAttacks;
+    if (action == ATTACK) {
+      List<Attack> pendingAttacks = meta.pendingAttacks;
       int entityId = packet.getIntegers().read(0);
       Entity entity = EntityTracker.entityByIdentifier(user, entityId);
       // Allow attacks on invalid entity states
       if (entity == null
           || entity instanceof Entity.Destroyed
           || abilities.unsynchronizedHealth <= 0) {
+        reader.release();
         return;
       }
       // Make a first attempt at ray-tracing to reduce compute time
       Raytrace raytrace = fireRaytraceFor(user, entity, computeExpansionFor(user), false);
-      double blockReachDistance = Raytracing.reachDistance(user.meta());
+      double blockReachDistance = Raytracing.reachDistanceOf(user);
       if (raytrace.reach() <= blockReachDistance) {
         hitboxDecrementer.decrement(user, VL_DECREMENT_PER_ATTACK);
         reachDecrementer.decrement(user, VL_DECREMENT_PER_ATTACK);
+        reader.release();
         return;
       }
       PacketContainer clone = packet.deepClone();
@@ -110,34 +111,36 @@ public final class AttackRaytrace extends MetaCheck<AttackRaytrace.AttackRaytrac
         pendingAttacks.add(attack);
       }
     }
+    reader.release();
   }
 
   @PacketSubscription(
-      priority = ListenerPriority.HIGH,
-      packetsIn = {FLYING, LOOK, POSITION, POSITION_LOOK})
+      priority = HIGH,
+      packetsIn = {FLYING, LOOK, POSITION, POSITION_LOOK}
+  )
   public void receiveMovementPacket(PacketEvent event) {
     Player player = event.getPlayer();
     User user = userOf(player);
-    AttackRaytraceMeta attackRaytraceMeta = metaOf(user);
-    AbilityMetadata abilityData = user.meta().abilities();
-    MovementMetadata movementData = user.meta().movement();
-    ProtocolMetadata clientData = user.meta().protocol();
-    List<Attack> pendingAttacks = attackRaytraceMeta.pendingAttacks;
+    AttackRaytraceMeta meta = metaOf(user);
+    AbilityMetadata abilities = user.meta().abilities();
+    MovementMetadata movement = user.meta().movement();
+    ProtocolMetadata protocol = user.meta().protocol();
+    List<Attack> pendingAttacks = meta.pendingAttacks;
     int maximumPendingFeedbackPackets = trustFactorSetting("pending-allowance", player) + (int) MathHelper.minmax(0, LatencyStudy.cachedAverage(), 20);
     PacketContainer packet = event.getPacket();
     // Clear attacks if recently teleported
-    if (movementData.lastTeleport == 0) {
+    if (movement.lastTeleport == 0) {
       pendingAttacks.clear();
     }
     // Apply flying packets (first boolean)
     if (!packet.getBooleans().read(1)) {
-      attackRaytraceMeta.flyingPacketCounter++;
+      meta.flyingPacketCounter++;
     } else {
-      attackRaytraceMeta.flyingPacketCounter = 0;
+      meta.flyingPacketCounter = 0;
     }
     // Process all pending attacks
     for (Attack pendingAttack : pendingAttacks) {
-      float entityHealth = abilityData.unsynchronizedHealth;
+      float entityHealth = abilities.unsynchronizedHealth;
       Entity attackedEntity = EntityTracker.entityByIdentifier(user, pendingAttack.entityId);
       // Once again ignore invalid entity states to make sure nothing is processed wrongly
       if (entityHealth <= 0
@@ -171,8 +174,9 @@ public final class AttackRaytrace extends MetaCheck<AttackRaytrace.AttackRaytrac
           entityHasNotTimedOut = false;
         }
       }
+
       boolean entityOutOfSync =
-          (!clientData.flyingPacketsAreSent() && movementData.recentlyEncounteredFlyingPacket(2))
+          (!protocol.flyingPacketsAreSent() && movement.receivedFlyingPacketIn(2))
               || !attackedEntity.clientSynchronized;
       // As entity attack redirections are processed inside this, we don't need to do anything extra to block hits besides
       // just not raytracing
@@ -203,7 +207,7 @@ public final class AttackRaytrace extends MetaCheck<AttackRaytrace.AttackRaytrac
   private void processAttackRaytraceBruteforceFor(User user, Entity entity, Attack attack) {
     MetadataBundle meta = user.meta();
     Raytrace lowestRaytrace = fireRaytraceFor(user, entity, 0.13f, false);
-    double blockReachDistance = Raytracing.reachDistance(meta);
+    double blockReachDistance = Raytracing.reachDistanceOf(meta);
     // Iteratively find out reach if ray-trace wasn't valid
     if (lowestRaytrace.reach() > blockReachDistance) {
       double reach = findLowestPossibleReachIterative(user, entity);
@@ -230,14 +234,14 @@ public final class AttackRaytrace extends MetaCheck<AttackRaytrace.AttackRaytrac
   private double findLowestPossibleReachIterative(User user, Entity entity) {
     MetadataBundle meta = user.meta();
     MovementMetadata movement = meta.movement();
-    double blockReachDistance = Raytracing.reachDistance(meta);
+    double blockReachDistance = Raytracing.reachDistanceOf(meta);
     double minReach = findLowestPossibleReachIterative(user, entity, false);
     // Stop if reach is already lower than block reach distance to save performance
     if (minReach < blockReachDistance) {
       return minReach;
     }
     // Flying packets missing on 1.19+
-    if (movement.recentlyEncounteredFlyingPacket(1) && user.protocolVersion() >= VER_1_9) {
+    if (movement.receivedFlyingPacketIn(1) && user.protocolVersion() >= VER_1_9) {
       double reach = findLowestPossibleReachIterative(user, entity, true);
       minReach = Math.min(minReach, reach);
     }
@@ -260,7 +264,7 @@ public final class AttackRaytrace extends MetaCheck<AttackRaytrace.AttackRaytrac
     int maximumPendingFeedbackPackets =
         trustFactorSetting("pending-allowance", player)
             + (int) MathHelper.minmax(0, LatencyStudy.cachedAverage(), 20);
-    double blockReachDistance = Raytracing.reachDistance(meta);
+    double blockReachDistance = Raytracing.reachDistanceOf(meta);
     double minReach = 10;
     boolean livingEntity = entity.typeData().isLivingEntity();
     int from = history.size() - 1;
@@ -324,17 +328,15 @@ public final class AttackRaytrace extends MetaCheck<AttackRaytrace.AttackRaytrac
    * @since 14.5.8
    */
   private void processResult(
-      User user,
-      Raytrace raytrace,
-      Entity attacked,
-      Attack attack,
-      float expansion,
-      boolean estimated) {
+    User user, Raytrace raytrace,
+    Entity attacked, Attack attack,
+    float expansion, boolean estimated
+  ) {
     Player player = user.player();
     MetadataBundle meta = user.meta();
     ViolationMetadata violationMeta = meta.violationLevel();
     String entityName = attacked.entityName();
-    double blockReachDistance = Raytracing.reachDistance(meta);
+    double blockReachDistance = Raytracing.reachDistanceOf(meta);
     RaytraceResult result = RaytraceResult.of(raytrace, blockReachDistance);
     int vl = calculateVlFor(user, raytrace, result, attacked, expansion, estimated);
     String estimationSuffix = estimated ? " (estimated)" : "";
@@ -343,35 +345,31 @@ public final class AttackRaytrace extends MetaCheck<AttackRaytrace.AttackRaytrac
     boolean resendAllowed = attack.shouldResend() && !violationMeta.isInActiveTeleportBundle;
     switch (result) {
       case MISS: {
-        message =
-            String.format(
-                "attacked %s %s out of sight %s",
-                resolveArticle(entityName), entityName.toLowerCase(), estimationSuffix);
+        message = String.format(
+          "attacked %s %s out of sight %s",
+          resolveArticle(entityName), entityName.toLowerCase(), estimationSuffix
+        );
         details = "";
         thresholdKey = "applicable-thresholds.hitbox";
-        sibyl =
-            String.format(
-                "%s/%d missed hit on %s",
-                player.getName(), user.protocolVersion(), entityName.toLowerCase());
+        sibyl = String.format(
+          "%s/%d missed hit on %s",
+          player.getName(), user.protocolVersion(), entityName.toLowerCase()
+        );
         reach = 10;
         break;
       }
       case REACH: {
         String displayReach = MathHelper.formatDouble(raytrace.reach(), 4);
-        message =
-            String.format(
-                "attacked %s %s from too far away %s",
-                resolveArticle(entityName), entityName.toLowerCase(), estimationSuffix);
+        message = String.format(
+          "attacked %s %s from too far away %s",
+          resolveArticle(entityName), entityName.toLowerCase(), estimationSuffix
+        );
         details = displayReach + " blocks";
         thresholdKey = "applicable-thresholds.reach";
-        sibyl =
-            player.getName()
-                + "/"
-                + user.protocolVersion()
-                + " attacked "
-                + entityName.toLowerCase()
-                + " from "
-                + displayReach;
+        sibyl = String.format(
+          "%s/%d attacked %s from %s",
+          player.getName(), user.protocolVersion(), entityName.toLowerCase(), displayReach
+        );
         reach = raytrace.reach();
         break;
       }
@@ -386,16 +384,12 @@ public final class AttackRaytrace extends MetaCheck<AttackRaytrace.AttackRaytrac
       }
     }
     DebugBroadcast.broadcast(player, MessageCategory.ATRAFLT, MessageSeverity.HIGH, sibyl, sibyl);
-    Violation violation =
-        Violation.builderFor(AttackRaytrace.class)
-            .forPlayer(player)
-            .withMessage(message)
-            .withDetails(details)
-            .withCustomThreshold(thresholdKey)
-            .withVL(vl)
-            .withPlaceholder("reach", MathHelper.formatDouble(reach, 4))
-            .appendFlags(estimated ? DONT_PROCESS_VIOSTAT : 0)
-            .build();
+    Violation violation = Violation.builderFor(AttackRaytrace.class)
+      .forPlayer(player).withMessage(message).withDetails(details)
+      .withCustomThreshold(thresholdKey).withVL(vl)
+      .withPlaceholder("reach", MathHelper.formatDouble(reach, 4))
+      .appendFlags(estimated ? DONT_PROCESS_VIOSTAT : 0)
+      .build();
     ViolationContext violationContext = Modules.violationProcessor().processViolation(violation);
     // Apply damage cancel after 50 VL
     if (violationContext.violationLevelAfter() > 50 && !estimated) {
@@ -439,24 +433,23 @@ public final class AttackRaytrace extends MetaCheck<AttackRaytrace.AttackRaytrac
    * @since 14.5.8
    */
   private int calculateVlFor(
-      User user,
-      Raytrace raytrace,
-      RaytraceResult result,
-      Entity attacked,
-      float expansion,
-      boolean estimated) {
+    User user, Raytrace raytrace,
+    RaytraceResult result, Entity attacked,
+    float expansion, boolean estimated
+  ) {
     AttackRaytraceMeta attackRaytraceMeta = metaOf(user);
     Position targetPosition = raytrace.targetPosition();
-    boolean invalidRaytrace =
-        user.meta().movement().isInVehicle()
-            || (targetPosition != null
-            && attackRaytraceMeta.lastPosition != null
-            && targetPosition.distance(attackRaytraceMeta.lastPosition) == 0);
+    boolean invalidRaytrace = targetPosition != null
+      && attackRaytraceMeta.lastPosition != null
+      && targetPosition.distance(attackRaytraceMeta.lastPosition) == 0;
+    if (user.meta().movement().isInVehicle()) {
+      invalidRaytrace = true;
+    }
     // Do not apply violation points if the raytrace was estimated or invalid
     if (estimated || invalidRaytrace) {
       return 0;
     }
-    int vl = result.violationProvider().apply(attacked);
+    int vl = result.baseVLForAttack(attacked);
     // Reduce vl if hit-box was enlarged due to flying packets
     if (expansion > 0.1f) {
       vl /= 2f;
@@ -590,16 +583,16 @@ public final class AttackRaytrace extends MetaCheck<AttackRaytrace.AttackRaytrac
   public enum RaytraceResult {
     VALID(e -> 0),
     REACH(e -> 20),
-    MISS(e -> e.typeData().isLivingEntity() ? 4 : 0);
+    MISS(e -> e != null && e.typeData().isLivingEntity() ? 4 : 0);
 
-    private final Function<Entity, Integer> violationProvider;
+    private final Function<Entity, Integer> entityToVLIncrease;
 
-    RaytraceResult(Function<Entity, Integer> violationProvider) {
-      this.violationProvider = violationProvider;
+    RaytraceResult(Function<Entity, Integer> entityToVLIncrease) {
+      this.entityToVLIncrease = entityToVLIncrease;
     }
 
-    public Function<Entity, Integer> violationProvider() {
-      return violationProvider;
+    public int baseVLForAttack(Entity attacked) {
+      return entityToVLIncrease.apply(attacked);
     }
 
     /**

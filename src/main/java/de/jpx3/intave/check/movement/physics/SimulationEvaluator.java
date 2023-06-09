@@ -6,16 +6,12 @@ import de.jpx3.intave.block.collision.Collision;
 import de.jpx3.intave.math.Hypot;
 import de.jpx3.intave.math.MathHelper;
 import de.jpx3.intave.share.BoundingBox;
-import de.jpx3.intave.share.Motion;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.meta.MetadataBundle;
 import de.jpx3.intave.user.meta.MovementMetadata;
 import de.jpx3.intave.user.meta.ProtocolMetadata;
 import de.jpx3.intave.user.meta.ViolationMetadata;
 import org.bukkit.entity.Player;
-import org.bukkit.util.Vector;
-
-import java.util.Set;
 
 @SplitMeUp
 @Relocate
@@ -42,7 +38,7 @@ public final class SimulationEvaluator {
     double receivedMotionY = movement.motionY();
     double receivedMotionZ = movement.motionZ();
     double differenceY = Math.abs(receivedMotionY - predictedY);
-    boolean accountedSkippedMovement = movement.recentlyEncounteredFlyingPacket(2);
+    boolean accountedSkippedMovement = movement.receivedFlyingPacketIn(2);
     double verticalLegitimateDeviation = accountedSkippedMovement ? 0.01 : 0.00001;
 
     if (accountedSkippedMovement && movement.pastNearbyCollisionInaccuracy == 0) {
@@ -118,7 +114,7 @@ public final class SimulationEvaluator {
       }
     }
 
-    if (movement.recentlyEncounteredFlyingPacket(3) && differenceY > 0.001) {
+    if (movement.receivedFlyingPacketIn(3) && differenceY > 0.001) {
       boolean inLiquid = movement.pastWaterMovement <= 10 || movement.inLava();
       int allowedPackets = Hypot.fast(movement.motionX(), movement.motionZ()) < 0.03 ? 3 : 1;
       if (inLiquid || movement.physicsPacketRelinkFlyVL++ <= allowedPackets) {
@@ -159,7 +155,7 @@ public final class SimulationEvaluator {
       verticalLegitimateDeviation = Math.max(verticalLegitimateDeviation, 0.1);
     }
 
-    if (movement.recentlyEncounteredFlyingPacket(1) && movement.pastExternalVelocity <= 4) {
+    if (movement.receivedFlyingPacketIn(1) && movement.pastExternalVelocity <= 4) {
       verticalLegitimateDeviation = Math.max(verticalLegitimateDeviation, 0.03);
     }
 
@@ -183,7 +179,7 @@ public final class SimulationEvaluator {
     }
 
     // Sometimes shit happens
-    if (movement.sneakingTicks <= 1) {
+    if (movement.sneakingTicks <= 1 && (movement.onGround() || movement.lastOnGround()) && movement.motionY() <= movement.jumpMotion() + 0.001) {
       verticalLegitimateDeviation = Math.max(verticalLegitimateDeviation, 0.08f);
     }
 
@@ -315,7 +311,7 @@ public final class SimulationEvaluator {
     }
 
     // Flying packet
-    if (movement.recentlyEncounteredFlyingPacket(2)) {
+    if (movement.receivedFlyingPacketIn(2)) {
       if (movement.onGround) {
         boolean lessThanExpected = distanceMoved <= predictedDistanceMoved + 0.02;
         horizontalLegitimateDeviation = Math.max(horizontalLegitimateDeviation, lessThanExpected ? 0.115 : 0.005);
@@ -334,7 +330,7 @@ public final class SimulationEvaluator {
 
     horizontalLegitimateDeviation = Math.max(horizontalLegitimateDeviation, movement.estimatedAttachMovement());
 
-    boolean recentlySentFlying = movement.recentlyEncounteredFlyingPacket(2);
+    boolean recentlySentFlying = movement.receivedFlyingPacketIn(2);
     double baseMoveSpeed = movement.baseMoveSpeed();
     boolean inLiquid = (movement.pastWaterMovement < 20 && movement.pastPushedByWaterFlow > 5) || movement.inLava();
 

@@ -57,6 +57,14 @@ public final class Violation {
     return checkClass;
   }
 
+  public Player forciblyFindPlayer() {
+    Player player = Bukkit.getPlayer(id);
+    if (isOnline(player)) {
+      return player;
+    }
+    throw new IllegalStateException("Player offline");
+  }
+
   public Optional<Player> findPlayer() {
     Player player = Bukkit.getPlayer(id);
     return isOnline(player) ? Optional.of(player) : Optional.empty();

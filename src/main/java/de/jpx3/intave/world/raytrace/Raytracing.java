@@ -45,15 +45,15 @@ public final class Raytracing {
     }
   }
 
-  public static float reachDistance(Player player) {
-    return reachDistance(UserRepository.userOf(player));
+  public static float reachDistanceOf(Player player) {
+    return reachDistanceOf(UserRepository.userOf(player));
   }
 
-  public static float reachDistance(User user) {
-    return reachDistance(user.meta());
+  public static float reachDistanceOf(User user) {
+    return reachDistanceOf(user.meta());
   }
 
-  public static float reachDistance(MetadataBundle meta) {
+  public static float reachDistanceOf(MetadataBundle meta) {
     return meta.abilities().inGameMode(GameMode.CREATIVE) ? 5.0F : 3.0F;
   }
 
@@ -68,7 +68,7 @@ public final class Raytracing {
       float lastRotationYaw,
       float rotationYaw, float rotationPitch,
       double expandHitbox, boolean withoutMouseDelayFix) {
-    double blockReachDistance = Raytracing.reachDistance(player);
+    double blockReachDistance = Raytracing.reachDistanceOf(player);
 //    float rotationYaw = movementData.rotationYaw % 360;
 
     // mouse delay fix
@@ -154,7 +154,7 @@ public final class Raytracing {
     Timings.SERVICE_RAYTRACER_ENTITY.start();
     NativeVector eyeVector = positionEyes(player, prevPosX, prevPosY, prevPosZ);
     double blockReachDistance = 6;
-    double attackReachDistance = reachDistance(player);
+    double attackReachDistance = reachDistanceOf(player);
     double lastReach = 10;
     NativeVector lastHitVec = null;
     for (boolean fastMath : PESSIMISTIC_BOOLEAN_ORDER) {

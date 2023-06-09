@@ -48,7 +48,7 @@ public final class SkinBlinker extends CheckPart<ProtocolScanner> {
     int keyForward = movementData.keyForward;
     int keyStrafe = movementData.keyStrafe;
     double distanceMoved = Hypot.fast(movementData.motionX(), movementData.motionZ());
-    if (movementData.inWeb || movementData.recentlyEncounteredFlyingPacket(2)) {
+    if (movementData.inWeb || movementData.receivedFlyingPacketIn(2)) {
       return;
     }
     if ((keyForward != 0 || keyStrafe != 0) && distanceMoved > 0.1) {

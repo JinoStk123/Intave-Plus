@@ -380,7 +380,7 @@ public final class Physics extends Check {
       && !movementData.inWater
       && !movementData.collidedWithBoat();
 
-    if (checkVelocity && movementData.pastExternalVelocity < 10 && !movementData.recentlyEncounteredFlyingPacket(2)) {
+    if (checkVelocity && movementData.pastExternalVelocity < 10 && !movementData.receivedFlyingPacketIn(2)) {
       boolean actuallyMoved = (Math.abs(predictedX) > 0.01 || Math.abs(predictedZ) > 0.01);
       if (distance > 0.005 && !onLadder) {
         if (actuallyMoved) {
@@ -402,7 +402,7 @@ public final class Physics extends Check {
 
     boolean flyingJump = false;
     if ((Math.abs(predictedX) < 0.04 && Math.abs(predictedZ) < 0.04) && Math.abs(predictedY - movementData.jumpMotion()) < 0.05 &&
-      differenceY > 0.01 && differenceY < 0.02 /* only allow positive differenceY */ && (movementData.lastOnGround() || movementData.onGround()) && movementData.recentlyEncounteredFlyingPacket(6)) {
+      differenceY > 0.01 && differenceY < 0.02 /* only allow positive differenceY */ && (movementData.lastOnGround() || movementData.onGround()) && movementData.receivedFlyingPacketIn(6)) {
       flyingJump = true;
       verticalViolationIncrease = 0;
       movementData.endMotionYOverride = true;
@@ -418,7 +418,7 @@ public final class Physics extends Check {
     boolean suspectSafeWalk = !user.trustFactor().atLeast(TrustFactor.YELLOW);
     if (distance > 0.008 && suspectSafeWalk && movementData.pastBlockPlacement <= 8 && horizontalViolationIncrease > 0.1 && !movementData.isSneaking()) {
       boolean smallMovement = (Math.abs(movementData.motionX()) < 0.08 || Math.abs(movementData.motionZ()) < 0.08) && movementData.onGround();
-      if (smallMovement && !movementData.recentlyEncounteredFlyingPacket(3)) {
+      if (smallMovement && !movementData.receivedFlyingPacketIn(3)) {
         horizontalViolationIncrease = Math.max(100, horizontalViolationIncrease * 50);
       }
     }
@@ -681,7 +681,7 @@ public final class Physics extends Check {
 
       String debug = chatColor + symbol;
 
-      boolean fly = movementData.recentlyEncounteredFlyingPacket(0);
+      boolean fly = movementData.receivedFlyingPacketIn(0);
       while (key.length() < 2) {
         key += " ";
       }
@@ -813,7 +813,7 @@ public final class Physics extends Check {
       }
 
       String distanceOutput = formatDouble(distance, distance < 0.1 && violationLevelIncrease > 0 ? 9 : 3);
-      if (movementData.recentlyEncounteredFlyingPacket(1)) {
+      if (movementData.receivedFlyingPacketIn(1)) {
         distanceOutput = "~" + distanceOutput;
       } else if (distance >= 0.01 && violationLevelIncrease == 0) {
         distanceOutput = ChatColor.STRIKETHROUGH + distanceOutput + chatColor;

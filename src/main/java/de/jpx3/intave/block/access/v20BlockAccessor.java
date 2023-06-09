@@ -131,6 +131,7 @@ public final class v20BlockAccessor implements BlockAccessor {
     }
     Item targetItem = blockData.getBlock().getItem();
 
+    // implement this properly, without reflections
     Method method = Lookup.serverMethod("BlockData", "isReplaceable", boolean.class);
     boolean replaceable = false;
     try {
@@ -154,7 +155,10 @@ public final class v20BlockAccessor implements BlockAccessor {
     return new net.minecraft.core.BlockPosition(blockPosition.getX(), blockPosition.getY(), blockPosition.getZ());
   }
 
+  @PatchyAutoTranslation
+  @PatchyTranslateParameters
   private LightChunk findChunk(ChunkProviderServer server, int x, int z) {
+//    return (LightChunk) server.c(x, z);
     Class<?> chunk = Lookup.serverClass("LightChunk");
     Method providerMethod = Lookup.serverMethod("ChunkProviderServer", "c", new Type[]{Type.INT_TYPE, Type.INT_TYPE}, Type.getType(chunk));
     try {

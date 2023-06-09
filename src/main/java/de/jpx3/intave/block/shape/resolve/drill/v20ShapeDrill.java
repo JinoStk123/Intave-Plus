@@ -78,10 +78,13 @@ public final class v20ShapeDrill extends AbstractShapeDrill {
   @PatchyTranslateParameters
   private IBlockAccess chunkAccessOf(World world, int posX, int posZ) {
     WorldServer handle = ((CraftWorld) world).getHandle();
-    return findChunk(handle.getChunkProvider(), posX >> 4, posZ >> 4);
+    return handle.getChunkProvider().c(posX >> 4, posZ >> 4);
   }
 
+  @PatchyAutoTranslation
+  @PatchyTranslateParameters
   private LightChunk findChunk(ChunkProviderServer server, int x, int z) {
+//    return (LightChunk) server.c(x, z);
     Class<?> chunk = Lookup.serverClass("LightChunk");
     Method providerMethod = Lookup.serverMethod("ChunkProviderServer", "c", new Type[]{Type.INT_TYPE, Type.INT_TYPE}, Type.getType(chunk));
     try {

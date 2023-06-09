@@ -1,17 +1,17 @@
 import net.minecrell.pluginyml.bukkit.BukkitPluginDescription.Permission.Default.FALSE
 import net.minecrell.pluginyml.bukkit.BukkitPluginDescription.Permission.Default.OP
-import xyz.jpenilla.runpaper.task.RunServerTask
+import xyz.jpenilla.runpaper.task.RunServer
 
 plugins {
   java
   id("net.minecrell.plugin-yml.bukkit") version "0.5.2"
   id("com.github.johnrengelman.shadow") version "7.1.2"
-  id("xyz.jpenilla.run-paper") version "1.0.6"
+  id("xyz.jpenilla.run-paper") version "2.1.0"
 }
 
 val simpleName = "Intave"
 group = "de.jpx3"
-version = "14.6.1"
+version = "14.6.2"
 description = "Cheat detection software, providing fair play"
 
 /*
@@ -141,15 +141,16 @@ run {
   registerServerTask("1.17.1", 16)
   registerServerTask("1.18", 17)
   registerServerTask("1.18.2", 17)
-  registerServerTask("1.19", 17)
-  registerServerTask("1.19.1", 17)
-  registerServerTask("1.19.2", 17)
-  registerServerTask("1.19.3", 17)
+//  registerServerTask("1.19", 17)
+//  registerServerTask("1.19.1", 17)
+//  registerServerTask("1.19.2", 17)
+//  registerServerTask("1.19.3", 17)
   registerServerTask("1.19.4", 17)
+  registerServerTask("1.20", 17)
 }
 
 fun registerServerTask(serverVersion: String, javaVersion: Int) {
-  tasks.register<RunServerTask>("paper_${serverVersion}") {
+  tasks.register<RunServer>("paper_${serverVersion}") {
     group = simpleName
     dependsOn("iacBuild")
     pluginJars.from("build/libs/$simpleName.jar")

@@ -383,7 +383,7 @@ public final class MovementMetadata implements SimulationEnvironment {
     }
     checkWebStateAgainNextTick = false;
     // only check if we missed ticks
-    if (!recentlyEncounteredFlyingPacket(6)) {
+    if (!receivedFlyingPacketIn(6)) {
       return;
     }
     // boundingbox from last tick!
@@ -707,7 +707,7 @@ public final class MovementMetadata implements SimulationEnvironment {
     return collidedVertically;
   }
 
-  public boolean recentlyEncounteredFlyingPacket(int ticks) {
+  public boolean receivedFlyingPacketIn(int ticks) {
     ProtocolMetadata protocol = user.meta().protocol();
     if (protocol.flyingPacketsAreSent()) {
       return pastClientFlyingPacket <= ticks && pastFlyingPacketAccurate <= ticks;

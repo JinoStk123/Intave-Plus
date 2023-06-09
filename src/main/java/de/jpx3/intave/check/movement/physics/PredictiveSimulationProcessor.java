@@ -484,7 +484,7 @@ public final class PredictiveSimulationProcessor implements SimulationProcessor 
                     nearestForwardKey = keyForward;
                     nearestStrafeKey = keyStrafe;
                   }
-                  if (simulationStack.smallestDistance() <= (movementData.recentlyEncounteredFlyingPacket(2) ? REQUIRED_ACCURACY_FOR_FLYING_PROC_EXIT : REQUIRED_ACCURACY_FOR_QUICK_PROC_EXIT)) {
+                  if (simulationStack.smallestDistance() <= (movementData.receivedFlyingPacketIn(2) ? REQUIRED_ACCURACY_FOR_FLYING_PROC_EXIT : REQUIRED_ACCURACY_FOR_QUICK_PROC_EXIT)) {
                     if (useSuperpositions) {
                       correctSuperpositions[j] = variationIndex;
                     }

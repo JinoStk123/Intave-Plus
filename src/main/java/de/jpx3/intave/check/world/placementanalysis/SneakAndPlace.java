@@ -123,20 +123,17 @@ public final class SneakAndPlace extends MetaCheckPart<PlacementAnalysis, SneakA
     PlayerActionReader reader = PacketReaders.readerOf(packet);
 
     PlayerAction action = reader.playerAction();
-    switch (action) {
-      case START_SNEAKING:
-        meta.startSneakInThisTick = true;
-        meta.sneakChangedInThisTick = true;
-        meta.isSneaking = true;
-        meta.sneakDuration = 0;
-        break;
-      case STOP_SNEAKING:
-        meta.stopSneakInThisTick = true;
-        meta.sneakChangedInThisTick = true;
-        meta.isSneaking = false;
-        meta.lastSneakDuration = meta.sneakDuration;
-        meta.sneakDuration = 0;
-        break;
+    if (action.isStartSneak()) {
+      meta.startSneakInThisTick = true;
+      meta.sneakChangedInThisTick = true;
+      meta.isSneaking = true;
+      meta.sneakDuration = 0;
+    } else if (action.isStopSneak()) {
+      meta.stopSneakInThisTick = true;
+      meta.sneakChangedInThisTick = true;
+      meta.isSneaking = false;
+      meta.lastSneakDuration = meta.sneakDuration;
+      meta.sneakDuration = 0;
     }
 
     reader.release();
