@@ -484,7 +484,7 @@ public class Entity {
    *
    * @return the {@link BoundingBox}
    */
-  public BoundingBox entityBoundingBox() {
+  public BoundingBox boundingBox() {
     if (boundingBox != null) {
       return boundingBox;
     }

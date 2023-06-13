@@ -267,8 +267,14 @@ public final class ConnectionMetadata {
     return entitiesById.get(identifier);
   }
 
-  public void destroyEntity(int entityId) {
-    entitiesById.put(entityId, Entity.destroyedEntity());
+  public void enterEntity(Entity entity) {
+    entitiesById.put(entity.entityId(), entity);
+    entityIds.add(entity.entityId());
+    entities.add(entity);
+  }
+
+  public Entity destroyEntity(int entityId) {
+    Entity old = entitiesById.put(entityId, Entity.destroyedEntity());
     entityIds.remove(entityId);
 
     // we will not override the entity collection, as it would require a lot of performance and seems quite redundant in the first place
@@ -281,16 +287,12 @@ public final class ConnectionMetadata {
 
     // using removeIf requires the least amount of locking and array modifications for CopyOnWriteArrayLists
     entities.removeIf(entity -> entity.entityId() == entityId);
+
+    return old;
   }
 
   public DelayQueue<DelayedPacket> delayedPackets() {
     return delayQueue;
-  }
-
-  public void enterEntity(Entity entity) {
-    entitiesById.put(entity.entityId(), entity);
-    entityIds.add(entity.entityId());
-    entities.add(entity);
   }
 
   public List<Entity> tracedEntities() {

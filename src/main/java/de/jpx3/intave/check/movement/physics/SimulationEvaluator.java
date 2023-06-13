@@ -13,6 +13,8 @@ import de.jpx3.intave.user.meta.ProtocolMetadata;
 import de.jpx3.intave.user.meta.ViolationMetadata;
 import org.bukkit.entity.Player;
 
+import static java.lang.Math.abs;
+
 @SplitMeUp
 @Relocate
 public final class SimulationEvaluator {
@@ -37,12 +39,12 @@ public final class SimulationEvaluator {
     double receivedMotionX = movement.motionX();
     double receivedMotionY = movement.motionY();
     double receivedMotionZ = movement.motionZ();
-    double differenceY = Math.abs(receivedMotionY - predictedY);
+    double differenceY = abs(receivedMotionY - predictedY);
     boolean accountedSkippedMovement = movement.receivedFlyingPacketIn(2);
     double verticalLegitimateDeviation = accountedSkippedMovement ? 0.01 : 0.00001;
 
     if (accountedSkippedMovement && movement.pastNearbyCollisionInaccuracy == 0) {
-      if (Math.abs(movement.motionX()) < 0.05 && Math.abs(movement.motionZ()) < 0.05 && movement.motionY() < 0 && movement.motionY() > -0.4) {
+      if (abs(movement.motionX()) < 0.05 && abs(movement.motionZ()) < 0.05 && movement.motionY() < 0 && movement.motionY() > -0.4) {
         verticalLegitimateDeviation = 0.15;
       }
     }
@@ -76,7 +78,7 @@ public final class SimulationEvaluator {
     if (movement.shulkerYToleranceRemaining > 0 && // tick restriction
         (movement.positionY >= movement.lowestShulkerY - 1 && movement.positionY <= movement.highestShulkerY + 1) && // height restriction
         receivedMotionY - movement.jumpMotion() < 0.2 && // motion restriction
-        (Math.abs(receivedMotionY) <= 0.5 || ((movement.positionY % 0.05) < 0.0001 && (Math.abs(receivedMotionY - movement.jumpMotion()) < 0.01 || (receivedMotionY <= 0 && receivedMotionY > -.8)))) // various other restrictions
+        (abs(receivedMotionY) <= 0.5 || ((movement.positionY % 0.05) < 0.0001 && (abs(receivedMotionY - movement.jumpMotion()) < 0.01 || (receivedMotionY <= 0 && receivedMotionY > -.8)))) // various other restrictions
     ) {
       verticalLegitimateDeviation = Math.max(verticalLegitimateDeviation, 1);
     }
@@ -95,19 +97,19 @@ public final class SimulationEvaluator {
       double standingHeightGap = 1 - user.sizeOf(Pose.STANDING).height() % 1;
       boolean scuffed = false;
       // case 1: very likely to collide with block above
-      if (Math.abs(receivedMotionY - crouchingHeightGap) < 0.01 || Math.abs(receivedMotionY - standingHeightGap) < 0.01) {
+      if (abs(receivedMotionY - crouchingHeightGap) < 0.01 || abs(receivedMotionY - standingHeightGap) < 0.01) {
         scuffed = true;
 
         // case 2: jumping when Intave thinks it's not possible
-      } else if (Math.abs(receivedMotionY - movement.jumpMotion()) < 0.01 && Math.abs(receivedMotionY - crouchingHeightGap) < 0.1) {
+      } else if (abs(receivedMotionY - movement.jumpMotion()) < 0.01 && abs(receivedMotionY - crouchingHeightGap) < 0.1) {
         scuffed = true;
 
         // case 3: I don't actually know what this is, it seems to work
-      } else if (Math.abs(Math.abs(receivedMotionY - crouchingHeightGap) - movement.jumpMotion()) < 0.01) {
+      } else if (abs(abs(receivedMotionY - crouchingHeightGap) - movement.jumpMotion()) < 0.01) {
         scuffed = true;
       }
       boolean collides = Collision.present(player, BoundingBox.fromPosition(user, movement, movement.positionX, movement.positionY + 0.0001, movement.positionZ)
-          .expand(movement.motionX(), Math.abs(receivedMotionY + 0.1), movement.motionZ()));
+          .expand(movement.motionX(), abs(receivedMotionY + 0.1), movement.motionZ()));
 //      player.sendMessage(scuffed + " " + movement.isSneaking() + " " + Math.abs(receivedMotionY - crouchingHeightGap) + " " + Math.abs(receivedMotionY - standingHeightGap));
       if (scuffed && collides) {
         differenceY = 0;
@@ -198,7 +200,7 @@ public final class SimulationEvaluator {
 
     // rethink me
     if (pose == Pose.FALL_FLYING) {
-      if (!movement.inWater && movement.pastWaterMovement <= 2 && Math.abs(receivedMotionY) < 0.1) {
+      if (!movement.inWater && movement.pastWaterMovement <= 2 && abs(receivedMotionY) < 0.1) {
         multiplier *= 0.01;
       } else if (movement.motionY() >= 0 && movement.onGround) {
         multiplier *= 0.1;
@@ -272,17 +274,17 @@ public final class SimulationEvaluator {
           horizontalLegitimateDeviation = distanceMoved < 0.04 ? 0.04 : 0.002;
         }
       }
-      if (user.meta().protocol().beeUpdate() && (Math.abs(motionX) < 0.09 || Math.abs(motionZ) < 0.09)) {
+      if (user.meta().protocol().beeUpdate() && (abs(motionX) < 0.09 || abs(motionZ) < 0.09)) {
         horizontalLegitimateDeviation = Math.max(horizontalLegitimateDeviation, 0.009);
       }
     }
 
-    if (movement.shulkerXToleranceRemaining > 0 || movement.shulkerZToleranceRemaining > 0) {
+    if ((movement.shulkerXToleranceRemaining > 0 || movement.shulkerZToleranceRemaining > 0) && abs(motionY) < 0.5 && abs(motionZ) < 0.5) {
       horizontalLegitimateDeviation = Math.max(horizontalLegitimateDeviation, 0.3);
     }
 
     if (movement.shulkerYToleranceRemaining > 0) {
-      horizontalLegitimateDeviation = Math.max(horizontalLegitimateDeviation, Math.abs(movement.motionY()) < .3 ? .3 : .1);
+      horizontalLegitimateDeviation = Math.max(horizontalLegitimateDeviation, abs(movement.motionY()) < .3 ? .3 : .1);
     }
 
     if (movement.collidedHorizontally && movement.pastVelocity < 20) {
@@ -361,21 +363,21 @@ public final class SimulationEvaluator {
 
     if (movement.sneakingTicks <= 1) {
       double limit = 0;
-      if ((Math.abs(movement.motionX()) < 0.08 || Math.abs(movement.motionZ()) < 0.08) || (movement.sprinting && protocol.cavesAndCliffsUpdate())) {
-        boolean smallMovement = Math.abs(movement.motionX()) < 0.08 && Math.abs(movement.motionZ()) < 0.08 && movement.onGround();
+      if ((abs(movement.motionX()) < 0.08 || abs(movement.motionZ()) < 0.08) || (movement.sprinting && protocol.cavesAndCliffsUpdate())) {
+        boolean smallMovement = abs(movement.motionX()) < 0.08 && abs(movement.motionZ()) < 0.08 && movement.onGround();
         limit = movement.pastEdgeSneak <= 1 ? 0.12 : (smallMovement ? 0.099 : (movement.pastEdgeSneak < 10 ? 0.05 : 0.035));
         if (movement.motionY() >= 0.1 && protocol.cavesAndCliffsUpdate() && movement.pastEdgeSneak <= 1 && movement.sprinting && distanceMoved <= 0.5) {
           limit = 0.3;
         }
-        if (Math.abs(movement.motionY()) < 0.001) {
+        if (abs(movement.motionY()) < 0.001) {
           limit = 0.07;
         }
         if (movement.pastEdgeSneak <= 3 && !protocol.flyingPacketsAreSent()) {
           limit = Math.max(limit, 0.07);
         }
       } else {
-        if (movement.pastEdgeSneak <= 3 || (movement.pastEdgeSneak <= 10 && movement.onGround() && Math.abs(motionY) < 0.01)) {
-          boolean smallMovement = (Math.abs(movement.motionX()) < 0.099 && Math.abs(movement.motionZ()) < 0.21) || (Math.abs(movement.motionZ()) < 0.099 && Math.abs(movement.motionX()) < 0.21) && movement.onGround();
+        if (movement.pastEdgeSneak <= 3 || (movement.pastEdgeSneak <= 10 && movement.onGround() && abs(motionY) < 0.01)) {
+          boolean smallMovement = (abs(movement.motionX()) < 0.099 && abs(movement.motionZ()) < 0.21) || (abs(movement.motionZ()) < 0.099 && abs(movement.motionX()) < 0.21) && movement.onGround();
           limit = smallMovement ? 0.2 : 0.02;
         }
       }

@@ -1,5 +1,6 @@
 package de.jpx3.intave.share;
 
+import org.bukkit.Location;
 import org.bukkit.util.Vector;
 
 import java.io.Serializable;
@@ -20,6 +21,21 @@ public final class Position extends Vector implements Serializable {
 
   public BlockPosition toBlockPosition() {
     return new BlockPosition(floor(x), floor(y), floor(z));
+  }
+
+  public double distance(Position position) {
+    return distance(position.x, position.y, position.z);
+  }
+
+  public double distance(Location location) {
+    return distance(location.getX(), location.getY(), location.getZ());
+  }
+
+  public double distance(double x, double y, double z) {
+    double deltaX = this.x - x;
+    double deltaY = this.y - y;
+    double deltaZ = this.z - z;
+    return Math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
   }
 
   @Override

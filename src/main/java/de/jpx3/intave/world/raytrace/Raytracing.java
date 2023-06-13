@@ -105,7 +105,7 @@ public final class Raytracing {
   ) {
     return entityRaytrace(
         player,
-        entity.entityBoundingBox(),
+        entity.boundingBox(),
         useAlternativePositionY ? (entity.alternativePosition.posY - entity.position.posY) : 0,
         prevPosX, prevPosY, prevPosZ,
         prevYaw, pitch,
@@ -126,7 +126,7 @@ public final class Raytracing {
   ) {
     return entityRaytrace(
         player,
-        entity.entityBoundingBox(),
+        entity.boundingBox(),
         useAlternativePositionY ? (entity.alternativePosition.posY - entity.position.posY) : 0,
         prevPosX, prevPosY, prevPosZ,
         prevYaw, pitch,

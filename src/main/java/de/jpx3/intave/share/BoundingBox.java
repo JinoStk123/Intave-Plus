@@ -331,7 +331,7 @@ public final class BoundingBox extends MemoryTraced implements BlockShape {
 
   @Override
   public boolean isEmpty() {
-    return false;
+    return minX == maxX || minY == maxY || minZ == maxZ;
   }
 
   @Override

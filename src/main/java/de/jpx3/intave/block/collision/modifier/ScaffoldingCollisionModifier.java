@@ -1,6 +1,7 @@
-package de.jpx3.intave.block.collision;
+package de.jpx3.intave.block.collision.modifier;
 
 import de.jpx3.intave.block.access.VolatileBlockAccess;
+import de.jpx3.intave.block.collision.CollisionOrigin;
 import de.jpx3.intave.block.shape.BlockShape;
 import de.jpx3.intave.block.shape.BlockShapes;
 import de.jpx3.intave.block.variant.BlockVariant;

@@ -237,7 +237,7 @@ public final class RotationSnapHeuristic extends MetaCheckPart<Heuristics, Rotat
 
           Raytrace raytrace = Raytracing.entityRaytrace(
             player,
-            entity.entityBoundingBox(),
+            entity.boundingBox(),
             0,
             movementData.lastPositionX, movementData.lastPositionY, movementData.lastPositionZ,
             movementData.lastRotationYaw, movementData.lastRotationPitch,

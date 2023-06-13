@@ -9,7 +9,7 @@ import de.jpx3.intave.IntaveLogger;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.access.player.trust.TrustFactor;
 import de.jpx3.intave.adapter.MinecraftVersions;
-import de.jpx3.intave.adapter.ProtocolLibraryAdapter;
+import de.jpx3.intave.block.collision.entity.StaticEntityCollisions;
 import de.jpx3.intave.check.movement.physics.Pose;
 import de.jpx3.intave.entity.EntityLookup;
 import de.jpx3.intave.entity.size.HitboxSize;
@@ -388,6 +388,11 @@ public final class EntityTracker extends Module {
     }
 
     connection.destroyEntity(entityId);
+
+    if (entity != null) {
+      StaticEntityCollisions.enterEntityDespawn(user, entity);
+    }
+
     if (attackData.lastAttackedEntity() != null && attackData.lastAttackedEntityID() == entityId) {
       attackData.nullifyLastAttackedEntity();
     }
@@ -694,6 +699,7 @@ public final class EntityTracker extends Module {
     entity.setPositionAndRotationSpawnMob(posX, posY, posZ, posY);
 //    entities.put(entityId, entity);
     synchronizeData.enterEntity(entity);
+    StaticEntityCollisions.enterEntitySpawn(user, entity);
   }
 
   private Entity processEntitySpawn(
@@ -713,7 +719,7 @@ public final class EntityTracker extends Module {
     entity.setPositionAndRotationSpawnMob(posX, posY, posZ, posY);
 //    entities.put(entityId, entity);
     synchronizeData.enterEntity(entity);
-
+    StaticEntityCollisions.enterEntitySpawn(user, entity);
     return entity;
   }
 
@@ -809,6 +815,24 @@ public final class EntityTracker extends Module {
     if (entity == null) {
       reader.release();
       return;
+    }
+
+    if (entity.typeData().isShulker()) {
+      MovementMetadata movement = user.meta().movement();
+      double distance = entity.position.toPosition().distance(player.getLocation());
+      if (distance < 2) {
+        for (WrappedWatchableObject watchableObject : watchableObjects) {
+          if (watchableObject.getIndex() == 17) {
+            user.tickFeedback(() -> {
+              movement.lowestShulkerY = Math.min(movement.lowestShulkerY,(int) entity.position.posY - 1);
+              movement.highestShulkerY = Math.max(movement.highestShulkerY,(int) entity.position.posY + 1);
+              movement.shulkerXToleranceRemaining = 20;
+              movement.shulkerYToleranceRemaining = 20;
+              movement.shulkerZToleranceRemaining = 20;
+            });
+          }
+        }
+      }
     }
 
     ConnectionMetadata connection = user.meta().connection();

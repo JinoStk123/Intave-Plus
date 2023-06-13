@@ -1,14 +1,12 @@
-package de.jpx3.intave.block.collision;
+package de.jpx3.intave.block.collision.modifier;
 
+import de.jpx3.intave.block.collision.CollisionOrigin;
 import de.jpx3.intave.block.shape.BlockShape;
 import de.jpx3.intave.block.shape.BlockShapes;
 import de.jpx3.intave.share.BoundingBox;
-import de.jpx3.intave.share.Motion;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.meta.MovementMetadata;
 import org.bukkit.Material;
-
-import java.util.Set;
 
 import static de.jpx3.intave.block.collision.CollisionOrigin.INTERSECTION_CHECK;
 

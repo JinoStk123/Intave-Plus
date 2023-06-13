@@ -3,6 +3,8 @@ package de.jpx3.intave.block.collision;
 import de.jpx3.intave.annotate.DoNotFlowObfuscate;
 import de.jpx3.intave.annotate.Relocate;
 import de.jpx3.intave.block.access.VolatileBlockAccess;
+import de.jpx3.intave.block.collision.entity.StaticEntityCollisions;
+import de.jpx3.intave.block.collision.modifier.CollisionModifiers;
 import de.jpx3.intave.block.physics.MaterialMagic;
 import de.jpx3.intave.block.shape.BlockShape;
 import de.jpx3.intave.block.shape.BlockShapes;
@@ -109,6 +111,33 @@ public final class Collision {
             // this should not happen too often
             resolve = CollisionModifiers.modified(user, playerBox, material, x, y, z, resolve, CollisionOrigin.MOTION_CALCULATION);
           }
+
+          // -338, 71, -567
+//          if (x == -339 && y == 71 && z == -568) {
+//            if (container == null) {
+//              container = containerSupplier.get();
+//            }
+//            accumulator.accept(container, BlockShapes.cubeAt(x, y, z));
+////            System.out.println("Added shape to accumulator "+accumulator.getClass().getSimpleName()+" at " + x + ", " + y + ", " + z);
+//            if (--collisionsRemaining <= 0) {
+//              return finisher.apply(container);
+//            }
+//          }
+
+          // can only happen when the underlying block is air
+          if (material == Material.AIR) {
+            BlockShape entityInducedShape = StaticEntityCollisions.inducedEntityShape(user, x, y, z);
+            if (!entityInducedShape.isEmpty() && entityInducedShape.intersectsWith(playerBox)) {
+              if (container == null) {
+                container = containerSupplier.get();
+              }
+              accumulator.accept(container, entityInducedShape);
+              if (--collisionsRemaining <= 0) {
+                return finisher.apply(container);
+              }
+            }
+          }
+
           boolean blockOutsideBorder = !blockInsideBorder(world, x, z);
           if (blockOutsideBorder && !movementData.outsideBorder) {
             BoundingBox borderShape = BoundingBox.fromBounds(x, y, z, x + 1, y, z + 1);

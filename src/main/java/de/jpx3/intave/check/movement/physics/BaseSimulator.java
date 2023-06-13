@@ -4,7 +4,7 @@ import de.jpx3.intave.adapter.MinecraftVersions;
 import de.jpx3.intave.annotate.Relocate;
 import de.jpx3.intave.annotate.refactoring.IdoNotBelongHere;
 import de.jpx3.intave.block.access.VolatileBlockAccess;
-import de.jpx3.intave.block.collision.PowderSnowCollisionModifier;
+import de.jpx3.intave.block.collision.modifier.PowderSnowCollisionModifier;
 import de.jpx3.intave.block.fluid.Fluids;
 import de.jpx3.intave.block.fluid.LegacyWaterflow;
 import de.jpx3.intave.block.physics.BlockPhysics;
@@ -702,7 +702,7 @@ class BaseSimulator extends Simulator {
       if (!entity.tracingEnabled() || !entity.clientSynchronized) {
         continue;
       }
-      if (entity.entityBoundingBox().intersectsWith(boundingBox)) {
+      if (entity.boundingBox().intersectsWith(boundingBox)) {
         applyEntityPush(environment, context, entity);
       }
     }
