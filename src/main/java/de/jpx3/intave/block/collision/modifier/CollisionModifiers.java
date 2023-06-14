@@ -20,6 +20,7 @@ public final class CollisionModifiers {
     setup(ShulkerCollisionModifier.class);
     setup(PowderSnowCollisionModifier.class);
     setup(PistonCollisionModifier.class);
+    setup(DoorCollisionModifier.class);
   }
 
   private static void setup(Class<? extends CollisionModifier> modifierClass) {
