@@ -92,7 +92,10 @@ final class WebResource implements Resource {
       }
       return new ByteArrayInputStream(new byte[0]);
     } catch (Exception exception) {
-      exception.printStackTrace();
+      if (IntaveControl.DISABLE_LICENSE_CHECK) {
+        System.out.println("[debug] Unable to read " + url);
+        exception.printStackTrace();
+      }
       if (fallback != null) {
         return fallback.read();
       }
