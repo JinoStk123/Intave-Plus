@@ -159,13 +159,13 @@ public final class Resources {
     seed *= 31;
     seed += identifier.hashCode();
     seed *= 31;
-    seed += url.getPath().hashCode();
+    seed += url.hashCode();
     seed *= 31;
     Random random = new Random();
     random.setSeed(seed);
     int lastInt = random.nextInt();
     for (int i = 0; i < identifier.length(); i++) {
-      lastInt = Math.abs(random.nextInt(Math.abs(url.getPath().hashCode() ^ lastInt) + 1)) + 1;
+      lastInt = Math.abs(random.nextInt(Math.abs(url.hashCode() ^ lastInt) + 1)) + 1;
     }
     random.nextInt(Math.abs(lastInt) + 1);
     random.nextInt(IntavePlugin.version().hashCode());
