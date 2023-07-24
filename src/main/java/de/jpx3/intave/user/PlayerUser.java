@@ -5,6 +5,7 @@ import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.google.common.collect.Maps;
+import de.jpx3.intave.IntaveControl;
 import de.jpx3.intave.IntaveLogger;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.access.IntaveInternalException;
@@ -13,6 +14,7 @@ import de.jpx3.intave.annotate.Relocate;
 import de.jpx3.intave.block.state.BlockStateCaches;
 import de.jpx3.intave.block.state.ExtendedBlockStateCache;
 import de.jpx3.intave.block.type.BlockTypeAccess;
+import de.jpx3.intave.check.combat.heuristics.MiningStrategy;
 import de.jpx3.intave.check.movement.physics.Pose;
 import de.jpx3.intave.cleanup.GarbageCollector;
 import de.jpx3.intave.connect.customclient.CustomClientSupportConfig;
@@ -126,6 +128,10 @@ final class PlayerUser implements User {
     clientData.refresh(player);
     applyNewProtocolVersion();
     outputVersionJoinInfo();
+
+    if (IntaveControl.GOMME_MODE && trustFactor().atOrBelow(TrustFactor.RED)) {
+      MiningStrategy.EMULATION_LIGHT.apply(this);
+    }
   }
 
   @Override
