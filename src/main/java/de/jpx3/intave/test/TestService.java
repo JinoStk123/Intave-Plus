@@ -189,6 +189,10 @@ public final class TestService implements EventProcessor {
     } else {
       IntaveLogger.logger().info("All self-tests completed successfully.");
     }
+    if ("shutdown".equalsIgnoreCase(System.getProperty("intave-test-success"))) {
+      IntaveLogger.logger().info("Shutting down server due to test success");
+      Bukkit.shutdown();
+    }
   }
 
   private static final char[] vocals = "AEIOU".toCharArray();
