@@ -111,7 +111,7 @@ public final class MovementCharacteristics {
       for (int y = minY; y <= maxY; ++y) {
         for (int z = minZ; z <= maxZ; ++z) {
           Material material = VolatileBlockAccess.typeAccess(user, world, x, y, z);
-          if (MaterialMagic.isLiquid(material)) {
+          if (MaterialMagic.isLiquidOrSeaBlock(material)) {
             return true;
           }
         }

@@ -37,7 +37,6 @@ import org.bukkit.util.Vector;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.Map;
 
 import static de.jpx3.intave.share.ClientMath.clamp_double;
 import static de.jpx3.intave.share.ClientMath.floor;
@@ -94,10 +93,10 @@ class BaseSimulator extends Simulator {
       boolean allowJumpInWater = false;
       if (protocol.waterUpdate() && inWater && environment.onGround()) {
         Position lastPosition = environment.lastPosition();
-        Material material = VolatileBlockAccess.typeAccess(user, user.player().getWorld(), lastPosition);
         float heightPercentage = LegacyWaterflow.resolveLiquidHeightPercentage(levelOfLiquidAt(user, lastPosition));
         heightPercentage += environment.positionY() % 1;
-        allowJumpInWater = !MaterialMagic.isWater(material) || heightPercentage > 0.5;
+        boolean fluidStateEmpty = Fluids.fluidStateEmpty(user, lastPosition);
+        allowJumpInWater = fluidStateEmpty || heightPercentage > 0.5;
       }
       if (inWater && !allowJumpInWater) {
         motion.motionY += 0.04F;

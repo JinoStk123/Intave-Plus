@@ -774,6 +774,9 @@ public final class Physics extends Check {
       if (movementData.step) {
         debug += ChatColor.ITALIC + " stp:" + formatDouble(movementData.stepHeightThisMove, 5) + chatColor;
       }
+      if (movementData.inWater) {
+        debug += ChatColor.ITALIC + " wtr" + chatColor;
+      }
 //      if (Math.abs(movementData.motionY()) > 0.01) {
 //        debug += simulation.configuration() + " ";
 //      }
