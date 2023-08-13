@@ -170,7 +170,7 @@ public final class PunishmentMetadata {
       nerferOfType(AttackNerfStrategy.BLOCKING).activatePermanently();
     }
 
-    nerferOfType(AttackNerfStrategy.BLOCKING).activatePermanently();
+//    nerferOfType(AttackNerfStrategy.BLOCKING).activatePermanently();
   }
 
   public static class EncapsulationClass {
