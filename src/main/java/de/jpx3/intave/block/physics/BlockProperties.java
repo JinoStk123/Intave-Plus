@@ -20,7 +20,7 @@ public final class BlockProperties {
     Property.builderFor("SCAFFOLDING").climbable().withoutClimbableSneakLimit().buildAndSave();
     Property.builderFor("WEEPING_VINES", "WEEPING_VINES_PLANT").climbable().buildAndSave();
     Property.builderFor("TWISTING_VINES", "TWISTING_VINES_PLANT").climbable().buildAndSave();
-    Property.builderFor("CAVE_VINES_PLANT").climbable().buildAndSave();
+    Property.builderFor("CAVE_VINES", "CAVE_VINES_PLANT").climbable().buildAndSave();
     Property.builderFor(SOUL_SAND).speedFactor(0.4f).soulSpeedAffected().buildAndSave();
     Property.builderFor("SOUL_SOIL").soulSpeedAffected().buildAndSave();
     Property.builderFor("HONEY_BLOCK").jumpFactor(0.5f).speedFactor(0.4f).buildAndSave();
