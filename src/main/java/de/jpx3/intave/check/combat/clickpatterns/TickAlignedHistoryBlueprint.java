@@ -19,7 +19,6 @@ import org.bukkit.entity.Player;
 
 import static com.comphenix.protocol.wrappers.EnumWrappers.PlayerDigType.DROP_ITEM;
 import static de.jpx3.intave.module.linker.packet.PacketId.Client.*;
-import static de.jpx3.intave.module.linker.packet.PacketId.Client.POSITION_LOOK;
 import static de.jpx3.intave.module.violation.Violation.ViolationFlags.DISPLAY_IN_ALL_VERBOSE_MODES;
 
 public abstract class TickAlignedHistoryBlueprint<E extends TickAlignedMeta> extends Blueprint<ClickPatterns, TickAlignedMeta, E> {
@@ -103,9 +102,10 @@ public abstract class TickAlignedHistoryBlueprint<E extends TickAlignedMeta> ext
   public abstract void analyzeClicks(User user, E meta);
 
   public final void flag(User user, String message, int vl) {
+    String details = "pattern: " + buildHistoryString(user);
     Violation violation = Violation.builderFor(ClickPatterns.class)
       .forPlayer(user.player()).withDefaultThreshold()
-      .withMessage(message).withDetails("pattern: "+buildHistoryString(user))
+      .withMessage(message).withDetails(details)
       .appendFlags(DISPLAY_IN_ALL_VERBOSE_MODES).withVL(vl).build();
     Modules.violationProcessor().processViolation(violation);
   }
@@ -121,6 +121,25 @@ public abstract class TickAlignedHistoryBlueprint<E extends TickAlignedMeta> ext
         builder.append("!").append(intensity);
       }
     }
+
+    int maxCps = 0;
+    for (int i = 0; i < meta.historyLength - 20; i++) {
+      // accumulate
+      int cps = 0;
+      for (int j = i; j < i + 20; j++) {
+        TickAction action = meta.tickActions.get(j);
+        int intensity = meta.tickIntensity.get(j);
+        if (action == TickAction.CLICK || action == TickAction.ATTACK) {
+          cps += intensity;
+        }
+      }
+      maxCps = Math.max(maxCps, cps);
+    }
+
+//    if (IntaveControl.GOMME_MODE) {
+//      String cpsFormatted = MathHelper.formatDouble(clicks, 2);
+      builder.append(" up to ").append(maxCps).append("cps");
+//    }
     return builder.toString();
   }
 
@@ -130,9 +149,9 @@ public abstract class TickAlignedHistoryBlueprint<E extends TickAlignedMeta> ext
     if (action == TickAction.NOTHING) {
       baseMeta.breakingBlock = false;
     }
-    Boolean inBlockBreak = baseMeta.inBlockBreak.remove(0);
+    baseMeta.inBlockBreak.remove(0);
     baseMeta.inBlockBreak.add(baseMeta.breakingBlock);
-    TickAction removed = baseMeta.tickActions.remove(0);
+    baseMeta.tickActions.remove(0);
 
 //    if (removed == TickAction.NOTHING || inBlockBreak) {
 //    } else {

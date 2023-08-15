@@ -25,7 +25,7 @@ public final class HashList {
 
   public boolean containsName(String name) {
     return hashBlacklisted(hashOf(name)) || hashBlacklisted(hashOf(name.toLowerCase()))
-        || hashBlacklisted(hashOf(name.toUpperCase()));
+      || hashBlacklisted(hashOf(name.toUpperCase()));
   }
 
   public boolean containsId(UUID id) {

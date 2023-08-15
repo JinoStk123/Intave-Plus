@@ -92,6 +92,9 @@ public final class MathHelper {
   }
 
   public static String formatMotion(Vector vector) {
+    if (vector == null) {
+      return "null";
+    }
     return formatPosition(vector.getX(), vector.getY(), vector.getZ());
   }
 
