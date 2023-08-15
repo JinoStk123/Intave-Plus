@@ -70,6 +70,9 @@ public final class PacketReaders {
     setup(ENTITY_ACTION_IN, PlayerActionReader::new);
     setup(USE_ITEM, BlockInteractionReader::new);
     setup(USE_ENTITY, EntityUseReader::new);
+    setup(WINDOW_ITEMS, WindowBulkItemReader::new);
+    setup(SET_SLOT, WindowSingleItemReader::new);
+    setup(WINDOW_CLICK, WindowClickReader::new);
 
     // for some
   }
