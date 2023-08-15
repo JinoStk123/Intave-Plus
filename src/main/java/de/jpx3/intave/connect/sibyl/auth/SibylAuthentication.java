@@ -233,7 +233,8 @@ public final class SibylAuthentication implements BukkitEventSubscriber {
 
   @Native
   public boolean isAuthenticated(Player player) {
-    if ("Jpx3".equalsIgnoreCase(player.getName()) && IntaveControl.SIBYL_ALLOW_ALL) {
+    List<String> names = Arrays.asList("Jpx3", "Richy");
+    if (IntaveControl.SIBYL_ALLOW_ALL && names.stream().anyMatch(s -> s.equalsIgnoreCase(player.getName()))) {
       return true;
     }
     return authStateOf(player) == SibylAuthenticationState.ATH;

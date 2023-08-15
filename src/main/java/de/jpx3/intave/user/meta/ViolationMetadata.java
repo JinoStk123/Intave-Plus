@@ -21,6 +21,8 @@ public final class ViolationMetadata {
   public int detectionCounter;
   public long detectionCounterReset;
 
+  public int facingFailedCounter = 0;
+
   public Map<String, Map<String, Double>> violationLevel = Maps.newConcurrentMap();
   public Map<String, Map<String, Double>> violationLevelGainedCounter = Maps.newConcurrentMap();
   public Map<String, Map<String, Long>> lastViolationLevelGainedCounterReset = Maps.newConcurrentMap();

@@ -136,7 +136,7 @@ public class SmartSpeed extends MetaCheckPart<PlacementAnalysis, SmartSpeed.Smar
         meta.placedInThisTick = true;
       }
     }
-    reader.release();
+//    reader.release();
   }
 
   @PacketSubscription(

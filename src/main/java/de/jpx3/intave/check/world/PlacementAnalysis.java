@@ -27,6 +27,7 @@ public final class PlacementAnalysis extends Check {
     boolean useTimings = configuration().settings().boolBy("check_timings", true);
 
     if (DISABLE_LICENSE_CHECK && !GOMME_MODE) {
+      appendCheckPart(new Constraint(this));
       appendCheckPart(new SmartSpeed(this));
     }
 
@@ -38,6 +39,7 @@ public final class PlacementAnalysis extends Check {
           appendCheckPart(new Speed(this));
           appendCheckPart(new Sneak(this));
         }
+        appendCheckPart(new Snap(this));
         appendCheckPart(new SharpRotation(this));
         appendCheckPart(new BlockRotation(this));
         appendCheckPart(new SneakAndPlace(this));

@@ -105,6 +105,11 @@ public final class InteractionRaytrace extends MetaCheck<InteractionRaytrace.Int
         facingX = floatsInPacket.read(0);
         facingY = floatsInPacket.read(1);
         facingZ = floatsInPacket.read(2);
+
+        if (Float.isNaN(facingX) || Float.isNaN(facingY) || Float.isNaN(facingZ)) {
+          event.setCancelled(true);
+          return;
+        }
       }
 
       Material clickedType = blockPosition == null ? Material.AIR : VolatileBlockAccess.typeAccess(user, blockPosition.toLocation(player.getWorld()));
@@ -234,7 +239,7 @@ public final class InteractionRaytrace extends MetaCheck<InteractionRaytrace.Int
       packet.shallowClone(), player.getWorld(), player, blockPosition, enumDirection,
       breakBlock ? InteractionType.BREAK : InteractionType.START_BREAK,
       inventoryData.heldItemType(), heldItemStack, EnumWrappers.Hand.MAIN_HAND, playerDigType,
-      0.0f, 0.0f, 0.0f
+      Float.NaN,  Float.NaN,  Float.NaN
     );
 
     boolean mustPostValidate = interactionMeta.remainingBlockStart > 0;
@@ -313,6 +318,18 @@ public final class InteractionRaytrace extends MetaCheck<InteractionRaytrace.Int
         raycastLocation.distance(targetLocation) > 0 ||
         wrongBlockFace(interaction, firstRaytraceResult);
 
+      if (firstRaytraceResult != null && interaction.hasFacing()) {
+        float f = (float) (firstRaytraceResult.hitVec.xCoord - targetLocation.getX());
+        float f1 = (float) (firstRaytraceResult.hitVec.yCoord - targetLocation.getY());
+        float f2 = (float) (firstRaytraceResult.hitVec.zCoord - targetLocation.getZ());
+
+        if (Math.abs(compressAndDecompress(f) - interaction.facingX()) > 0.01 ||
+          Math.abs(compressAndDecompress(f1) - interaction.facingY()) > 0.01 ||
+          Math.abs(compressAndDecompress(f2) - interaction.facingZ()) > 0.01) {
+          raytraceFailed = true;
+        }
+      }
+
 //      System.out.println("PREPROCESS raytraceFailed: " + raytraceFailed + " hitMiss: " + hitMiss + " raycastLocation: " + raycastLocation + " targetLocation: " + targetLocation + " wrongBlockFace: " + wrongBlockFace(interaction, firstRaytraceResult));
       // if first raytrace failed..
       if (raytraceFailed) {
@@ -324,6 +341,17 @@ public final class InteractionRaytrace extends MetaCheck<InteractionRaytrace.Int
         raytraceFailed = hitMiss2 ||
           raycastLocation2.distance(targetLocation) > 0 ||
           wrongBlockFace(interaction, secondRaytraceResult);
+
+        if (secondRaytraceResult != null && interaction.hasFacing()) {
+          float f = (float) (secondRaytraceResult.hitVec.xCoord - targetLocation.getX());
+          float f1 = (float) (secondRaytraceResult.hitVec.yCoord - targetLocation.getY());
+          float f2 = (float) (secondRaytraceResult.hitVec.zCoord - targetLocation.getZ());
+          if (Math.abs(compressAndDecompress(f) - interaction.facingX()) > 0.01 ||
+            Math.abs(compressAndDecompress(f1) - interaction.facingY()) > 0.01 ||
+            Math.abs(compressAndDecompress(f2) - interaction.facingZ()) > 0.01) {
+            raytraceFailed = true;
+          }
+        }
       }
       return !raytraceFailed;
     }
@@ -343,6 +371,8 @@ public final class InteractionRaytrace extends MetaCheck<InteractionRaytrace.Int
     World world = interaction.world();
     Player player = interaction.player();
     User user = userOf(player);
+    MetadataBundle meta = user.meta();
+    ViolationMetadata violationMetadata = meta.violationLevel();
     InteractionMeta interactionMeta = metaOf(player);
     boolean usable = ItemProperties.canItemBeUsed(player, interaction.itemInHand())
       && !ItemProperties.isPotion(interaction.itemTypeInHand());
@@ -353,8 +383,13 @@ public final class InteractionRaytrace extends MetaCheck<InteractionRaytrace.Int
 
     if (!interaction.hasTargetBlock()) {
       interactionEmulator.emulate(interaction);
+//      player.sendMessage("No target block");
+//      System.out.println("No target block");
       return;
     }
+
+//    player.sendMessage("Real " + interaction.facingX() + " " + interaction.facingY() + " " + interaction.facingZ());
+//    System.out.println("Real " + interaction.facingX() + " " + interaction.facingY() + " " + interaction.facingZ());
 
     MovingObjectPosition raycastResult;
     MovingObjectPosition raycastResultmdf;
@@ -368,6 +403,7 @@ public final class InteractionRaytrace extends MetaCheck<InteractionRaytrace.Int
       }
       return;
     }
+    boolean failedFacingCheck = false;
     boolean estimateMouseDelayFix = interactionMeta.estimateMouseDelayFix;
     // first raytrace check
     MovingObjectPosition firstRaytraceResult = estimateMouseDelayFix ? raycastResultmdf : raycastResult;
@@ -381,6 +417,19 @@ public final class InteractionRaytrace extends MetaCheck<InteractionRaytrace.Int
 
 //    System.out.println("PRIMARY raytraceFailed: " + raytraceFailed + " hitMiss: " + hitMiss);
 
+    if (firstRaytraceResult != null && interaction.hasFacing()) {
+      float f = (float) (firstRaytraceResult.hitVec.xCoord - targetLocation.getX());
+      float f1 = (float) (firstRaytraceResult.hitVec.yCoord - targetLocation.getY());
+      float f2 = (float) (firstRaytraceResult.hitVec.zCoord - targetLocation.getZ());
+//      player.sendMessage("First " + f + " " + f1 + " " + f2);
+//      System.out.println("First " + firstRaytraceResult.hitVec + " -> " + targetLocation +  " " + compressAndDecompress(f) + " " + compressAndDecompress(f1) + " " + compressAndDecompress(f2));
+      if (Math.abs(compressAndDecompress(f) - interaction.facingX()) > 0.01 ||
+        Math.abs(compressAndDecompress(f1) - interaction.facingY()) > 0.01 ||
+        Math.abs(compressAndDecompress(f2) - interaction.facingZ()) > 0.01) {
+        failedFacingCheck = true;
+      }
+    }
+
     // if first raytrace failed..
     if (raytraceFailed) {
       // ..try again with mouse delay fix toggled differently
@@ -391,9 +440,25 @@ public final class InteractionRaytrace extends MetaCheck<InteractionRaytrace.Int
       raytraceFailed = hitMiss2 ||
         raycastLocation2.distance(targetLocation) > 0 ||
         wrongBlockFace(interaction, secondRaytraceResult);
+
+      if (secondRaytraceResult != null && interaction.hasFacing() && failedFacingCheck) {
+        float f = (float) (secondRaytraceResult.hitVec.xCoord - targetLocation.getX());
+        float f1 = (float) (secondRaytraceResult.hitVec.yCoord - targetLocation.getY());
+        float f2 = (float) (secondRaytraceResult.hitVec.zCoord - targetLocation.getZ());
+        failedFacingCheck = Math.abs(compressAndDecompress(f) - interaction.facingX()) > 0.01 ||
+          Math.abs(compressAndDecompress(f1) - interaction.facingY()) > 0.01 ||
+          Math.abs(compressAndDecompress(f2) - interaction.facingZ()) > 0.01;
+      }
 //      System.out.println("SECONDARY raytraceFailed: " + raytraceFailed + " hitMiss: " + hitMiss2 + " " + (secondRaytraceResult == null ? "null" : secondRaytraceResult.hitVec));
       interactionMeta.estimateMouseDelayFix = raytraceFailed == interactionMeta.estimateMouseDelayFix;
     }
+
+    if (failedFacingCheck) {
+      violationMetadata.facingFailedCounter++;
+    } else {
+      violationMetadata.facingFailedCounter = 0;
+    }
+
     boolean flag, mustCancelPacket;
     if (!raytraceFailed) {
       // everything is fine
@@ -414,12 +479,17 @@ public final class InteractionRaytrace extends MetaCheck<InteractionRaytrace.Int
       mustCancelPacket = false;
       // As the interaction was not canceled for consumables, we have to do it now as the raytrace failed
       if (usable && interaction.type() == InteractionType.INTERACT) {
-        user.meta().inventory().releaseItemNextTick();
+        meta.inventory().releaseItemNextTick();
       }
     }
     if (!usable || interaction.type() != InteractionType.INTERACT) {
       forwardInteractionToServer(interaction, raycastResult, targetLocation, raycastLocation, hitMiss, flag, mustCancelPacket);
     }
+  }
+
+  private float compressAndDecompress(float f) {
+    byte b = (byte) (int) (f * 16.0F);
+    return (float) (b & 0xFF) / 16.0F;
   }
 
   private void forwardInteractionToServer(
