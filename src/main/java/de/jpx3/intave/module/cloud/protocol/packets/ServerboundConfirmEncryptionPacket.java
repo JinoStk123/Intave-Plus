@@ -38,6 +38,17 @@ public final class ServerboundConfirmEncryptionPacket extends BinaryPacket<Serve
 
   @Override
   public void deserialize(DataInput buffer) {
-
+    try {
+      int sharedLength = buffer.readInt();
+      byte[] shared = new byte[sharedLength];
+      buffer.readFully(shared);
+      encryptedSharedSecret = ByteBuffer.wrap(shared);
+      int verifyLength = buffer.readInt();
+      byte[] verify = new byte[verifyLength];
+      buffer.readFully(verify);
+      encryptedVerifyToken = ByteBuffer.wrap(verify);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 }

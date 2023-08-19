@@ -44,8 +44,8 @@ public final class Session {
         protected void initChannel(SocketChannel ch) throws Exception {
           ch.pipeline()
             .addLast("timeout", new ReadTimeoutHandler(30))
-            .addLast("decompression", new Decompression(256))
-            .addLast("compression", new Compression(256))
+//            .addLast("decompression", new Decompression(256))
+//            .addLast("compression", new Compression(256))
             .addLast("codec", new PacketCodec(CLIENTBOUND))
             .addLast("processor", new HandshakeReceiver(Session.this))
           ;
@@ -53,24 +53,24 @@ public final class Session {
       });
 
     try {
-      boolean connected = bootstrap.connect("service.intave.ac", 2024).addListener(future -> {
+      boolean connected = bootstrap.connect("localhost", 2024).addListener(future -> {
         if (!future.isSuccess()) {
           future.cause().printStackTrace();
           return;
         }
         channel = ((ChannelFuture) future).channel();
+        channel.closeFuture().addListener(future2 -> {
+          System.out.println("Connection closed");
+          group.shutdownGracefully();
+        });
       }).await(10, SECONDS);
       if (!connected) {
-        System.out.println("Failed to connect to service.intave.ac:2024");
+        System.out.println("Failed to connect to cloud service");
       }
-    } catch (InterruptedException e) {
+    } catch (Exception e) {
       e.printStackTrace();
     }
 
-    channel.closeFuture().addListener(future -> {
-      System.out.println("Connection closed");
-      group.shutdownGracefully();
-    });
   }
 
   public void sendPacket(Packet<Serverbound> packet) {

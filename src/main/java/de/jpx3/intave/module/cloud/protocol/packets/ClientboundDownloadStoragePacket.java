@@ -1,8 +1,6 @@
 package de.jpx3.intave.module.cloud.protocol.packets;
 
-import de.jpx3.intave.module.cloud.protocol.BinaryPacket;
-import de.jpx3.intave.module.cloud.protocol.Direction;
-import de.jpx3.intave.module.cloud.protocol.Identity;
+import de.jpx3.intave.module.cloud.protocol.*;
 import de.jpx3.intave.module.cloud.protocol.listener.Clientbound;
 
 import java.io.DataInput;
@@ -20,6 +18,7 @@ public final class ClientboundDownloadStoragePacket extends BinaryPacket<Clientb
       }
     });
 
+  private Token token = TokenStorage.currentToken();
   private Identity id;
   private ByteBuffer data;
 
@@ -36,6 +35,7 @@ public final class ClientboundDownloadStoragePacket extends BinaryPacket<Clientb
   @Override
   public void serialize(DataOutput buffer) {
     try {
+      token.serialize(buffer);
       id.serialize(buffer);
       byte[] array = data.array();
       buffer.write(array.length);
@@ -51,6 +51,7 @@ public final class ClientboundDownloadStoragePacket extends BinaryPacket<Clientb
   @Override
   public void deserialize(DataInput input) {
     try {
+      token = Token.from(input);
       id = Identity.from(input);
       int size = input.readInt();
       byte[] array = new byte[size];

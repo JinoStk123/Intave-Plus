@@ -4,11 +4,13 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import de.jpx3.intave.module.cloud.protocol.Identity;
 import de.jpx3.intave.module.cloud.protocol.JsonPacket;
+import de.jpx3.intave.module.cloud.protocol.Token;
 import de.jpx3.intave.module.cloud.protocol.listener.Clientbound;
 
 import static de.jpx3.intave.module.cloud.protocol.Direction.CLIENTBOUND;
 
 public final class ClientboundViolationPacket extends JsonPacket<Clientbound> {
+  private Token token;
   private Identity id;
   private String check;
   private String message;
@@ -31,12 +33,16 @@ public final class ClientboundViolationPacket extends JsonPacket<Clientbound> {
   @Override
   public void serialize(JsonWriter writer) {
     try {
+      writer.beginObject();
+      token.serialize(writer);
       writer.name("id");
       id.serialize(writer);
       writer.name("check").value(check);
       writer.name("message").value(message);
       writer.name("details").value(details);
       writer.name("vl").value(vl);
+
+      writer.endObject();
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -48,6 +54,9 @@ public final class ClientboundViolationPacket extends JsonPacket<Clientbound> {
       reader.beginObject();
       while (reader.hasNext()) {
         switch (reader.nextName()) {
+          case "token":
+            token = Token.from(reader);
+            break;
           case "id":
             id = Identity.from(reader);
             break;

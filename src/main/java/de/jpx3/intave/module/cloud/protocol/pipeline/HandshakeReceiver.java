@@ -19,7 +19,6 @@ import java.net.URISyntaxException;
 import java.security.Security;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.stream.Collectors;
 
 import static de.jpx3.intave.module.cloud.protocol.Direction.CLIENTBOUND;
@@ -39,7 +38,7 @@ public final class HandshakeReceiver extends ChannelInboundHandlerAdapter implem
       .identifierChecksum(LicenseAccess.rawLicense().split("IIIII")[1])
       .jarFileHash(HashAccess.hashOf(jarFile()))
       .hwid(HWIDVerification.publicHardwareIdentifier())
-      .gameId(IntavePlugin.gameId().toString())
+      .gameId(IntavePlugin.gameId())
       .supportedEncryptionAlgorithms(Security.getAlgorithms("Cipher").stream().filter(s -> s.startsWith("AES")).collect(Collectors.toList()))
       .supportedEncryptionKeySizes(Collections.singletonList(256))
       .supportedCompressionAlgorithms(Collections.singletonList("GZIP"))

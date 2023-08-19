@@ -3,6 +3,8 @@ package de.jpx3.intave.module.cloud.protocol.packets;
 import de.jpx3.intave.module.cloud.protocol.BinaryPacket;
 import de.jpx3.intave.module.cloud.protocol.PacketSpecification;
 import de.jpx3.intave.module.cloud.protocol.listener.Serverbound;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -12,11 +14,8 @@ import java.util.stream.Collectors;
 import static de.jpx3.intave.module.cloud.protocol.Direction.SERVERBOUND;
 
 public final class ServerboundHelloPacket extends BinaryPacket<Serverbound> {
-  private String identifierHead;
-  private String identifierChecksum;
-  private String jarFileHash;
-  private String hwidHead;
-  private String startId;
+  private ByteBuf authTokenBuffer;
+  private UUID clientsideTokenPart;
   private List<String> supportedEncryptionAlgorithms = new ArrayList<>();
   private List<Integer> supportedEncryptionKeySizes = new ArrayList<>();
   private List<String> supportedCompressionAlgorithms = new ArrayList<>();
@@ -29,18 +28,15 @@ public final class ServerboundHelloPacket extends BinaryPacket<Serverbound> {
   }
 
   public ServerboundHelloPacket(
-    String identifierHead, String identifierChecksum, String jarFileHash, String hwidHead, String startId,
+    ByteBuf authTokenBuffer, UUID clientsideTokenPart,
     List<String> supportedEncryptionAlgorithms, List<Integer> supportedEncryptionKeySizes,
     List<String> supportedCompressionAlgorithms, List<String> supportedHMACAlgorithms,
     Map<String, ? extends PacketSpecification> clientboundProtocol,
     Map<String, ? extends PacketSpecification> serverboundProtocol
   ) {
     super(SERVERBOUND, "HELLO", "0");
-    this.identifierHead = identifierHead;
-    this.identifierChecksum = identifierChecksum;
-    this.jarFileHash = jarFileHash;
-    this.hwidHead = hwidHead;
-    this.startId = startId;
+    this.authTokenBuffer = authTokenBuffer;
+    this.clientsideTokenPart = clientsideTokenPart;
     this.supportedEncryptionAlgorithms = supportedEncryptionAlgorithms;
     this.supportedEncryptionKeySizes = supportedEncryptionKeySizes;
     this.supportedCompressionAlgorithms = supportedCompressionAlgorithms;
@@ -52,11 +48,10 @@ public final class ServerboundHelloPacket extends BinaryPacket<Serverbound> {
   @Override
   public void serialize(DataOutput buffer) {
     try {
-      buffer.writeUTF(identifierHead);
-      buffer.writeUTF(identifierChecksum);
-      buffer.writeUTF(jarFileHash);
-      buffer.writeUTF(hwidHead);
-      buffer.writeUTF(startId);
+      buffer.writeInt(authTokenBuffer.readableBytes());
+      buffer.write(authTokenBuffer.array(), authTokenBuffer.arrayOffset(), authTokenBuffer.readableBytes());
+      buffer.writeLong(clientsideTokenPart.getMostSignificantBits());
+      buffer.writeLong(clientsideTokenPart.getLeastSignificantBits());
       buffer.writeUTF(String.join(",", supportedEncryptionAlgorithms));
       buffer.writeUTF(supportedEncryptionKeySizes.stream().map(Object::toString).collect(Collectors.joining(",")));
       buffer.writeUTF(String.join(",", supportedCompressionAlgorithms));
@@ -79,11 +74,9 @@ public final class ServerboundHelloPacket extends BinaryPacket<Serverbound> {
   @Override
   public void deserialize(DataInput buffer) {
     try {
-      identifierHead = buffer.readUTF();
-      identifierChecksum = buffer.readUTF();
-      jarFileHash = buffer.readUTF();
-      hwidHead = buffer.readUTF();
-      startId = buffer.readUTF();
+      authTokenBuffer = Unpooled.buffer(buffer.readInt());
+      buffer.readFully(authTokenBuffer.array(), authTokenBuffer.arrayOffset(), authTokenBuffer.readableBytes());
+      clientsideTokenPart = new UUID(buffer.readLong(), buffer.readLong());
       supportedEncryptionAlgorithms = Arrays.asList(buffer.readUTF().split(","));
       supportedEncryptionKeySizes = Arrays.stream(buffer.readUTF().split(",")).map(Integer::parseInt).collect(Collectors.toList());
       supportedCompressionAlgorithms = Arrays.asList(buffer.readUTF().split(","));
@@ -117,8 +110,8 @@ public final class ServerboundHelloPacket extends BinaryPacket<Serverbound> {
     return hwidHead;
   }
 
-  public String startId() {
-    return startId;
+  public UUID clientsideTokenPart() {
+    return clientsideTokenPart;
   }
 
   public List<String> supportedEncryptionAlgorithms() {
@@ -146,7 +139,7 @@ public final class ServerboundHelloPacket extends BinaryPacket<Serverbound> {
     private String identifierChecksum;
     private String jarFileHash;
     private String hwidHead;
-    private String startId;
+    private UUID clientToken;
     private List<String> supportedEncryptionAlgorithms = new ArrayList<>();
     private List<Integer> supportedEncryptionKeySizes = new ArrayList<>();
     private List<String> supportedCompressionAlgorithms = new ArrayList<>();
@@ -174,8 +167,8 @@ public final class ServerboundHelloPacket extends BinaryPacket<Serverbound> {
       return this;
     }
 
-    public Builder gameId(String startId) {
-      this.startId = startId;
+    public Builder gameId(UUID startId) {
+      this.clientToken = startId;
       return this;
     }
 
@@ -222,7 +215,7 @@ public final class ServerboundHelloPacket extends BinaryPacket<Serverbound> {
       if (hwidHead == null) {
         throw new IllegalStateException("hwidHead is null");
       }
-      if (startId == null) {
+      if (clientToken == null) {
         throw new IllegalStateException("startId is null");
       }
       if (supportedEncryptionAlgorithms == null) {
@@ -244,7 +237,7 @@ public final class ServerboundHelloPacket extends BinaryPacket<Serverbound> {
         throw new IllegalStateException("serverboundProtocol is empty");
       }
       return new ServerboundHelloPacket(
-        identifierHead, identifierChecksum, jarFileHash, hwidHead, startId,
+        identifierHead, identifierChecksum, jarFileHash, hwidHead, clientToken,
         supportedEncryptionAlgorithms, supportedEncryptionKeySizes,
         supportedCompressionAlgorithms, supportedHMACAlgorithms,
         clientboundProtocol, serverboundProtocol

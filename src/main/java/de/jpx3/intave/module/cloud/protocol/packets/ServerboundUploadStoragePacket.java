@@ -2,6 +2,8 @@ package de.jpx3.intave.module.cloud.protocol.packets;
 
 import de.jpx3.intave.module.cloud.protocol.BinaryPacket;
 import de.jpx3.intave.module.cloud.protocol.Identity;
+import de.jpx3.intave.module.cloud.protocol.Token;
+import de.jpx3.intave.module.cloud.protocol.TokenStorage;
 import de.jpx3.intave.module.cloud.protocol.listener.Serverbound;
 
 import java.io.DataInput;
@@ -21,6 +23,7 @@ public final class ServerboundUploadStoragePacket extends BinaryPacket<Serverbou
       }
     });
 
+  private Token token = TokenStorage.currentToken();
   private Identity id;
   private ByteBuffer data;
 
@@ -37,6 +40,7 @@ public final class ServerboundUploadStoragePacket extends BinaryPacket<Serverbou
   @Override
   public void serialize(DataOutput buffer) {
     try {
+      token.serialize(buffer);
       id.serialize(buffer);
       byte[] array = data.array();
       buffer.write(array.length);
@@ -50,6 +54,7 @@ public final class ServerboundUploadStoragePacket extends BinaryPacket<Serverbou
   @Override
   public void deserialize(DataInput buffer) {
     try {
+      token = Token.from(buffer);
       id = Identity.from(buffer);
       int size = buffer.readInt();
       if (size > 1024 * 1024 * 10) {

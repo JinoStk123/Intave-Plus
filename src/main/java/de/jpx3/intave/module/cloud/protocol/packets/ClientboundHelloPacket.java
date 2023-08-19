@@ -1,6 +1,7 @@
 package de.jpx3.intave.module.cloud.protocol.packets;
 
 import de.jpx3.intave.module.cloud.protocol.BinaryPacket;
+import de.jpx3.intave.module.cloud.protocol.Token;
 import de.jpx3.intave.module.cloud.protocol.listener.Clientbound;
 
 import java.io.DataInput;
@@ -15,6 +16,7 @@ import java.util.List;
 import static de.jpx3.intave.module.cloud.protocol.Direction.CLIENTBOUND;
 
 public final class ClientboundHelloPacket extends BinaryPacket<Clientbound> {
+  private Token firstTimeToken;
   private List<String> clientboundPackets = new ArrayList<>();
   private List<String> serverboundPackets = new ArrayList<>();
   private String encryptionAlgorithm;
@@ -29,12 +31,14 @@ public final class ClientboundHelloPacket extends BinaryPacket<Clientbound> {
   }
 
   public ClientboundHelloPacket(
+    Token token,
     List<String> clientboundPackets,
     List<String> serverboundPackets,
     String encryptionAlgorithm, String compressionAlgorithm, String hmacAlgorithm,
     PublicKey publicKey, byte[] verifyToken
   ) {
     super(CLIENTBOUND, "HELLO", "0");
+    this.firstTimeToken = token;
     this.clientboundPackets = clientboundPackets;
     this.serverboundPackets = serverboundPackets;
     this.encryptionAlgorithm = encryptionAlgorithm;
@@ -47,6 +51,7 @@ public final class ClientboundHelloPacket extends BinaryPacket<Clientbound> {
   @Override
   public void serialize(DataOutput buffer) {
     try {
+      firstTimeToken.serialize(buffer);
       buffer.writeUTF(String.join(",", clientboundPackets));
       buffer.writeUTF(String.join(",", serverboundPackets));
       buffer.writeUTF(encryptionAlgorithm);
@@ -65,6 +70,13 @@ public final class ClientboundHelloPacket extends BinaryPacket<Clientbound> {
   @Override
   public void deserialize(DataInput buffer) {
     try {
+      firstTimeToken = Token.from(buffer);
+      if (!firstTimeToken.hasExpireInformation()) {
+        throw new IllegalStateException("Token has no expire information");
+      }
+      if (firstTimeToken.isExpired()) {
+        throw new IllegalStateException("Token is expired");
+      }
       clientboundPackets = new ArrayList<>();
       clientboundPackets.addAll(Arrays.asList(buffer.readUTF().split(",")));
       serverboundPackets = new ArrayList<>();

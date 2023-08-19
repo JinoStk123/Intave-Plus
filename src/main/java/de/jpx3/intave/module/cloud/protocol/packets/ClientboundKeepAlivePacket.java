@@ -1,6 +1,7 @@
 package de.jpx3.intave.module.cloud.protocol.packets;
 
 import de.jpx3.intave.module.cloud.protocol.BinaryPacket;
+import de.jpx3.intave.module.cloud.protocol.Token;
 import de.jpx3.intave.module.cloud.protocol.listener.Clientbound;
 
 import java.io.DataInput;
