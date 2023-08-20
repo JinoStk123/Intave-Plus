@@ -3,7 +3,7 @@ package de.jpx3.intave.module;
 import de.jpx3.intave.annotate.Native;
 import de.jpx3.intave.cleanup.ShutdownTasks;
 import de.jpx3.intave.module.actionbar.ActionBarDisplayer;
-import de.jpx3.intave.module.cloud.Cloud;
+import de.jpx3.intave.connect.cloud.Cloud;
 import de.jpx3.intave.module.event.CustomEvents;
 import de.jpx3.intave.module.feedback.FeedbackReceiver;
 import de.jpx3.intave.module.feedback.FeedbackSender;
@@ -69,10 +69,6 @@ public final class Modules {
 
   public static ActionBarDisplayer actionBar() {
     return find(ActionBarDisplayer.class);
-  }
-
-  public static Cloud cloud() {
-    return find(Cloud.class);
   }
 
   @Deprecated

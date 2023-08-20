@@ -64,7 +64,6 @@ final class ModuleLoader {
 
     // misc
     prepareModule("de.jpx3.intave.module.nayoro.Nayoro", defaultBoot);
-    prepareModule("de.jpx3.intave.module.cloud.Cloud", defaultBoot);
     prepareModule("de.jpx3.intave.module.warning.ClientWarningModule", defaultBoot);
     prepareModule("de.jpx3.intave.module.event.CustomEvents", defaultBoot);
     prepareModule("de.jpx3.intave.module.patcher.PacketResynchronizer", defaultBoot);

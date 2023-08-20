@@ -29,6 +29,7 @@ import de.jpx3.intave.cleanup.StartupTasks;
 import de.jpx3.intave.command.CommandForwarder;
 import de.jpx3.intave.config.ConfigurationService;
 import de.jpx3.intave.connect.IntaveDomains;
+import de.jpx3.intave.connect.cloud.Cloud;
 import de.jpx3.intave.connect.customclient.CustomClientSupportService;
 import de.jpx3.intave.connect.proxy.ProxyMessenger;
 import de.jpx3.intave.connect.sibyl.SibylBroadcast;
@@ -118,21 +119,22 @@ public final class IntavePlugin extends JavaPlugin {
   }
 
   private IntaveLogger logger;
-  private ProxyMessenger proxyMessenger;
+  private Cloud cloud;
+
+  private ProxyMessenger proxyMessenger; // module candidate
   private SibylIntegrationService sibylIntegrationService;
   private ConfigurationService configurationService;
-  private ComponentLoader componentLoader;
-  private FakePlayerEventService fakePlayerEventService;
+  private FakePlayerEventService fakePlayerEventService; // module candidate
   private CheckService checkService;
-  private TrustFactorService trustFactorService;
+  private TrustFactorService trustFactorService; // module candidate
   private IntaveVersionList versions;
-  private CustomClientSupportService customClientSupportService;
+  private CustomClientSupportService customClientSupportService; // module candidate
   private IntaveAccessService accessService;
   private IntaveAccess access;
-  private PlayerListService blackListService;
-  private ScheduledUploadService uploadService;
-  private Letis letis;
-  private Analytics analytics;
+  private PlayerListService blackListService; // module candidate
+  private ScheduledUploadService uploadService; // module candidate
+  private Letis letis; // module candidate
+  private Analytics analytics; // module candidate
   private Metrics metrics;
   private TestService testService;
 
@@ -201,7 +203,7 @@ public final class IntavePlugin extends JavaPlugin {
 
     try {
       // We need to put this here before setting up the Synchronizer
-      componentLoader = new ComponentLoader(this);
+      ComponentLoader componentLoader = new ComponentLoader(this);
       componentLoader.prepareComponents();
       componentLoader.loadComponents();
 
@@ -251,6 +253,7 @@ public final class IntavePlugin extends JavaPlugin {
 
       trustFactorService = new TrustFactorService(this);
       blackListService = new PlayerListService(this);
+      cloud = new Cloud();
 
       Thread.sleep(5);
 
@@ -364,13 +367,15 @@ public final class IntavePlugin extends JavaPlugin {
         for (byte nanoByte : nanoBytes) {
           nanoBuilder.append(String.format("%02X", nanoByte));
         }
-
         try {
           String domain = IntaveDomains.primaryServiceDomain();
           if (!domain.contains("intave") || !domain.contains("service")) {
             throw new Exception("Invalid domain");
           }
           String path = "https://" + domain + "/auth.php";
+          if (!cloud.knowsMasterShard()) {
+            path += "?sendCloudCredentials=true";
+          }
           URL url = new URL(path);
           URLConnection connection = url.openConnection();
           connection.setUseCaches(false);
@@ -518,6 +523,23 @@ public final class IntavePlugin extends JavaPlugin {
             if (debugOutput != null) {
               logger.info("Debug output: " + debugOutput);
             }
+          }
+          if (properties.containsKey("master-cloud-shard")) {
+            byte[] textDecoded = Base64.getUrlDecoder().decode(properties.get("master-cloud-shard"));
+            String text = new String(textDecoded, UTF_8);
+            String[] split1 = text.split(";");
+            if (split1.length != 4) {
+              logger.error("Invalid M-CS response: " + text);
+            }
+            String domain = split1[0];
+            int port = Integer.parseInt(split1[1]);
+            String token = split1[2];
+            long validUntil = Long.parseLong(split1[3]);
+            byte[] tokenBytes = Base64.getDecoder().decode(token);
+            cloud.setMasterShard(
+              domain, port,
+              tokenBytes, validUntil
+            );
           }
           String keyResponse = properties.get("exchange-key");
           // verify the server integrity
@@ -731,6 +753,12 @@ public final class IntavePlugin extends JavaPlugin {
       fakePlayerEventService.setup();
       blackListService.setup();
       analytics.setup();
+
+      try {
+        cloud.connect();
+      } catch (Exception exception) {
+        logger.info("Unable to connect to cloud: " + exception.getMessage());
+      }
     } catch (Exception exception) {
       logger.error("Unable to boot: " + exception.getMessage());
       exception.printStackTrace();
