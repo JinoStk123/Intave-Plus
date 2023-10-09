@@ -1,5 +1,7 @@
 package de.jpx3.intave.check.movement.physics;
 
+import de.jpx3.intave.block.fluid.FluidFlow;
+import de.jpx3.intave.block.fluid.Fluids;
 import de.jpx3.intave.block.state.MockFullBlockStaticPlane;
 import de.jpx3.intave.player.collider.Colliders;
 import de.jpx3.intave.player.collider.complex.Collider;
@@ -22,6 +24,7 @@ public final class SimulatorBasicTests extends Tests {
   private User testUser;
   private Player player;
   private final Collider collider = Colliders.anyCollider();
+  private final FluidFlow waterflow = Fluids.anyWaterflow();
   private final SimpleCollider simpleCollider = Colliders.anySimpleCollider();
   private final PlayerInventory inventory = new MockEmptyInventory();
 
@@ -53,6 +56,8 @@ public final class SimulatorBasicTests extends Tests {
       switch (s) {
         case "collider":
           return collider;
+        case "waterflow":
+          return waterflow;
         case "simplifiedCollider":
           return simpleCollider;
         case "blockStates":

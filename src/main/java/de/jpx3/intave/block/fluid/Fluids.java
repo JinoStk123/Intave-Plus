@@ -24,7 +24,8 @@ import static de.jpx3.intave.adapter.MinecraftVersions.*;
 public class Fluids {
   private static final Map<Material, Map<Integer, Fluid>> liquidData = new HashMap<>();
   private static FluidResolver resolver;
-  private static FluidFlow waterflow;
+  private static FluidFlow v8Waterflow;
+  private static FluidFlow v13Waterflow;
 
   public static void setup() {
     String className;
@@ -48,7 +49,8 @@ public class Fluids {
       throw new IntaveInternalException(exception);
     }
 
-    waterflow = new WaterFlow();
+    v8Waterflow = new v8Waterflow();
+    v13Waterflow = new v13Waterflow();
 
     for (Material value : Material.values()) {
       if (value.isBlock()) {
@@ -63,7 +65,6 @@ public class Fluids {
 //              waterflow.add(value, variantIndex);
 //              System.out.println("Added water " + value + ":" + variantIndex);
             }
-
           } catch (Exception exception) {
             BlockVariant properties = BlockVariantRegister.uncachedVariantOf(value, variantIndex);
             String propertyString = "{"+properties.propertyNames().stream().map(s -> s + ": " + properties.propertyOf(s)).collect(Collectors.joining(", ")) +"}";
@@ -78,8 +79,12 @@ public class Fluids {
     }
   }
 
-  public static FluidFlow waterflow() {
-    return waterflow;
+  public static FluidFlow suitableWaterflowFor(User user) {
+    return user.meta().protocol().waterUpdate() ? v13Waterflow : v8Waterflow;
+  }
+
+  public static FluidFlow anyWaterflow() {
+    return v8Waterflow;
   }
 
   public static boolean canContainFluid(Material material) {

@@ -4,6 +4,8 @@ import com.comphenix.protocol.events.PacketEvent;
 import de.jpx3.intave.access.UnsupportedFallbackOperationException;
 import de.jpx3.intave.access.player.trust.TrustFactor;
 import de.jpx3.intave.annotate.Relocate;
+import de.jpx3.intave.block.fluid.FluidFlow;
+import de.jpx3.intave.block.fluid.Fluids;
 import de.jpx3.intave.block.state.BlockStateCaches;
 import de.jpx3.intave.block.state.ExtendedBlockStateCache;
 import de.jpx3.intave.check.movement.physics.Pose;
@@ -39,6 +41,7 @@ final class FallbackUser implements User {
   private final MetadataBundle metadata;
   private final PermissionCache permissionCache;
   private final Collider collider;
+  private final FluidFlow fluidFlow;
   private final SimpleCollider simpleCollider;
   private final Map<Pose, HitboxSize> poseSizes;
   private final ExtendedBlockStateCache blockStateAccess;
@@ -53,6 +56,7 @@ final class FallbackUser implements User {
     this.permissionCache = ExpiringPermissionCache.withDefaultExpirationTime();
     this.blockStateAccess = BlockStateCaches.emptyCache();
     this.collider = Colliders.suitableComplexColliderProcessorFor(this);
+    this.fluidFlow = Fluids.suitableWaterflowFor(this);
     this.simpleCollider = Colliders.suitableSimpleColliderProcessorFor(this);
     this.poseSizes = Pose.AT_LEAST_1_8_POSE;
     this.metadata.setup();
@@ -184,6 +188,11 @@ final class FallbackUser implements User {
   @Override
   public Collider collider() {
     return collider;
+  }
+
+  @Override
+  public FluidFlow waterflow() {
+    return fluidFlow;
   }
 
   @Override

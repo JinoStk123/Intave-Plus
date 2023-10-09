@@ -7,23 +7,25 @@ import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.meta.MovementMetadata;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.entity.Player;
 
-public final class WaterFlow implements FluidFlow {
+import static de.jpx3.intave.share.ClientMath.*;
+
+public final class v13Waterflow implements FluidFlow {
   @Override
   public boolean applyFlowTo(User user, BoundingBox boundingBox) {
-    Player player = user.player();
-    World world = player.getWorld();
+    World world = user.player().getWorld();
     MovementMetadata movementData = user.meta().movement();
-    int minX = ClientMath.floor(boundingBox.minX);
-    int minY = ClientMath.floor(boundingBox.minY);
-    int minZ = ClientMath.floor(boundingBox.minZ);
-    int maxX = ClientMath.floor(boundingBox.maxX + 1.0D);
-    int maxY = ClientMath.floor(boundingBox.maxY + 1.0D);
-    int maxZ = ClientMath.floor(boundingBox.maxZ + 1.0D);
-
+    BoundingBox wrappedBoundingBox = boundingBox.shrink(0.001D);
+    int minX = floor(wrappedBoundingBox.minX);
+    int minY = floor(wrappedBoundingBox.minY);
+    int minZ = floor(wrappedBoundingBox.minZ);
+    int maxX = ceil(wrappedBoundingBox.maxX);
+    int maxY = ceil(wrappedBoundingBox.maxY);
+    int maxZ = ceil(wrappedBoundingBox.maxZ);
     boolean inWater = false;
-    Motion flowVector = null;
+    int countedWaterCollisions = 0;
+    Motion waterFlowTotal = null;
+    double d0 = 0;
     for (int x = minX; x < maxX; ++x) {
       for (int y = minY; y < maxY; ++y) {
         for (int z = minZ; z < maxZ; ++z) {
@@ -31,32 +33,47 @@ public final class WaterFlow implements FluidFlow {
           int variantIndex = VolatileBlockAccess.variantIndexAccess(user, world, x, y, z);
           Fluid fluid = Fluids.fluidStateOf(type, variantIndex);
           if (fluid.isOfWater()) {
-            double d0 = (float) (y + 1) - resolveLiquidHeightPercentage(fluid.level());
-            if ((double) maxY >= d0) {
+            double d1 = (float) y + fluid.height();
+            if (d1 >= wrappedBoundingBox.minY) {
               inWater = true;
-              if (flowVector == null) {
-                flowVector = new Motion();
+              d0 = Math.max(d1 - wrappedBoundingBox.minY, d0);
+              Motion pushMotion = pushMotionAt(user, x, y, z);
+              if (d0 < 0.4) {
+                pushMotion.multiply(d0);
               }
-              flowVector = modifyAcceleration(user, new BlockPosition(x, y, z), flowVector);
+              if (waterFlowTotal == null) {
+                waterFlowTotal = new Motion();
+              }
+              waterFlowTotal = waterFlowTotal.add(pushMotion);
+              ++countedWaterCollisions;
             }
           }
         }
       }
     }
-    if (inWater && flowVector != null && flowVector.length() > 0.0D) {
-      flowVector.normalize();
-      double factor = 0.014D;
-      movementData.baseMotionX += flowVector.motionX * factor;
-      movementData.baseMotionY += flowVector.motionY * factor;
-      movementData.baseMotionZ += flowVector.motionZ * factor;
+
+    if (waterFlowTotal != null && waterFlowTotal.length() > 0.0D) {
+      if (countedWaterCollisions > 0) {
+        waterFlowTotal.multiply(1.0D / (double) countedWaterCollisions);
+      }
+//      waterFlowTotal.normalize();
+      double d2 = 0.014D;
+//      movementData.baseMotionX += waterFlowTotal.motionX * d2;
+//      movementData.baseMotionY += waterFlowTotal.motionY * d2;
+//      movementData.baseMotionZ += waterFlowTotal.motionZ * d2;
+      waterFlowTotal.multiply(d2);
+
+      if (Math.abs(waterFlowTotal.motionX) < 0.003D && Math.abs(waterFlowTotal.motionZ) < 0.003D && waterFlowTotal.length() < 0.0045000000000000005D) {
+        waterFlowTotal.normalize().multiply(0.0045000000000000005D);
+      }
+
+      movementData.baseMotionX += waterFlowTotal.motionX;
+      movementData.baseMotionY += waterFlowTotal.motionY;
+      movementData.baseMotionZ += waterFlowTotal.motionZ;
+
       movementData.pastPushedByWaterFlow = 0;
     }
     return inWater;
-  }
-
-
-  public Motion modifyAcceleration(User user, BlockPosition pos, Motion motion) {
-    return motion.add(pushMotionAt(user, pos.getBlockX(), pos.getBlockY(), pos.getBlockZ()));
   }
 
   @Override
@@ -101,11 +118,8 @@ public final class WaterFlow implements FluidFlow {
     World world = user.player().getWorld();
     Material clientSideBlock = VolatileBlockAccess.typeAccess(user, world, pos.xCoord, pos.yCoord, pos.zCoord);
     int variantIndex = VolatileBlockAccess.variantIndexAccess(user, world, pos.xCoord, pos.yCoord, pos.zCoord);
-
-//    BlockVariant variant = VolatileBlockAccess.variantAccess(user, world, pos.xCoord, pos.yCoord, pos.zCoord);
     Fluid fluid = Fluids.fluidStateOf(clientSideBlock, variantIndex);
     return fluid.isOfWater() ? fluid.level() : -1;
-    //MaterialMagic.isWater(clientSideBlock) ? variant.propertyOf("level") : -1;
   }
 
   private static boolean blocksMovement(User user, BlockPosition position) {

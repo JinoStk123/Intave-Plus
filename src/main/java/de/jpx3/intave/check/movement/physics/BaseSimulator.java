@@ -90,16 +90,20 @@ class BaseSimulator extends Simulator {
       motion.motionZ *= 0.6;
     }
     if (jumped) {
-      boolean allowJumpInWater = false;
+      boolean allowJumpInLiquid = false;
       if (protocol.waterUpdate() && inWater && environment.onGround()) {
         Position lastPosition = environment.lastPosition();
+        double fluidHeight = 0.0d;
+
+
         float heightPercentage = resolveLiquidHeightPercentage(levelOfLiquidAt(user, lastPosition));
         double convertedPositionY = environment.positionY() + Math.abs(WorldHeight.LOWER_WORLD_LIMIT);
         heightPercentage += convertedPositionY % 1;
         boolean fluidStateEmpty = !Fluids.fluidPresentAt(user, lastPosition);
-        allowJumpInWater = fluidStateEmpty || heightPercentage > 0.5;
+
+        allowJumpInLiquid = fluidStateEmpty || heightPercentage > 0.5;
       }
-      if (inWater && !allowJumpInWater) {
+      if (inWater && !allowJumpInLiquid) {
         motion.motionY += 0.04F;
       } else if (inLava) {
         // #handleJumpLava

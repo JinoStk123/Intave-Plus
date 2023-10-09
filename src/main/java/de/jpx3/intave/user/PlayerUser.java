@@ -10,6 +10,8 @@ import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.access.IntaveInternalException;
 import de.jpx3.intave.access.player.trust.TrustFactor;
 import de.jpx3.intave.annotate.Relocate;
+import de.jpx3.intave.block.fluid.FluidFlow;
+import de.jpx3.intave.block.fluid.Fluids;
 import de.jpx3.intave.block.state.BlockStateCaches;
 import de.jpx3.intave.block.state.ExtendedBlockStateCache;
 import de.jpx3.intave.block.type.BlockTypeAccess;
@@ -83,6 +85,7 @@ final class PlayerUser implements User {
   private final Lock storageSubscriptionLock = new ReentrantLock();
   private final Queue<Reference<Runnable>> storageSubscriptionQueue = new ArrayDeque<>();
   private Collider collider;
+  private FluidFlow waterflow;
   private SimpleCollider simpleCollider;
   private Map<Pose, HitboxSize> poseSizes;
   private boolean ignoreNextInboundPacket;
@@ -102,6 +105,7 @@ final class PlayerUser implements User {
     this.permissionCache = ExpiringPermissionCache.withDefaultExpirationTime();
     this.blockStateAccess = BlockStateCaches.cacheForPlayer(player);
     this.collider = Colliders.suitableComplexColliderProcessorFor(this);
+    this.waterflow = Fluids.suitableWaterflowFor(this);
     this.simpleCollider = Colliders.suitableSimpleColliderProcessorFor(this);
     Synchronizer.synchronize(this::setDefaultMessagingChannel);
     this.playerContext = PlayerContext.of(player);
@@ -135,6 +139,7 @@ final class PlayerUser implements User {
 
   @Override
   public void applyNewProtocolVersion() {
+    this.waterflow = Fluids.suitableWaterflowFor(this);
     this.collider = Colliders.suitableComplexColliderProcessorFor(this);
     this.simpleCollider = Colliders.suitableSimpleColliderProcessorFor(this);
     this.poseSizes = Pose.poseSizesByVersion(metadata.protocol().protocolVersion());
@@ -311,6 +316,11 @@ final class PlayerUser implements User {
   @Override
   public Collider collider() {
     return collider;
+  }
+
+  @Override
+  public FluidFlow waterflow() {
+    return waterflow;
   }
 
   @Override

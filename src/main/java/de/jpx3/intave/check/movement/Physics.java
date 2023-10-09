@@ -318,7 +318,7 @@ public final class Physics extends Check {
       boundingBox = boundingBox.grow(0.0D, -0.4000000059604645D, 0.0D);
     }
     boundingBox = boundingBox.shrink(0.001D);
-    movementData.inWater = Fluids.waterflow().applyFlowTo(user, boundingBox);
+    movementData.inWater = user.waterflow().applyFlowTo(user, boundingBox);
     if (movementData.inWater) {
       movementData.pastWaterMovement = 0;
       movementData.artificialFallDistance = 0;

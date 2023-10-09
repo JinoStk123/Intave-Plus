@@ -4,6 +4,7 @@ import com.comphenix.protocol.events.PacketEvent;
 import de.jpx3.intave.access.UnsupportedFallbackOperationException;
 import de.jpx3.intave.access.player.trust.TrustFactor;
 import de.jpx3.intave.access.player.trust.TrustFactorResolver;
+import de.jpx3.intave.block.fluid.FluidFlow;
 import de.jpx3.intave.block.state.BlockStateCache;
 import de.jpx3.intave.block.state.ExtendedBlockStateCache;
 import de.jpx3.intave.block.state.InvalidatableBlockStateCache;
@@ -283,6 +284,12 @@ public interface User {
    * @return the complex collider processor
    */
   Collider collider();
+
+  /**
+   * Retrieve the {@link User}-associated {@link FluidFlow}
+   * @return
+   */
+  FluidFlow waterflow();
 
   /**
    * Retrieve the {@link User}-associated {@link SimpleCollider}
