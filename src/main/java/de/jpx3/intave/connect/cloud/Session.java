@@ -22,6 +22,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.function.Consumer;
 
 import static de.jpx3.intave.connect.cloud.protocol.Direction.CLIENTBOUND;
@@ -45,6 +46,9 @@ public final class Session {
   private byte[] verifyBytes;
 //  private Key aesKey;
 
+  private final LongAdder receivedBytes = new LongAdder();
+  private final LongAdder sentBytes = new LongAdder();
+
   public Session(Shard shard, Cloud cloud) {
     this.shard = shard;
     this.cloud = cloud;
@@ -62,8 +66,8 @@ public final class Session {
           ch.pipeline()
             .addLast("timeout", new ReadTimeoutHandler(120))
 //            .addLast("logger", new LoggingHandler(LogLevel.INFO))
-//            .addLast("decompression", new Decompression(256))
-//            .addLast("compression", new Compression(256))
+            .addLast("decompression", new Decompression(256))
+            .addLast("compression", new Compression(256))
             .addLast("codec", new PacketCodec(protocol, CLIENTBOUND))
             .addLast("processor", new HandshakeReceiver(Session.this))
           ;
@@ -103,6 +107,10 @@ public final class Session {
     }
   }
 
+  public boolean active() {
+    return channel != null && channel.isActive();
+  }
+
   public void reset() {
     shard = null;
     cloud = null;
@@ -120,11 +128,19 @@ public final class Session {
     }
     while (!pendingOutgoing.isEmpty()) {
       Packet<Serverbound> pending = pendingOutgoing.poll();
-      System.out.println("[Intave/Cloud] Sent queued " + pending.name());
+//      System.out.println("[Intave/Cloud] Sent queued " + pending.name());
       channel.writeAndFlush(pending);
     }
-    System.out.println("[Intave/Cloud] Sent " + packet.name());
+//    System.out.println("[Intave/Cloud] Sent " + packet.name());
     channel.writeAndFlush(packet);
+  }
+
+  public long sentBytes() {
+    return sentBytes.longValue();
+  }
+
+  public long receivedBytes() {
+    return receivedBytes.longValue();
   }
 
   public void serveTrustfactorRequest(Identity id, TrustFactor trustFactor) {
@@ -154,8 +170,8 @@ public final class Session {
     ChannelPipeline pipeline = channel.pipeline();
     ChannelHandler current = pipeline.get("encryption");
 
-    Encryption encryption = new Encryption(upwardEncryption);
-    Decryption decryption = new Decryption(downwardDecryption);
+    Encryption encryption = new Encryption(upwardEncryption, sentBytes);
+    Decryption decryption = new Decryption(downwardDecryption, receivedBytes);
 
     if (current == null) {
       pipeline.addAfter("timeout", "encryption", encryption);
@@ -167,11 +183,6 @@ public final class Session {
       pipeline.replace("encryption", "encryption", encryption);
       pipeline.replace("decryption", "decryption", decryption);
     }
-//
-//    System.out.println("[Intave/Cloud] Encryption set");
-//    System.out.print("[Intave/Cloud] Pipeline:");
-//    pipeline.forEach(entry -> System.out.print(" " + entry.getKey() + " ->"));
-//    System.out.println();
   }
 
   public void setProcessor(ChannelHandler handler) {

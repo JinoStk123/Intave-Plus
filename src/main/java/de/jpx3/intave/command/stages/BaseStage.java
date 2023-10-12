@@ -448,6 +448,18 @@ public final class BaseStage extends CommandStage {
   }
 
   @SubCommand(
+    selectors = "cloud",
+    usage = "",
+    description = "Access cloud related features",
+    permission = "intave.command.cloud"
+  )
+  @Forward(
+    target = CloudStage.class
+  )
+  public void cloudCommand(CommandSender sender) {
+  }
+
+  @SubCommand(
     selectors = "root",
     usage = "",
     description = "",

@@ -530,7 +530,7 @@ public final class IntavePlugin extends JavaPlugin {
             String text = new String(textDecoded, UTF_8);
             String[] split1 = text.split(";");
             if (split1.length != 4) {
-              logger.error("Invalid M-CS response: " + text);
+              logger.error("Invalid master shard response: " + text);
             }
             String domain = split1[0];
             int port = Integer.parseInt(split1[1]);

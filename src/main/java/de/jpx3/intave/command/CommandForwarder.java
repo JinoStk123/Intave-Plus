@@ -2,6 +2,7 @@ package de.jpx3.intave.command;
 
 import de.jpx3.intave.annotate.HighOrderService;
 import de.jpx3.intave.command.stages.*;
+import de.jpx3.intave.connect.cloud.Cloud;
 import org.bukkit.block.CommandBlock;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -24,6 +25,7 @@ public final class CommandForwarder implements CommandExecutor, TabCompleter {
     InternalsStage.singletonInstance();
     BotStage.singletonInstance();
     RootStage.singletonInstance();
+    CloudStage.singletonInstance();
     DiagnosticsStage.singletonInstance();
     ProxyStage.singletonInstance();
     DebugStage.singletonInstance();

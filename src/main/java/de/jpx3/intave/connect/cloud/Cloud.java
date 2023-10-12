@@ -121,6 +121,38 @@ public final class Cloud {
       shardCache.masterCloudToken().isStillValidIn(5, TimeUnit.MINUTES);
   }
 
+  public long sentBytes() {
+    return sessions.values().stream().mapToLong(Session::sentBytes).sum();
+  }
+
+  public long receivedBytes() {
+    return sessions.values().stream().mapToLong(Session::receivedBytes).sum();
+  }
+
+  public Map<Shard, Long> sentBytesPerShard() {
+    Map<Shard, Long> sent = new HashMap<>();
+    for (Shard shard : sessions.keySet()) {
+      sent.put(shard, sessions.get(shard).sentBytes());
+    }
+    return sent;
+  }
+
+  public Map<Shard, Long> receivedBytesPerShard() {
+    Map<Shard, Long> received = new HashMap<>();
+    for (Shard shard : sessions.keySet()) {
+      received.put(shard, sessions.get(shard).receivedBytes());
+    }
+    return received;
+  }
+
+  public Map<Shard, Boolean> shardConnections() {
+    Map<Shard, Boolean> connections = new HashMap<>();
+    for (Shard shard : sessions.keySet()) {
+      connections.put(shard, sessions.get(shard).active());
+    }
+    return connections;
+  }
+
   private void sendPacket(Packet<Serverbound> packet) {
     BackgroundExecutors.execute(() -> {
       for (Session session : sessions.values()) {

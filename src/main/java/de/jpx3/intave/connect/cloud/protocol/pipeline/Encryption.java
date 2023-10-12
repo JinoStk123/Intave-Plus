@@ -5,19 +5,23 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 
 import javax.crypto.Cipher;
+import java.util.concurrent.atomic.LongAdder;
 
 public final class Encryption extends MessageToByteEncoder<ByteBuf> {
   private byte[] inputBuffer = new byte[1024];
   private byte[] outputBuffer = new byte[1024];
   private final Cipher cipher;
+  private final LongAdder sentBytes;
 
-  public Encryption(Cipher cipher) {
+  public Encryption(Cipher cipher, LongAdder sentBytes) {
     this.cipher = cipher;
+    this.sentBytes = sentBytes;
   }
 
   @Override
   protected void encode(ChannelHandlerContext channelHandlerContext, ByteBuf input, ByteBuf output) throws Exception {
     int i = input.readableBytes();
+    sentBytes.add(i);
     if (this.inputBuffer.length < i) {
       this.inputBuffer = new byte[i];
     }

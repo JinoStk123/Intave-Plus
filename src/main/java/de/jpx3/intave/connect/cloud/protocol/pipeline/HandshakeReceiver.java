@@ -82,7 +82,7 @@ public final class HandshakeReceiver extends ChannelInboundHandlerAdapter implem
       encryption = encryption.substring(0, encryption.indexOf("/"));
     }
     session.setEncryptionAlgorithm(encryption);
-    System.out.println("Using " + session.encryptionAlgorithm() + " as " + session.encryptionScheme());
+//    System.out.println("Using " + session.encryptionAlgorithm() + " as " + session.encryptionScheme());
 
     session.setServerPublicKey(packet.publicKey());
     try {
