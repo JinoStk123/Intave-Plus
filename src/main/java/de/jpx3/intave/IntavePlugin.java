@@ -198,6 +198,7 @@ public final class IntavePlugin extends JavaPlugin {
 
     InterceptorDetection.setup();
 
+
     try {
       // We need to put this here before setting up the Synchronizer
       componentLoader = new ComponentLoader(this);
