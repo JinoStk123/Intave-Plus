@@ -132,7 +132,7 @@ public final class BlockUpdateTracker extends Module {
         if (distance(verifiedLocation, blockPosition) < 2) {
           user.meta().movement().pastNearbyCollisionInaccuracy = 0;
         }
-        player.sendMessage("");
+//        player.sendMessage("");
         Material material = blockData.getType();
         int variant = BlockVariantNativeAccess.variantAccess(blockData);
         int positionX = blockPosition.getX();
