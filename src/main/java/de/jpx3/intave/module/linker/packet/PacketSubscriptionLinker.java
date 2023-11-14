@@ -332,7 +332,7 @@ public final class PacketSubscriptionLinker extends Module {
         try {
           calledMethod.invoke(subscriber, arguments);
         } catch (Exception e) {
-          throw new RuntimeException(e);
+          throw new RuntimeException("Failed to invoke packet subscription method " + calledMethod + " in " + subscriber.getClass().getCanonicalName(), e);
         }
 
         if (packetReader != null) {

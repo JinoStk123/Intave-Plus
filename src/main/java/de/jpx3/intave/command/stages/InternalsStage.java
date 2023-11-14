@@ -130,7 +130,7 @@ public final class InternalsStage extends CommandStage {
       commandSender.sendMessage(IntavePlugin.prefix() + ChatColor.RED + "Auto storage is enabled. This command will not work.");
       return;
     }
-    commandSender.sendMessage(IntavePlugin.prefix() + ChatColor.RED +"Added storage entry for "+ target.getName() + " " + IntavePlugin.defaultColor() + "reaching " + ChatColor.RED + violationLevel.intValue() + " VL " + IntavePlugin.defaultColor() + "on " + ChatColor.RED + checkName);
+    commandSender.sendMessage(IntavePlugin.prefix() + ChatColor.RED +"Added history entry for "+ target.getName() + " " + IntavePlugin.defaultColor() + "reaching " + ChatColor.RED + violationLevel.intValue() + " VL " + IntavePlugin.defaultColor() + "on " + ChatColor.RED + checkName);
   }
 
   @SubCommand(

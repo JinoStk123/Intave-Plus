@@ -3,6 +3,7 @@ package de.jpx3.intave.module;
 import de.jpx3.intave.annotate.Native;
 import de.jpx3.intave.cleanup.ShutdownTasks;
 import de.jpx3.intave.module.actionbar.ActionBarDisplayer;
+import de.jpx3.intave.connect.cloud.Cloud;
 import de.jpx3.intave.module.event.CustomEvents;
 import de.jpx3.intave.module.feedback.FeedbackReceiver;
 import de.jpx3.intave.module.feedback.FeedbackSender;

@@ -7,6 +7,8 @@ import de.jpx3.intave.annotate.Native;
 import java.io.InputStream;
 import java.util.Scanner;
 
+import static de.jpx3.intave.IntaveControl.AUTHENTICATION_INSPECTION_MODE;
+import static de.jpx3.intave.IntaveControl.DISABLE_LICENSE_CHECK;
 import static de.jpx3.intave.library.asm.ClassVisitor.LICENSE_NAME;
 
 public final class LicenseAccess {
@@ -27,11 +29,12 @@ public final class LicenseAccess {
   @Native
   public static String rawLicense() {
     if (licenseName == null) {
-      if (IntaveControl.DISABLE_LICENSE_CHECK) {
+      if (DISABLE_LICENSE_CHECK || AUTHENTICATION_INSPECTION_MODE) {
         if (IntaveControl.GOMME_MODE) {
           licenseName = "srXcRrWOW9kO0edEdrtUsxPkWYFbTcWf55mKk4KHAfxK7P0k0tOTOxBnMDMCO33GMcABC2eAHuNSBYe0wnYTkWUvQrptoBsTZenAIIIIIYTE4ZmE4MjQyYmU3YzIyNDd"; // GommeHDnet
         } else {
-          licenseName = "TkxzRWpMdE1NVmdCUUdOMjdmNmdTdz09yB1f45kTpS5yiTeuw6DrRQ==";// Intavede
+//          licenseName = "TkxzRWpMdE1NVmdCUUdOMjdmNmdTdz09yB1f45kTpS5yiTeuw6DrRQ==";// Intavede
+          licenseName = "dW9b4SrAMxc5hSfbbp9xawEOrXV47DpHezU5nM8Dfbx2nON72AzA2PFEbfSh6HChYeqKvRAVqMnkMUm36AKKWtPcz706drbT57stIIIIIMTQwYWI3YmMyMzU0NTRmM2M"; // Intavede
         }
       } else {
         InputStream resourceAsStream = LicenseAccess.class.getResourceAsStream("/5ee6db6d-6751-4081-9cbf-28eb0f6cc055");

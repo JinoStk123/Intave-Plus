@@ -10,7 +10,6 @@ import de.jpx3.intave.command.SubCommand;
 import de.jpx3.intave.module.Modules;
 import de.jpx3.intave.module.actionbar.ActionBarDisplayer;
 import de.jpx3.intave.module.actionbar.DisplayType;
-import de.jpx3.intave.module.nayoro.Nayoro;
 import de.jpx3.intave.module.violation.ViolationVerboseMode;
 import de.jpx3.intave.player.ProfileLookup;
 import de.jpx3.intave.security.LicenseAccess;
@@ -103,33 +102,6 @@ public final class BaseStage extends CommandStage {
       return elements.get(0);
     } else {
       return defaultColor + String.join(defaultColor + ", ", elements.subList(0, size - 1)) + defaultColor + " and " + elements.get(size - 1);
-    }
-  }
-
-  @SubCommand(
-    selectors = "record",
-    usage = "",
-    permission = "intave.command",
-    description = "Record timings"
-  )
-  @Native
-  public void recordCommand(User user) {
-    if (IntaveControl.GOMME_MODE) {
-      user.player().sendMessage(ChatColor.RED + "This command is not available.");
-      return;
-    }
-
-    if (IntaveControl.DISABLE_LICENSE_CHECK || IntavePlugin.singletonInstance().sibyl().isAuthenticated(user.player())) {
-      Nayoro nayoro = Modules.nayoro();
-      if (nayoro.isGlobalRecordingActive()) {
-        nayoro.disableGlobalRecording();
-        user.player().sendMessage(ChatColor.GREEN + "Global recording disabled.");
-      } else {
-        nayoro.enableGlobalRecording();
-        user.player().sendMessage(ChatColor.GREEN + "Global recording enabled.");
-      }
-    } else {
-      user.player().sendMessage(ChatColor.RED + "This command is not available currently.");
     }
   }
 
@@ -441,6 +413,18 @@ public final class BaseStage extends CommandStage {
     target = ProxyStage.class
   )
   public void proxyCommand(CommandSender sender) {
+  }
+
+  @SubCommand(
+    selectors = "cloud",
+    usage = "",
+    description = "Access cloud related features",
+    permission = "intave.command.cloud"
+  )
+  @Forward(
+    target = CloudStage.class
+  )
+  public void cloudCommand(CommandSender sender) {
   }
 
   @SubCommand(

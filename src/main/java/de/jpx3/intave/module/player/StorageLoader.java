@@ -56,7 +56,7 @@ public final class StorageLoader extends Module {
     requestStorageFor(join.getPlayer());
   }
 
-  @BukkitEventSubscription(priority = EventPriority.LOWEST)
+  @BukkitEventSubscription(priority = EventPriority.HIGH)
   public void on(PlayerQuitEvent quit) {
     saveStorageFor(quit.getPlayer());
   }
@@ -77,14 +77,18 @@ public final class StorageLoader extends Module {
 
   public void requestStorageFor(Player player) {
     User user = UserRepository.userOf(player);
+    if (!user.hasPlayer()) {
+      return;
+    }
     Storage storage = user.mainStorage();
     UUID id = player.getUniqueId();
-    BackgroundExecutors.execute(() ->
-      storageGateway.requestStorage(id, buffer -> {
-        StorageIOProcessor.inputTo(storage, buffer);
-        checkDebugTag(player, storage);
-        user.notifyStorageLoadSubscribers();
-      })
+    BackgroundExecutors.execute(() -> {
+        storageGateway.requestStorage(id, buffer -> {
+          StorageIOProcessor.inputTo(storage, buffer);
+          checkDebugTag(player, storage);
+          user.notifyStorageLoadSubscribers();
+        });
+      }
     );
   }
 
@@ -118,7 +122,11 @@ public final class StorageLoader extends Module {
   }
 
   public void saveStorageFor(Player player) {
-    Storage storage = UserRepository.userOf(player).mainStorage();
+    User user = UserRepository.userOf(player);
+    Storage storage = user.mainStorage();
+    if (!user.hasPlayer()) {
+      return;
+    }
     UUID id = player.getUniqueId();
     ByteBuffer buffer = StorageIOProcessor.outputFrom(storage);
     BackgroundExecutors.execute(() ->

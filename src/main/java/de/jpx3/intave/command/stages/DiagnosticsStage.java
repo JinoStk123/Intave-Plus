@@ -21,6 +21,10 @@ import de.jpx3.intave.diagnostic.timings.Timing;
 import de.jpx3.intave.diagnostic.timings.Timings;
 import de.jpx3.intave.executor.BackgroundExecutors;
 import de.jpx3.intave.math.MathHelper;
+import de.jpx3.intave.module.Modules;
+import de.jpx3.intave.module.nayoro.Nayoro;
+import de.jpx3.intave.module.nayoro.event.AttackEvent;
+import de.jpx3.intave.module.nayoro.event.sink.EventSink;
 import de.jpx3.intave.resource.Resource;
 import de.jpx3.intave.resource.ResourceRegistry;
 import de.jpx3.intave.security.HashAccess;
@@ -109,6 +113,28 @@ public final class DiagnosticsStage extends CommandStage {
 //    int tickedEntities = connection.tickedEntities().size();
     int tracedEntities = connection.tracedEntities().size();
     player.sendMessage(IntavePlugin.prefix() + "Monitoring " + ChatColor.RED + totalEntities + IntavePlugin.defaultColor() + " entities, tracing " + ChatColor.RED + tracedEntities + IntavePlugin.defaultColor() + " entities");
+  }
+
+  @SubCommand(
+    selectors = "ntrace",
+    usage = "",
+    description = "Sample click/attack trace",
+    permission = "intave.command.diagnostics.performance"
+  )
+  public void ntraceCommand(User user) {
+    Player player = user.player();
+    Nayoro nayoro = Modules.nayoro();
+    nayoro.pushSink(user, new EventSink() {
+      @Override
+      public void visit(de.jpx3.intave.module.nayoro.event.ClickEvent event) {
+        player.sendMessage("ClickEvent");
+      }
+
+      @Override
+      public void visit(AttackEvent event) {
+        player.sendMessage("AttackEvent");
+      }
+    });
   }
 
   @SubCommand(

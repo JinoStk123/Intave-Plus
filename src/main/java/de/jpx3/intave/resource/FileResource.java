@@ -62,7 +62,7 @@ final class FileResource implements Resource {
       tempFile.setWritable(true);
       tempFile.setExecutable(false);
       OutputStream outputStream = Files.newOutputStream(tempFile.toPath(), WRITE);
-      outputStream = new BufferedOutputStream(outputStream, 1024 * 1024);
+      outputStream = new BufferedOutputStream(outputStream, 1024 * 5);
       outputStream = Resources.subscribeToClose(outputStream, () -> {
         try {
           Files.move(tempFile.toPath(), this.file.toPath(), REPLACE_EXISTING);

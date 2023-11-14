@@ -29,6 +29,8 @@ import de.jpx3.intave.cleanup.StartupTasks;
 import de.jpx3.intave.command.CommandForwarder;
 import de.jpx3.intave.config.ConfigurationService;
 import de.jpx3.intave.connect.IntaveDomains;
+import de.jpx3.intave.connect.cloud.Cloud;
+import de.jpx3.intave.connect.cloud.LogTransmittor;
 import de.jpx3.intave.connect.customclient.CustomClientSupportService;
 import de.jpx3.intave.connect.proxy.ProxyMessenger;
 import de.jpx3.intave.connect.sibyl.SibylBroadcast;
@@ -110,6 +112,7 @@ public final class IntavePlugin extends JavaPlugin {
   private static String version = "UNKNOWN";
   private static String prefix = ChatColor.translateAlternateColorCodes('&', "&8[&c&lIntave&8]&7 ");
   private static String defaultColor = ChatColor.getLastColors(prefix);
+  private static final UUID gameId = UUID.randomUUID();
   private static boolean offlineMode = false, successfullyBooted = false;
 
   static {
@@ -117,21 +120,23 @@ public final class IntavePlugin extends JavaPlugin {
   }
 
   private IntaveLogger logger;
-  private ProxyMessenger proxyMessenger;
+  private LogTransmittor transmittor;
+  private Cloud cloud;
+
+  private ProxyMessenger proxyMessenger; // module candidate
   private SibylIntegrationService sibylIntegrationService;
   private ConfigurationService configurationService;
-  private ComponentLoader componentLoader;
-  private FakePlayerEventService fakePlayerEventService;
+  private FakePlayerEventService fakePlayerEventService; // module candidate
   private CheckService checkService;
-  private TrustFactorService trustFactorService;
+  private TrustFactorService trustFactorService; // module candidate
   private IntaveVersionList versions;
-  private CustomClientSupportService customClientSupportService;
+  private CustomClientSupportService customClientSupportService; // module candidate
   private IntaveAccessService accessService;
   private IntaveAccess access;
-  private PlayerListService blackListService;
-  private ScheduledUploadService uploadService;
-  private Letis letis;
-  private Analytics analytics;
+  private PlayerListService blackListService; // module candidate
+  private ScheduledUploadService uploadService; // module candidate
+  private Letis letis; // module candidate
+  private Analytics analytics; // module candidate
   private Metrics metrics;
   private TestService testService;
 
@@ -200,7 +205,7 @@ public final class IntavePlugin extends JavaPlugin {
 
     try {
       // We need to put this here before setting up the Synchronizer
-      componentLoader = new ComponentLoader(this);
+      ComponentLoader componentLoader = new ComponentLoader(this);
       componentLoader.prepareComponents();
       componentLoader.loadComponents();
 
@@ -250,6 +255,11 @@ public final class IntavePlugin extends JavaPlugin {
 
       trustFactorService = new TrustFactorService(this);
       blackListService = new PlayerListService(this);
+      cloud = new Cloud();
+      cloud.init();
+
+      transmittor = new LogTransmittor();
+      transmittor.init();
 
       Thread.sleep(5);
 
@@ -310,12 +320,24 @@ public final class IntavePlugin extends JavaPlugin {
          * this is our new protection against proxy-based attacks
          */
 
+        String licenseInfo;
+        String hashOfJarFile;
+        String secretKey;
+
+        if (AUTHENTICATION_DEBUG_MODE) {
+          licenseInfo = "a3EMRACNAGwThSKc4N8TyORPR92NHZHpZOC4WsF00Q3hd0xYWWPtRdEvwknHoAAunqEEHtYZeg7nfQs4PHcs6cdhKYCWqwszmO9oIIIIIMWRkMjRlZDI3YWIzYThiZTZ";
+          hashOfJarFile = "802b805a15b21959fe18c3cc82e01bdcceeff34977c3009f524e52e9fcf20344";
+          secretKey = "e5d66e52";
+        } else {
+          licenseInfo = LicenseAccess.rawLicense();
+          hashOfJarFile = HashAccess.hashOf(currentJavaJarFile);
+          secretKey = identificationKey > 0 ? new String(bytes) : "aaaaaaaa";
+        }
+
         long nanoTime = System.nanoTime();
-        String hashOfJarFile = HashAccess.hashOf(currentJavaJarFile);
         long longOne = ThreadLocalRandom.current().nextLong(0x4000000000000000L, Long.MAX_VALUE);
         long longTwo = ThreadLocalRandom.current().nextLong(0x4000000000000000L, Long.MAX_VALUE);
         String requestedId = String.valueOf(new UUID(longOne, longTwo)).replace("-", "").toUpperCase(Locale.ROOT);
-        String secretKey = identificationKey > 0 ? new String(bytes) : "aaaaaaaa";
         String processString = secretKey + configurationKey + requestedId;
         // randomize the process string with a given seed
         long seed = (longOne + (hashOfJarFile.hashCode() * 1337L)) ^ nanoTime;
@@ -363,13 +385,15 @@ public final class IntavePlugin extends JavaPlugin {
         for (byte nanoByte : nanoBytes) {
           nanoBuilder.append(String.format("%02X", nanoByte));
         }
-
         try {
           String domain = IntaveDomains.primaryServiceDomain();
           if (!domain.contains("intave") || !domain.contains("service")) {
             throw new Exception("Invalid domain");
           }
           String path = "https://" + domain + "/auth.php";
+          if (!cloud.knowsMasterShard()) {
+            path += "?sendCloudCredentials=true";
+          }
           URL url = new URL(path);
           URLConnection connection = url.openConnection();
           connection.setUseCaches(false);
@@ -381,7 +405,7 @@ public final class IntavePlugin extends JavaPlugin {
           connection.addRequestProperty("B", secretKey);
           connection.addRequestProperty("C", HWIDVerification.publicHardwareIdentifier());
           connection.addRequestProperty("D", configurationKey);
-          connection.addRequestProperty("E", LicenseAccess.rawLicense());
+          connection.addRequestProperty("E", licenseInfo);
           connection.addRequestProperty("F", "X9-" + requestedId + "-" + nanoBuilder.toString().toUpperCase(Locale.ROOT));
           connection.addRequestProperty("G", blackListService.encryptedGrayKnowledgeData());
           connection.addRequestProperty("H", blackListService.encryptedBlueKnowledgeData());
@@ -525,6 +549,26 @@ public final class IntavePlugin extends JavaPlugin {
             if (debugOutput != null) {
               logger.info("Debug output: " + debugOutput);
             }
+          }
+          if (properties.containsKey("master-cloud-shard")) {
+            byte[] textDecoded = Base64.getUrlDecoder().decode(properties.get("master-cloud-shard"));
+            String text = new String(textDecoded, UTF_8);
+            String[] split1 = text.split(";");
+            if (split1.length != 3) {
+              logger.error("Invalid master shard response: " + text);
+            }
+            String domain = split1[0];
+            int port = Integer.parseInt(split1[1]);
+            String token = split1[2];
+            String[] tokenSplit = token.split("\\.");
+            byte[] tokenBytes = Base64.getUrlDecoder().decode(tokenSplit[0]);
+//            System.out.println("Token: " + tokenSplit[0]);
+//            System.out.println("Token bytes: " + Arrays.toString(tokenBytes));
+            long validUntil = Long.parseLong(tokenSplit[1]);
+            cloud.setMasterShard(
+              domain, port,
+              tokenBytes, validUntil
+            );
           }
           String keyResponse = properties.get("exchange-key");
           // verify the server integrity
@@ -697,11 +741,13 @@ public final class IntavePlugin extends JavaPlugin {
 
       // resolve config hash
       configurationService.setupConfiguration(requiredState);
-      prefix = configurationService.configuration().getString("layout.prefix", prefix);
+      YamlConfiguration configuration = configurationService.configuration();
+      prefix = configuration.getString("layout.prefix", prefix);
       prefix = ChatColor.translateAlternateColorCodes('&', prefix);
       defaultColor = ChatColor.getLastColors(prefix);
-      FaultKicks.applyFrom(configurationService.configuration().getConfigurationSection("fault-kicks"));
-      ConsoleOutput.applyFrom(configurationService.configuration().getConfigurationSection("logging"));
+      FaultKicks.applyFrom(configuration.getConfigurationSection("fault-kicks"));
+      ConsoleOutput.applyFrom(configuration.getConfigurationSection("logging"));
+      cloud.configInit(configuration.getConfigurationSection("cloud"));
 
       // stage 8
       Modules.proceedBoot(BootSegment.STAGE_8);
@@ -739,6 +785,12 @@ public final class IntavePlugin extends JavaPlugin {
       fakePlayerEventService.setup();
       blackListService.setup();
       analytics.setup();
+
+      try {
+        cloud.connectMasterShard();
+      } catch (Exception exception) {
+        logger.info("Unable to connect to cloud: " + exception.getMessage());
+      }
     } catch (Exception exception) {
       logger.error("Unable to boot: " + exception.getMessage());
       exception.printStackTrace();
@@ -757,7 +809,7 @@ public final class IntavePlugin extends JavaPlugin {
     GarbageCollector.setup();
     BackgroundExecutors.executeWhenever(this::clearIntegrityGarbage);
     BackgroundExecutors.executeWhenever(this::clearSaveFolderGarbage);
-    BackgroundExecutors.executeWhenever(this::clearUnusedSamples);
+//    BackgroundExecutors.executeWhenever(this::clearUnusedSamples);
     logger.performCompression();
 
     ViolationStorage.setup();
@@ -893,6 +945,9 @@ public final class IntavePlugin extends JavaPlugin {
           break;
         case OUTDATED:
           infoMessage = "A newer version of Intave is available (this version is " + durationAsString + " old)";
+          break;
+        case TEST:
+          infoMessage = "Running a test version of Intave";
           break;
         case DISABLED:
         case INVALID:
@@ -1164,6 +1219,14 @@ public final class IntavePlugin extends JavaPlugin {
     return logger;
   }
 
+  public Cloud cloud() {
+    return cloud;
+  }
+
+  public LogTransmittor logTransmittor() {
+    return transmittor;
+  }
+
   public ProxyMessenger proxy() {
     return proxyMessenger;
   }
@@ -1203,6 +1266,10 @@ public final class IntavePlugin extends JavaPlugin {
 
   public static String version() {
     return version;
+  }
+
+  public static UUID gameId() {
+    return gameId;
   }
 
   public static String prefix() {

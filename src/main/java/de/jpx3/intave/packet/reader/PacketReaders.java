@@ -62,7 +62,6 @@ public final class PacketReaders {
     setup(UPDATE_ATTRIBUTES, EntityReader::new);
     setup(UPDATE_ENTITY_NBT, EntityReader::new);
     setup(USE_BED, EntityReader::new);
-    setup(WINDOW_ITEMS, WindowItemsReader::new);
 
     setup(ABILITIES_IN, AbilityInReader::new);
     setup(BLOCK_DIG, BlockPositionReader::new);
@@ -71,7 +70,9 @@ public final class PacketReaders {
     setup(ENTITY_ACTION_IN, PlayerActionReader::new);
     setup(USE_ITEM, BlockInteractionReader::new);
     setup(USE_ENTITY, EntityUseReader::new);
+    setup(WINDOW_ITEMS, WindowBulkItemReader::new);
     setup(WINDOW_CLICK, WindowClickReader::new);
+    setup(SET_SLOT, WindowSingleItemReader::new);
 
     // for some
   }

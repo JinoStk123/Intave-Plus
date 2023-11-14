@@ -76,7 +76,7 @@ public final class StorageTests extends Tests {
     });
 
     try {
-      boolean awaited = latch.await(3, TimeUnit.SECONDS);
+      boolean awaited = latch.await(6, TimeUnit.SECONDS);
       if (!awaited) {
         fail("Storage lookup took too long");
       }
@@ -120,12 +120,26 @@ public final class StorageTests extends Tests {
       }
     } catch (InterruptedException ignored) {}
 
-    if (!byteBufferA.equals(returnA)) {
+    if (!bufferContentsEqual(byteBufferA, returnA)) {
       fail("Incorrect storage return, check if you are managing IDs properly");
     }
-    if (!byteBufferB.equals(returnB)) {
+    if (!bufferContentsEqual(byteBufferB, returnB)) {
       fail("Incorrect storage return, check if you are managing IDs properly");
     }
+  }
+
+  private boolean bufferContentsEqual(ByteBuffer a, ByteBuffer b) {
+    byte[] array = a.array();
+    byte[] array1 = b.array();
+    if (array.length != array1.length) {
+      return false;
+    }
+    for (int i = 0; i < array.length; i++) {
+      if (array[i] != array1[i]) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @Test(

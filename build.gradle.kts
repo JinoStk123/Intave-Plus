@@ -81,6 +81,7 @@ bukkit {
     register("intave.command.verbose") { default = OP }
     register("intave.command.history") { default = OP }
     register("intave.command.cps") { default = OP }
+    register("intave.command.cloud") { default = OP }
     register("intave.command.proxy") { default = FALSE }
     register("intave.command.noupdate") { default = FALSE }
     register("intave.command.diagnostics") {
@@ -123,6 +124,27 @@ tasks.register("production") {
   dumpBuildConfig()
 }
 
+tasks.register<RunServer>("authtest") {
+  group = "intave"
+  dependsOn(tasks.build)
+  buildConfigFieldSafe("boolean", "PRODUCTION", "true")
+  buildConfigFieldSafe("boolean", "AUTHTEST", "true")
+  dumpBuildConfig()
+
+  pluginJars.from("build/libs/$simpleName.jar")
+  minecraftVersion("1.8.8")
+  runDirectory(File("runs/authtest"))
+  jvmArgs("-Dcom.mojang.eula.agree=true")
+//  jvmArgs("-Dintave.test.success=shutdown")
+  javaLauncher.set(
+    project.javaToolchains.launcherFor {
+      // Sets the JDK version for the Minecraft server, Intave is still built using Java
+      // 1.8
+      languageVersion.set(JavaLanguageVersion.of(8))
+    }
+  )
+}
+
 tasks.register("gomme") {
   group = "deploy"
   dependsOn(tasks.build)
@@ -139,6 +161,7 @@ buildConfig {
   useJavaOutput()
 
   buildConfigFieldSafe("boolean", "PRODUCTION", "false");
+  buildConfigFieldSafe("boolean", "AUTHTEST", "false");
   buildConfigFieldSafe("boolean", "GOMME", "false")
   buildConfigFieldSafe("String", "VERSION", "\"${rootProject.version}\"")
 }

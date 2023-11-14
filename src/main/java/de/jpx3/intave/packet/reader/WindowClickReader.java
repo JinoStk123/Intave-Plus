@@ -7,11 +7,13 @@ import de.jpx3.intave.klass.Lookup;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserRepository;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
 
 public final class WindowClickReader extends AbstractPacketReader {
   private static final Class<?> NATIVE_INVENTORY_CLICK_TYPE_CLASS = MinecraftVersions.VER1_9_0.atOrAbove() ? Lookup.serverClass("InventoryClickType") : Object.class;
+  private static final boolean MODERN_WINDOW_CLICK = MinecraftVersions.VER1_9_0.atOrAbove();
 
   public InventoryClickType clickType() {
     if (MinecraftVersions.VER1_9_0.atOrAbove()) {
@@ -55,6 +57,18 @@ public final class WindowClickReader extends AbstractPacketReader {
       return integers.readSafely(3);
     } else {
       return packet().getShorts().readSafely(0);
+    }
+  }
+
+  public ItemStack itemStack() {
+    return packet().getItemModifier().read(0);
+  }
+
+  public boolean isDrop() {
+    if (MODERN_WINDOW_CLICK) {
+      return clickType() == InventoryClickType.THROW && slot() != -999;
+    } else {
+      return packet().getIntegers().read(3) == 4 && slot() != -999;
     }
   }
 

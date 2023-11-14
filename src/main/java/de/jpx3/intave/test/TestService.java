@@ -198,7 +198,7 @@ public final class TestService implements EventProcessor {
     }
     if (IS_TEST_RUN) {
       IntaveLogger.logger().info("Shutting down server due to test success");
-      Bukkit.shutdown();
+      Synchronizer.synchronizeDelayed(Bukkit::shutdown, 10);
     }
   }
 

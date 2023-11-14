@@ -17,6 +17,7 @@ import de.jpx3.intave.block.state.ExtendedBlockStateCache;
 import de.jpx3.intave.block.type.BlockTypeAccess;
 import de.jpx3.intave.check.movement.physics.Pose;
 import de.jpx3.intave.cleanup.GarbageCollector;
+import de.jpx3.intave.connect.cloud.LogTransmittor;
 import de.jpx3.intave.connect.customclient.CustomClientSupportConfig;
 import de.jpx3.intave.diagnostic.ConsoleOutput;
 import de.jpx3.intave.entity.size.HitboxSize;
@@ -148,11 +149,13 @@ final class PlayerUser implements User {
   }
 
   private void outputVersionJoinInfo() {
+    Player player = player();
+    LogTransmittor logTransmittor = IntavePlugin.singletonInstance().logTransmittor();
+    ProtocolMetadata clientData = meta().protocol();
+    logTransmittor.addPlayerLog(player, "(JOIN) " + player.getName() + " joined with version " + clientData.versionString() + "/" + clientData.protocolVersion() + " and locale " + clientData.locale());
     if (!ConsoleOutput.CLIENT_VERSION_DEBUG) {
       return;
     }
-    Player player = player();
-    ProtocolMetadata clientData = meta().protocol();
     String string = player.getName() + " joined with version " + clientData.versionString() + "/" + clientData.protocolVersion();
     if (clientData.outdatedClient()) {
       string += " (behind)";
@@ -617,6 +620,11 @@ final class PlayerUser implements User {
     packet.getFloat().write(1, saturationLevel);
     packet.getIntegers().write(0, foodLevel);
     PacketSender.sendServerPacket(player, packet);
+  }
+
+  @Override
+  public int hashCode() {
+    return id().hashCode();
   }
 
   private IntavePlugin plugin() {

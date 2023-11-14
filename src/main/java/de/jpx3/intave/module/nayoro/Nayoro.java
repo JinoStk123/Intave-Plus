@@ -2,10 +2,9 @@ package de.jpx3.intave.module.nayoro;
 
 import com.google.common.collect.Sets;
 import de.jpx3.intave.IntaveControl;
-import de.jpx3.intave.IntaveLogger;
+import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.cleanup.GarbageCollector;
-import de.jpx3.intave.cleanup.StartupTasks;
-import de.jpx3.intave.executor.BackgroundExecutors;
+import de.jpx3.intave.connect.cloud.Cloud;
 import de.jpx3.intave.executor.Synchronizer;
 import de.jpx3.intave.executor.TaskTracker;
 import de.jpx3.intave.module.Module;
@@ -22,13 +21,14 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
+import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiConsumer;
@@ -37,11 +37,15 @@ import java.util.stream.Collectors;
 import java.util.zip.InflaterInputStream;
 
 import static de.jpx3.intave.module.dispatch.AttackDispatcher.COMBAT_SAMPLING;
+import static de.jpx3.intave.module.nayoro.OperationalMode.CLOUD_STORAGE;
+import static de.jpx3.intave.module.nayoro.OperationalMode.CLOUD_TRANSMISSION;
 
 public final class Nayoro extends Module {
   private static final Resource SAMPLE_UPLOAD_STATUS = Resources.localServiceCacheResource("samples/status", "sample-status", TimeUnit.DAYS.toMillis(1));
-  private static final boolean PUBLISH_SAMPLES = COMBAT_SAMPLING &= "accept".equalsIgnoreCase(SAMPLE_UPLOAD_STATUS.readAsString().trim()) && !IntaveControl.GOMME_MODE;
   private static final long GLOBAL_SCHEDULE_INTERVAL = TimeUnit.MINUTES.toSeconds(5);
+
+  private static final OperationalMode MODE = IntaveControl.SAMPLE_OPERATIONAL_MODE;
+//  private static final boolean PUBLISH_SAMPLES = COMBAT_SAMPLING &= "accept".equalsIgnoreCase(SAMPLE_UPLOAD_STATUS.readAsString().trim()) && !IntaveControl.GOMME_MODE;
 
   private final UserLocal<Set<EventSink>> eventSinks = UserLocal.withInitial(this::defaultSinksFor, this::disableRecordingFor);
   private final UserLocal<AtomicBoolean> recording = UserLocal.withInitial(new AtomicBoolean(false));
@@ -63,99 +67,23 @@ public final class Nayoro extends Module {
     if (!COMBAT_SAMPLING) {
       return;
     }
-    if (PUBLISH_SAMPLES) {
-      IntaveLogger.logger().info("Intave will sample combat data and upload it anonymized to the our servers.");
-      IntaveLogger.logger().info("You can disable this anytime with the combat-sampling option in the config.");
-    }
-    StartupTasks.add(this::enableGlobalRecording);
+//    StartupTasks.add(this::enableGlobalRecording);
   }
 
   @Override
   public void disable() {
     disableGlobalRecording();
-    uploadSamples();
     deleteAllSamples();
     Modules.linker().packetEvents().removeSubscriptionsOf(packetEventDispatch);
-  }
-
-  public void enableGlobalRecording() {
-    try {
-      globalRecordingLock.lock();
-      if (globalRecording) {
-        return;
-      }
-      globalRecording = true;
-      globalRecordingTaskId = Bukkit.getScheduler().scheduleAsyncRepeatingTask(plugin, () -> {
-        Bukkit.getOnlinePlayers().forEach(player -> {
-          User user = UserRepository.userOf(player);
-          if (recordingActiveFor(user) && (System.currentTimeMillis() - lastRecording.get(user).get()) > (1000 * 45)) {
-            Synchronizer.synchronize(() -> {
-              disableRecordingFor(user);
-              enableRecordingFor(user);
-            });
-          }
-        });
-        uploadSamples();
-      }, 20 * GLOBAL_SCHEDULE_INTERVAL, 20 * GLOBAL_SCHEDULE_INTERVAL);
-      Synchronizer.synchronize(() -> {
-        for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-          User user = UserRepository.userOf(onlinePlayer);
-          enableRecordingFor(user);
-        }
-      });
-      TaskTracker.begun(globalRecordingTaskId);
-    } finally {
-      globalRecordingLock.unlock();
-    }
-  }
-
-  private void uploadSamples() {
-    if (PUBLISH_SAMPLES && !completedSamples.isEmpty()) {
-      IntaveLogger.logger().info("Uploading samples..");
-      AtomicLong length = new AtomicLong();
-      AtomicInteger count = new AtomicInteger();
-      for (Sample sample : completedSamples) {
-        BackgroundExecutors.executeWhenever(() -> {
-          try {
-            count.incrementAndGet();
-            length.addAndGet(sample.uploadAndDelete());
-            completedSamples.remove(sample);
-          } catch (IOException exception) {
-            throw new RuntimeException(exception);
-          }
-        });
-      }
-      BackgroundExecutors.executeWhenever(() -> {
-        IntaveLogger.logger().info(count.get() + " samples were uploaded (" + asReadableBytes(length.get()) + ")");
-        completedSamples.clear();
-      });
-    } else if (!completedSamples.isEmpty()) {
-      long deletions = 0;
-      for (Sample completedSample : completedSamples) {
-        completedSample.delete();
-        deletions++;
-      }
-      if (deletions > 0) {
-        IntaveLogger.logger().info("Deleted " + deletions + " samples");
-      }
-    }
-  }
-
-  private String asReadableBytes(long bytes) {
-    String[] units = new String[]{"B", "KB", "MB", "GB", "TB"};
-    int unit = 0;
-    while (bytes > 1024) {
-      bytes /= 1024;
-      unit++;
-    }
-    return bytes + units[unit];
   }
 
   public void deleteAllSamples() {
     completedSamples.forEach(Sample::delete);
     completedSamples.clear();
-    samples.values().forEach(Sample::delete);
-    samples.clear();
+    if (!MODE.keepCopyOfSamples()) {
+      samples.values().forEach(Sample::delete);
+      samples.clear();
+    }
   }
 
   public void disableGlobalRecording() {
@@ -182,9 +110,13 @@ public final class Nayoro extends Module {
 
   @BukkitEventSubscription
   public void on(PlayerJoinEvent join) {
-    User user = UserRepository.userOf(join.getPlayer());
-    if (globalRecording) {
-      enableRecordingFor(user);
+    Player player = join.getPlayer();
+    User user = UserRepository.userOf(player);
+    Cloud cloud = IntavePlugin.singletonInstance().cloud();
+    if (cloud.available()) {
+      cloud.requestSampleTransmission(player, classifier -> {
+        enableRecordingFor(user, classifier, CLOUD_TRANSMISSION);
+      });
     }
   }
 
@@ -196,55 +128,117 @@ public final class Nayoro extends Module {
     }
   }
 
-  public void enableRecordingFor(User user) {
+  public synchronized void enableRecordingFor(User user, Classifier classifier, OperationalMode mode) {
     localRecordingLock.lock();
     try {
+      if (!Bukkit.isPrimaryThread()) {
+        Synchronizer.synchronize(() -> enableRecordingFor(user, classifier, mode));
+        return;
+      }
       if (!COMBAT_SAMPLING || recordingActiveFor(user)) {
         return;
       }
-      if (!Bukkit.isPrimaryThread()) {
-        Synchronizer.synchronize(() -> enableRecordingFor(user));
-        return;
-      }
+//      System.out.println("Enabling recording for " + user.player().getName());
+      recording.get(user).set(true);
       Sample sample = new Sample();
       samples.put(user.id(), sample);
-      Resource resource = sample.resource();
-      DataOutputStream dataOutput = new DataOutputStream(resource.writeStream());
-      RecordEventSink recordEventSink = new RecordEventSink(new LiveEnvironment(user), dataOutput);
+      OutputStream output = writeStreamFor(user.player(), sample, mode);
+      RecordEventSink recordEventSink = new RecordEventSink(new LiveEnvironment(user), new DataOutputStream(output), classifier);
       eventSinks.get(user).add(recordEventSink);
       lastRecording.get(user).set(System.currentTimeMillis());
-      recording.get(user).set(true);
     } finally {
       localRecordingLock.unlock();
     }
   }
 
-  public void disableRecordingFor(User user) {
+  public synchronized void pushSink(User user, EventSink sink) {
     localRecordingLock.lock();
     try {
+      if (!Bukkit.isPrimaryThread()) {
+        Synchronizer.synchronize(() -> pushSink(user, sink));
+        return;
+      }
       if (!COMBAT_SAMPLING || !recordingActiveFor(user)) {
         return;
       }
+      eventSinks.get(user).add(sink);
+    } finally {
+      localRecordingLock.unlock();
+    }
+  }
+
+  public synchronized void disableRecordingFor(User user) {
+    localRecordingLock.lock();
+    try {
       if (!Bukkit.isPrimaryThread()) {
         Synchronizer.synchronize(() -> disableRecordingFor(user));
         return;
       }
+      if (!COMBAT_SAMPLING || !recordingActiveFor(user)) {
+        return;
+      }
+      recording.get(user).set(false);
       List<EventSink> remove = eventSinks.get(user).stream()
         .filter(eventSink -> eventSink instanceof RecordEventSink)
         .peek(EventSink::close)
         .collect(Collectors.toList());
       remove.forEach(eventSinks.get(user)::remove);
       Sample sample = samples.remove(user.id());
-      if (sample != null) {
-        completedSamples.add(sample);
+      if (!MODE.keepCopyOfSamples()) {
+        sample.delete();
       }
-      recording.get(user).set(false);
+      Cloud cloud = IntavePlugin.singletonInstance().cloud();
+      cloud.noteEndOfSampleTransmission(user.player());
     } finally {
       localRecordingLock.unlock();
     }
   }
 
-  public boolean recordingActiveFor(User user) {
+  public OutputStream writeStreamFor(Player player, Sample sample, OperationalMode mode) {
+    switch (mode) {
+      case DISABLE:
+        return new OutputStream() {
+          @Override
+          public void write(int b) {}
+        };
+      case CLOUD_STORAGE:
+      case CLOUD_TRANSMISSION:
+        boolean storage = mode == CLOUD_STORAGE;
+        return new ManualBufferedOutputStream(new OutputStream() {
+          @Override
+          public void write(int b) {
+            throw new UnsupportedOperationException("Not implemented, expected buffered output stream");
+          }
+
+          @Override
+          public void write(byte @NotNull [] b) {
+            write(b, 0, b.length);
+          }
+
+          @Override
+          public void write(byte @NotNull [] b, int off, int len) {
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+//            outputStream.write(1);
+            outputStream.write(b, off, len);
+            byte[] writeStream = outputStream.toByteArray();
+            ByteBuffer buffer = ByteBuffer.wrap(writeStream);
+            IntavePlugin plugin = IntavePlugin.singletonInstance();
+            plugin.cloud().uploadSample(player, buffer);
+          }
+
+          @Override
+          public void flush() throws IOException {
+            // no-op
+          }
+        }, 1024 * 16);
+      case LOCAL_STORAGE:
+        return sample.resource().writeStream();
+      default:
+        throw new IllegalStateException("Unexpected value: " + MODE);
+    }
+  }
+
+  public synchronized boolean recordingActiveFor(User user) {
     if (!COMBAT_SAMPLING) {
       return false;
     }
