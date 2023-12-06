@@ -22,11 +22,16 @@ import de.jpx3.intave.block.variant.BlockVariant;
 import de.jpx3.intave.block.variant.BlockVariantRegister;
 import de.jpx3.intave.block.variant.BlockVariantReverseLookup;
 import de.jpx3.intave.check.EventProcessor;
+import de.jpx3.intave.module.Modules;
 import de.jpx3.intave.module.linker.bukkit.BukkitEventSubscription;
+import de.jpx3.intave.module.nayoro.Nayoro;
 import de.jpx3.intave.module.tracker.player.AbilityTracker;
 import de.jpx3.intave.share.Direction;
+import de.jpx3.intave.share.MovingObjectPosition;
+import de.jpx3.intave.share.Position;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserRepository;
+import de.jpx3.intave.user.meta.MovementMetadata;
 import de.jpx3.intave.world.permission.WorldPermission;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -108,9 +113,10 @@ public final class InteractionEmulator implements EventProcessor {
         break;
       case START_BREAK:
       case INTERACT:
-      case EMPTY_INTERACT:
         emulationResult = emulateInteraction(player, interaction);
         break;
+      case EMPTY_INTERACT:
+        emulationResult = emulateEmptyInteraction(player, interaction);
       case BREAK:
         emulationResult = emulateBreak(player, interaction);
         break;
@@ -250,13 +256,14 @@ public final class InteractionEmulator implements EventProcessor {
       /*
        This hardcode is required
       */
+      MovementMetadata movement = user.meta().movement();
       if (placedBlockType == BlockTypeAccess.WEB) {
 //        boolean playerInsideWeb = Collision.playerInImaginaryBlock(user, world, blockX, blockY, blockZ, Material.STONE, 0);
 //        if (playerInsideWeb) {
-          user.meta().movement().checkWebStateAgainNextTick = true;
+          movement.checkWebStateAgainNextTick = true;
 //        }
       }
-      user.meta().movement().pastBlockPlacement = 0;
+      movement.pastBlockPlacement = 0;
       blockStates.override(world, blockX, blockY, blockZ, placedBlockType, variant, "PLACE");
       blockStates.invalidateCacheAt(blockX, blockY, blockZ);
       blockStates.lockOverride(blockX, blockY, blockZ);
@@ -265,6 +272,30 @@ public final class InteractionEmulator implements EventProcessor {
       //        Synchronizer.synchronize(() -> blockStates.invalidateOverride(blockX, blockY,
       // blockZ));
       //      });
+
+      Nayoro nayoro = Modules.nayoro();
+      Position eyePosition = Position.of(
+        movement.positionX,
+        movement.positionY + movement.eyeHeight(),
+        movement.positionZ
+      );
+      Position endOfRaytrace = Position.empty();
+      if (interaction.hasRaytraceResult()) {
+        MovingObjectPosition movingObjectPosition = interaction.raytraceResult();
+        endOfRaytrace = movingObjectPosition.hitVec.toPosition();
+      }
+      de.jpx3.intave.module.nayoro.event.BlockPlaceEvent placeEvent = de.jpx3.intave.module.nayoro.event.BlockPlaceEvent.create(
+        Position.of(blockX, blockY, blockZ),
+        replace ? null : Position.of(originBlockX, originBlockY, originBlockZ),
+        interaction.targetDirection(),
+        movement.rotation(),
+        eyePosition, endOfRaytrace,
+        interaction.hand(),
+        interaction.itemTypeInHand().name(),
+        interaction.itemInHand().getAmount(),
+        interaction.facingX(), interaction.facingY(), interaction.facingZ()
+      );
+      nayoro.sinkCallback().accept(user, placeEvent::accept);
       return EmulationResult.SUCCEEDED;
     } else {
       return EmulationResult.FAILED;
@@ -385,6 +416,11 @@ public final class InteractionEmulator implements EventProcessor {
       emulateInteractWithHandItem(player, clickedBlock, interaction.type(), placementLocation, itemTypeInHand);
       emulatePhysicalInteract(player, clickedBlock);
     }
+    return EmulationResult.SUCCEEDED;
+  }
+
+  private EmulationResult emulateEmptyInteraction(Player player, Interaction interaction) {
+    emulatePhysicalInteract(player, VolatileBlockAccess.blockAccess(interaction.targetBlock().toLocation(interaction.world())));
     return EmulationResult.SUCCEEDED;
   }
 

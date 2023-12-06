@@ -15,6 +15,30 @@ public final class WindowClickEvent extends Event {
   private int mode;
   private String itemName;
   private int itemAmount;
+  private long timestamp;
+
+  public WindowClickEvent() {
+  }
+
+  public WindowClickEvent(
+    int windowId,
+    int slot,
+    int button,
+    int actionNumber,
+    int mode,
+    String itemName,
+    int itemAmount,
+    long timestamp
+  ) {
+    this.windowId = windowId;
+    this.slot = slot;
+    this.button = button;
+    this.actionNumber = actionNumber;
+    this.mode = mode;
+    this.itemName = itemName;
+    this.itemAmount = itemAmount;
+    this.timestamp = timestamp;
+  }
 
   @Override
   public void serialize(Environment environment, DataOutput out) throws IOException {
@@ -25,6 +49,7 @@ public final class WindowClickEvent extends Event {
     out.writeInt(mode);
     out.writeUTF(itemName);
     out.writeInt(itemAmount);
+    out.writeLong(timestamp);
   }
 
   @Override
@@ -36,10 +61,11 @@ public final class WindowClickEvent extends Event {
     mode = in.readInt();
     itemName = in.readUTF();
     itemAmount = in.readInt();
+    timestamp = in.readLong();
   }
 
   @Override
   public void accept(EventSink sink) {
-//    sink.visit(this);
+    sink.visit(this);
   }
 }

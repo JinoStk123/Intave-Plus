@@ -242,6 +242,7 @@ public final class PunishmentMetadata {
     private int limit = -1;
     private boolean permanent = false;
     private long activated;
+    private boolean show = true;
 
     public AttackNerfer(
       AttackNerfStrategy type,
@@ -305,6 +306,7 @@ public final class PunishmentMetadata {
         return executed < limit;// && System.currentTimeMillis() - activated < 750;
       }
     }
+
     public AttackNerfStrategy strategy() {
       return type;
     }
@@ -328,6 +330,10 @@ public final class PunishmentMetadata {
 
     public String name() {
       return type.typeName();
+    }
+
+    public boolean hidden() {
+      return !show;
     }
   }
 }

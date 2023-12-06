@@ -2,12 +2,14 @@ package de.jpx3.intave.module.mitigate;
 
 import de.jpx3.intave.IntaveControl;
 import de.jpx3.intave.IntaveLogger;
+import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.annotate.Native;
 import de.jpx3.intave.connect.sibyl.SibylMessageTransmitter;
 import de.jpx3.intave.executor.Synchronizer;
 import de.jpx3.intave.math.MathHelper;
 import de.jpx3.intave.module.Module;
 import de.jpx3.intave.module.linker.bukkit.BukkitEventSubscription;
+import de.jpx3.intave.user.MessageChannel;
 import de.jpx3.intave.user.MessageChannelSubscriptions;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserRepository;
@@ -223,6 +225,18 @@ public final class CombatMitigator extends Module {
 
     if (IntaveControl.DEBUG_HEURISTICS && !plugin.sibyl().isAuthenticated(player)) {
       player.sendMessage(message);
+    }
+
+    if (attackNerfer.strategy().showToUsers() && !attackNerfer.hidden() && !hide) {
+      String kMessage = IntavePlugin.prefix() + " Issued " + attackNerfer.strategy().description() + " on " + ChatColor.RED + player.getName() + ChatColor.GRAY + "/" + user.trustFactor().coloredBaseName() + ChatColor.GRAY + " " + durationText;
+      for (Player player1 : MessageChannelSubscriptions.receiverOf(MessageChannel.COMBAT_MODIFIERS)) {
+        User user1 = UserRepository.userOf(player1);
+        if (user1.receives(MessageChannel.COMBAT_MODIFIERS)) {
+          Synchronizer.synchronizeDelayed(() -> {
+            player1.sendMessage(kMessage);
+          }, 4);
+        }
+      }
     }
 
     if (IntaveControl.GOMME_MODE && !hide) {

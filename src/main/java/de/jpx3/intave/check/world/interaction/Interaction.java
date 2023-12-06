@@ -4,6 +4,7 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.BlockPosition;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import de.jpx3.intave.share.Direction;
+import de.jpx3.intave.share.MovingObjectPosition;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -23,6 +24,8 @@ public final class Interaction {
   private final float facingX, facingY, facingZ;
   private boolean entered = false;
 
+  private MovingObjectPosition raytraceResult;
+
   public Interaction(
     PacketContainer thePacket,
     World world, Player player,
@@ -30,7 +33,8 @@ public final class Interaction {
     InteractionType type,
     Material itemTypeInHand, ItemStack itemInHand,
     EnumWrappers.Hand hand, EnumWrappers.PlayerDigType digType,
-    float facingX, float facingY, float facingZ) {
+    float facingX, float facingY, float facingZ
+  ) {
     this.thePacket = thePacket;
     this.world = world;
     this.player = player;
@@ -109,6 +113,18 @@ public final class Interaction {
 
   public float facingZ() {
     return facingZ;
+  }
+
+  public MovingObjectPosition raytraceResult() {
+    return raytraceResult;
+  }
+
+  public void setRaytraceResult(MovingObjectPosition rayTraceResult) {
+    this.raytraceResult = rayTraceResult;
+  }
+
+  public boolean hasRaytraceResult() {
+    return raytraceResult != null;
   }
 
   public void enter() {

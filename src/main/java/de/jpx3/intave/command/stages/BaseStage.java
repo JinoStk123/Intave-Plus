@@ -96,6 +96,24 @@ public final class BaseStage extends CommandStage {
     }
   }
 
+  @SubCommand(
+    selectors = {"combatmodifiers", "cms"},
+    usage = "",
+    description = "Toggle combat modifier debugs",
+    permission = "intave.command.combatmodifiers"
+  )
+  public void combatModifiersCommand(User user) {
+    Player player = user.player();
+    boolean receivesCombatModifiers = user.receives(MessageChannel.COMBAT_MODIFIERS);
+
+    user.toggleReceive(MessageChannel.COMBAT_MODIFIERS);
+    if (receivesCombatModifiers) {
+      player.sendMessage(IntavePlugin.prefix() + "You are " + ChatColor.RED + "no longer " + IntavePlugin.defaultColor() + "receiving combat modifier debugs");
+    } else {
+      player.sendMessage(IntavePlugin.prefix() + "You are " + ChatColor.GREEN + "now " + IntavePlugin.defaultColor() + "receiving combat modifier debugs");
+    }
+  }
+
   private static String describePlayerList(List<String> elements) {
     int size = elements.size();
     String defaultColor = IntavePlugin.defaultColor();

@@ -20,6 +20,10 @@ public final class Position extends Vector implements Serializable {
     return new Position(blockX, blockY, blockZ);
   }
 
+  public static Position of(double x, double y, double z) {
+    return new Position(x, y, z);
+  }
+
   public boolean hasNaNCoordinate() {
     return Double.isNaN(x) || Double.isNaN(y) || Double.isNaN(z);
   }

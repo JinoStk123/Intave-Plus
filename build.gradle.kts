@@ -79,7 +79,7 @@ bukkit {
     register("intave.command") { default = OP }
     register("intave.command.notify") { default = OP }
     register("intave.command.verbose") { default = OP }
-    register("intave.command.history") { default = OP }
+    register("intave.command.combatmodifiers") { default = OP }
     register("intave.command.cps") { default = OP }
     register("intave.command.cloud") { default = OP }
     register("intave.command.proxy") { default = FALSE }

@@ -17,6 +17,11 @@ public final class EventRegistry {
     register(PlayerInitEvent.class, 6);
     register(EntitySpawnEvent.class, 7);
     register(EntityRemoveEvent.class, 8);
+    register(BlockPlaceEvent.class, 9);
+    register(BlockInteractEvent.class, 10);
+    register(WindowClickEvent.class, 11);
+    register(WindowItemsEvent.class, 12);
+    register(WindowActionEvent.class, 13);
   }
 
   private static void register(Class<? extends Event> eventClass, int id) {

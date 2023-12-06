@@ -109,9 +109,6 @@ public final class Nayoro extends Module {
         Synchronizer.synchronize(() -> pushSink(user, sink));
         return;
       }
-      if (!recordingActiveFor(user)) {
-        return;
-      }
       eventSinks.get(user).add(sink);
     } finally {
       localRecordingLock.unlock();

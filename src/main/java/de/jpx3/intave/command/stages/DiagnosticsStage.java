@@ -25,10 +25,12 @@ import de.jpx3.intave.diagnostic.PacketSynchronizations;
 import de.jpx3.intave.diagnostic.timings.Timing;
 import de.jpx3.intave.diagnostic.timings.Timings;
 import de.jpx3.intave.executor.BackgroundExecutors;
+import de.jpx3.intave.executor.Synchronizer;
 import de.jpx3.intave.math.MathHelper;
 import de.jpx3.intave.module.Modules;
 import de.jpx3.intave.module.nayoro.Nayoro;
 import de.jpx3.intave.module.nayoro.event.AttackEvent;
+import de.jpx3.intave.module.nayoro.event.BlockPlaceEvent;
 import de.jpx3.intave.module.nayoro.event.sink.EventSink;
 import de.jpx3.intave.resource.Resource;
 import de.jpx3.intave.resource.ResourceRegistry;
@@ -143,10 +145,31 @@ public final class DiagnosticsStage extends CommandStage {
       }
 
       @Override
+      public void visit(BlockPlaceEvent event) {
+        Synchronizer.synchronize(() -> {
+          player.sendMessage("BlockPlaceEvent{");
+          player.sendMessage("  " + event.placedBlock());
+          player.sendMessage("  " + event.againstBlock());
+          player.sendMessage("  " + event.direction());
+          player.sendMessage("  " + event.rotation());
+          player.sendMessage("  " + event.eyePosition());
+          player.sendMessage("  " + event.endOfRaytrace());
+//        player.sendMessage("  " + event.facingX());
+//        player.sendMessage("  " + event.facingY());
+//        player.sendMessage("  " + event.facingZ());
+          player.sendMessage("  " + event.hand());
+          player.sendMessage("  " + event.typeName());
+          player.sendMessage("  " + event.amountInHand());
+          player.sendMessage("}");
+        });
+      }
+
+      @Override
       public String name() {
         return "ntrace/anonymous";
       }
     });
+    player.sendMessage(ChatColor.RED + "Added ntracing");
   }
 
   @SubCommand(

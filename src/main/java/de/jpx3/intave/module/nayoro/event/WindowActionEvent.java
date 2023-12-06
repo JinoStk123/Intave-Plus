@@ -7,11 +7,11 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
-public final class InventoryOpenCloseEvent extends Event {
+public final class WindowActionEvent extends Event {
   private int windowId;
-  private Action action = null;
+  private Action action;
 
-  private InventoryOpenCloseEvent(Action action) {
+  private WindowActionEvent(Action action) {
     this.action = action;
   }
 
@@ -29,11 +29,11 @@ public final class InventoryOpenCloseEvent extends Event {
 
   @Override
   public void accept(EventSink sink) {
-//    sink.visit(this);
+    sink.visit(this);
   }
 
-  public static InventoryOpenCloseEvent create(Action action) {
-    return new InventoryOpenCloseEvent(action);
+  public static WindowActionEvent create(Action action) {
+    return new WindowActionEvent(action);
   }
 
   public enum Action {

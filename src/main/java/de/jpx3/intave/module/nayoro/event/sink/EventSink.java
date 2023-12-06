@@ -24,6 +24,18 @@ public abstract class EventSink implements Closeable {
       visit((SlotSwitchEvent) event);
     } else if (event instanceof PropertiesEvent) {
       visit((PropertiesEvent) event);
+    } else if (event instanceof BlockPlaceEvent) {
+      visit((BlockPlaceEvent) event);
+    } else if (event instanceof BlockInteractEvent) {
+      visit((BlockInteractEvent) event);
+    } else if (event instanceof WindowClickEvent) {
+      visit((WindowClickEvent) event);
+    } else if (event instanceof WindowItemsEvent) {
+      visit((WindowItemsEvent) event);
+    } else if (event instanceof WindowActionEvent) {
+      visit((WindowActionEvent) event);
+    } else {
+      visitAny(event);
     }
   }
 
@@ -63,12 +75,32 @@ public abstract class EventSink implements Closeable {
     visitAny(event);
   }
 
-  public void visitAny(Event event) {
+  public void visit(BlockPlaceEvent event) {
+    visitAny(event);
+  }
 
+  public void visit(BlockInteractEvent event) {
+    visitAny(event);
+  }
+
+  public void visit(WindowClickEvent event) {
+    visitAny(event);
+  }
+
+  public void visit(WindowItemsEvent event) {
+    visitAny(event);
+  }
+
+  public void visit(WindowActionEvent event) {
+    visitAny(event);
+  }
+
+  public void visitAny(Event event) {
+    // Your implementation here
   }
 
   public void close() {
-
+    // Your implementation here
   }
 
   @Override

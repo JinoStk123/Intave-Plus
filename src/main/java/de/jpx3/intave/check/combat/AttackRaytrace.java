@@ -247,6 +247,7 @@ public final class AttackRaytrace extends MetaCheck<AttackRaytrace.AttackRaytrac
 
       if (after > 25 && !IntaveControl.GOMME_MODE) {
         entityHasTimedOut = true;
+        user.nerf(AttackNerfStrategy.DMG_HIGH, "67");
       }
 
       if (IntaveControl.GOMME_MODE) {

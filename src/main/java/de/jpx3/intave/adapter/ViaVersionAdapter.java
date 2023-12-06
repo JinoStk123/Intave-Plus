@@ -3,10 +3,7 @@ package de.jpx3.intave.adapter;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.google.common.collect.Lists;
 import de.jpx3.intave.IntaveLogger;
-import de.jpx3.intave.adapter.viaversion.ViaVersion2Access;
-import de.jpx3.intave.adapter.viaversion.ViaVersion3Access;
-import de.jpx3.intave.adapter.viaversion.ViaVersion4Access;
-import de.jpx3.intave.adapter.viaversion.ViaVersionAccess;
+import de.jpx3.intave.adapter.viaversion.*;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -25,6 +22,7 @@ public class ViaVersionAdapter {
     available.add(new ViaVersion2Access());
     available.add(new ViaVersion3Access());
     available.add(new ViaVersion4Access());
+    available.add(new ViaVersion5Access());
   }
 
   private static ViaVersionAccess access;
