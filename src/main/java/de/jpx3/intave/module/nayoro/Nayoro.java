@@ -132,7 +132,7 @@ public final class Nayoro extends Module {
         .collect(Collectors.toList());
       remove.forEach(eventSinks.get(user)::remove);
       Sample sample = samples.remove(user.id());
-      if (!MODE.keepCopyOfSamples()) {
+      if (sample != null && !MODE.keepCopyOfSamples()) {
         sample.delete();
       }
       Cloud cloud = IntavePlugin.singletonInstance().cloud();

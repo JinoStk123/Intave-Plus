@@ -26,7 +26,9 @@ public final class LogTransmittor implements BukkitEventSubscriber {
 
   public void addPlayerLog(Player player, String line) {
     LogState logState = logStateOf(player);
-    logState.addLine(ChatColor.stripColor(line));
+    // HH:MM:SS
+    String dateFormatted = "[" + new Date().toString().split(" ")[3] + "] ";
+    logState.addLine(dateFormatted + ChatColor.stripColor(line));
   }
 
   public void addIntaveLog(String line) {
