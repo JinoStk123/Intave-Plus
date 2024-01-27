@@ -36,7 +36,7 @@ class RecordEventSink extends EventSink {
   public RecordEventSink(Environment environment, DataOutput dataOutput, Classifier classifier) {
     this.environment = environment;
     this.dataOutput = dataOutput;
-    this.classifier = classifier;
+    this.classifier = classifier == null ? Classifier.UNKNOWN : classifier;
   }
 
   public synchronized void setupIfNeeded() {

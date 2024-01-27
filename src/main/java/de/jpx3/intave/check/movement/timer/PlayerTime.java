@@ -6,6 +6,7 @@ import de.jpx3.intave.check.CheckStatistics;
 import de.jpx3.intave.check.CheckViolationLevelDecrementer;
 import de.jpx3.intave.check.MetaCheckPart;
 import de.jpx3.intave.check.movement.Timer;
+import de.jpx3.intave.cleanup.GarbageCollector;
 import de.jpx3.intave.module.Modules;
 import de.jpx3.intave.module.feedback.FeedbackObserver;
 import de.jpx3.intave.module.feedback.FeedbackOptions;
@@ -27,6 +28,8 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.util.Vector;
 
 import java.util.HashMap;
@@ -39,7 +42,7 @@ import static de.jpx3.intave.module.linker.packet.PacketId.Server.LOGIN;
 public class PlayerTime extends MetaCheckPart<Timer, PlayerTime.PlayerTimeMeta> {
   private static final long DEFAULT_DELAY = 500;
   private static final long DEFAULT_THRESHOLD = 10;
-  private final Map<UUID, Long> playerJoinTimeCache = new HashMap<>();
+  private final Map<UUID, Long> playerJoinTimeCache = GarbageCollector.watch(new HashMap<>());
   private final CheckViolationLevelDecrementer decrementer;
 
   public PlayerTime(Timer parentCheck) {
@@ -64,6 +67,25 @@ public class PlayerTime extends MetaCheckPart<Timer, PlayerTime.PlayerTimeMeta> 
     PacketSender.sendServerPacketWithoutEvent(player, event.getPacket());
     user.tickFeedback(() -> checkMeta.gameJoinReceived = true);
     event.setCancelled(true);
+//    Thread.dumpStack();
+//    System.out.println("Login packet");
+  }
+
+  @BukkitEventSubscription
+  public void on(PlayerJoinEvent join) {
+    Player player = join.getPlayer();
+    if (!playerJoinTimeCache.containsKey(player.getUniqueId())) {
+//      System.out.println("rescue");
+      User user = userOf(player);
+      PlayerTimeMeta checkMeta = metaOf(user);
+      playerJoinTimeCache.put(player.getUniqueId(), System.nanoTime());
+      user.tickFeedback(() -> checkMeta.gameJoinReceived = true);
+    }
+  }
+
+  @BukkitEventSubscription
+  public void on(PlayerQuitEvent quit) {
+    playerJoinTimeCache.remove(quit.getPlayer().getUniqueId());
   }
 
   @DispatchTarget
@@ -110,7 +132,7 @@ public class PlayerTime extends MetaCheckPart<Timer, PlayerTime.PlayerTimeMeta> 
       || abilityData.inGameModeIncludePending(AbilityTracker.GameMode.CREATIVE) || abilityData.ignoringMovementPackets()) {
       return;
     }
-    checkMeta.time += 49_950_000;
+    checkMeta.time += 49_990_000; // allow 0.01ms clock error
     checkMeta.limitToBeApplied = checkMeta.queuedLimit;
     long diff = checkMeta.time - System.nanoTime();
 //    ChatColor color = diff > 10_000_000 ? ChatColor.RED : ChatColor.GRAY;

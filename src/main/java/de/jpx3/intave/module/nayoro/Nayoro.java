@@ -64,10 +64,10 @@ public final class Nayoro extends Module {
 
   public synchronized void askForSampleTransmission(Player player) {
     User user = UserRepository.userOf(player);
-    if (IntaveControl.GOMME_MODE && MODE == GOMME_UPLOAD && player.hasPermission("intave.sample.allow")) {
-      enableRecordingFor(user, null, GOMME_UPLOAD);
-      return;
-    }
+//    if (IntaveControl.GOMME_MODE && MODE == GOMME_UPLOAD && player.hasPermission("intave.sample.allow")) {
+//      enableRecordingFor(user, null, GOMME_UPLOAD);
+//      return;
+//    }
     Cloud cloud = IntavePlugin.singletonInstance().cloud();
     if (!cloud.available()) {
       return;
