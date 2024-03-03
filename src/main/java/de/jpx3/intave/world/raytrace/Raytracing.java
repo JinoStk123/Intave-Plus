@@ -11,14 +11,13 @@ import de.jpx3.intave.share.NativeVector;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserRepository;
 import de.jpx3.intave.user.meta.MetadataBundle;
-import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
 public final class Raytracing {
-  private static Raytracer raytracer, backup;
+  private static Raytracer raytracer, universalRaytracer;
   private static final boolean[] PESSIMISTIC_BOOLEAN_ORDER = new boolean[]{false, true};
 
   public static void setup() {
@@ -34,7 +33,7 @@ public final class Raytracing {
     }
     PatchyLoadingInjector.loadUnloadedClassPatched(Raytracing.class.getClassLoader(), className);
     raytracer = instanceOf(className);
-    backup = new UnivRaytracer();
+    universalRaytracer = new UniversalRaytracer();
 //    raytracer = new UnivRaytracer();
   }
 
@@ -227,10 +226,7 @@ public final class Raytracing {
   public static MovingObjectPosition blockShrinkRayTrace(World world, Player player, NativeVector eyeVector, NativeVector targetVector) {
     try {
       Timings.SERVICE_RAYTRACER_BLOCK.start();
-      MovingObjectPosition raytrace = raytracer.raytrace(world, player, eyeVector, targetVector);
-//      player.sendMessage(eyeVector + " -> " + targetVector + " = " + raytrace.getBlockPos());\
-//      player.playEffect(raytrace.getBlockPos().toLocation(world), org.bukkit.Effect.CLICK1, 0);
-      return raytrace;
+      return raytracer.raytrace(world, player, eyeVector, targetVector);
     } finally {
       Timings.SERVICE_RAYTRACER_BLOCK.stop();
     }
@@ -252,7 +248,7 @@ public final class Raytracing {
   public static MovingObjectPosition blockRayTrace(World world, Player player, NativeVector eyeVector, NativeVector targetVector) {
     try {
       Timings.SERVICE_RAYTRACER_BLOCK.start();
-      MovingObjectPosition raytrace = raytracer.raytrace(world, player, eyeVector, targetVector);
+//      MovingObjectPosition raytrace = raytracer.raytrace(world, player, eyeVector, targetVector);
 //      player.sendMessage(eyeVector + " -> " + targetVector + " = " + raytrace.getBlockPos());
 //      player.playEffect(raytrace.getBlockPos().toLocation(world), org.bukkit.Effect.CLICK1, 0);
 
@@ -264,7 +260,7 @@ public final class Raytracing {
         player.playEffect(targetVector.toLocation(world), Effect.HAPPY_VILLAGER, 0);
       }*/
 
-      MovingObjectPosition backup = Raytracing.backup.raytrace(world, player, eyeVector, targetVector);
+      MovingObjectPosition backup = Raytracing.universalRaytracer.raytrace(world, player, eyeVector, targetVector);
 
       /*
       if (backup != null) {
@@ -273,17 +269,18 @@ public final class Raytracing {
         player.playEffect(targetVector.toLocation(world), Effect.HAPPY_VILLAGER, 0);
       }*/
 
+      /*
       if (raytrace == null || backup == null) {
 //        player.sendMessage(ChatColor.RED + "Raytrace: " + raytrace + " Backup: " + backup);
-      } else if (raytrace.hitVec.distanceTo(backup.hitVec) > 0.01) {
+      } else if (raytrace.hitVec.distanceTo(backup.hitVec) > 0.0001) {
         player.sendMessage(ChatColor.RED + "Difference: " + raytrace.hitVec.distanceTo(backup.hitVec));
       } else if (raytrace.sideHit != backup.sideHit) {
         player.sendMessage(ChatColor.RED + "Side: " + raytrace.sideHit + " " + backup.sideHit);
       } else if (raytrace.getBlockPos() != null && backup.getBlockPos() != null && !raytrace.getBlockPos().equals(backup.getBlockPos())) {
-//        player.sendMessage(ChatColor.RED + "Block: " + raytrace.getBlockPos() + " " + backup.getBlockPos());
-      }
+        player.sendMessage(ChatColor.RED + "Block: " + raytrace.getBlockPos() + " " + backup.getBlockPos());
+      }*/
 
-      return raytrace;
+      return backup;
     } finally {
       Timings.SERVICE_RAYTRACER_BLOCK.stop();
     }

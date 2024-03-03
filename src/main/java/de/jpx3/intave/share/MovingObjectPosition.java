@@ -66,7 +66,7 @@ public class MovingObjectPosition {
     this.hitVec = hitVecIn;
   }
 
-  public static MovingObjectPosition fromBlockRaytrace(BlockRaytrace blockRaytrace, Position from, Position to) {
+  public static MovingObjectPosition fromBlockRaytrace(BlockRaytrace blockRaytrace, Position from, Position to, BlockPosition blockPos) {
     if (blockRaytrace == null) {
       return none();
     }
@@ -78,7 +78,7 @@ public class MovingObjectPosition {
       MovingObjectType.BLOCK,
       new NativeVector(hit.getX(), hit.getY(), hit.getZ()),
       blockRaytrace.direction(),
-      from.toBlockPosition()
+      blockPos
     );
   }
 
