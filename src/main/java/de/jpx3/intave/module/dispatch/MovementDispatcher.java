@@ -577,7 +577,10 @@ public final class MovementDispatcher extends Module {
     Player player = user.player();
     ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
     InventoryMetadata inventory = user.meta().inventory();
-    inventory.blockNextArrow = inventory.pastHotBarSlotChange < 4 && ItemProperties.isBow(inventory.releaseItemType) || ItemProperties.isBow(inventory.activeItemType());
+    if (ItemProperties.isBow(inventory.releaseItemType) || ItemProperties.isBow(inventory.activeItemType())) {
+      inventory.blockNextArrow = true;
+      inventory.lastBlockArrowRequest = System.currentTimeMillis();
+    }
     inventory.lastFoodConsumptionBlockRequest = System.currentTimeMillis();
     PacketContainer packet = protocolManager.createPacket(PacketType.Play.Client.BLOCK_DIG);
     packet.getBlockPositionModifier().write(0, new BlockPosition(0, 0, 0));

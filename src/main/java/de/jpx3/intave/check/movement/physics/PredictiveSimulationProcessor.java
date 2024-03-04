@@ -153,7 +153,7 @@ public final class PredictiveSimulationProcessor implements SimulationProcessor 
     if (packetsSuggestsHandIsActive && !movementSuggestsHandIsActive) {
       boolean releaseHandConditions = Hypot.fast(movementData.motionX(), movementData.motionZ()) > 0.3 || movementData.lastTeleport >= 2;
       boolean itemIsBow = ItemProperties.isBow(meta.inventory().activeItemType()) || ItemProperties.isBow(meta.inventory().offhandItemType());
-      if (releaseHandConditions && !itemIsBow && itemUsageReset) {
+      if (releaseHandConditions && (!itemIsBow || inventoryData.handActiveTicks > 3) && itemUsageReset) {
         meta.inventory().releaseItemNextTick();
       }
     }
@@ -375,7 +375,10 @@ public final class PredictiveSimulationProcessor implements SimulationProcessor 
     boolean estimatedJump = Math.abs(movementData.motionY() - (1 - user.sizeOf(movementData.pose()).height() % 1)) < 1e-5 || Math.abs(movementData.motionY() - movementData.jumpMotion()) < 0.0001;
     boolean skipUseItem = (!protocol.sprintWhenHandActive() && movementData.sprinting) || !inventoryData.usableItemInEitherHand();
     // dont require use item for bows
-    boolean requireUseItem = !protocol.combatUpdate() && inventoryData.handActive() && inventoryData.pastHotBarSlotChange > 20 && (inventoryData.heldItem() == null || inventoryData.heldItem().getType() != Material.BOW);
+    boolean requireUseItem = !protocol.combatUpdate() && inventoryData.handActive() && inventoryData.pastHotBarSlotChange > 20
+      && (inventoryData.heldItem() == null || inventoryData.heldItem().getType() != Material.BOW)
+    ;
+//    boolean requireUseItem = inventoryData.handActive() && inventoryData.pastHotBarSlotChange > 20 && (!protocol.combatUpdate() || inventoryData.heldItemType() != Material.BOW);
 
     if (requireUseItem && movementData.pastEntityUse <= inventoryData.handActiveTicks) {
       requireUseItem = false;
