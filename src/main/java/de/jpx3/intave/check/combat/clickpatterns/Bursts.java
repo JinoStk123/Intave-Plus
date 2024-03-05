@@ -26,14 +26,14 @@ public final class Bursts extends TickAlignedHistoryBlueprint<Bursts.BurstMeta> 
       if (tickAction == TickAction.CLICK || tickAction == TickAction.ATTACK) {
         consecutiveClicks++;
       } else {
-        if (consecutiveClicks > 4) {
+        if (consecutiveClicks > 5) {
           streaks.add(consecutiveClicks);
           doubleClick.add(doubleClickOccurred);
           doubleClickOccurred = false;
         }
         consecutiveClicks = 0;
       }
-      if (meta.tickIntensity.get(i) > 1) {
+      if (meta.tickIntensity.get(i) > 4) {
         doubleClickOccurred = true;
       }
       if (tickAction == TickAction.PLACE) {
@@ -50,8 +50,8 @@ public final class Bursts extends TickAlignedHistoryBlueprint<Bursts.BurstMeta> 
         anyDoubleClick = true;
       }
     }
-    if (!cancel && vl >= 8) {
-      flag(user, "exhibits click bursts" + (!anyDoubleClick ? " without double clicks" : ""), 5);
+    if (!cancel && vl >= 10) {
+      flag(user, "exhibits click bursts" + (!anyDoubleClick ? " without double clicks" : ""), 3);
     }
   }
 
