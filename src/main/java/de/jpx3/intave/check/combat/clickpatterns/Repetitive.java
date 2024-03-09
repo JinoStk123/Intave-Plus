@@ -15,25 +15,20 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayDeque;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.Queue;
 
 import static de.jpx3.intave.math.MathHelper.formatDouble;
 import static de.jpx3.intave.module.linker.packet.PacketId.Client.ARM_ANIMATION;
 
 @Relocate
-public final class Fluctuation extends MetaCheckPart<ClickPatterns, Fluctuation.FluctuationMeta> {
-
-    /*
-    Fluctuations are variations or movements that aren't steady or constant.
-    This check will save spike and drop timestamps and check if the variance between them is too low
-    Some autoclickers like Vape or Karma have extra randomization, sometimes with a low variance in randomization
-     */
+public final class Repetitive extends MetaCheckPart<ClickPatterns, Repetitive.RepetitiveMeta> {
 
     private static final int BUFFER_TIMEOUT = 4000;
     private static final int BUFFER_LENGTH = 10;
 
-    public Fluctuation(ClickPatterns parentCheck) {
-        super(parentCheck, FluctuationMeta.class);
+    public Repetitive(ClickPatterns parentCheck) {
+        super(parentCheck, RepetitiveMeta.class);
     }
 
     @PacketSubscription(
@@ -42,7 +37,7 @@ public final class Fluctuation extends MetaCheckPart<ClickPatterns, Fluctuation.
     public void receiveSwing(PacketEvent event) {
         Player player = event.getPlayer();
         User user = userOf(player);
-        FluctuationMeta meta = metaOf(user);
+        RepetitiveMeta meta = metaOf(user);
 
         // Calculating when the last swing was
         long lastSwing = meta.lastSwing;
@@ -62,35 +57,25 @@ public final class Fluctuation extends MetaCheckPart<ClickPatterns, Fluctuation.
         }
         attacks.add(swingDifference);
 
-        // Determination if the there is a spike or a drop
         if (attacks.size() >= BUFFER_LENGTH) {
             double cps = cpsOf(attacks);
 
             double difference = cps - meta.lastCPS;
-            if (difference > 0.4) {
-                meta.spikes++;
-                meta.spikeTimestamps.add(System.currentTimeMillis());
-            }
-
-            if (difference < -0.4) {
-                meta.drops++;
-                meta.dropTimestamps.add(System.currentTimeMillis());
+            if (difference != 0.0) {
+                meta.pattern.add(difference);
             }
 
             meta.lastCPS = cps;
             attacks.clear();
         }
 
-        // If the spike array reached the required sample size, we are going to check if the variance of the timestamps is balanced
-        if (meta.spikeTimestamps.size() >= 4) {
-            double std = standardDeviationOf(meta.spikeTimestamps);
-            meta.spikeTimestamps.clear();
-            if (std < 4000) {
-                if (++meta.vl > 2) {
+        if (meta.pattern.size() >= 30) {
+            if (hasRepetitivePattern(meta.pattern, 0.01)) {
+                if (++meta.vl > 3) {
                     parentCheck().makeDetection(
                             player,
-                            "balanced fluctuation",
-                            "std:" + formatDouble(std, 3),
+                            "repetitive",
+                            "std:" + formatDouble(meta.pattern.getLast(), 3),
                             meta.vl > 8 ? 1 : 0
                     );
                 }
@@ -98,25 +83,8 @@ public final class Fluctuation extends MetaCheckPart<ClickPatterns, Fluctuation.
                 meta.vl -= 0.2;
                 meta.vl *= 0.98;
             }
-        }
 
-        // If the drop array reached the required sample size, we are going to check if the variance of the timestamps is balanced
-        if (meta.dropTimestamps.size() >= 4) {
-            double std = standardDeviationOf(meta.dropTimestamps);
-            meta.dropTimestamps.clear();
-            if (std < 4000) {
-                if (++meta.vl > 2) {
-                    parentCheck().makeDetection(
-                            player,
-                            "balanced fluctuation",
-                            "std:" + formatDouble(std, 3),
-                            meta.vl > 8 ? 1 : 0
-                    );
-                }
-            } else if (meta.vl > 0) {
-                meta.vl -= 0.2;
-                meta.vl *= 0.98;
-            }
+            meta.pattern.clear();
         }
     }
 
@@ -136,6 +104,37 @@ public final class Fluctuation extends MetaCheckPart<ClickPatterns, Fluctuation.
         return 20d / sumOf(input) * 50d;
     }
 
+    private boolean hasRepetitivePattern(LinkedList<Double> list, double threshold) {
+        int length = list.size();
+
+        // Repetitive
+        for (int patternLength = 2; patternLength <= length / 2; patternLength++) {
+            boolean isRepetitive = true;
+
+            for (int i = 0; i < length - patternLength; i++) {
+                if (!list.get(i).equals(list.get(i + patternLength))) {
+                    isRepetitive = false;
+                    break;
+                }
+            }
+
+            if (isRepetitive) {
+                return true;
+            }
+        }
+
+        // This will detect samples that are close to each other, based on the threshold
+        for (int i = 0; i < length - 1; i++) {
+            if (Math.abs(list.get(i) - list.get(i + 1)) <= threshold) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
+
     private double sumOf(Collection<? extends Number> input) {
         double val = 0;
         for (Number number : input) {
@@ -144,29 +143,13 @@ public final class Fluctuation extends MetaCheckPart<ClickPatterns, Fluctuation.
         return val;
     }
 
-    private double standardDeviationOf(Collection<? extends Number> sd) {
-        double sum = 0, newSum = 0;
-        for (Number v : sd) {
-            sum = sum + v.doubleValue();
-        }
-        double mean = sum / sd.size();
-        for (Number v : sd) {
-            newSum = newSum + (v.doubleValue() - mean) * (v.doubleValue() - mean);
-        }
-        return Math.sqrt(newSum / sd.size());
-    }
-
-    public static class FluctuationMeta extends CheckCustomMetadata {
+    public static class RepetitiveMeta extends CheckCustomMetadata {
         private final Queue<Long> attacks = new ArrayDeque<>();
         private double vl = 0;
         private double lastCPS = 0;
         private long lastSwing = 0;
 
-        private int spikes;
-        private final Queue<Long> spikeTimestamps = new ArrayDeque<>();
-
-        private int drops;
-        private final Queue<Long> dropTimestamps = new ArrayDeque<>();
+        private final LinkedList<Double> pattern = new LinkedList<>();
 
         private long started = System.currentTimeMillis();
     }

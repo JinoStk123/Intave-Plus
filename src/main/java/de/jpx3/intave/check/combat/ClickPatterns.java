@@ -35,6 +35,7 @@ public final class ClickPatterns extends Check {
       new Skewness(this),
       new Spikes(this),
       new Fluctuation(this),
+      new Repetitive(this),
       new Kurtosis(this)
     );
     appendCheckParts(

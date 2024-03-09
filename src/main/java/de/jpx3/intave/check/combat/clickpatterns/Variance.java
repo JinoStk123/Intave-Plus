@@ -96,7 +96,7 @@ public final class Variance extends MetaCheckPart<ClickPatterns, Variance.Varian
                   player,
                   "statistically low variance",
                   "sd:" + formatDouble(std, 3) + " t:" + formatDouble(length / 1000d, 2),
-                  meta.vl > 25 ? 10 : 0
+                  meta.vl > 8 ? 5 : 0
           );
         }
       } else if (meta.vl > 0) {
