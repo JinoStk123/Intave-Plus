@@ -77,6 +77,7 @@ public final class AttackDispatcher extends Module {
     AttackMetadata attackData = meta.attack();
     ConnectionMetadata connectionData = meta.connection();
     MovementMetadata movementData = meta.movement();
+    ProtocolMetadata protocol = meta.protocol();
     PacketContainer packet = event.getPacket();
     Integer entityId = packet.getIntegers().read(0);
     EnumWrappers.EntityUseAction action = packet.getEntityUseActions().readSafely(0);
@@ -109,6 +110,10 @@ public final class AttackDispatcher extends Module {
         movementData.pastPlayerReduceAttackPhysics = 0;
         if (movementData.reduceTicks == 0 || !limitedToOneAttack) {
           movementData.reduceTicks++;
+          if (!protocol.combatUpdate()) {
+            movementData.baseMotionX *= 0.6;
+            movementData.baseMotionZ *= 0.6;
+          }
         }
       }
       FakePlayer fakePlayer = attackData.fakePlayer();

@@ -168,8 +168,10 @@ public final class PredictiveSimulationProcessor implements SimulationProcessor 
   private Simulation simulateMovementKeyPredictionBiased(User user, Simulator simulator) {
     Timings.CHECK_PHYSICS_PROC_BIA.start();
     Timings.CHECK_PHYSICS_PROC_PRED_BIA.start();
-    MovementMetadata movementData = user.meta().movement();
-    InventoryMetadata inventoryData = user.meta().inventory();
+    MetadataBundle meta = user.meta();
+    MovementMetadata movementData = meta.movement();
+    InventoryMetadata inventoryData = meta.inventory();
+    ProtocolMetadata protocol = meta.protocol();
     Motion motion = movementData.motionProcessorContext;
     double lastMotionX = movementData.baseMotionX;
     double lastMotionZ = movementData.baseMotionZ;
@@ -215,7 +217,7 @@ public final class PredictiveSimulationProcessor implements SimulationProcessor 
       configuration = configuration.withActiveHand();
     }
     // reducing
-    configuration = configuration.withReducing(movementData.reduceTicks);
+    configuration = configuration.withReducing(protocol.combatUpdate() ? movementData.reduceTicks : 0);
     // block omnisprint
     if (sprinting && configuration.forward() != 1) {
       configuration = configuration.withoutKeypress();
@@ -286,8 +288,10 @@ public final class PredictiveSimulationProcessor implements SimulationProcessor 
   private Simulation simulateMovementLastKeyBiased(User user, Simulator simulator) {
     Timings.CHECK_PHYSICS_PROC_BIA.start();
     Timings.CHECK_PHYSICS_PROC_LK_BIA.start();
-    MovementMetadata movementData = user.meta().movement();
-    InventoryMetadata inventoryData = user.meta().inventory();
+    MetadataBundle meta = user.meta();
+    MovementMetadata movementData = meta.movement();
+    InventoryMetadata inventoryData = meta.inventory();
+    ProtocolMetadata protocol = meta.protocol();
     Motion motion = movementData.motionProcessorContext;
 
     int keyForward = movementData.lastKeyForward;
@@ -304,7 +308,7 @@ public final class PredictiveSimulationProcessor implements SimulationProcessor 
     // keys
     configuration = configuration.withKeyPress(keyForward, keyStrafe);
     // reducing
-    configuration = configuration.withReducing(movementData.reduceTicks);
+    configuration = configuration.withReducing(protocol.combatUpdate() ? movementData.reduceTicks : 0);
     boolean sprinting = movementData.sprintingAllowed();
     // jump
     if (movementData.lastOnGround && !movementData.denyJump()) {
@@ -433,10 +437,9 @@ public final class PredictiveSimulationProcessor implements SimulationProcessor 
               continue;
             }
             IterativeStudy.USE_ITEM_ITERATOR.run();
-            boolean reducingRequired = !protocol.combatUpdate();
+            boolean reducingDonePrior = !protocol.combatUpdate();
             for (int reduceIndex = 0; reduceIndex <= movementData.reduceTicks; reduceIndex++) {
-              // should theoretically be movementData.pastVelocity != 0, maybe change in the future?
-              if (reducingRequired && reduceIndex != movementData.reduceTicks && movementData.pastVelocity > 3) {
+              if (reducingDonePrior && reduceIndex > 0) {
                 continue;
               }
               IterativeStudy.ATTACK_REDUCE_ITERATOR.run();
@@ -449,6 +452,9 @@ public final class PredictiveSimulationProcessor implements SimulationProcessor 
                   continue;
                 }
                 if (sprinting && movementData.isSneaking() && !jumped) {
+                  continue;
+                }
+                if (reduceIndex > 0 && !sprinting) {
                   continue;
                 }
                 IterativeStudy.JUMP_ITERATOR.run();
