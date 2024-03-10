@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public final class BoundingBoxPatcher {
+public final class BlockShapePatcher {
   private static final Map<Material, BlockShapePatch> patches = new HashMap<>();
 
   public static void setup() {
