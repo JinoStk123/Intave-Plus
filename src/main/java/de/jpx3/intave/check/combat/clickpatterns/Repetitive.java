@@ -71,7 +71,7 @@ public final class Repetitive extends MetaCheckPart<ClickPatterns, Repetitive.Re
 
         if (meta.pattern.size() >= 30) {
             if (hasRepetitivePattern(meta.pattern, 0.01)) {
-                if (++meta.vl > 3) {
+                if (++meta.vl > 2) {
                     parentCheck().makeDetection(
                             player,
                             "repetitive",

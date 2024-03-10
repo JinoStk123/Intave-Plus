@@ -891,6 +891,9 @@ public final class Physics extends Check {
       if (movementData.inWeb) {
         debug += ChatColor.ITALIC + " web" + chatColor;
       }
+      if (movementData.pastEntityUse < 5) {
+        debug += ChatColor.ITALIC + " eu" + movementData.pastEntityUse + chatColor;
+      }
       if (movementData.inWater) {
         Fluid fluid = Fluids.fluidAt(user, positionX, positionY, positionZ);
         debug += ChatColor.ITALIC + " "+(fluid.falling() ? "falling" : "")+"water@" + MathHelper.formatDouble(fluid.height(),2) + "/"+fluid.level() + chatColor;

@@ -51,6 +51,12 @@ public final class Fluctuation extends MetaCheckPart<ClickPatterns, Fluctuation.
 
         Queue<Long> attacks = meta.attacks;
 
+        // A high swing difference would kill the timestamp variance, so we will just clear it here
+        if (swingDifference > 8000) {
+            meta.spikeTimestamps.clear();
+            meta.dropTimestamps.clear();
+        }
+
         // When the check is disabled, there is no need to check
         if (checkDeactivated(user, swingDifference)) {
             attacks.clear();
@@ -81,12 +87,12 @@ public final class Fluctuation extends MetaCheckPart<ClickPatterns, Fluctuation.
             attacks.clear();
         }
 
-        // If the spike array reached the required sample size, we are going to check if the variance of the timestamps is balanced
-        if (meta.spikeTimestamps.size() >= 4) {
+        // If the spike array reached the required sample size, we are going to check if the variance of the timestamps is balanced. Don't put this over 3
+        if (meta.spikeTimestamps.size() >= 3) {
             double std = standardDeviationOf(meta.spikeTimestamps);
             meta.spikeTimestamps.clear();
             if (std < 4000) {
-                if (++meta.vl > 2) {
+                if (++meta.vl > 5) {
                     parentCheck().makeDetection(
                             player,
                             "balanced fluctuation",
@@ -100,12 +106,12 @@ public final class Fluctuation extends MetaCheckPart<ClickPatterns, Fluctuation.
             }
         }
 
-        // If the drop array reached the required sample size, we are going to check if the variance of the timestamps is balanced
-        if (meta.dropTimestamps.size() >= 4) {
+        // If the drop array reached the required sample size, we are going to check if the variance of the timestamps is balanced. Don't put this over 3
+        if (meta.dropTimestamps.size() >= 3) {
             double std = standardDeviationOf(meta.dropTimestamps);
             meta.dropTimestamps.clear();
             if (std < 4000) {
-                if (++meta.vl > 2) {
+                if (++meta.vl > 5) {
                     parentCheck().makeDetection(
                             player,
                             "balanced fluctuation",
