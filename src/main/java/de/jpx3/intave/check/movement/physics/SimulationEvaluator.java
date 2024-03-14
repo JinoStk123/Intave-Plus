@@ -3,6 +3,7 @@ package de.jpx3.intave.check.movement.physics;
 import de.jpx3.intave.annotate.Relocate;
 import de.jpx3.intave.annotate.refactoring.SplitMeUp;
 import de.jpx3.intave.block.collision.Collision;
+import de.jpx3.intave.check.movement.physics.eval.EvaluationTag;
 import de.jpx3.intave.math.Hypot;
 import de.jpx3.intave.math.MathHelper;
 import de.jpx3.intave.share.BoundingBox;
@@ -12,6 +13,8 @@ import de.jpx3.intave.user.meta.MovementMetadata;
 import de.jpx3.intave.user.meta.ProtocolMetadata;
 import de.jpx3.intave.user.meta.ViolationMetadata;
 import org.bukkit.entity.Player;
+
+import java.util.Set;
 
 import static java.lang.Math.abs;
 
@@ -25,7 +28,8 @@ public final class SimulationEvaluator {
     User user,
     double predictedY,
     boolean onLadder,
-    boolean collidedWithBoat
+    boolean collidedWithBoat,
+    Set<EvaluationTag> tags
   ) {
     Player player = user.player();
     MetadataBundle meta = user.meta();
@@ -45,12 +49,18 @@ public final class SimulationEvaluator {
 
     if (accountedSkippedMovement) {
       if (abs(movement.motionX()) < 0.05 && abs(movement.motionZ()) < 0.05 && movement.motionY() < 0 && movement.motionY() > -0.4) {
-        verticalLegitimateDeviation = movement.pastNearbyCollisionInaccuracy == 0 ? 0.15 : (0.08);
+        boolean pastCollision = movement.pastNearbyCollisionInaccuracy == 0;
+        verticalLegitimateDeviation = pastCollision ? 0.15 : (0.08);
+        tags.add(EvaluationTag.FLYING);
+        if (pastCollision) {
+          tags.add(EvaluationTag.COLLISION_INACCURACY);
+        }
       }
     }
 
     if (pose.height(user) < 1 && receivedMotionY <= 0 && accountedSkippedMovement) {
       verticalLegitimateDeviation = Math.max(verticalLegitimateDeviation, 0.1);
+      tags.add(EvaluationTag.CROUCHING_BOX_INACCURACY);
     }
 
     // MotionY calculations with sin/cos (FastMath affected)
@@ -61,18 +71,22 @@ public final class SimulationEvaluator {
 
     if ((movement.pastPushedByWaterFlow < 10 || movement.inLava()) && distanceMoved < 0.2) {
       verticalLegitimateDeviation = Math.max(verticalLegitimateDeviation, 0.02);
+      tags.add(EvaluationTag.WATERFLOW);
     }
 
     // Riptide
     if (movement.pastRiptideSpin < 4) {
       verticalLegitimateDeviation = resolveRiptideDeviation(movement);
+      tags.add(EvaluationTag.RIPTIDE);
     }
 
     // Firework
     if (movement.fireworkRocketsTicks < 10 * movement.fireworkRocketsPower) {
       verticalLegitimateDeviation = Math.max(verticalLegitimateDeviation, 1);
+      tags.add(EvaluationTag.FIREWORK);
     } else if (movement.fireworkRocketsTicks < 30 * movement.fireworkRocketsPower) {
       verticalLegitimateDeviation = Math.max(verticalLegitimateDeviation, 0.5);
+      tags.add(EvaluationTag.FIREWORK);
     }
 
     if (movement.shulkerYToleranceRemaining > 0 && // tick restriction
@@ -81,12 +95,14 @@ public final class SimulationEvaluator {
         (abs(receivedMotionY) <= 0.5 || ((movement.positionY % 0.05) < 0.0001 && (abs(receivedMotionY - movement.jumpMotion()) < 0.01 || (receivedMotionY <= 0 && receivedMotionY > -.8)))) // various other restrictions
     ) {
       verticalLegitimateDeviation = Math.max(verticalLegitimateDeviation, 1);
+      tags.add(EvaluationTag.SHULKER);
     }
 
     if (movement.pistonMotionToleranceRemaining > 0) {
       // Check if the player box is inside the piston box
       if (movement.pistonCollisionArea != null && movement.pistonCollisionArea.intersectsWith(movement.boundingBox())) {
         verticalLegitimateDeviation = Math.max(verticalLegitimateDeviation, movement.pistonVerticalAllowance);
+        tags.add(EvaluationTag.PISTON);
       }
     }
 
@@ -113,6 +129,7 @@ public final class SimulationEvaluator {
 //      player.sendMessage(scuffed + " " + movement.isSneaking() + " " + Math.abs(receivedMotionY - crouchingHeightGap) + " " + Math.abs(receivedMotionY - standingHeightGap));
       if (scuffed && collides) {
         differenceY = 0;
+        tags.add(EvaluationTag.CROUCHING_BOX_INACCURACY);
       }
     }
 
@@ -121,22 +138,26 @@ public final class SimulationEvaluator {
       int allowedPackets = Hypot.fast(movement.motionX(), movement.motionZ()) < 0.03 ? 3 : 1;
       if (inLiquid || movement.physicsPacketRelinkFlyVL++ <= allowedPackets) {
         verticalLegitimateDeviation = Math.max(verticalLegitimateDeviation, inLiquid ? 0.1 : 0.03);
+        tags.add(EvaluationTag.FLYING);
       }
     }
 
     if (movement.pastBlockPlacement < 10 && movement.receivedFlyingPacketIn(3)) {
       verticalLegitimateDeviation = Math.max(verticalLegitimateDeviation, 0.03);
 //      player.sendMessage(movement.receivedFlyingPacketIn(3) + " " + differenceY + " " + movement.pastBlockPlacement);
+      tags.add(EvaluationTag.FLYING);
     }
 
     if (movement.physicsUnpredictableVelocityExpected) {
       verticalLegitimateDeviation = Math.max(verticalLegitimateDeviation, 0.1);
+      tags.add(EvaluationTag.VELOCITY_FLYING_INACCURACY);
     }
 
     if (collidedWithBoat && !movement.isInVehicle() && movement.motionY() < 0.605) {
       if (movement.enforceBoatStep) {
         if (movement.motionY() < 0.1) {
           verticalLegitimateDeviation = Math.max(verticalLegitimateDeviation, 10);
+          tags.add(EvaluationTag.BOAT);
         }
         movement.enforceBoatStep = false;
       } else if (movement.baseMotionY < 0) {
@@ -144,6 +165,7 @@ public final class SimulationEvaluator {
         if (movement.motionY() > movement.jumpMotion()) {
           movement.enforceBoatStep = true;
         }
+        tags.add(EvaluationTag.BOAT);
       }
     }
 
@@ -158,14 +180,18 @@ public final class SimulationEvaluator {
 
     if (movement.inWeb) {
       verticalLegitimateDeviation = Math.max(verticalLegitimateDeviation, movingUpwardsInWeb ? 0.00001 :/*criticalWeb ? 0.000001 : */0.13);
+      tags.add(EvaluationTag.WEB);
     }
 
     if (movement.pastInWeb < 10 && !movement.inWeb && differenceY < 0.1) {
       verticalLegitimateDeviation = Math.max(verticalLegitimateDeviation, 0.1);
+      tags.add(EvaluationTag.WEB);
     }
 
     if (movement.receivedFlyingPacketIn(1) && movement.pastExternalVelocity <= 4) {
       verticalLegitimateDeviation = Math.max(verticalLegitimateDeviation, 0.03);
+      tags.add(EvaluationTag.FLYING);
+      tags.add(EvaluationTag.VELOCITY_FLYING_INACCURACY);
     }
 
     if (movement.receivedFlyingPacketIn(2) && (movement.inWater() || movement.inLava())) {
@@ -176,11 +202,13 @@ public final class SimulationEvaluator {
         movement.pastExternalVelocity > 8
       ) {
         verticalLegitimateDeviation = Math.max(verticalLegitimateDeviation, 0.1);
+        tags.add(EvaluationTag.FLYING);
       }
     }
 
     if (movement.inWater && movement.waterTicks == 1) {
       verticalLegitimateDeviation = Math.max(verticalLegitimateDeviation, 0.05);
+      tags.add(EvaluationTag.WATERFLOW);
     }
 
     verticalLegitimateDeviation = Math.max(verticalLegitimateDeviation, movement.estimatedAttachMovement());
@@ -200,12 +228,14 @@ public final class SimulationEvaluator {
       boolean targetMotion = Math.abs(receivedMotionY - 0.3) < 0.001 || Math.abs(receivedMotionY - 0.34) < 0.001 || Math.abs(receivedMotionY - 0.2470) < 0.001;
       if (maybeCollidedHorizontally && offsetPositionInLiquid && targetMotion) {
         verticalLegitimateDeviation = Math.max(verticalLegitimateDeviation, 0.7f);
+        tags.add(EvaluationTag.WATERFLOW);
       }
     }
 
     // Sometimes shit happens
     if (movement.ticksSneaking <= 1 && !movement.inWater && !movement.inWeb && (movement.onGround() || movement.lastOnGround()) && movement.motionY() <= 0 && movement.motionY() >= -0.5 && movement.lastSneaking) {
       verticalLegitimateDeviation = Math.max(verticalLegitimateDeviation, 0.08f);
+      tags.add(EvaluationTag.SNEAKING);
     }
 
     double abuseVertically = Math.max(0, differenceY - verticalLegitimateDeviation);
@@ -230,8 +260,10 @@ public final class SimulationEvaluator {
       } else {
         multiplier *= 0.25;
       }
+      tags.add(EvaluationTag.ELYTRA);
     } else if (movement.pastElytraFlying < 4 && movement.motionY() < movement.jumpMotion()) {
       multiplier *= 0.1;
+      tags.add(EvaluationTag.ELYTRA);
     }
 
     if (criticalWeb) {
@@ -242,6 +274,7 @@ public final class SimulationEvaluator {
     double maxLadderVel = justInPowderSnow ? LADDER_UPWARDS_MOTION * 1.5 : LADDER_UPWARDS_MOTION;
     if ((onLadder || justInPowderSnow) && movement.motionY() <= maxLadderVel && movement.motionY() >= -0.05) {
       abuseVertically = 0;
+      tags.add(EvaluationTag.LADDER);
     }
 
     // Long teleport
@@ -249,6 +282,7 @@ public final class SimulationEvaluator {
       double horizontalDistance = Hypot.fast(receivedMotionX, receivedMotionZ);
       if (horizontalDistance < 0.2) {
         abuseVertically = 0;
+        tags.add(EvaluationTag.CHUNK_LOADING);
       }
     }
     return abuseVertically * multiplier;
@@ -258,7 +292,8 @@ public final class SimulationEvaluator {
   public double calculateHorizontalViolationIncrease(
     User user,
     double predictedX, double predictedZ,
-    boolean onLadder, boolean collidedWithBoat
+    boolean onLadder, boolean collidedWithBoat,
+    Set<EvaluationTag> tags
   ) {
     Player player = user.player();
     MetadataBundle meta = user.meta();
@@ -286,49 +321,59 @@ public final class SimulationEvaluator {
     double horizontalLegitimateDeviation;
     if (movement.pastPlayerReduceAttackPhysics <= 1) {
       horizontalLegitimateDeviation = 0.005;
+      tags.add(EvaluationTag.REDUCE_INACCURACY);
     } else {
       horizontalLegitimateDeviation = 0.0007;
       if (distance > 0.0007) {
         boolean collides = Collision.nearSolidBlock(user, movement.boundingBox().growHorizontally(0.001));
         if (collides) {
           horizontalLegitimateDeviation = distanceMoved < 0.04 ? 0.04 : 0.003;
+          tags.add(EvaluationTag.COLLISION_INACCURACY);
         }
       }
       if (user.meta().protocol().beeUpdate() && (abs(motionX) < 0.09 || abs(motionZ) < 0.09)) {
         horizontalLegitimateDeviation = Math.max(horizontalLegitimateDeviation, 0.009);
+        tags.add(EvaluationTag.FLYING);
       }
     }
 
     if ((movement.shulkerXToleranceRemaining > 0 || movement.shulkerZToleranceRemaining > 0) && abs(motionY) < 0.5 && abs(motionZ) < 0.5) {
       horizontalLegitimateDeviation = Math.max(horizontalLegitimateDeviation, 0.3);
+      tags.add(EvaluationTag.SHULKER);
     }
 
     if (movement.shulkerYToleranceRemaining > 0) {
       horizontalLegitimateDeviation = Math.max(horizontalLegitimateDeviation, abs(movement.motionY()) < .3 ? .3 : .1);
+      tags.add(EvaluationTag.SHULKER);
     }
     if (movement.collidedHorizontally) {
       horizontalLegitimateDeviation = Math.max(horizontalLegitimateDeviation, 0.027);
+      tags.add(EvaluationTag.COLLISION_INACCURACY);
     }
 
     if (movement.pistonMotionToleranceRemaining > 0) {
       // Check if the player box is inside the piston box
       if (movement.pistonCollisionArea != null && movement.pistonCollisionArea.intersectsWith(movement.boundingBox())) {
         horizontalLegitimateDeviation = Math.max(horizontalLegitimateDeviation, movement.pistonHorizontalAllowance);
+        tags.add(EvaluationTag.PISTON);
       }
     }
 
     if (pushedByWaterFlow) {
       horizontalLegitimateDeviation = Math.max(horizontalLegitimateDeviation, 0.018);
+      tags.add(EvaluationTag.WATERFLOW);
     }
 
     if (movement.currentlyInBlock && predictedDistanceMoved < distanceMoved * 1.3) {
       horizontalLegitimateDeviation = Math.max(horizontalLegitimateDeviation, predictedDistanceMoved);
+      tags.add(EvaluationTag.COLLISION_INACCURACY);
     }
 
     // Firework
     if (movement.fireworkRocketsTicks < 30 * movement.fireworkRocketsPower) {
       // srsly who cares
       horizontalLegitimateDeviation = Math.max(horizontalLegitimateDeviation, 3);
+      tags.add(EvaluationTag.FIREWORK);
     }
 
     // Flying packet
@@ -338,11 +383,15 @@ public final class SimulationEvaluator {
 //        System.out.println(distanceMoved + " " + predictedDistanceMoved + " " + lessThanExpected);
 //        player.sendMessage(" " + );
         horizontalLegitimateDeviation = Math.max(horizontalLegitimateDeviation, lessThanExpected ? 0.115 : 0.05);
+        tags.add(EvaluationTag.FLYING_ON_GROUND);
       } else {
         horizontalLegitimateDeviation = Math.max(horizontalLegitimateDeviation, 0.05);
+        tags.add(EvaluationTag.FLYING);
       }
       if (movement.pastNearbyCollisionInaccuracy == 0) {
         horizontalLegitimateDeviation = Math.max(horizontalLegitimateDeviation, 0.05);
+        tags.add(EvaluationTag.FLYING);
+        tags.add(EvaluationTag.COLLISION_INACCURACY);
       }
     }
 
@@ -350,6 +399,7 @@ public final class SimulationEvaluator {
     if (movement.pastRiptideSpin < 4) {
       horizontalLegitimateDeviation = Math.max(horizontalLegitimateDeviation, resolveRiptideDeviation(movement));
 //      player.sendMessage(Collision.present(player, BoundingBox.fromPosition(user, movement, movement.positionX, movement.positionY, movement.positionZ).grow(0.1)) + " " + movement.pastRiptideSpin);
+      tags.add(EvaluationTag.RIPTIDE);
     }
 
     horizontalLegitimateDeviation = Math.max(horizontalLegitimateDeviation, movement.estimatedAttachMovement());
@@ -364,20 +414,24 @@ public final class SimulationEvaluator {
       boolean valid = movement.pastBlockPlacement > 9 || !movement.onGround() || motionY >= 0.2;
       if (valid && (lessThanExpected || distanceMoved < baseMoveSpeed * baseSpeedMultiplier)) {
         horizontalLegitimateDeviation = Math.max(horizontalLegitimateDeviation, baseMoveSpeed * baseSpeedMultiplier);
+        tags.add(EvaluationTag.FLYING);
       }
     }
 
     if (onLadder && (distanceMoved < predictedDistanceMoved || distanceMoved < (movement.motionY() < 0 ? 0.4 : 0.2))) {
       horizontalLegitimateDeviation = Math.max(distanceMoved, 0.2);
+      tags.add(EvaluationTag.LADDER);
     }
 
     if (collidedWithBoat) {
       horizontalLegitimateDeviation = Math.max(horizontalLegitimateDeviation, 0.4);
+      tags.add(EvaluationTag.BOAT);
     }
 
     if (movement.physicsUnpredictableVelocityExpected) {
       horizontalLegitimateDeviation = Math.max(horizontalLegitimateDeviation, 0.1);
 //      player.sendMessage("Gave you " + (velocityDistance * 1.2 - distanceMoved) + " tolerance for velocity, plus extra " + velocityDistance + " for distance, " + distanceMoved + " for distance moved");
+      tags.add(EvaluationTag.VELOCITY_FLYING_INACCURACY);
     }
 
     if (movement.ticksSneaking <= 1 && movement.sneaking || movement.lastSneaking) {
@@ -389,10 +443,10 @@ public final class SimulationEvaluator {
           limit = 0.4;
         }
         if (abs(movement.motionY()) < 0.001) {
-          limit = 0.08;
+          limit = 0.06;
         }
         if (movement.pastEdgeSneak <= 3 && !protocol.flyingPacketsAreSent()) {
-          limit = Math.max(limit, 0.07);
+          limit = Math.max(limit, 0.065);
         }
       } else {
         if (movement.pastEdgeSneak <= 3 || (movement.pastEdgeSneak <= 10 && movement.onGround() && abs(motionY) < 0.01)) {
@@ -404,10 +458,12 @@ public final class SimulationEvaluator {
         limit *= 0.25;
       }
       horizontalLegitimateDeviation = Math.max(horizontalLegitimateDeviation, limit);
+      tags.add(EvaluationTag.SNEAKING);
     }
 
     if (movement.pushedByEntity) {
       horizontalLegitimateDeviation = Math.max(horizontalLegitimateDeviation, 0.05);
+      tags.add(EvaluationTag.ENTITY_PUSH);
     }
 
     double abuseHorizontally = Math.max(0, distance - horizontalLegitimateDeviation);
@@ -415,6 +471,7 @@ public final class SimulationEvaluator {
 
     if (inLiquid) {
       movedTooQuickly &= distanceMoved > baseMoveSpeed;
+      tags.add(EvaluationTag.WATERFLOW);
     }
 
     // A+D spam
@@ -435,8 +492,10 @@ public final class SimulationEvaluator {
       } else {
         abuseHorizontally *= 0.6;
       }
+      tags.add(EvaluationTag.ELYTRA);
     } else if (flewWithElytra) {
       abuseHorizontally *= 0.1;
+      tags.add(EvaluationTag.ELYTRA);
     }
 
     double stackMultiplier = Math.exp(-Math.min(violationLevelData.physicsInvalidMovementsInRow, 4) / 2);

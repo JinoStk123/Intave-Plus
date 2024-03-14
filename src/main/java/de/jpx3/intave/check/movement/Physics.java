@@ -26,6 +26,7 @@ import de.jpx3.intave.check.CheckConfiguration.CheckSettings;
 import de.jpx3.intave.check.CheckStatistics;
 import de.jpx3.intave.check.CheckViolationLevelDecrementer;
 import de.jpx3.intave.check.movement.physics.*;
+import de.jpx3.intave.check.movement.physics.eval.EvaluationTag;
 import de.jpx3.intave.connect.sibyl.SibylBroadcast;
 import de.jpx3.intave.diagnostic.message.DebugBroadcast;
 import de.jpx3.intave.diagnostic.message.MessageSeverity;
@@ -59,8 +60,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.util.Vector;
 
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static de.jpx3.intave.diagnostic.message.MessageCategory.SIMFLT;
@@ -406,8 +409,12 @@ public final class Physics extends Check {
     // Entity collision check
     boolean collidedWithBoat = movementData.collidedWithBoat();
     boolean skipVLCalculation = distance <= 0.00005;
-    double verticalViolationIncrease = skipVLCalculation ? 0 : simulationEvaluator.calculateVerticalViolationLevelIncrease(user, predictedY, onLadder, collidedWithBoat);
-    double horizontalViolationIncrease = skipVLCalculation ? 0 : simulationEvaluator.calculateHorizontalViolationIncrease(user, predictedX, predictedZ, onLadder, collidedWithBoat);
+
+    Set<EvaluationTag> verticalTags = EnumSet.noneOf(EvaluationTag.class);
+    Set<EvaluationTag> horizontalTags = EnumSet.noneOf(EvaluationTag.class);
+
+    double verticalViolationIncrease = skipVLCalculation ? 0 : simulationEvaluator.calculateVerticalViolationLevelIncrease(user, predictedY, onLadder, collidedWithBoat, verticalTags);
+    double horizontalViolationIncrease = skipVLCalculation ? 0 : simulationEvaluator.calculateHorizontalViolationIncrease(user, predictedX, predictedZ, onLadder, collidedWithBoat, horizontalTags);
 
     if (onLadder) {
       movementData.artificialFallDistance = 0;
@@ -417,6 +424,7 @@ public final class Physics extends Check {
     violationLevelData.physicsOffset += biasedDistance;
     violationLevelData.physicsOffset -= movementData.receivedFlyingPacketIn(2) ? Math.min(0.03, biasedDistance) : 0;
     violationLevelData.physicsOffset -= violationLevelData.physicsOffset > 0.5 ? 0.003 : 0.001;
+    violationLevelData.physicsOffset -= movementData.pastElytraFlying < 3 ? 0.025 : 0;
 
     // clamp the offset
     if (violationLevelData.physicsOffset > 1.0) {
@@ -470,18 +478,20 @@ public final class Physics extends Check {
       movementData.endMotionYOverrideValue = predictedY;
     }
 
-    if (distance > 0.01 && (verticalViolationIncrease > 0.1 || horizontalViolationIncrease > 0.1)) {
+    boolean expectProblems = user.meta().movement().pastElytraFlying <= 2;
+
+    if (distance > 0.01 && !expectProblems && (verticalViolationIncrease > 0.1 || horizontalViolationIncrease > 0.1)) {
       if (Math.abs(receivedMotionX) > 0.15) {
         movementData.endMotionXOverride = true;
-        movementData.endMotionXOverrideValue = predictedX;
+        movementData.endMotionXOverrideValue = predictedX * 0.98;
       }
-      if (Math.abs(receivedMotionY) > 0.1) {
+      if (Math.abs(receivedMotionY) > 0.1 && differenceY > 0.1) {
         movementData.endMotionYOverride = true;
-        movementData.endMotionYOverrideValue = predictedY;
+        movementData.endMotionYOverrideValue = (predictedY - 0.08) * 0.98;
       }
       if (Math.abs(receivedMotionZ) > 0.15) {
         movementData.endMotionZOverride = true;
-        movementData.endMotionZOverrideValue = predictedZ;
+        movementData.endMotionZOverrideValue = predictedZ * 0.98;
       }
     }
 
@@ -658,7 +668,7 @@ public final class Physics extends Check {
 
     boolean setback = false;
 
-    double latantDistance = 0.5;
+    double latantDistance = 0.7;
     boolean offsetRequirement = violationLevelData.physicsOffset > latantDistance && distance > 0.001;
     if (offsetRequirement && !spectator && violationLevelData.physicsVL > 50 && violationLevelIncrease > 0) {
 //      violationLevelData.physicsOffset -= 0.001;
@@ -667,12 +677,22 @@ public final class Physics extends Check {
       String message = "moved incorrectly";
       String details = received + " actual: " + expected;
 
-      if (violationLevelData.physicsInsignificantBufferVL > 2) {
-        details += ", it:" + formatDouble(violationLevelData.physicsInsignificantBufferVL, 1);
-      }
+//      if (violationLevelData.physicsInsignificantBufferVL > 2) {
+//        details += ", it:" + formatDouble(violationLevelData.physicsInsignificantBufferVL, 1);
+//      }
+      details += ", offset: " + formatDouble(violationLevelData.physicsOffset, 2);
 
       if (velocityDetected) {
-        details += ", strict";
+        details += " & strict";
+      }
+
+      if (IntaveControl.DISABLE_LICENSE_CHECK) {
+        if (!verticalTags.isEmpty()) {
+          details += ", V" + verticalTags.stream().map(EvaluationTag::toString).map(String::toLowerCase).distinct().collect(Collectors.joining(","));
+        }
+        if (!horizontalTags.isEmpty()) {
+          details += ", H" + horizontalTags.stream().map(EvaluationTag::toString).map(String::toLowerCase).distinct().collect(Collectors.joining(","));
+        }
       }
 
       double vl = violationLevelIncrease / (violationLevelData.physicsVL >= 100 && !highToleranceMode() ? 20 : 50);
@@ -948,6 +968,15 @@ public final class Physics extends Check {
       } else if (violationLevelData.physicsOffset > 0.1) {
         debug += " off:" + formatDouble(violationLevelData.physicsOffset, 2);
       }
+
+      // display tags
+      if (!verticalTags.isEmpty()) {
+        debug += "; V" + verticalTags.stream().map(EvaluationTag::toString).map(String::toLowerCase).distinct().collect(Collectors.joining(","));
+      }
+      if (!horizontalTags.isEmpty()) {
+        debug += "; H" + horizontalTags.stream().map(EvaluationTag::toString).map(String::toLowerCase).distinct().collect(Collectors.joining(","));
+      }
+
 //      debug += " fric:" + formatDouble(movementData.friction(), 2) + "@" + movementData.frictionMaterial();
 
 //      if (Math.abs(movementData.motionY()) > 0.01) {

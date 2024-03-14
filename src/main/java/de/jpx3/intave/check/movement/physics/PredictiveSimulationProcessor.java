@@ -156,7 +156,7 @@ public final class PredictiveSimulationProcessor implements SimulationProcessor 
       }
     }
 
-    boolean canExpectCorrectReduce = !protocol.combatUpdate() && movementData.pastVelocity > 1;
+    boolean canExpectCorrectReduce = !protocol.combatUpdate() && movementData.pastVelocity > 1 && movementData.motion().horizontalLength() > 0.2;
     boolean invalidReduceTicks = simulationStack.reduceTicks() != movementData.reduceTicks;
     if (canExpectCorrectReduce && invalidReduceTicks) {
       movementData.invalidReduceVL = Math.min(movementData.invalidReduceVL + 1, 10);
@@ -450,7 +450,7 @@ public final class PredictiveSimulationProcessor implements SimulationProcessor 
               continue;
             }
             IterativeStudy.USE_ITEM_ITERATOR.run();
-            boolean canExpectCorrectReduce = !protocol.combatUpdate() && movementData.pastVelocity > 2;
+            boolean canExpectCorrectReduce = !protocol.combatUpdate() && movementData.pastVelocity > 1 && movementData.motion().horizontalLength() > 0.2;
             boolean enforceCorrectReduction = movementData.forceCorrectReduce && canExpectCorrectReduce;
             for (int reduceIndex = 0; reduceIndex <= movementData.reduceTicks; reduceIndex++) {
               if (enforceCorrectReduction && reduceIndex != movementData.reduceTicks) {

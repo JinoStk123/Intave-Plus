@@ -41,8 +41,8 @@ import static de.jpx3.intave.share.ClientMath.floor;
 @Relocate
 @DoNotFlowObfuscate
 public final class Collision {
-  // usually we collide with 8 blocks, so a limit of 32 comes with a very big margin
-  private static final int COLLISION_CHECK_LIMIT = 256;
+  // usually we collide with 8 blocks, so a limit of 64 comes with a very big margin
+  private static final int COLLISION_CHECK_LIMIT = 8 * 8;
 
   private static final Collector<BlockShape, ?, BlockShape> SHAPE_COMPILATION =
     Collectors.collectingAndThen(Collectors.toList(), BlockShapes::merge);

@@ -403,8 +403,8 @@ public final class InteractionRaytrace extends MetaCheck<InteractionRaytrace.Int
         Location playerLocationmdf = playerLocation.clone();
         playerLocationmdf.setYaw(movementData.lastRotationYaw);
 
-        double[] possibleXDisplacements = new double[] { 0, 0.03, -0.03, 0.06, -0.06 };
-        double[] possibleZDisplacements = new double[] { 0, 0.03, -0.03, 0.06, -0.06 };
+        double[] possibleXDisplacements = new double[] { 0, 0.01, -0.01, 0.03, -0.03, 0.06, -0.06 };
+        double[] possibleZDisplacements = new double[] { 0, 0.01, -0.01, 0.03, -0.03, 0.06, -0.06 };
         int numChecks = possibleXDisplacements.length * possibleZDisplacements.length;
 
         boolean estimateMouseDelayFix = interactionMeta.estimateMouseDelayFix;
