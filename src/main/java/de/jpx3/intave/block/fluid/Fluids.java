@@ -4,7 +4,6 @@ import de.jpx3.intave.IntaveLogger;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.access.IntaveInternalException;
 import de.jpx3.intave.block.cache.BlockCache;
-import de.jpx3.intave.block.cache.BlockStateCache;
 import de.jpx3.intave.block.variant.BlockVariant;
 import de.jpx3.intave.block.variant.BlockVariantRegister;
 import de.jpx3.intave.klass.rewrite.PatchyLoadingInjector;
@@ -132,7 +131,7 @@ public class Fluids {
   @Deprecated
   // use VolatileBlockAccess instead
   public static @NotNull Fluid fluidAt(User user, int x, int y, int z) {
-    BlockStateCache states = user.blockCache();
+    BlockCache states = user.blockCache();
     Material type = states.typeAt(x, y, z);
     Map<Integer, Fluid> stateMap = liquidData.get(type);
     if (stateMap == null) {
