@@ -51,25 +51,27 @@ public class AngleSnap extends PlayerCheckPart<PlacementAnalysis> {
       }
 
       boolean recentBlockPlacement = user.meta().movement().pastBlockPlacement < 20;
-      if (rotationSum > (recentBlockPlacement ? 60 : 100) && rotationSum < 300) {
-        int outputVL = rotationSum > 150 || (Math.abs(rotationSum - 90) < 0.1) ? 25 : 10;
-        float lastRot = Math.abs(movementData.rotationYaw - movementData.lastRotationYaw);
-        if (pastDistanceTo45Deg < 0.08 && (lastRot > 30)) {
-          outputVL += 35;
+      if (rotationSum > 60 && recentBlockPlacement && user.meta().movement().lastTeleport > 5 && rotationSum < 300) {
+        if (vl > 2) {
+          int outputVL = rotationSum > 150 || (Math.abs(rotationSum - 90) < 0.1) ? 25 : 10;
+          float lastRot = Math.abs(movementData.rotationYaw - movementData.lastRotationYaw);
+          if (pastDistanceTo45Deg < 0.08 && (lastRot > 30)) {
+            outputVL += 35;
+          }
+          outputVL += (int) (vl * 3);
+          Violation violation = Violation.builderFor(PlacementAnalysis.class)
+            .forPlayer(player).withDefaultThreshold()
+            .withMessage(COMMON_FLAG_MESSAGE)
+            .withDetails((int)rotationSum + "deg snap to 45deg angle over " + maxHistory + " ticks")
+            .appendFlags(DISPLAY_IN_ALL_VERBOSE_MODES)
+            .withDefaultThreshold().withVL(outputVL).build();
+          Modules.violationProcessor().processViolation(violation);
         }
-        outputVL += (int) (vl * 3);
-        Violation violation = Violation.builderFor(PlacementAnalysis.class)
-          .forPlayer(player).withDefaultThreshold()
-          .withMessage(COMMON_FLAG_MESSAGE)
-          .withDetails((int)rotationSum + "deg snap to 45deg angle over " + maxHistory + " ticks")
-          .appendFlags(DISPLAY_IN_ALL_VERBOSE_MODES)
-          .withDefaultThreshold().withVL(vl > 2 ? outputVL : 0).build();
-        Modules.violationProcessor().processViolation(violation);
         rotationHistory.clear();
         vl++;
         vl = Math.min(6, vl);
       } else {
-        vl = Math.max(0, vl - 0.001);
+        vl = Math.max(0, vl - 0.0025);
       }
     }
     while (rotationHistory.size() > 3 * 20) {

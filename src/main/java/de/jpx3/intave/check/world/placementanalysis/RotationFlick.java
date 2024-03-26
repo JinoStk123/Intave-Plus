@@ -85,7 +85,6 @@ public class RotationFlick extends PlayerCheckPart<PlacementAnalysis> {
 
     long lastPlacementDiff = Math.min(1000, System.currentTimeMillis() - lastPlacement);
 
-
     while (lastBlocksPlaced.size() > 4 || (!lastBlocksPlaced.isEmpty() && System.currentTimeMillis() - lastPlacement > 5000)) {
       lastBlocksPlaced.remove(0);
     }
@@ -127,16 +126,6 @@ public class RotationFlick extends PlayerCheckPart<PlacementAnalysis> {
     float prevPitch = lastPitch;
     float pitchDiff = Math.abs(movement.rotationPitch - prevPitch);
     lastPitch = movement.rotationPitch;
-
-
-    float pitchLowerBound = rotations[0].pitch(); // is always lower than upper bound
-    float pitchUpperBound = rotations[1].pitch();
-    boolean lastPitchBetweenBounds = prevPitch >= pitchLowerBound && prevPitch <= pitchUpperBound;
-
-    float rotationSum = 0;
-    for (Float value : rotationHistory) {
-      rotationSum += value;
-    }
 
     if (pitchDiff > 3 && pitchDiff < 20 && movement.rotationPitch > 70 && verticalLineLength < 5) {
       if ((average < 400 || isOneLine(lastBlocksPlaced)) && lastPlacementDiff < 800) {
