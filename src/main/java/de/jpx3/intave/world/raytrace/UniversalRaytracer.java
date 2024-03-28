@@ -23,6 +23,7 @@ public class UniversalRaytracer implements Raytracer {
     return performRaytrace(player, eyePosition, targetPosition);
   }
 
+
   private MovingObjectPosition performRaytrace(Player player, Position eyePosition, Position targetPosition) {
     BlockShape eyeShape = shapeAt(player, eyePosition);
     if (!eyeShape.isEmpty()) {
@@ -143,7 +144,7 @@ public class UniversalRaytracer implements Raytracer {
   }
 
   private BlockShape shapeAt(Player player, int x, int y, int z) {
-    return UserRepository.userOf(player).blockStates().outlineShapeAt(x, y, z);
+    return UserRepository.userOf(player).blockCache().outlineShapeAt(x, y, z);
   }
 
   private BlockShape shapeAt(Player player, Position position) {

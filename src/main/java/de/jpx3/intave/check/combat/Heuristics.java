@@ -300,8 +300,7 @@ public final class Heuristics extends MetaCheck<Heuristics.HeuristicMeta> {
       storage.confidenceNote(overallActiveConfidenceLevel);
     }
 
-    if (overallActiveConfidence.atLeast(VERY_LIKELY)) {
-      Anomaly.Type type = findDominantTypeIn(activeAnomalies);
+    if (overallActiveConfidence.atLeast(ALMOST_CERTAIN)) {
       String identifier;
       if (IntaveControl.DEBUG_HEURISTICS) {
         identifier = restructureForOutput(activeAnomalies).stream().map(anomaly -> "p[" + anomaly.key() + "]").collect(Collectors.joining(","));
@@ -313,15 +312,16 @@ public final class Heuristics extends MetaCheck<Heuristics.HeuristicMeta> {
       String confidenceName = overallActiveConfidence.confidenceName();
       String confidenceSymbol = overallActiveConfidence.output();
       String confidence = confidenceName + " (" + confidenceSymbol + ")";
-      String typeName = type.typeName();
-      String details = typeName + ": " + confidence + " / " + identifier;
+      String typeName = findDominantTypeIn(activeAnomalies).typeName();
+      String details = "on-premise id " + identifier + " at " + confidenceName.toUpperCase();
+
       Violation violation = Violation.builderFor(Heuristics.class)
         .forPlayer(player).withMessage(message).withDetails(details)
         .withCustomThreshold(threshold).withVL(25)
+        .withPlaceholder("identifier", identifier)
         .withPlaceholder("confidence", confidence)
         .withPlaceholder("confidence-name", confidenceName)
         .withPlaceholder("confidence-symbol", confidenceSymbol)
-        .withPlaceholder("identifier", identifier)
         .build();
       Modules.violationProcessor().processViolation(violation);
     }

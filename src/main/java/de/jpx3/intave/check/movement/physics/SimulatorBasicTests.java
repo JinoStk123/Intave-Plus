@@ -1,8 +1,8 @@
 package de.jpx3.intave.check.movement.physics;
 
+import de.jpx3.intave.block.cache.MockFullBlockStaticPlane;
 import de.jpx3.intave.block.fluid.FluidFlow;
 import de.jpx3.intave.block.fluid.Fluids;
-import de.jpx3.intave.block.state.MockFullBlockStaticPlane;
 import de.jpx3.intave.player.collider.Colliders;
 import de.jpx3.intave.player.collider.complex.Collider;
 import de.jpx3.intave.player.collider.simple.SimpleCollider;
@@ -60,7 +60,7 @@ public final class SimulatorBasicTests extends Tests {
           return waterflow;
         case "simplifiedCollider":
           return simpleCollider;
-        case "blockStates":
+        case "blockCache":
           return plane;
         case "protocolVersion":
           return 47;

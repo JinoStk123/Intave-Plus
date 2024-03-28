@@ -1,4 +1,4 @@
-package de.jpx3.intave.block.state;
+package de.jpx3.intave.block.cache;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -66,6 +66,8 @@ final class BlockStateReplacementCache<K> {
         locked.remove(location);
       }
     }
+    // remove locked entries that are older than 10 seconds
+    locked.entrySet().removeIf(entry -> System.currentTimeMillis() - entry.getValue() > 10000L);
   }
 
   public void chunkReset(int chunkXMinPos, int chunkXMaxPos, int chunkZMinPos, int chunkZMaxPos) {

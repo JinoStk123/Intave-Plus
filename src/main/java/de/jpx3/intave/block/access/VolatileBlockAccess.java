@@ -177,7 +177,7 @@ public final class VolatileBlockAccess {
 
   public static Material typeAccess(User user, World blockAccess, int blockX, int blockY, int blockZ) {
     if (blockAccess == null || isInLoadedChunk(blockAccess, blockX, blockZ) || Bukkit.isPrimaryThread()) {
-      return user.blockStates().typeAt(blockX, blockY, blockZ);
+      return user.blockCache().typeAt(blockX, blockY, blockZ);
     }
     return Material.AIR;
   }
@@ -222,13 +222,13 @@ public final class VolatileBlockAccess {
 
   public static int variantIndexAccess(User user, World blockAccess, int blockX, int blockY, int blockZ) {
     if (isInLoadedChunk(blockAccess, blockX, blockZ) || Bukkit.isPrimaryThread()) {
-      return user.blockStates().variantIndexAt(blockX, blockY, blockZ);
+      return user.blockCache().variantIndexAt(blockX, blockY, blockZ);
     }
     return 0;
   }
 
   public static BlockShape collisionShapeAccess(User user, Location location) {
-    return user.blockStates().collisionShapeAt(location.getBlockX(), location.getBlockY(), location.getBlockZ());
+    return user.blockCache().collisionShapeAt(location.getBlockX(), location.getBlockY(), location.getBlockZ());
   }
 
   public static BlockShape collisionShapeAccess(User user, BlockPosition position) {
@@ -236,7 +236,7 @@ public final class VolatileBlockAccess {
   }
 
   public static BlockShape collisionShapeAccess(User user, double x, double y, double z) {
-    return user.blockStates().collisionShapeAt(floor(x), floor(y), floor(z));
+    return user.blockCache().collisionShapeAt(floor(x), floor(y), floor(z));
   }
 
   public static BlockShape collisionShapeAccess(User user, Position position) {

@@ -16,8 +16,8 @@ import de.jpx3.intave.annotate.DispatchTarget;
 import de.jpx3.intave.annotate.Relocate;
 import de.jpx3.intave.block.access.BlockInteractionAccess;
 import de.jpx3.intave.block.access.VolatileBlockAccess;
+import de.jpx3.intave.block.cache.BlockCache;
 import de.jpx3.intave.block.collision.Collision;
-import de.jpx3.intave.block.state.ExtendedBlockStateCache;
 import de.jpx3.intave.block.type.BlockTypeAccess;
 import de.jpx3.intave.block.variant.BlockVariantNativeAccess;
 import de.jpx3.intave.check.CheckViolationLevelDecrementer;
@@ -290,7 +290,7 @@ public final class InteractionRaytrace extends MetaCheck<InteractionRaytrace.Int
 
     InteractionType type = breakBlock ? InteractionType.BREAK : InteractionType.START_BREAK;
     if (IntaveControl.DEBUG_INTERACTION) {
-      player.sendMessage(type + "@"+user.blockStates().typeAt(blockPosition.getX(), blockPosition.getY(), blockPosition.getZ()) + "/"+blockDamage+" " + heldItemType + " " + playerDigType);
+      player.sendMessage(type + "@"+user.blockCache().typeAt(blockPosition.getX(), blockPosition.getY(), blockPosition.getZ()) + "/"+blockDamage+" " + heldItemType + " " + playerDigType);
     }
 
     Interaction interaction = new Interaction(
@@ -853,7 +853,7 @@ public final class InteractionRaytrace extends MetaCheck<InteractionRaytrace.Int
     Player player = interaction.player();
     User user = userOf(player);
     ResponseType response = interaction.type().response();
-    ExtendedBlockStateCache blockStateAccess = user.blockStates();
+    BlockCache blockStateAccess = user.blockCache();
     if (enforceCancel) {
       response = ResponseType.CANCEL;
     }

@@ -1,7 +1,7 @@
 package de.jpx3.intave.block.shape.resolve;
 
+import de.jpx3.intave.block.cache.BlockCache;
 import de.jpx3.intave.block.shape.ShapeResolverPipeline;
-import de.jpx3.intave.block.state.ExtendedBlockStateCache;
 
 import static de.jpx3.intave.adapter.MinecraftVersions.VER1_13_0;
 
@@ -22,7 +22,7 @@ import static de.jpx3.intave.adapter.MinecraftVersions.VER1_13_0;
  * Use {@link ShapeResolver#pipelineHead()} to retrieve the pipelines head.
  *
  * @see ShapeResolverPipeline
- * @see ExtendedBlockStateCache
+ * @see BlockCache
  */
 public final class ShapeResolver {
   private static final ShapeResolverPipeline GLOBAL = createPipelineFor(DrillResolver.selectedDrill());
