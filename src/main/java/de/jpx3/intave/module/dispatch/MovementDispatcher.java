@@ -36,6 +36,7 @@ import de.jpx3.intave.module.linker.packet.Engine;
 import de.jpx3.intave.module.linker.packet.ListenerPriority;
 import de.jpx3.intave.module.linker.packet.PacketSubscription;
 import de.jpx3.intave.module.linker.packet.PrioritySlot;
+import de.jpx3.intave.module.mitigate.AttackNerfStrategy;
 import de.jpx3.intave.module.tracker.entity.Entity;
 import de.jpx3.intave.module.violation.Violation;
 import de.jpx3.intave.packet.PacketSender;
@@ -448,8 +449,12 @@ public final class MovementDispatcher extends Module {
 
     double distanceMoved = Hypot.fast(movementData.motionX(), movementData.motionZ());
     if (inventoryData.activatedItemThisTick && inventoryData.deactivatedItemThisTick && distanceMoved > 0.1) {
-      // flush
-      inventoryData.releaseItemNextTick = true;
+      if (violationLevelData.wrappedNoSlowdownVL++ > 5) {
+        user.nerfPermanently(AttackNerfStrategy.DMG_HIGH, "No slowdown");
+        user.nerfPermanently(AttackNerfStrategy.BLOCKING, "No slowdown");
+      }
+    } else {
+      violationLevelData.wrappedNoSlowdownVL = Math.max(0, violationLevelData.wrappedNoSlowdownVL - 0.08);
     }
 
     if (inventoryData.releaseItemNextTick) {

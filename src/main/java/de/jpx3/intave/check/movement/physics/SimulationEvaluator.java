@@ -49,7 +49,7 @@ public final class SimulationEvaluator {
 
     if (accountedSkippedMovement) {
       if (abs(movement.motionX()) < 0.05 && abs(movement.motionZ()) < 0.05 && movement.motionY() < 0 && movement.motionY() > -0.4) {
-        boolean pastCollision = movement.pastNearbyCollisionInaccuracy == 0;
+        boolean pastCollision = movement.pastNearbyCollisionInaccuracy == 0 && !movement.inWeb;
         verticalLegitimateDeviation = pastCollision ? 0.15 : (0.08);
         tags.add(EvaluationTag.FLYING);
         if (pastCollision) {
@@ -90,9 +90,9 @@ public final class SimulationEvaluator {
     }
 
     if (movement.shulkerYToleranceRemaining > 0 && // tick restriction
-        (movement.positionY >= movement.lowestShulkerY - 1 && movement.positionY <= movement.highestShulkerY + 1) && // height restriction
-        receivedMotionY - movement.jumpMotion() < 0.2 && // motion restriction
-        (abs(receivedMotionY) <= 0.5 || ((movement.positionY % 0.05) < 0.0001 && (abs(receivedMotionY - movement.jumpMotion()) < 0.01 || (receivedMotionY <= 0 && receivedMotionY > -.8)))) // various other restrictions
+      (movement.positionY >= movement.lowestShulkerY - 1 && movement.positionY <= movement.highestShulkerY + 1) && // height restriction
+      receivedMotionY - movement.jumpMotion() < 0.2 && // motion restriction
+      (abs(receivedMotionY) <= 0.5 || ((movement.positionY % 0.05) < 0.0001 && (abs(receivedMotionY - movement.jumpMotion()) < 0.01 || (receivedMotionY <= 0 && receivedMotionY > -.8)))) // various other restrictions
     ) {
       verticalLegitimateDeviation = Math.max(verticalLegitimateDeviation, 1);
       tags.add(EvaluationTag.SHULKER);
@@ -125,7 +125,7 @@ public final class SimulationEvaluator {
         scuffed = true;
       }
       boolean collides = Collision.present(player, BoundingBox.fromPosition(user, movement, movement.positionX, movement.positionY + 0.0001, movement.positionZ)
-          .expand(movement.motionX(), abs(receivedMotionY + 0.1), movement.motionZ()));
+        .expand(movement.motionX(), abs(receivedMotionY + 0.1), movement.motionZ()));
 //      player.sendMessage(scuffed + " " + movement.isSneaking() + " " + Math.abs(receivedMotionY - crouchingHeightGap) + " " + Math.abs(receivedMotionY - standingHeightGap));
       if (scuffed && collides) {
         differenceY = 0;
@@ -305,8 +305,8 @@ public final class SimulationEvaluator {
     double motionY = movement.motionY();
     double motionZ = movement.motionZ();
     double distanceMoved = MathHelper.resolveHorizontalDistance(
-        movement.positionX, movement.positionZ,
-        movement.verifiedPositionX, movement.verifiedPositionZ
+      movement.positionX, movement.positionZ,
+      movement.verifiedPositionX, movement.verifiedPositionZ
     );
     double predictedDistanceMoved = Hypot.fast(predictedX, predictedZ);
 
@@ -325,7 +325,7 @@ public final class SimulationEvaluator {
     } else {
       horizontalLegitimateDeviation = 0.0007;
       if (distance > 0.0007) {
-        boolean collides = Collision.nearSolidBlock(user, movement.boundingBox().growHorizontally(0.001));
+        boolean collides = Collision.nearSolidBlock(user, movement.boundingBox().growHorizontally(0.001)) && !movement.inWeb;
         if (collides) {
           horizontalLegitimateDeviation = distanceMoved < 0.04 ? 0.04 : 0.003;
           tags.add(EvaluationTag.COLLISION_INACCURACY);
@@ -364,7 +364,7 @@ public final class SimulationEvaluator {
       tags.add(EvaluationTag.WATERFLOW);
     }
 
-    if (movement.currentlyInBlock && predictedDistanceMoved < distanceMoved * 1.3) {
+    if (movement.currentlyInBlock && !movement.inWeb && predictedDistanceMoved < distanceMoved * 1.3) {
       horizontalLegitimateDeviation = Math.max(horizontalLegitimateDeviation, predictedDistanceMoved);
       tags.add(EvaluationTag.COLLISION_INACCURACY);
     }
@@ -377,19 +377,18 @@ public final class SimulationEvaluator {
     }
 
     // Flying packet
+    double flyingLimit = movement.inWeb ? 0.008 : 0.05;
     if (movement.receivedFlyingPacketIn(2)) {
       if (movement.onGround) {
         boolean lessThanExpected = /*distanceMoved <= predictedDistanceMoved + 0.02 ||*/ distanceMoved < 0.15;
-//        System.out.println(distanceMoved + " " + predictedDistanceMoved + " " + lessThanExpected);
-//        player.sendMessage(" " + );
-        horizontalLegitimateDeviation = Math.max(horizontalLegitimateDeviation, lessThanExpected ? 0.115 : 0.05);
+        horizontalLegitimateDeviation = Math.max(horizontalLegitimateDeviation, lessThanExpected ? 0.115 : flyingLimit);
         tags.add(EvaluationTag.FLYING_ON_GROUND);
       } else {
-        horizontalLegitimateDeviation = Math.max(horizontalLegitimateDeviation, 0.05);
+        horizontalLegitimateDeviation = Math.max(horizontalLegitimateDeviation, flyingLimit);
         tags.add(EvaluationTag.FLYING);
       }
       if (movement.pastNearbyCollisionInaccuracy == 0) {
-        horizontalLegitimateDeviation = Math.max(horizontalLegitimateDeviation, 0.05);
+        horizontalLegitimateDeviation = Math.max(horizontalLegitimateDeviation, flyingLimit);
         tags.add(EvaluationTag.FLYING);
         tags.add(EvaluationTag.COLLISION_INACCURACY);
       }
@@ -412,7 +411,7 @@ public final class SimulationEvaluator {
       boolean lessThanExpected = distanceMoved <= predictedDistanceMoved;
       double baseSpeedMultiplier = inLiquid ? 0.1 : (!movement.sprinting ? 0.3 : 0.5);
       boolean valid = movement.pastBlockPlacement > 9 || !movement.onGround() || motionY >= 0.2;
-      if (valid && (lessThanExpected || distanceMoved < baseMoveSpeed * baseSpeedMultiplier)) {
+      if (valid && !movement.inWeb && (lessThanExpected || distanceMoved < baseMoveSpeed * baseSpeedMultiplier)) {
         horizontalLegitimateDeviation = Math.max(horizontalLegitimateDeviation, baseMoveSpeed * baseSpeedMultiplier);
         tags.add(EvaluationTag.FLYING);
       }
@@ -438,7 +437,7 @@ public final class SimulationEvaluator {
       double limit = 0;
       if ((abs(movement.motionX()) < 0.08 || abs(movement.motionZ()) < 0.08) || (movement.sprinting && protocol.cavesAndCliffsUpdate())) {
         boolean smallMovement = abs(movement.motionX()) < 0.08 && abs(movement.motionZ()) < 0.08 && movement.onGround();
-        limit = movement.pastEdgeSneak <= 1 ? 0.12 : (smallMovement ? 0.099 : (movement.pastEdgeSneak < 10 ? 0.05 : 0.035));
+        limit = movement.pastEdgeSneak <= 1 ? 0.12 : (smallMovement ? 0.099 : (movement.pastEdgeSneak < 10 ? flyingLimit : 0.035));
         if (movement.motionY() >= 0.1 && protocol.cavesAndCliffsUpdate() && movement.pastEdgeSneak <= 1 && movement.sprinting && distanceMoved <= 0.5) {
           limit = 0.4;
         }
@@ -501,7 +500,7 @@ public final class SimulationEvaluator {
     double stackMultiplier = Math.exp(-Math.min(violationLevelData.physicsInvalidMovementsInRow, 4) / 2);
 
     boolean movedTooQuicklyCheckable = (distanceMoved > 0.125 * stackMultiplier || violationLevelData.physicsInvalidMovementsInRow >= 8)
-        && !flewWithElytra;
+      && !flewWithElytra;
 
     if (movedTooQuickly && movedTooQuicklyCheckable && !movement.physicsUnpredictableVelocityExpected) {
 //      player.sendMessage("moved too quickly: " + distanceMoved + " " + predictedDistanceMoved + " " + abuseHorizontally + " " + stackMultiplier);
@@ -516,7 +515,7 @@ public final class SimulationEvaluator {
     boolean noCollisions = Collision.nonePresent(player, BoundingBox.fromPosition(user, movement, movement.positionX, movement.positionY, movement.positionZ).grow(0.1));
     double multiplier = (abuseHorizontally > 0.1 ? 20.0 : 10.0) *
       (noCollisions ? 3 : 2) *
-      (1/stackMultiplier);
+      (1 / stackMultiplier);
 //    player.sendMessage("abuseHorizontally: " + abuseHorizontally + " multiplier: " + multiplier);
     if (abuseHorizontally < 0.1 && Math.abs(motionX) + Math.abs(motionZ) < 0.1 && !inLiquid && !movement.inWeb) {
       multiplier *= 0.1;

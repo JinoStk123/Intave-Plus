@@ -32,7 +32,7 @@ public final class TrustFactorService implements BukkitEventSubscriber {
     /*Python.available() ?*/ new EmptyTrustFactorResolver()/* : new StorageTrustfactorResolver()*/
   );
   private final IntavePlugin plugin;
-  private TrustFactorResolver trustFactorResolver;
+  private TrustFactorResolver trustFactorResolver, customTrustFactorResolver;
   private TrustFactorConfiguration trustFactorConfiguration;
   private TrustFactor defaultTrustFactor = TrustFactor.ORANGE;
 
@@ -142,8 +142,17 @@ public final class TrustFactorService implements BukkitEventSubscriber {
     return trustFactorResolver;
   }
 
-  public void setTrustFactorResolver(TrustFactorResolver trustFactorResolver) {
+  public void setDirectTrustFactorResolver(TrustFactorResolver trustFactorResolver) {
     this.trustFactorResolver = trustFactorResolver;
+  }
+
+  public void setCustomTrustFactorResolver(TrustFactorResolver trustFactorResolver) {
+    this.trustFactorResolver = trustFactorResolver;
+    this.customTrustFactorResolver = trustFactorResolver;
+  }
+
+  public TrustFactorResolver customTrustFactorResolver() {
+    return customTrustFactorResolver;
   }
 
   public TrustFactorConfiguration trustFactorConfiguration() {

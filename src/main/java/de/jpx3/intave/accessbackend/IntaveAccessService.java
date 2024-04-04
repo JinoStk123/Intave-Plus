@@ -67,7 +67,7 @@ public final class IntaveAccessService {
           return;
         }
         IntaveLogger.logger().info("Set trust factor resolver to " + resolver);
-        plugin.trustFactorService().setTrustFactorResolver(resolver);
+        plugin.trustFactorService().setCustomTrustFactorResolver(resolver);
       }
 
       @Override

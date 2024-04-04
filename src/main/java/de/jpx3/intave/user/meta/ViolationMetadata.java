@@ -21,6 +21,8 @@ public final class ViolationMetadata {
   public long lastBacktrackVLChange;
   public long lastBacktrackHitCancelRequest;
 
+  public double wrappedNoSlowdownVL;
+
   public int detectionCounter;
   public long detectionCounterReset;
 

@@ -75,7 +75,7 @@ public final class CombatMitigator extends Module {
   public void storageSave(User user) {
     NerferStorage nerferStorage = user.storageOf(NerferStorage.class);
     for (AttackNerfer activeNerfer : user.meta().punishment().activeNerfers()) {
-      nerferStorage.addNerfer(activeNerfer.strategy().name(), activeNerfer.expiry());
+      nerferStorage.addNerfer(activeNerfer.strategy().typeName(), activeNerfer.expiry());
     }
   }
 
@@ -218,8 +218,8 @@ public final class CombatMitigator extends Module {
     }
 
     if (IntaveControl.DEBUG_CMS) {
+      user.player().sendMessage(ChatColor.RED + "[Intave] " + ChatColor.GRAY + "Applied " + attackNerfer.name() + " combat nerfer " + durationText);
     }
-    user.player().sendMessage(ChatColor.RED + "[Intave] " + ChatColor.GRAY + "Applied " + attackNerfer.name() + " combat nerfer " + durationText);
 
     String message = ChatColor.RED + "[CM] Applied " + attackNerfer.name() + " combat nerfer on " + player.getName() + " (dmc" + checkId + ") " + durationText;
 
