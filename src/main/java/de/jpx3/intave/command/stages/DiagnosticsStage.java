@@ -40,6 +40,7 @@ import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserRepository;
 import de.jpx3.intave.user.meta.ConnectionMetadata;
 import de.jpx3.intave.user.meta.ProtocolMetadata;
+import de.jpx3.intave.user.meta.PunishmentMetadata;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
@@ -276,6 +277,25 @@ public final class DiagnosticsStage extends CommandStage {
     if (player != null) {
       // Send the message to the player
       player.spigot().sendMessage(message);
+    }
+  }
+
+  @SubCommand(
+    selectors = "nerfers",
+    usage = "",
+    description = "Output active nerfers",
+    permission = "intave.command.diagnostics.performance"
+  )
+  public void nerfers(User user) {
+    if (IntaveControl.DISABLE_LICENSE_CHECK || IntaveControl.AUTHENTICATION_DEBUG_MODE) {
+      List<PunishmentMetadata.AttackNerfer> attackNerfers = user.meta().punishment().activeNerfers();
+      if (attackNerfers.isEmpty()) {
+        user.player().sendMessage(IntavePlugin.prefix() + ChatColor.RED + "No active nerfers");
+      } else {
+        user.player().sendMessage(IntavePlugin.prefix() + "Active nerfers: " + attackNerfers.stream().map(nerfer -> nerfer.strategy().typeName()).collect(Collectors.joining(", ")));
+      }
+    } else {
+      user.player().sendMessage(IntavePlugin.prefix() + ChatColor.RED + "Currently unavailable");
     }
   }
 

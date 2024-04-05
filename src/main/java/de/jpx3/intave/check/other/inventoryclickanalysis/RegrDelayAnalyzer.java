@@ -8,7 +8,9 @@ import de.jpx3.intave.module.Modules;
 import de.jpx3.intave.module.linker.packet.ListenerPriority;
 import de.jpx3.intave.module.linker.packet.PacketId;
 import de.jpx3.intave.module.linker.packet.PacketSubscription;
+import de.jpx3.intave.module.mitigate.AttackNerfStrategy;
 import de.jpx3.intave.module.violation.Violation;
+import de.jpx3.intave.module.violation.ViolationContext;
 import de.jpx3.intave.module.violation.ViolationProcessor;
 import de.jpx3.intave.packet.reader.WindowClickReader;
 import de.jpx3.intave.packet.reader.WindowCloseReader;
@@ -116,8 +118,12 @@ public class RegrDelayAnalyzer extends MetaCheckPart<InventoryClickAnalysis, Reg
           .withDetails(formatDouble(slope[0], 2) + " d/t, " + formatDouble(pearson, 2) + " pear")
           .build();
         ViolationProcessor violationProcessor = Modules.violationProcessor();
-        violationProcessor.processViolation(violation);
+        ViolationContext context = violationProcessor.processViolation(violation);
 //        System.out.println("seems indifferent to distance taking items" + formatDouble(slope[0], 2) + " d/t, " + formatDouble(pearson, 2) + " pear");
+
+        if (context.violationLevelAfter() > 100) {
+          user.nerf(AttackNerfStrategy.DMG_MEDIUM, "item speed");
+        }
       }
 
       if (slope[1] < 0.05) {
@@ -131,7 +137,12 @@ public class RegrDelayAnalyzer extends MetaCheckPart<InventoryClickAnalysis, Reg
           .withDetails("linear d/t baseline at " + formatDouble(slope[1], 2) + " slots/sec")
           .build();
         ViolationProcessor violationProcessor = Modules.violationProcessor();
-        violationProcessor.processViolation(violation);
+        ViolationContext context = violationProcessor.processViolation(violation);
+
+        if (context.violationLevelAfter() > 100) {
+          user.nerf(AttackNerfStrategy.DMG_MEDIUM, "item speed");
+        }
+
 //        System.out.println("is taking items too quickly" + "linear d/t baseline at " + formatDouble(slope[1], 2) + " slots/sec");
       }
 
@@ -159,8 +170,12 @@ public class RegrDelayAnalyzer extends MetaCheckPart<InventoryClickAnalysis, Reg
           .withDetails("at " +formatDouble(averageSpeed, 2) + " slots/sec")
           .build();
         ViolationProcessor violationProcessor = Modules.violationProcessor();
-        violationProcessor.processViolation(violation);
+        ViolationContext context = violationProcessor.processViolation(violation);
 //        System.out.println("is taking items too quickly" + "at " +formatDouble(averageSpeed, 2) + " slots/sec");
+
+        if (context.violationLevelAfter() > 100) {
+          user.nerf(AttackNerfStrategy.DMG_MEDIUM, "item speed");
+        }
       }
 
 //      try (CSVExport csvExport = new CSVExport("click_history", "Distance", "Time")) {

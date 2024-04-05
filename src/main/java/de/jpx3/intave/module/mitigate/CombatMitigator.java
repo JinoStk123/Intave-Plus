@@ -75,7 +75,7 @@ public final class CombatMitigator extends Module {
   public void storageSave(User user) {
     NerferStorage nerferStorage = user.storageOf(NerferStorage.class);
     for (AttackNerfer activeNerfer : user.meta().punishment().activeNerfers()) {
-      nerferStorage.addNerfer(activeNerfer.strategy().name(), activeNerfer.expiry());
+      nerferStorage.addNerfer(activeNerfer.strategy().typeName(), activeNerfer.expiry());
     }
   }
 
@@ -129,7 +129,7 @@ public final class CombatMitigator extends Module {
       Player player = chat.getPlayer();
       User user = UserRepository.userOf(player);
       String message = chat.getMessage();
-      List<String> badWords = Arrays.asList("augustus", "ryu", "haze yt", "icarus", "eject");
+      List<String> badWords = Arrays.asList("augustus", "augus", "gustus", "ryu", "haze yt", "icarus", "eject");
       for (String badWord : badWords) {
         if (message.toLowerCase().contains(badWord) && user.trustFactor().atOrBelow(ORANGE)) {
           mitigatePermanently(user, AttackNerfStrategy.CRITICALS, "64");

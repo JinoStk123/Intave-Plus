@@ -6,7 +6,9 @@ import de.jpx3.intave.IntaveLogger;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.access.IntaveAccess;
 import de.jpx3.intave.access.player.trust.DefaultForwardingPermissionTrustFactorResolver;
+import de.jpx3.intave.access.player.trust.SelectiveTrustfactorResolver;
 import de.jpx3.intave.access.player.trust.TrustFactor;
+import de.jpx3.intave.access.player.trust.TrustFactorResolver;
 import de.jpx3.intave.annotate.HighOrderService;
 import de.jpx3.intave.cleanup.ShutdownTasks;
 import de.jpx3.intave.connect.cloud.protocol.Identity;
@@ -26,6 +28,7 @@ import de.jpx3.intave.module.nayoro.Classifier;
 import de.jpx3.intave.module.nayoro.Nayoro;
 import de.jpx3.intave.resource.Resource;
 import de.jpx3.intave.resource.Resources;
+import de.jpx3.intave.trustfactor.TrustFactorService;
 import de.jpx3.intave.user.UserRepository;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
@@ -148,13 +151,17 @@ public final class Cloud {
   private void setTrustAndStorage() {
     IntaveAccess access = IntaveAccessor.unsafeAccess();
     CloudConfig.CloudFeatures features = cloudConfig.features();
-    if (!IntaveControl.GOMME_MODE) {
-      if (features.cloudTrustfactorEnabled()) {
-        access.setTrustFactorResolver(new DefaultForwardingPermissionTrustFactorResolver(new CloudTrustfactorResolver(this)));
+    if (features.cloudTrustfactorEnabled()) {
+      TrustFactorService trustFactorService = IntavePlugin.singletonInstance().trustFactorService();
+      TrustFactorResolver custom = trustFactorService.customTrustFactorResolver();
+      TrustFactorResolver newResolver = new DefaultForwardingPermissionTrustFactorResolver(new CloudTrustfactorResolver(this));
+      if (custom != null) {
+        newResolver = new SelectiveTrustfactorResolver(custom, newResolver);
       }
-      if (features.cloudStorageEnabled()) {
-        access.setStorageGateway(new CloudStorageGateaway(this));
-      }
+      trustFactorService.setDirectTrustFactorResolver(newResolver);
+    }
+    if (features.cloudStorageEnabled()) {
+      access.setStorageGateway(new CloudStorageGateaway(this));
     }
   }
 
