@@ -50,19 +50,16 @@ public class PlayerTime extends MetaCheckPart<Timer, PlayerTime.PlayerTimeMeta> 
   private static final long DEFAULT_THRESHOLD = 10;
   private final Map<UUID, Long> playerJoinTimeCache = GarbageCollector.watch(new HashMap<>());
   private final CheckViolationLevelDecrementer decrementer;
-  private final int blinkLimitTicks;
-  private final int toleranceTicks;
 
   public PlayerTime(Timer parentCheck) {
     super(parentCheck, PlayerTimeMeta.class);
     decrementer = parentCheck.decrementer();
-    blinkLimitTicks = parentCheck.blinkLimit();
-    toleranceTicks = parentCheck.timerTolerance();
 
     Bukkit.getScheduler().runTaskTimer(IntavePlugin.singletonInstance(), () -> {
       UserRepository.applyOnAll(user -> {
         ConnectionMetadata connectionData = user.meta().connection();
         PlayerTimeMeta checkMeta = metaOf(user);
+        //noinspection deprecation
         Modules.feedback().synchronize(user.player(), System.nanoTime(), (unused, time) -> {
           connectionData.queueToNextTransaction(() -> {
             checkMeta.time = Math.max(checkMeta.time, checkMeta.limitToBeApplied);
@@ -90,15 +87,12 @@ public class PlayerTime extends MetaCheckPart<Timer, PlayerTime.PlayerTimeMeta> 
     PacketSender.sendServerPacketWithoutEvent(player, event.getPacket());
     user.tickFeedback(() -> checkMeta.gameJoinReceived = true);
     event.setCancelled(true);
-//    Thread.dumpStack();
-//    System.out.println("Login packet");
   }
 
   @BukkitEventSubscription
   public void on(PlayerJoinEvent join) {
     Player player = join.getPlayer();
     if (!playerJoinTimeCache.containsKey(player.getUniqueId())) {
-//      System.out.println("rescue");
       User user = userOf(player);
       PlayerTimeMeta checkMeta = metaOf(user);
       playerJoinTimeCache.put(player.getUniqueId(), System.nanoTime());
@@ -119,32 +113,26 @@ public class PlayerTime extends MetaCheckPart<Timer, PlayerTime.PlayerTimeMeta> 
     }
     User user = userOf(player);
     PlayerTimeMeta checkMeta = metaOf(user);
+    MetadataBundle bundle = user.meta();
+    MovementMetadata movementData = bundle.movement();
+    AbilityMetadata abilityData = user.meta().abilities();
+
     // Time was not loaded yet
     if (checkMeta.time == -1) {
       // The default fallback time should never be used but let's provide it if something goes horribly wrong
       checkMeta.time = playerJoinTimeCache.getOrDefault(player.getUniqueId(), System.nanoTime());
     }
-    MetadataBundle bundle = user.meta();
-    ConnectionMetadata connectionData = bundle.connection();
-    MovementMetadata movementData = bundle.movement();
-    AbilityMetadata abilityData = user.meta().abilities();
     // Exclude players in certain states such as creative, spectator or teleport
     // We also have to check if the player received the initial join packet due to proxies doing weird things
     if (!checkMeta.gameJoinReceived || movementData.lastTeleport == 0
       || abilityData.inGameModeIncludePending(AbilityTracker.GameMode.CREATIVE) || abilityData.ignoringMovementPackets() || user.meta().movement().isInVehicle()) {
       return;
     }
+
     checkMeta.time += 50_000_000; // allow constant 0.05ms clock error = give 1s every 2000s (33min)
     checkMeta.limitToBeApplied = checkMeta.queuedLimit;
     long diff = checkMeta.time - System.nanoTime();
-//    ChatColor color = diff > 10_000_000 ? ChatColor.RED : ChatColor.GRAY;
-//    player.sendMessage(color + "" + diff  + "ms ");
-//    player.setLevel(Math.max(0, (int) (diff / 1_000_000L) + 100000));
     statisticApply(user, CheckStatistics::increaseTotal);
-
-//    if (diff < -blinkLimitTicks * 50_000_000L) {
-//      player.sendMessage("diff: " + diff);
-//    }
 
     int limit = 20_000_000;
     if ((diff > limit) && !user.meta().movement().isInVehicle()) {
@@ -243,7 +231,6 @@ public class PlayerTime extends MetaCheckPart<Timer, PlayerTime.PlayerTimeMeta> 
     public long queuedLimit = System.nanoTime();
     public long limitToBeApplied = System.nanoTime();
     public boolean gameJoinReceived;
-    public long lastSentTransaction = System.nanoTime();
     public long lastTimerFlag;
   }
 }
