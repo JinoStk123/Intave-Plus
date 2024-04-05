@@ -8,6 +8,7 @@ import de.jpx3.intave.check.CheckViolationLevelDecrementer;
 import de.jpx3.intave.check.MetaCheckPart;
 import de.jpx3.intave.check.movement.Timer;
 import de.jpx3.intave.cleanup.GarbageCollector;
+import de.jpx3.intave.library.pledge.TickEnd;
 import de.jpx3.intave.module.Modules;
 import de.jpx3.intave.module.feedback.FeedbackObserver;
 import de.jpx3.intave.module.feedback.FeedbackOptions;
@@ -15,6 +16,7 @@ import de.jpx3.intave.module.feedback.FeedbackRequest;
 import de.jpx3.intave.module.linker.bukkit.BukkitEventSubscription;
 import de.jpx3.intave.module.linker.packet.ListenerPriority;
 import de.jpx3.intave.module.linker.packet.PacketSubscription;
+import de.jpx3.intave.module.mitigate.AttackNerfStrategy;
 import de.jpx3.intave.module.tracker.player.AbilityTracker;
 import de.jpx3.intave.module.violation.Violation;
 import de.jpx3.intave.module.violation.ViolationContext;
@@ -66,7 +68,7 @@ public class PlayerTime extends MetaCheckPart<Timer, PlayerTime.PlayerTimeMeta> 
             checkMeta.time = Math.max(checkMeta.time, checkMeta.limitToBeApplied);
             checkMeta.queuedLimit = time;
           });
-        }, FeedbackOptions.SELF_SYNCHRONIZATION);
+        });
       });
     }, 0, 1);
   }
@@ -144,9 +146,8 @@ public class PlayerTime extends MetaCheckPart<Timer, PlayerTime.PlayerTimeMeta> 
 //      player.sendMessage("diff: " + diff);
 //    }
 
-    int limit = 15_000_000;
+    int limit = 20_000_000;
     if ((diff > limit) && !user.meta().movement().isInVehicle()) {
-      player.sendMessage("diff: " + diff);
       double displayValue = diff / (50 * 1_000_000f);
       if (displayValue < 0.01) {
         displayValue = 0.01;
@@ -155,7 +156,7 @@ public class PlayerTime extends MetaCheckPart<Timer, PlayerTime.PlayerTimeMeta> 
       Violation violation = Violation.builderFor(Timer.class).forPlayer(player)
         .withMessage("moved too frequently")
         .withDetails(balanceAsString + " ticks ahead")
-        .withVL(10)
+        .withVL(Math.min(Math.max(displayValue * 3f, 1), 5))
         .build();
       ViolationContext violationContext = Modules.violationProcessor().processViolation(violation);
       if (violationContext.shouldCounterThreat()) {
@@ -164,8 +165,9 @@ public class PlayerTime extends MetaCheckPart<Timer, PlayerTime.PlayerTimeMeta> 
         Vector setback = new Vector(0, 0, 0);
         statisticApply(user, CheckStatistics::increaseFails);
         Modules.mitigate().movement().emulationSetBack(player, setback, 3, 2, false);
+        user.nerf(AttackNerfStrategy.DMG_HIGH, "timer");
       }
-      checkMeta.time -= 5_000_000;
+      checkMeta.time -= 10_000_000;
       return;
     } else if (System.currentTimeMillis() - checkMeta.lastTimerFlag > 10000) {
       decrementer.decrement(user, 0.005);

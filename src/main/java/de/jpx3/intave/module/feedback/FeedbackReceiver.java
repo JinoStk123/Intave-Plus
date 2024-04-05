@@ -139,7 +139,7 @@ public final class FeedbackReceiver extends Module {
     if (received != expected) {
       for (FeedbackRequest<?> missedRequest : feedbackQueue.pollUpTo(Math.max(expected, received))) {
         if (IntaveControl.DEBUG_FEEDBACK_PACKETS) {
-          System.out.println("Emulating " + missedRequest.userKey() + "/" +missedRequest.num() + " for " + player.getName());
+          System.out.println("Emulating " + missedRequest.userKey() + "/" + missedRequest.num() + " for " + player.getName());
         }
         receiveRequest(user, missedRequest);
       }
@@ -150,7 +150,7 @@ public final class FeedbackReceiver extends Module {
     ViaVersionAdapter.decrementReceivedPackets(player, 1);
 
     if (IntaveControl.DEBUG_FEEDBACK_PACKETS) {
-      System.out.println("Received " + userKey + "/" +response.num() + " from " + player.getName());
+      System.out.println("Received " + userKey + "/" + response.num() + " from " + player.getName());
 //      Synchronizer.synchronize(() -> {
 //        player.sendMessage("Received " + userKey + "/" +response.num());
 //      });
@@ -209,13 +209,10 @@ public final class FeedbackReceiver extends Module {
   private void receiveRequest(User user, FeedbackRequest<?> feedbackRequest) {
     Player player = user.player();
     ConnectionMetadata connection = user.meta().connection();
-    if (connection.movementPassedForNFS) {
-      for (Runnable nextFeedbackSubscriber : connection.nextFeedbackSubscribers) {
-        nextFeedbackSubscriber.run();
-      }
-      connection.nextFeedbackSubscribers.clear();
-      connection.movementPassedForNFS = false;
+    for (Runnable nextFeedbackSubscriber : connection.nextFeedbackSubscribers) {
+      nextFeedbackSubscriber.run();
     }
+    connection.nextFeedbackSubscribers.clear();
 
     connection.lastSynchronization = feedbackRequest.requestedAsNanos();
     connection.lastReceivedTransactionNum = feedbackRequest.num();
