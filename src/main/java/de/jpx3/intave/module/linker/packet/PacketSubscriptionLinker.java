@@ -75,8 +75,8 @@ public final class PacketSubscriptionLinker extends Module {
   }
 
   public void linkSubscriptionsIn(PacketEventSubscriber subscriber) {
-    SubscriptionInstanceProvider<User, ?, PacketEventSubscriber> instanceProvider = resolveFrom(subscriber);
-    for (Method method : instanceProvider.subscriberClass().getMethods()) {
+    SubscriptionInstanceProvider<User, ?, PacketEventSubscriber> instanceProvider = instanceProviderFor(subscriber);
+    for (Method method : instanceProvider.type().getMethods()) {
       if (methodRequestsSubscription(method)) {
         linkSubscription(instanceProvider, method);
       }
@@ -149,7 +149,7 @@ public final class PacketSubscriptionLinker extends Module {
 
   private void linkSubscription(SubscriptionInstanceProvider<User, ?, PacketEventSubscriber> instanceProvider, Method method) {
     PacketSubscription metadata = method.getAnnotation(PacketSubscription.class);
-    PacketSubscriptionMethodExecutor executor = assembleSubscriptionMethodCaller(instanceProvider.subscriberClass(), method, metadata.identifier());
+    PacketSubscriptionMethodExecutor executor = assembleSubscriptionMethodCaller(instanceProvider.type(), method, metadata.identifier());
     String methodName = method.getName();
     ListenerPriority priority = metadata.priority();
     PacketType[] packetTypes = translatePacketTypes(metadata.packetsIn(), metadata.packetsOut());
@@ -165,7 +165,7 @@ public final class PacketSubscriptionLinker extends Module {
     }
   }
 
-  private SubscriptionInstanceProvider<User, ?, PacketEventSubscriber> resolveFrom(PacketEventSubscriber subscriber) {
+  private SubscriptionInstanceProvider<User, ?, PacketEventSubscriber> instanceProviderFor(PacketEventSubscriber subscriber) {
     if (subscriber instanceof PlayerPacketEventSubscriber) {
       PlayerPacketEventSubscriber playerListener = (PlayerPacketEventSubscriber) subscriber;
       return new OneForOne<>(playerListener::packetSubscriberFor);

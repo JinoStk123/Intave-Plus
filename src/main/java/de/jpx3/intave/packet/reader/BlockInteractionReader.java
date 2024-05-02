@@ -10,6 +10,7 @@ import org.bukkit.util.Vector;
 
 public final class BlockInteractionReader extends BlockPositionReader {
   private final boolean MODERN_RESOLVE = MinecraftVersions.VER1_14_0.atOrAbove();
+  private final boolean HAS_SEQUENCE_NUMBER = MinecraftVersions.VER1_19_2.atOrAbove();
 
   @Nullable
   public Direction direction() {
@@ -47,6 +48,14 @@ public final class BlockInteractionReader extends BlockPositionReader {
         return direction == null ? 255 : direction.ordinal();
       }
       return enumDirection;
+    }
+  }
+
+  public int sequenceNumber() {
+    if (HAS_SEQUENCE_NUMBER) {
+      return packet().getIntegers().readSafely(0);
+    } else {
+      return -1;
     }
   }
 }

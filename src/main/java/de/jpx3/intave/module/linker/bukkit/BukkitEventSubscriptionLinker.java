@@ -81,7 +81,7 @@ public final class BukkitEventSubscriptionLinker extends Module {
   private Map<Class<? extends Event>, Set<RegisteredListener>> processLinking(
     SubscriptionInstanceProvider<? super Event, ?, ? extends BukkitEventSubscriber> listener
   ) {
-    Class<? extends BukkitEventSubscriber> listenerClass = listener.subscriberClass();
+    Class<? extends BukkitEventSubscriber> listenerClass = listener.type();
     List<Method> methods = ImmutableList.copyOf(listenerClass.getDeclaredMethods());
     Map<Class<? extends Event>, Set<RegisteredListener>> ret = Maps.newConcurrentMap();
 

@@ -4,9 +4,11 @@ import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
+import com.comphenix.protocol.reflect.StructureModifier;
 import de.jpx3.intave.IntaveControl;
 import de.jpx3.intave.IntaveLogger;
 import de.jpx3.intave.adapter.MinecraftVersions;
+import de.jpx3.intave.annotate.Nullable;
 import de.jpx3.intave.executor.Synchronizer;
 import de.jpx3.intave.module.Module;
 import de.jpx3.intave.module.Modules;
@@ -17,13 +19,13 @@ import de.jpx3.intave.user.meta.ConnectionMetadata;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import java.util.Arrays;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
 
-import static com.comphenix.protocol.PacketType.Play.Server.PING;
-import static com.comphenix.protocol.PacketType.Play.Server.TRANSACTION;
+import static com.comphenix.protocol.PacketType.Play.Server.*;
 import static de.jpx3.intave.module.feedback.FeedbackOptions.*;
 
 public final class FeedbackSender extends Module {
@@ -93,7 +95,7 @@ public final class FeedbackSender extends Module {
     int options
   ) {
     if (!Bukkit.isPrimaryThread()) {
-      if (FeedbackOptions.matches(SELF_SYNCHRONIZATION, options)) {
+      if (matches(SELF_SYNCHRONIZATION, options)) {
         Synchronizer.synchronize(() -> tracedDoubleSynchronize(player, encapsulate, target, firstCallback, secondCallback, firstTracker, secondTracker, options));
       } else {
         IntaveLogger.logger().error("Can't perform tick-validation off main thread");
@@ -119,20 +121,40 @@ public final class FeedbackSender extends Module {
     synchronize(player, callback, (player1, target) -> target.accept(null));
   }
 
+  public void synchronize(Player player, Consumer<Void> callback, PacketEvent toBundle) {
+    synchronize(player, callback, (player1, target) -> target.accept(null), toBundle);
+  }
+
   public void synchronize(Player player, FeedbackCallback<Object> callback) {
     tracedSingleSynchronize(player, null, callback, null, 0);
+  }
+
+  public void synchronize(Player player, FeedbackCallback<Object> callback, PacketEvent toBundle) {
+    tracedSingleSynchronize(player, null, callback, null, 0, toBundle);
   }
 
   public <T> void synchronize(Player player, T target, FeedbackCallback<T> callback) {
     synchronize(player, target, callback, 0);
   }
 
+  public <T> void synchronize(Player player, T target, FeedbackCallback<T> callback, PacketEvent toBundle) {
+    synchronize(player, target, callback, 0, toBundle);
+  }
+
   public void synchronize(Player player, FeedbackCallback<Object> callback, int options) {
     tracedSingleSynchronize(player, null, callback, null, options);
   }
 
+  public void synchronize(Player player, FeedbackCallback<Object> callback, int options, PacketEvent toBundle) {
+    tracedSingleSynchronize(player, null, callback, null, options, toBundle);
+  }
+
   public <T> void synchronize(Player player, T target, FeedbackCallback<T> callback, int options) {
     tracedSingleSynchronize(player, target, callback, null, options);
+  }
+
+  public <T> void synchronize(Player player, T target, FeedbackCallback<T> callback, int options, PacketEvent toBundle) {
+    tracedSingleSynchronize(player, target, callback, null, options, toBundle);
   }
 
   public <T> void tracedSingleSynchronize(Player player, T target, FeedbackCallback<T> callback, FeedbackObserver tracker) {
@@ -142,8 +164,15 @@ public final class FeedbackSender extends Module {
   public <T> void tracedSingleSynchronize(
     Player player, T target, FeedbackCallback<T> callback, FeedbackObserver tracker, int options
   ) {
+    tracedSingleSynchronize(player, target, callback, tracker, options, null);
+  }
+
+  public <T> void tracedSingleSynchronize(
+    Player player, T target, FeedbackCallback<T> callback, FeedbackObserver tracker, int options,
+    @Nullable PacketEvent toBundle
+  ) {
     if (!Bukkit.isPrimaryThread()) {
-      if (FeedbackOptions.matches(SELF_SYNCHRONIZATION, options)) {
+      if (matches(SELF_SYNCHRONIZATION, options)) {
         Synchronizer.synchronize(() -> tracedSingleSynchronize(player, target, callback, tracker, options));
       } else {
         IntaveLogger.logger().error("Can't perform tick-validation off main thread");
@@ -158,12 +187,12 @@ public final class FeedbackSender extends Module {
       return;
     }
     boolean append = false;
-    if (FeedbackOptions.matches(APPEND_ON_OVERFLOW, options)) {
+    if (matches(APPEND_ON_OVERFLOW, options)) {
       boolean tooManyPending = pendingTransactions(userOf(player)) > OPTIONAL_PENDING_LIMIT;
       boolean sentTooManyRecently = user.meta().connection().transactionPacketCounter > OPTIONAL_SENT_LIMIT;
       append = tooManyPending || sentTooManyRecently;
     }
-    if (FeedbackOptions.matches(APPEND, options)) {
+    if (matches(APPEND, options)) {
       append = true;//pendingTransactions(userOf(player)) > 0;
     }
     if (append) {
@@ -172,7 +201,7 @@ public final class FeedbackSender extends Module {
     }
     countTransactionPacket(player);
     FeedbackRequest<T> request = createRequest(player, target, callback, tracker, options);
-    performRequest(player, request);
+    performRequest(player, request, toBundle);
   }
 
   private static final Object FALLBACK_OBJECT = new Object();
@@ -261,7 +290,9 @@ public final class FeedbackSender extends Module {
   private final PacketContainer[] PACKET_CACHE = new PacketContainer[256];
   private final PacketContainer[] PACKET_CACHE_NO_PING_MASK = new PacketContainer[256];
 
-  private void performRequest(Player receiver, FeedbackRequest<?> request) {
+  private void performRequest(
+    Player receiver, FeedbackRequest<?> request, @Nullable PacketEvent toBundle
+  ) {
     if (request == null) {
       return;
     }
@@ -302,7 +333,20 @@ public final class FeedbackSender extends Module {
 //      System.out.println("Received " + transactionIdentifier + "/" +transactionResponse.num() + " from " + player.getName());
       System.out.println("Sent " + id + "/"+request.num() + " to " + receiver.getName());
     }
-    sendPacket(receiver, packet);
+    if (MinecraftVersions.VER1_19_4.atOrAbove() && toBundle != null) {
+      PacketContainer bundle = new PacketContainer(BUNDLE);
+      StructureModifier<Iterable<PacketContainer>> containingPackets = bundle.getPacketBundles();
+      containingPackets.write(0, Arrays.asList(packet, toBundle.getPacket().shallowClone()));
+      if (toBundle.isReadOnly()) {
+        toBundle.setReadOnly(false);
+      }
+      toBundle.setCancelled(true);
+      user.ignoreNextOutboundPacket();
+      PacketSender.sendServerPacket(receiver, bundle);
+      user.receiveNextOutboundPacketAgain();
+    } else {
+      sendPacket(receiver, packet);
+    }
     request.sent();
   }
 

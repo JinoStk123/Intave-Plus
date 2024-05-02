@@ -19,7 +19,7 @@ public class OneForOne<T extends LISTENER, LISTENER> implements SubscriptionInst
   }
 
   @Override
-  public Class<T> subscriberClass() {
+  public Class<T> type() {
     return subscriberClass;
   }
 

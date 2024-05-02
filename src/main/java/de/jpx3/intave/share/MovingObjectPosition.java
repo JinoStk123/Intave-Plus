@@ -191,6 +191,17 @@ public class MovingObjectPosition {
     return null;
   }
 
+  @Override
+  public String toString() {
+    return "MovingObjectPosition{"
+      + "blockPos=" + this.blockPos
+      + ", typeOfHit=" + this.typeOfHit
+      + ", sideHit=" + this.sideHit
+      + ", hitVec=" + this.hitVec
+      + ", entityHit=" + this.entityHit
+      + '}';
+  }
+
   @KeepEnumInternalNames
   public enum MovingObjectType {
     MISS,

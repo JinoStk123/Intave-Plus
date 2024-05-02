@@ -17,7 +17,7 @@ public final class Interaction {
   private final Player player;
   private final BlockPosition targetBlock;
   private final int targetDirection;
-  private final InteractionType type;
+  private InteractionType type;
   private final Material itemTypeInHand;
   private final ItemStack itemInHand;
   private final EnumWrappers.Hand hand;
@@ -28,6 +28,9 @@ public final class Interaction {
   private boolean sendPacket = true;
   private boolean hasBeenEmulated = false;
 
+  private final int sequenceNumber;
+  private boolean blockPlacementEmulation = false;
+
   private MovingObjectPosition raytraceResult;
 
   public Interaction(
@@ -37,7 +40,8 @@ public final class Interaction {
     InteractionType type,
     Material itemTypeInHand, ItemStack itemInHand,
     EnumWrappers.Hand hand, EnumWrappers.PlayerDigType digType,
-    float facingX, float facingY, float facingZ
+    float facingX, float facingY, float facingZ,
+    int sequenceNumber
   ) {
     this.interactionId = interactionId;
     this.thePacket = thePacket;
@@ -53,6 +57,7 @@ public final class Interaction {
     this.facingX = facingX;
     this.facingY = facingY;
     this.facingZ = facingZ;
+    this.sequenceNumber = sequenceNumber;
   }
 
   public long interactionId() {
@@ -65,6 +70,10 @@ public final class Interaction {
 
   public InteractionType type() {
     return type;
+  }
+
+  public void overrideType(InteractionType interactionType) {
+    type = interactionType;
   }
 
   public World world() {
@@ -156,11 +165,23 @@ public final class Interaction {
     return raytraceResult != null;
   }
 
+  public int sequenceNumber() {
+    return sequenceNumber;
+  }
+
   public void enter() {
     entered = true;
   }
 
   public boolean entered() {
     return entered;
+  }
+
+  public boolean wasPlacementEmulated() {
+    return blockPlacementEmulation;
+  }
+
+  public void markPlacementEmulated() {
+    blockPlacementEmulation = true;
   }
 }

@@ -1061,14 +1061,17 @@ public final class MovementDispatcher extends Module {
         movementData.sneakPatchVelocity = velocity.clone();
       }
       Motion motion = Motion.fromVector(velocity);
-      if (Physics.USE_SUPERPOSITIONS && violationMetadata.physicsOffset < 0.5) {
+      if (
+        Physics.USE_SUPERPOSITIONS && violationMetadata.physicsOffset < 0.5 &&
+        /* on 1.19.4 we use bundles */ !MinecraftVersions.VER1_19_4.atOrAbove()
+      ) {
         movementData.velocitySuperposition().stateSynchronize(
           event, motion, begin -> {},
           end -> movementData.pendingVelocityPackets.decrementAndGet()
         );
       } else {
         Vector finalVelocity = velocity;
-        user.tickFeedback(() -> {
+        user.packetTickFeedback(event, () -> {
           receiveVelocity(player, finalVelocity);
           movementData.pendingVelocityPackets.decrementAndGet();
         });

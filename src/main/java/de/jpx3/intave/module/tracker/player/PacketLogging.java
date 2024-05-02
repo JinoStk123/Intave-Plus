@@ -8,6 +8,7 @@ import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.cleanup.GarbageCollector;
 import de.jpx3.intave.cleanup.ShutdownTasks;
 import de.jpx3.intave.module.Module;
+import de.jpx3.intave.share.MovingObjectPosition;
 import de.jpx3.intave.user.User;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -254,6 +255,11 @@ public class PacketLogging extends Module {
       //      WrappedDataWatcher.WrappedDataWatcherObject watcherObject = new WrappedDataWatcher.WrappedDataWatcherObject(object);
       //      return "WatchableObject{" + watcherObject.getIndex() + "=" + stringFromType(watcherObject.getHandle()) + "}";
       return "WatchableObject{...}";
+    } else if (object.toString().contains("MovingObjectPositionBlock@")) {
+      MovingObjectPosition position = MovingObjectPosition.fromNativeMovingObjectPosition(
+        object
+      );
+      return position.toString();
     } else {
       return object.toString();
     }

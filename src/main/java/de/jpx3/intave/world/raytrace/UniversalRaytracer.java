@@ -23,7 +23,6 @@ public class UniversalRaytracer implements Raytracer {
     return performRaytrace(player, eyePosition, targetPosition);
   }
 
-
   private MovingObjectPosition performRaytrace(Player player, Position eyePosition, Position targetPosition) {
     BlockShape eyeShape = shapeAt(player, eyePosition);
     if (!eyeShape.isEmpty()) {

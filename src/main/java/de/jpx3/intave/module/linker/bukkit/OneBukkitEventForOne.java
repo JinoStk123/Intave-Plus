@@ -27,7 +27,7 @@ public class OneBukkitEventForOne<T extends LISTENER, LISTENER> implements Subsc
   }
 
   @Override
-  public Class<T> subscriberClass() {
+  public Class<T> type() {
     return subscriberClass;
   }
 

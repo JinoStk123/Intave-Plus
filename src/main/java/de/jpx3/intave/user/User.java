@@ -4,8 +4,8 @@ import com.comphenix.protocol.events.PacketEvent;
 import de.jpx3.intave.access.UnsupportedFallbackOperationException;
 import de.jpx3.intave.access.player.trust.TrustFactor;
 import de.jpx3.intave.access.player.trust.TrustFactorResolver;
-import de.jpx3.intave.block.cache.BlockCache;
 import de.jpx3.intave.annotate.Nullable;
+import de.jpx3.intave.block.cache.BlockCache;
 import de.jpx3.intave.block.fluid.FluidFlow;
 import de.jpx3.intave.check.MetaCheck;
 import de.jpx3.intave.check.MetaCheckPart;
@@ -131,6 +131,21 @@ public interface User {
   }
 
   /**
+   * Same as {@link #tickFeedback(EmptyFeedbackCallback)}, but will bundle the transaction packet with the given event
+   */
+  void packetTickFeedback(PacketEvent event, EmptyFeedbackCallback callback);
+
+  /**
+   * Same as {@link #packetTickFeedback(PacketEvent, EmptyFeedbackCallback)}, but with options
+   * @param event the packet event
+   * @param callback the callback
+   * @param options the options, as defined in {@link FeedbackOptions}
+   */
+  default void packetTickFeedback(PacketEvent event, EmptyFeedbackCallback callback, int options) {
+    packetTickFeedback(event, callback);
+  }
+
+  /**
    * Same as {@link #tickFeedback(EmptyFeedbackCallback)}, but with a {@link FeedbackObserver}
    * Feedback observer is notified when the packet is sent and when the response is received.
    * @param callback the callback
@@ -146,6 +161,12 @@ public interface User {
    */
   default void tracedTickFeedback(EmptyFeedbackCallback callback, FeedbackObserver tracker, int options) {
     tracedTickFeedback(callback, tracker);
+  }
+
+  void tracedPacketTickFeedback(PacketEvent event, EmptyFeedbackCallback callback, FeedbackObserver tracker);
+
+  default void tracedPacketTickFeedback(PacketEvent event, EmptyFeedbackCallback callback, FeedbackObserver tracker, int options) {
+    tracedPacketTickFeedback(event, callback, tracker);
   }
 
   /**

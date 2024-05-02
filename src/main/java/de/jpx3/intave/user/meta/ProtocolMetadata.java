@@ -16,6 +16,8 @@ import java.util.UUID;
 public final class ProtocolMetadata {
   // final has been removed to disguise modified integer VERSION_DETAILS
   public static int VER_1_20 = 763; // 1.17
+  public static int VER_1_19_4 = 756; // 1.19.4
+  public static int VER_1_19_2 = 754; // 1.19.2
   public static int VER_1_17 = 755; // 1.17
   public static int VER_1_16 = 735; // 1.16
   public static int VER_1_15 = 573; // 1.15
@@ -198,6 +200,14 @@ public final class ProtocolMetadata {
 
   public boolean trailsAndTailsUpdate() {
     return protocolVersion >= VER_1_20;
+  }
+
+  public boolean clientSpeculativeBlocks() {
+    return protocolVersion >= VER_1_19_2;
+  }
+
+  public boolean supportsPacketBundles() {
+    return protocolVersion >= VER_1_19_4;
   }
 
   public boolean oppositeBlockVectorBehavior() {

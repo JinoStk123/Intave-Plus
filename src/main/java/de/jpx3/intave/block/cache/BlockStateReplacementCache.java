@@ -49,7 +49,7 @@ final class BlockStateReplacementCache<K> {
     indexed.remove(key);
   }
 
-  public boolean replaced(K key) {
+  public boolean contains(K key) {
     return indexed.containsKey(key);
   }
 

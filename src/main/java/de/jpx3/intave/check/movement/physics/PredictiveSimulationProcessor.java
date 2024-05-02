@@ -391,13 +391,8 @@ public final class PredictiveSimulationProcessor implements SimulationProcessor 
       requireUseItem = false;
     }
 
-    if (requireUseItem) {
-//      user.player().sendMessage("Require use item " + inventoryData.handActive() + " " + inventoryData.pastHotBarSlotChange + " " + inventoryData.pastSlotSwitch);
-      skipUseItem = false;
-    }
-
     // if we are under blocks, this gives us extra simulations, with smaller inputs (reduces false positives)
-    if (user.sizeOf(movementData.pose()).height() <= 1) {
+    if (requireUseItem || user.sizeOf(movementData.pose()).height() <= 1) {
       skipUseItem = false;
     }
 
@@ -471,7 +466,7 @@ public final class PredictiveSimulationProcessor implements SimulationProcessor 
                 if (jumped && movementData.denyJump()) {
                   continue;
                 }
-                if (sprinting && movementData.isSneaking() && !jumped) {
+                if (sprinting && movementData.isSneaking() && !jumped /* temporary -> */&& !protocol.combatUpdate()) {
                   continue;
                 }
                 IterativeStudy.JUMP_ITERATOR.run();

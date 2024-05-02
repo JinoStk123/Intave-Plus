@@ -401,8 +401,18 @@ final class TestUser implements User {
   }
 
   @Override
+  public void packetTickFeedback(PacketEvent event, EmptyFeedbackCallback callback) {
+
+  }
+
+  @Override
   public void tracedTickFeedback(EmptyFeedbackCallback callback, FeedbackObserver tracker) {
     
+  }
+
+  @Override
+  public void tracedPacketTickFeedback(PacketEvent event, EmptyFeedbackCallback callback, FeedbackObserver tracker) {
+
   }
 
   @Override

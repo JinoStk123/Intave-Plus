@@ -38,6 +38,10 @@ public final class BlockPosition extends NativeVector {
     this(blockPosition.getX(), blockPosition.getY(), blockPosition.getZ());
   }
 
+  public static BlockPosition of(int posX, int posY, int posZ) {
+    return new BlockPosition(posX, posY, posZ);
+  }
+
   /**
    * Add the given coordinates to the coordinates of this BlockPos
    */

@@ -23,10 +23,7 @@ import de.jpx3.intave.block.variant.BlockVariantNativeAccess;
 import de.jpx3.intave.check.CheckViolationLevelDecrementer;
 import de.jpx3.intave.check.MetaCheck;
 import de.jpx3.intave.check.movement.physics.Pose;
-import de.jpx3.intave.check.world.interaction.BlockTrustChain;
-import de.jpx3.intave.check.world.interaction.Interaction;
-import de.jpx3.intave.check.world.interaction.InteractionEmulator;
-import de.jpx3.intave.check.world.interaction.InteractionType;
+import de.jpx3.intave.check.world.interaction.*;
 import de.jpx3.intave.executor.RateLimiter;
 import de.jpx3.intave.executor.Synchronizer;
 import de.jpx3.intave.klass.Lookup;
@@ -45,6 +42,7 @@ import de.jpx3.intave.packet.reader.PacketReaders;
 import de.jpx3.intave.player.ItemProperties;
 import de.jpx3.intave.share.*;
 import de.jpx3.intave.user.User;
+import de.jpx3.intave.user.UserLocal;
 import de.jpx3.intave.user.UserRepository;
 import de.jpx3.intave.user.meta.*;
 import de.jpx3.intave.world.raytrace.Raytracing;
@@ -56,12 +54,14 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import static com.comphenix.protocol.wrappers.EnumWrappers.PlayerDigType.*;
-import static de.jpx3.intave.check.world.interaction.InteractionType.EMPTY_INTERACT;
-import static de.jpx3.intave.check.world.interaction.InteractionType.START_BREAK;
+import static de.jpx3.intave.check.world.interaction.InteractionType.*;
 import static de.jpx3.intave.module.linker.packet.PacketId.Client.*;
 import static de.jpx3.intave.module.linker.packet.PacketId.Server.BLOCK_BREAK_ANIMATION;
 import static de.jpx3.intave.module.tracker.player.AbilityTracker.GameMode.CREATIVE;
@@ -89,10 +89,15 @@ public final class InteractionRaytrace extends MetaCheck<InteractionRaytrace.Int
     Player player = event.getPlayer();
     User user = userOf(player);
     InteractionMeta interactionMeta = metaOf(user);
-    MovementMetadata movementData = user.meta().movement();
-    AbilityMetadata abilityMetadata = user.meta().abilities();
+    MetadataBundle meta = user.meta();
+    MovementMetadata movementData = meta.movement();
+    AbilityMetadata abilityMetadata = meta.abilities();
+    InventoryMetadata inventory = meta.inventory();
     PacketContainer packet = event.getPacket();
     BlockInteractionReader reader = PacketReaders.readerOf(packet);
+
+    inventory.lastBlockSequenceNumber = reader.sequenceNumber();
+
     try {
       com.comphenix.protocol.wrappers.BlockPosition blockPosition = reader.blockPosition();
       if (blockPosition == null || event.isCancelled() || movementData.isInVehicle()) {
@@ -107,7 +112,7 @@ public final class InteractionRaytrace extends MetaCheck<InteractionRaytrace.Int
       float facingY = -1;
       float facingZ = -1;
       StructureModifier<Float> floatsInPacket = packet.getFloat();
-      if (floatsInPacket.size() >= 3 && user.meta().protocol().sendsFacings()) {
+      if (floatsInPacket.size() >= 3 && meta.protocol().sendsFacings()) {
         facingX = floatsInPacket.read(0);
         facingY = floatsInPacket.read(1);
         facingZ = floatsInPacket.read(2);
@@ -122,7 +127,8 @@ public final class InteractionRaytrace extends MetaCheck<InteractionRaytrace.Int
         }
       }
 
-      Material clickedType = VolatileBlockAccess.typeAccess(user, blockPosition.toLocation(player.getWorld()));
+      World world = player.getWorld();
+      Material clickedType = VolatileBlockAccess.typeAccess(user, blockPosition.toLocation(world));
       boolean clickedIsInteractable = BlockInteractionAccess.isClickable(clickedType);
 
       if (clickedType == Material.WHEAT || clickedType == BlockTypeAccess.FARMLAND) {
@@ -133,37 +139,74 @@ public final class InteractionRaytrace extends MetaCheck<InteractionRaytrace.Int
       EnumWrappers.Hand handSlot = packet.getHands().readSafely(0);
       handSlot = handSlot == null ? EnumWrappers.Hand.MAIN_HAND : handSlot;
 
-      ItemStack heldItem = user.meta().inventory().heldItem();
+      ItemStack heldItem = inventory.heldItem();
       Material heldItemType = heldItem == null ? Material.AIR : heldItem.getType();
-      Material offHandItemType = user.meta().inventory().offhandItemType();
+      Material offHandItemType = inventory.offhandItemType();
       Material typeUsedInHand = handSlot == EnumWrappers.Hand.MAIN_HAND ? heldItemType : offHandItemType;
       if (typeUsedInHand == null) {
         typeUsedInHand = Material.AIR;
       }
 
+      Location placementLocation = interactionEmulator.placementLocation(
+        world, player, user.blockCache(),
+        typeUsedInHand, Direction.getFront(enumDirection),
+        blockPosition.toLocation(world)
+      );
+      int blockX = placementLocation.getBlockX();
+      int blockY = placementLocation.getBlockY();
+      int blockZ = placementLocation.getBlockZ();
+
+//      Material placedBlockType = VolatileBlockAccess.typeAccess(user, placementLocation);
+      int variant = VolatileBlockAccess.variantIndexAccess(user, placementLocation);
+
+      boolean raytraceCollidesWithPosition = typeUsedInHand.isBlock() && Collision.playerInImaginaryBlock(
+        user, world,
+        blockX, blockY, blockZ,
+        typeUsedInHand, 0
+      );
+
+//      player.sendMessage(raytraceCollidesWithPosition + " " + blockX + " " + blockY + " " + blockZ + " " + typeUsedInHand + " " + variant);
+
+      Material presentType = user.blockCache().typeAt(blockX, blockY, blockZ);
+
       boolean interactionIsPlacement = typeUsedInHand != Material.AIR
         && typeUsedInHand.isBlock()
         && !clickedIsInteractable
+        && !raytraceCollidesWithPosition
+        && typeUsedInHand != presentType
         && !abilityMetadata.inGameMode(GameMode.ADVENTURE);
+
+//      if (lockedBlocks.get(user).contains(
+//        new BlockPosition(blockX, blockY, blockZ)
+//      )) {
+//        interactionIsPlacement = false;
+//      }
 
       InteractionType type = enumDirection == 255 ? EMPTY_INTERACT : (interactionIsPlacement ? InteractionType.PLACE : InteractionType.INTERACT);
 
       if (IntaveControl.DEBUG_INTERACTION) {
-        player.sendMessage(type + " " + typeUsedInHand + " " + enumDirection);
+        player.sendMessage(type + " " + typeUsedInHand + " " + enumDirection + " " + presentType + "/" + typeUsedInHand);
       }
 
       Interaction interaction =
         new Interaction(
           interactionMeta.nextInteractionId++,
           packet.shallowClone(),
-          player.getWorld(), player,
+          world, player,
           blockPosition, enumDirection, type,
           typeUsedInHand,
           handSlot == EnumWrappers.Hand.MAIN_HAND
             ? heldItem
-            : user.meta().inventory().offhandItem(),
-          handSlot, null, facingX, facingY, facingZ
+            : inventory.offhandItem(),
+          handSlot, null, facingX, facingY, facingZ,
+          reader.sequenceNumber()
         );
+
+      boolean placementIs113Speculative = type == PLACE && meta.protocol().waterUpdate();
+
+      if (placementIs113Speculative) {
+        interactionMeta.speculativeInteraction = interaction;
+      }
 
       boolean mustPostValidate = interactionMeta.remainingBlockStart > 0;// || !interactionMeta.interactionList.isEmpty();
       PreprocessResult result = mustPostValidate ? PreprocessResult.ENFORCE_ROUTING : preprocessInteraction(interaction);
@@ -180,7 +223,7 @@ public final class InteractionRaytrace extends MetaCheck<InteractionRaytrace.Int
               acknowledgeBlockChange(player, sequenceNumber);
             }
             if (blockPosition != null) {
-              refreshBlocksAround(player, blockPosition.toLocation(player.getWorld()));
+              refreshBlocksAround(player, blockPosition.toLocation(world));
             }
             event.setCancelled(true);
             if (IntaveControl.DEBUG_INTERACTION_DISCREET && IntaveControl.INTERACTION_DEBUG_NAMES.contains(player.getName())) {
@@ -243,6 +286,8 @@ public final class InteractionRaytrace extends MetaCheck<InteractionRaytrace.Int
     InventoryMetadata inventoryData = meta.inventory();
     ProtocolMetadata protocol = meta.protocol();
 
+    receivedAnyTickContextPacket(user, false);
+
     PacketContainer packet = event.getPacket();
 
     com.comphenix.protocol.wrappers.BlockPosition blockPosition = event.getPacket().getModifier()
@@ -303,7 +348,7 @@ public final class InteractionRaytrace extends MetaCheck<InteractionRaytrace.Int
       packet.shallowClone(), player.getWorld(), player,
       blockPosition, enumDirection, type,
       heldItemType, heldItemStack, EnumWrappers.Hand.MAIN_HAND, playerDigType,
-      Float.NaN, Float.NaN, Float.NaN
+      Float.NaN, Float.NaN, Float.NaN, -1
     );
 
     if (interactionMeta.interactionList.isEmpty()) {
@@ -355,6 +400,7 @@ public final class InteractionRaytrace extends MetaCheck<InteractionRaytrace.Int
     User user = userOf(player);
     MovementMetadata movementData = user.meta().movement();
     InteractionMeta interactionMeta = metaOf(user);
+    receivedAnyTickContextPacket(user, false);
     List<Interaction> interactionList = interactionMeta.interactionList;
     if (interactionList.isEmpty()) {
       return false;
@@ -364,12 +410,66 @@ public final class InteractionRaytrace extends MetaCheck<InteractionRaytrace.Int
     playerLocation.setPitch(movementData.rotationPitch);
     Location playerLocationmdf = playerLocation.clone();
     playerLocationmdf.setYaw(movementData.lastRotationYaw);
-    player.sendMessage(String.valueOf(interactionList.size()));
+//    player.sendMessage(String.valueOf(interactionList.size()));
     for (Interaction interaction : interactionList) {
       processInteraction(interaction, playerLocation.clone(), playerLocationmdf.clone());
     }
     interactionList.clear();
     return true;
+  }
+
+  @PacketSubscription(
+    priority = ListenerPriority.LOWEST,
+    packetsIn = {
+      ARM_ANIMATION,
+      BLOCK_DIG,
+      BLOCK_PLACE,
+      TRANSACTION,
+      PONG,
+      USE_ITEM,
+      USE_ENTITY,
+      FLYING,
+      POSITION,
+      POSITION_LOOK,
+      LOOK,
+    }
+  )
+  public void receiveAnyTickContextPacket(PacketEvent event) {
+    Player player = event.getPlayer();
+    User user = userOf(player);
+    receivedAnyTickContextPacket(user, event.getPacket().getType() == PacketType.Play.Client.ARM_ANIMATION);
+  }
+
+  private void receivedAnyTickContextPacket(
+    User user, boolean isAnimation
+  ) {
+    InteractionMeta interactionMeta = metaOf(user);
+    if (interactionMeta.speculativeInteraction != null) {
+      Interaction speculativeInteraction = interactionMeta.speculativeInteraction;
+      if (isAnimation) {
+        com.comphenix.protocol.wrappers.BlockPosition targetBlock = speculativeInteraction.targetBlock();
+//        lockedBlocks.get(user).add(new BlockPosition(
+//          targetBlock.getX(),
+//          targetBlock.getY(),
+//          targetBlock.getZ()
+//        ));
+        if (IntaveControl.DEBUG_INTERACTION) {
+          user.player().sendMessage(ChatColor.GREEN + "Speculative interaction succeeded, emulated: " + speculativeInteraction.hasBeenEmulated() + "/" + speculativeInteraction.wasPlacementEmulated());
+        }
+        // all ok
+        interactionMeta.speculativeInteraction = null;
+      } else {
+        interactionMeta.speculativeInteraction = null;
+        if (IntaveControl.DEBUG_INTERACTION) {
+          user.player().sendMessage(ChatColor.RED + "Speculative interaction failed, emulated: " + speculativeInteraction.hasBeenEmulated() + "/" + speculativeInteraction.wasPlacementEmulated());
+        }
+        if (speculativeInteraction.hasBeenEmulated()) {
+          interactionEmulator.undo(speculativeInteraction);
+        } else {
+          speculativeInteraction.overrideType(INTERACT);
+        }
+      }
+    }
   }
 
   private PreprocessResult preprocessInteraction(Interaction interaction) {
@@ -682,7 +782,9 @@ public final class InteractionRaytrace extends MetaCheck<InteractionRaytrace.Int
       Location location = estimateMouseDelayFix ? playerLocationmdf : playerLocation;
       boolean atLeastLookingAtBlock = movingObjectPosition != null && atLeastLookingAtBlock(user, location, targetLocation, movingObjectPosition);
       boolean doNotFlagType = interaction.digType() == ABORT_DESTROY_BLOCK || interaction.type() == EMPTY_INTERACT;
-      flag = enabled() && !doNotFlagType && performFlag(interaction, movingObjectPosition, targetLocation, bestRaytrace.raycastLocation(), bestRaytrace.hitMiss(), atLeastLookingAtBlock, index);
+      flag = enabled() && !doNotFlagType && performFlag(
+        interaction, movingObjectPosition, targetLocation, bestRaytrace, atLeastLookingAtBlock, index
+      );
       mustCancelPacket = false;
       // As the interaction was not canceled for consumables, we have to do it now as the raytrace failed
       if (usableItemInHand && interaction.type() == InteractionType.INTERACT) {
@@ -704,114 +806,6 @@ public final class InteractionRaytrace extends MetaCheck<InteractionRaytrace.Int
     }
   }
 
-
-  public class RaytraceEvaluation {
-    private final Interaction origin;
-    private final MovingObjectPosition raycastResult;
-    private final boolean airHit;
-    private final Location raycastLocation;
-    private final Location targetLocation;
-
-    public RaytraceEvaluation(
-      Interaction origin,
-      MovingObjectPosition raycastResult,
-      boolean airHit,
-      Location raycastLocation,
-      Location targetLocation
-    ) {
-      this.origin = origin;
-      this.raycastResult = raycastResult;
-      this.airHit = airHit;
-      this.raycastLocation = raycastLocation;
-      this.targetLocation = targetLocation;
-    }
-
-    public Interaction origin() {
-      return origin;
-    }
-
-    public MovingObjectPosition raycastResult() {
-      return raycastResult;
-    }
-
-    public boolean airHit() {
-      return airHit;
-    }
-
-    public Location raycastLocation() {
-      return raycastLocation;
-    }
-
-    public Location targetLocation() {
-      return targetLocation;
-    }
-
-    public boolean facingCheckFailed() {
-      if (raycastResult != null && origin.hasFacing()) {
-        float f = (float) (raycastResult.hitVec.xCoord - targetLocation.getX());
-        float f1 = (float) (raycastResult.hitVec.yCoord - targetLocation.getY());
-        float f2 = (float) (raycastResult.hitVec.zCoord - targetLocation.getZ());
-        return Math.abs(compressAndDecompress(f) - origin.facingX()) > 0.01 ||
-          Math.abs(compressAndDecompress(f1) - origin.facingY()) > 0.01 ||
-          Math.abs(compressAndDecompress(f2) - origin.facingZ()) > 0.01;
-      }
-      return false;
-    }
-
-    public boolean hitMiss() {
-      return raycastResult == null || raycastResult.hitVec == NativeVector.ZERO;
-    }
-
-    public boolean wrongBlockFace() {
-      return InteractionRaytrace.this.wrongBlockFace(origin, raycastResult);
-    }
-
-    public boolean positionMismatch() {
-      return InteractionRaytrace.this.positionMismatch(origin, raycastLocation, targetLocation);
-    }
-
-    public boolean isValid() {
-      return !isInvalid();
-    }
-
-    private Boolean invalidCache = null;
-
-    public boolean isInvalid() {
-      if (invalidCache != null) {
-        return invalidCache;
-      }
-      return invalidCache = (hitMiss() || positionMismatch() || wrongBlockFace());
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
-
-      RaytraceEvaluation that = (RaytraceEvaluation) o;
-
-      if (airHit != that.airHit) return false;
-      if (!Objects.equals(origin, that.origin)) return false;
-      if (!Objects.equals(raycastResult, that.raycastResult)) return false;
-      if (!Objects.equals(raycastLocation, that.raycastLocation))
-        return false;
-      if (!Objects.equals(targetLocation, that.targetLocation))
-        return false;
-      return Objects.equals(invalidCache, that.invalidCache);
-    }
-
-    @Override
-    public int hashCode() {
-      int result = origin != null ? origin.hashCode() : 0;
-      result = 31 * result + (raycastResult != null ? raycastResult.hashCode() : 0);
-      result = 31 * result + (airHit ? 1 : 0);
-      result = 31 * result + (raycastLocation != null ? raycastLocation.hashCode() : 0);
-      result = 31 * result + (targetLocation != null ? targetLocation.hashCode() : 0);
-      result = 31 * result + (invalidCache != null ? invalidCache.hashCode() : 0);
-      return result;
-    }
-  }
-
   public RaytraceEvaluation singleRaytrace(User user, Interaction interaction, Location playerLocation) {
     return singleRaytrace(user, interaction, playerLocation, user.meta().movement().pose());
   }
@@ -829,23 +823,7 @@ public final class InteractionRaytrace extends MetaCheck<InteractionRaytrace.Int
     BlockPosition raycastVector = hitMiss ? BlockPosition.ORIGIN : raycastResult.getBlockPos();
     Location raycastLocation = raycastVector.toLocation(world);
     Location targetLocation = interaction.targetBlock().toLocation(world);
-    return new RaytraceEvaluation(interaction, raycastResult, hitMiss, raycastLocation, targetLocation);
-  }
-
-  private boolean positionMismatch(
-    Interaction interaction,
-    Location raycastLocation,
-    Location targetLocation
-  ) {
-    if (interaction.type() == EMPTY_INTERACT) {
-      return targetLocation.getBlockX() != -1 || targetLocation.getBlockY() != -1 || targetLocation.getBlockZ() != -1;
-    }
-    return raycastLocation.distance(targetLocation) > 0;
-  }
-
-  private float compressAndDecompress(float f) {
-    byte b = (byte) (int) (f * 16.0F);
-    return (float) (b & 0xFF) / 16.0F;
+    return new RaytraceEvaluation(this, interaction, raycastResult, hitMiss, raycastLocation, targetLocation);
   }
 
   private void forwardInteractionToServer(
@@ -957,14 +935,15 @@ public final class InteractionRaytrace extends MetaCheck<InteractionRaytrace.Int
     Interaction interaction,
     MovingObjectPosition raycastResult,
     Location targetLocation,
-    Location raycastLocation,
-    boolean hitMiss,
+    RaytraceEvaluation raytraceEval,
     boolean lookingAtBlock,
     int searches
   ) {
     Player player = interaction.player();
     User user = userOf(player);
     InteractionType type = interaction.type();
+    Location raycastLocation = raytraceEval.raycastLocation();
+    boolean hitMiss = raytraceEval.hitMiss();
     Block targetLocationBlock = VolatileBlockAccess.blockAccess(targetLocation);
     Block raycastLocationBlock = VolatileBlockAccess.blockAccess(raycastLocation);
     Material targetLocationBlockType = BlockTypeAccess.typeAccess(targetLocationBlock);
@@ -989,7 +968,7 @@ public final class InteractionRaytrace extends MetaCheck<InteractionRaytrace.Int
         }
         append = "but looking at " + blockName + " block";
         vl = longBreakDuration ? 20 : 5;
-      } else if (wrongBlockFace(interaction, raycastResult)) {
+      } else if (raytraceEval.wrongBlockFace()) {
         append = "invalid block face";
         vl = longBreakDuration ? 20 : 15;
       }
@@ -1108,6 +1087,8 @@ public final class InteractionRaytrace extends MetaCheck<InteractionRaytrace.Int
     }
   }
 
+  private final UserLocal<List<BlockPosition>> lockedBlocks = UserLocal.withInitial(() -> new ArrayList<>());
+
   @BukkitEventSubscription(
     priority = EventPriority.MONITOR
   )
@@ -1116,47 +1097,13 @@ public final class InteractionRaytrace extends MetaCheck<InteractionRaytrace.Int
     User user = userOf(player);
     BlockTrustChain trustChain = user.meta().movement().placementTrustChain;
     BlockPosition blockPosition = new BlockPosition(event.getBlockPlaced().getLocation());
+    lockedBlocks.get(user).remove(blockPosition);
     boolean requireFeedbackTimedRemoval = trustChain.collapseState(blockPosition, !event.isCancelled());
     if (requireFeedbackTimedRemoval) {
       // next tick
       Synchronizer.synchronize(() ->
         user.tickFeedback(() -> trustChain.removeCollapsedState(blockPosition)));
     }
-  }
-
-  private boolean wrongBlockFace(Interaction interaction, MovingObjectPosition rayTraceResult) {
-    Player player = interaction.player();
-    User user = UserRepository.userOf(player);
-    ProtocolMetadata protocol = user.meta().protocol();
-
-    int sentIndex = interaction.targetDirectionIndex();
-    int computedIndex = rayTraceResult == null ? sentIndex : rayTraceResult.sideHit.getIndex();
-
-    if (protocol.oppositeBlockVectorBehavior()
-      && interactionInHead(user, interaction)
-      && sentIndex == rayTraceResult.sideHit.getOpposite().getIndex()) {
-      return false;
-    }
-
-    // they don't send a block face here, don't make unnecessary adjustments
-    if (interaction.digType() == ABORT_DESTROY_BLOCK && sentIndex == 0) {
-      return false;
-    }
-
-    if (interaction.type() == EMPTY_INTERACT && sentIndex == 255) {
-      return false;
-    }
-
-    return computedIndex != sentIndex;
-  }
-
-  private boolean interactionInHead(User user, Interaction interaction) {
-    com.comphenix.protocol.wrappers.BlockPosition blockPosition = interaction.targetBlock();
-    MovementMetadata movement = user.meta().movement();
-    double xDiff = blockPosition.getX() - ClientMath.floor(movement.positionX);
-    double yDiff = blockPosition.getY() - ClientMath.floor(movement.positionY + movement.eyeHeight());
-    double zDiff = blockPosition.getZ() - ClientMath.floor(movement.positionZ);
-    return xDiff == 0 && yDiff == 0 && zDiff == 0;
   }
 
   private boolean atLeastLookingAtBlock(User user, Location location, Location targetBlockLocation, MovingObjectPosition movingObjectPosition) {
@@ -1264,5 +1211,7 @@ public final class InteractionRaytrace extends MetaCheck<InteractionRaytrace.Int
     public long lastProcessedInteractionId;
 
     public long lastInteractionFlag = 0;
+
+    public Interaction speculativeInteraction = null;
   }
 }

@@ -125,6 +125,26 @@ public final class InteractionEmulator implements EventProcessor {
     }
   }
 
+  public void undo(Interaction interaction) {
+    if (!interaction.hasBeenEmulated()) {
+      return;
+    }
+    Player player = interaction.player();
+    InteractionType interactionType = interaction.type();
+    switch (interactionType) {
+      case PLACE:
+        undoPlacement(player, interaction);
+        break;
+      case START_BREAK:
+      case INTERACT:
+        break;
+      case EMPTY_INTERACT:
+        break;
+      case BREAK:
+        break;
+    }
+  }
+
   private EmulationResult emulateBreak(Player player, Interaction interaction) {
     User user = userOf(player);
     World world = interaction.world();
@@ -176,15 +196,6 @@ public final class InteractionEmulator implements EventProcessor {
     BlockCache blockStates = user.blockCache();
     World world = interaction.world();
     Location blockAgainstLocation = interaction.targetBlock().toLocation(world);
-    Vector placementVector = Direction.getFront(interaction.targetDirectionIndex())
-      .directionVector().convertToBukkitVec();
-    Location defaultPlacementLocation = blockAgainstLocation.clone().add(placementVector);
-    int originBlockX = blockAgainstLocation.getBlockX();
-    int originBlockY = blockAgainstLocation.getBlockY();
-    int originBlockZ = blockAgainstLocation.getBlockZ();
-    boolean replace = BlockInteractionAccess.replacedOnPlacement(
-      world, player, new BlockPosition(blockAgainstLocation.toVector())
-    );
 
     if (System.currentTimeMillis() - user.meta().violationLevel().lastBlockPlaceDenyRequest < 1250) {
       return EmulationResult.FAILED_CRITICAL;
@@ -192,32 +203,21 @@ public final class InteractionEmulator implements EventProcessor {
 
     Material itemTypeInHand = interaction.itemTypeInHand();
 
-    // I don't want to hardcode this here, but where else should I put it?
-    Material typeAtOB = blockStates.typeAt(originBlockX, originBlockY, originBlockZ);
-//    System.out.println("typeAtOB: " + typeAtOB);
-    Material typeAtDPL = blockStates.typeAt(
-      defaultPlacementLocation.getBlockX(),
-      defaultPlacementLocation.getBlockY(),
-      defaultPlacementLocation.getBlockZ()
+    int originBlockX = blockAgainstLocation.getBlockX();
+    int originBlockY = blockAgainstLocation.getBlockY();
+    int originBlockZ = blockAgainstLocation.getBlockZ();
+    boolean replace = BlockInteractionAccess.replacedOnPlacement(
+      world, player, new BlockPosition(blockAgainstLocation.toVector())
     );
-    if (STEP_BLOCKS.contains(typeAtOB) && itemTypeInHand == typeAtOB) {
-      BlockVariant variant = BlockVariantRegister.variantOf(typeAtOB, blockStates.variantIndexAt(originBlockX, originBlockY, originBlockZ));
-      EnumHalf half = variant.enumProperty(EnumHalf.class, STEP_PROPERTY_NAME);
-      Direction direction = interaction.targetDirection();
-      if (direction == Direction.UP && half == EnumHalf.BOTTOM) {
-        replace = true;
-      } else if (direction == Direction.DOWN && half == EnumHalf.TOP) {
-        replace = true;
-      }
-    }
-    if (STEP_BLOCKS.contains(typeAtDPL) && itemTypeInHand == typeAtDPL) {
-      replace = true;
-    }
 
-    Location blockPlacementLocation = replace ? blockAgainstLocation : defaultPlacementLocation;
+    Location blockPlacementLocation = placementLocation(
+      world, player, blockStates, itemTypeInHand, interaction.targetDirection(),
+      blockAgainstLocation
+    );
     int blockX = blockPlacementLocation.getBlockX();
     int blockY = blockPlacementLocation.getBlockY();
     int blockZ = blockPlacementLocation.getBlockZ();
+
     Material placedBlockType = itemTypeInHand;
     int variant = 0;
     EstimationResult estimationResult = emulateBlockBehavior(
@@ -271,10 +271,21 @@ public final class InteractionEmulator implements EventProcessor {
         return EmulationResult.FAILED_CRITICAL;
       }
 
+      Material presentType = VolatileBlockAccess.typeAccess(user, blockX, blockY, blockZ);
+      int presentVariant = VolatileBlockAccess.variantIndexAccess(user, world, blockX, blockY, blockZ);
       movement.pastBlockPlacement = 0;
       blockStates.override(world, blockX, blockY, blockZ, placedBlockType, variant, "PLACE");
       blockStates.invalidateCacheAround(blockX, blockY, blockZ);
       blockStates.lockOverride(blockX, blockY, blockZ);
+      if (user.meta().protocol().clientSpeculativeBlocks()) {
+        blockStates.setClientSpeculationValue(
+          world, blockX, blockY, blockZ, presentType, presentVariant, interaction.sequenceNumber()
+        );
+      }
+
+      if (presentType != placedBlockType) {
+        interaction.markPlacementEmulated();
+      }
       // enforce block reset later
       //      Synchronizer.synchronize(() -> {
       //        Synchronizer.synchronize(() -> blockStates.invalidateOverride(blockX, blockY,
@@ -308,6 +319,66 @@ public final class InteractionEmulator implements EventProcessor {
     } else {
       return EmulationResult.FAILED_CRITICAL;
     }
+  }
+
+  public void undoPlacement(Player player, Interaction interaction) {
+    User user = userOf(player);
+    World world = player.getWorld();
+    BlockCache blockStates = user.blockCache();
+    BlockPosition blockPosition = interaction.targetBlock();
+    int blockX = blockPosition.getX();
+    int blockY = blockPosition.getY();
+    int blockZ = blockPosition.getZ();
+    if (interaction.wasPlacementEmulated()) {
+      if (user.meta().protocol().clientSpeculativeBlocks()) {
+        blockStates.undoClientSpeculation(world, blockX, blockY, blockZ);
+      }
+//      blockStates.unlockOverride(blockX, blockY, blockZ);
+      blockStates.invalidateCacheAround(blockX, blockY, blockZ);
+      blockStates.override(world, blockX, blockY, blockZ, Material.AIR, 0, "UNDO_PLACE");
+    }
+//    player.sendMessage(blockStates.typeAt(blockX, blockY, blockZ) + "");
+  }
+
+  public Location placementLocation(
+    World world, Player player,
+    BlockCache blockStates,
+    Material itemTypeInHand,
+    Direction direction,
+    Location blockAgainstLocation
+  ) {
+    int originBlockX = blockAgainstLocation.getBlockX();
+    int originBlockY = blockAgainstLocation.getBlockY();
+    int originBlockZ = blockAgainstLocation.getBlockZ();
+    boolean replace = BlockInteractionAccess.replacedOnPlacement(
+      world, player, new BlockPosition(blockAgainstLocation.toVector())
+    );
+
+    // I don't want to hardcode this here, but where else should I put it?
+    Material typeAtOB = blockStates.typeAt(originBlockX, originBlockY, originBlockZ);
+
+    Vector placementVector = direction.directionVector().convertToBukkitVec();
+    Location defaultPlacementLocation = blockAgainstLocation.clone().add(placementVector);
+
+    Material typeAtDPL = blockStates.typeAt(
+      defaultPlacementLocation.getBlockX(),
+      defaultPlacementLocation.getBlockY(),
+      defaultPlacementLocation.getBlockZ()
+    );
+    if (STEP_BLOCKS.contains(typeAtOB) && itemTypeInHand == typeAtOB) {
+      BlockVariant variant = BlockVariantRegister.variantOf(typeAtOB, blockStates.variantIndexAt(originBlockX, originBlockY, originBlockZ));
+      EnumHalf half = variant.enumProperty(EnumHalf.class, STEP_PROPERTY_NAME);
+      if (direction == Direction.UP && half == EnumHalf.BOTTOM) {
+        replace = true;
+      } else if (direction == Direction.DOWN && half == EnumHalf.TOP) {
+        replace = true;
+      }
+    }
+    if (STEP_BLOCKS.contains(typeAtDPL) && itemTypeInHand == typeAtDPL) {
+      replace = true;
+    }
+
+    return replace ? blockAgainstLocation : defaultPlacementLocation;
   }
 
   private static final Set<Material> STEP_BLOCKS = MaterialSearch.materialsThatContain("STEP", "SLAB");

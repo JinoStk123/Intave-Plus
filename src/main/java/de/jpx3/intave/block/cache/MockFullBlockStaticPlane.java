@@ -55,6 +55,26 @@ public final class MockFullBlockStaticPlane implements BlockCache {
   }
 
   @Override
+  public boolean isClientSpeculatingAt(int posX, int posY, int posZ) {
+    return false;
+  }
+
+  @Override
+  public void setClientSpeculationValue(World world, int posX, int posY, int posZ, Material type, int variant, int seq) {
+
+  }
+
+  @Override
+  public void undoClientSpeculation(World world, int posX, int posY, int posZ) {
+
+  }
+
+  @Override
+  public void moveClientSpeculationsToOverride(World world, int seq) {
+
+  }
+
+  @Override
   public void invalidateAll() {
 
   }

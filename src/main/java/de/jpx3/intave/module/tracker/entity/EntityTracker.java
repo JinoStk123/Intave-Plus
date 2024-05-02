@@ -496,7 +496,7 @@ public final class EntityTracker extends Module {
 ////      } else {
 //      Modules.feedback().tracedSingleSynchronize(player, event, task, observer);
       int options = entity.distanceToPlayerCache < 6 ? TRACER_ENTITY_NEAR : TRACER_ENTITY_FAR;
-      user.tracedTickFeedback(task, observer, options);
+      user.tracedPacketTickFeedback(event, task, observer, options);
 ////      }
     } else {
       entity.handleEntityTeleport(user, packet);
@@ -565,7 +565,7 @@ public final class EntityTracker extends Module {
 //      Modules.feedback().tracedSingleSynchronize(player, event, task, tracker);
 
       int options = entity.distanceToPlayerCache < 6 ? TRACER_ENTITY_NEAR : TRACER_ENTITY_FAR;
-      user.tracedTickFeedback(task, tracker, options);
+      user.tracedPacketTickFeedback(event, task, tracker, options);
 ////      }
     } else {
       entity.handleEntityMovement(packet);

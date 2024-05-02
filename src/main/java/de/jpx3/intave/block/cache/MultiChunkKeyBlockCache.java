@@ -10,6 +10,7 @@ import de.jpx3.intave.block.variant.BlockVariantNativeAccess;
 import de.jpx3.intave.diagnostic.ShapeAccessFlowStudy;
 import de.jpx3.intave.executor.Synchronizer;
 import de.jpx3.intave.math.Hypot;
+import de.jpx3.intave.share.BlockPosition;
 import de.jpx3.intave.share.Position;
 import de.jpx3.intave.world.WorldHeight;
 import org.bukkit.ChatColor;
@@ -19,6 +20,7 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -29,6 +31,9 @@ final class MultiChunkKeyBlockCache implements BlockCache {
   private final Player player;
   private final ShapeResolverPipeline shapeResolver;
   private final Map<Long, BlockState> blockCache = new ConcurrentHashMap<>(1024);
+  private final Map<BlockPosition, BlockState> speculativeHeads = new ConcurrentHashMap<>(8);
+  private final Map<BlockPosition, Integer> speculativeSequenceNumbers = new ConcurrentHashMap<>(8);
+  private final HashSet<Long> speculationKeys = new HashSet<>(8);
 
   private final BlockStateReplacementCache<Long> replacementCache;
   private int originChunkX, originChunkZ;
@@ -97,6 +102,65 @@ final class MultiChunkKeyBlockCache implements BlockCache {
     return stateAt(posX, posY, posZ).variantIndex();
   }
 
+  @Override
+  public boolean isClientSpeculatingAt(int posX, int posY, int posZ) {
+    return speculationKeys.contains(bigKey(posX, posY, posZ));
+  }
+
+  @Override
+  public void setClientSpeculationValue(World world, int posX, int posY, int posZ, Material type, int variant, int seq) {
+    BlockState blockState;
+    if (type == Material.AIR || posY < WorldHeight.LOWER_WORLD_LIMIT) {
+      blockState = BlockState.empty();
+    } else {
+      BlockShape outlineShape = shapeResolver.outlineShapeOf(world, player, type, variant, posX, posY, posZ);
+      BlockShape collisionShape = shapeResolver.collisionShapeOf(world, player, type, variant, posX, posY, posZ);
+      blockState = new BlockState(outlineShape, collisionShape, type, variant);
+    }
+    BlockPosition position = BlockPosition.of(posX, posY, posZ);
+    int newSequenceNumber = speculativeSequenceNumbers.compute(position, (key, old) -> old == null || seq > old ? seq : old);
+    speculativeHeads.put(position, blockState);
+    speculationKeys.add(bigKey(posX, posY, posZ));
+    if (IntaveControl.BLOCK_CACHE_DEBUG) {
+      Synchronizer.synchronize(() -> {
+        player.sendMessage(ChatColor.LIGHT_PURPLE + "SPECULATING " + ChatColor.AQUA+ type + ChatColor.LIGHT_PURPLE + " at " + ChatColor.GRAY + position + " " + newSequenceNumber);
+      });
+    }
+  }
+
+  @Override
+  public void undoClientSpeculation(World world, int posX, int posY, int posZ) {
+    BlockPosition blockPos = BlockPosition.of(posX, posY, posZ);
+    speculativeHeads.remove(blockPos);
+    speculativeSequenceNumbers.remove(blockPos);
+    speculationKeys.remove(bigKey(posX, posY, posZ));
+  }
+
+  @Override
+  public void moveClientSpeculationsToOverride(World world, int seqReq) {
+    for (Map.Entry<BlockPosition, BlockState> e : speculativeHeads.entrySet()) {
+      BlockPosition blockPosition = e.getKey();
+      BlockState blockState = e.getValue();
+      int sequenceNumber = speculativeSequenceNumbers.getOrDefault(blockPosition, -1);
+      int posX = blockPosition.getX();
+      int posY = blockPosition.getY();
+      int posZ = blockPosition.getZ();
+      if (sequenceNumber > seqReq) {
+        if (IntaveControl.BLOCK_CACHE_DEBUG) {
+          player.sendMessage(ChatColor.LIGHT_PURPLE + "SKIP APPLYING " + ChatColor.AQUA + blockState.type() + ChatColor.LIGHT_PURPLE + " at " + ChatColor.GRAY + blockPosition + " " + sequenceNumber + " > " + seqReq);
+        }
+        continue;
+      }
+      override(world, posX, posY, posZ, blockState.type(), blockState.variantIndex(), "CL_SPEC_FIN_" + sequenceNumber);
+      invalidateCacheAround(posX, posY, posZ);
+      speculativeHeads.remove(blockPosition);
+      speculationKeys.remove(bigKey(posX, posY, posZ));
+    }
+//    speculativeHeads.clear();
+//    speculationKeys.clear();
+    speculativeSequenceNumbers.entrySet().removeIf(entry -> entry.getValue() <= seqReq);
+  }
+
   private BlockState resolveStateAt(World world, Block block, int posX, int posY, int posZ) {
     if (block.getY() < WorldHeight.LOWER_WORLD_LIMIT) {
       return BlockState.empty();
@@ -158,7 +222,7 @@ final class MultiChunkKeyBlockCache implements BlockCache {
   @Override
   public boolean currentlyInOverride(int posX, int posY, int posZ) {
     long key = bigKey(posX, posY, posZ);
-    return replacementCache.replaced(key);
+    return replacementCache.contains(key);
   }
 
   @Override

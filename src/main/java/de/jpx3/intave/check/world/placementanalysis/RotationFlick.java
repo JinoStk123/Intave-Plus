@@ -155,8 +155,7 @@ public class RotationFlick extends PlayerCheckPart<PlacementAnalysis> {
     reader.release();
   }
 
-
-  private boolean isOneLine(List<Vector> blocks) {
+  private boolean isOneLine(List<? extends Vector> blocks) {
     int lastBlockX = 0,
       lastBlockY = 0,
       lastBlockZ = 0;

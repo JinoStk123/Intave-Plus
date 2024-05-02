@@ -578,6 +578,16 @@ final class PlayerUser implements User {
   }
 
   @Override
+  public void packetTickFeedback(PacketEvent event, EmptyFeedbackCallback callback) {
+    Modules.feedback().synchronize(player(), (player1, target) -> callback.success(player1, null), event);
+  }
+
+  @Override
+  public void packetTickFeedback(PacketEvent event, EmptyFeedbackCallback callback, int options) {
+    Modules.feedback().synchronize(player(), (player1, target) -> callback.success(player1, null), options, event);
+  }
+
+  @Override
   public void tracedTickFeedback(EmptyFeedbackCallback callback, FeedbackObserver tracker) {
     Modules.feedback().tracedSingleSynchronize(player(), null, callback, tracker);
   }
@@ -585,6 +595,16 @@ final class PlayerUser implements User {
   @Override
   public void tracedTickFeedback(EmptyFeedbackCallback callback, FeedbackObserver tracker, int options) {
     Modules.feedback().tracedSingleSynchronize(player(), null, callback, tracker, options);
+  }
+
+  @Override
+  public void tracedPacketTickFeedback(PacketEvent event, EmptyFeedbackCallback callback, FeedbackObserver tracker) {
+    Modules.feedback().tracedSingleSynchronize(player(), null, callback, tracker, 0, event);
+  }
+
+  @Override
+  public void tracedPacketTickFeedback(PacketEvent event, EmptyFeedbackCallback callback, FeedbackObserver tracker, int options) {
+    Modules.feedback().tracedSingleSynchronize(player(), null, callback, tracker, options, event);
   }
 
   @Override

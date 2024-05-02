@@ -53,7 +53,7 @@ public final class PlacementAnalysis extends Check {
       // classes might be missing
     }
     appendCheckPart(new RotationSpeed(this));
-    appendCheckPart(new PacketOrder(this));
+//    appendCheckPart(new PacketOrder(this));
     appendCheckPart(new Facing(this));
     appendCheckPart(new RoundedRotation(this));
 

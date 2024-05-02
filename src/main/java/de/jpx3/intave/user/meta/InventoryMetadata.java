@@ -45,6 +45,7 @@ public final class InventoryMetadata {
   private Material activeItemType;
   private List<String> items = new ArrayList<>();
   private boolean foodItem;
+  public int lastBlockSequenceNumber;
 
   public InventoryMetadata(Player player) {
     this.player = player;

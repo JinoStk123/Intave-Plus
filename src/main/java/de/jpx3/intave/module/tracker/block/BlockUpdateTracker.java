@@ -116,6 +116,7 @@ public final class BlockUpdateTracker extends Module {
   public void sentBlockUpdate(PacketEvent event) {
     Player player = event.getPlayer();
     User user = UserRepository.userOf(player);
+    boolean speculativeBlocks = user.meta().protocol().clientSpeculativeBlocks();
     PendingCountingFeedbackObserver pendingBlockUpdates = user.meta().connection().pendingBlockUpdates;
 
     PacketContainer packet = event.getPacket();
@@ -127,7 +128,7 @@ public final class BlockUpdateTracker extends Module {
 
     World world = player.getWorld();
     EmptyFeedbackCallback process = () -> {
-      BlockCache blockStateAccess = user.blockCache();
+      BlockCache blockCache = user.blockCache();
       Location verifiedLocation = user.meta().movement().verifiedLocation();
       for (int i = 0; i < blockPositions.size(); i++) {
         BlockPosition blockPosition = blockPositions.get(i);
@@ -135,26 +136,42 @@ public final class BlockUpdateTracker extends Module {
         if (distance(verifiedLocation, blockPosition) < 2) {
           user.meta().movement().pastNearbyCollisionInaccuracy = 0;
         }
-//        player.sendMessage("");
         Material material = blockData.getType();
         int variant = BlockVariantNativeAccess.variantAccess(blockData);
         int positionX = blockPosition.getX();
         int positionY = blockPosition.getY();
         int positionZ = blockPosition.getZ();
-
-        blockStateAccess.unlockOverride(positionX, positionY, positionZ);
-        blockStateAccess.override(world, positionX, positionY, positionZ, material, variant, "UPDATE");
-        blockStateAccess.invalidateCacheAround(positionX, positionY, positionZ);
+        if (speculativeBlocks && blockCache.isClientSpeculatingAt(positionX, positionY, positionZ)) {
+          blockCache.setClientSpeculationValue(world, positionX, positionY, positionZ, material, variant, user.meta().inventory().lastBlockSequenceNumber);
+        } else {
+          blockCache.unlockOverride(positionX, positionY, positionZ);
+          blockCache.override(world, positionX, positionY, positionZ, material, variant, "UPDATE");
+          blockCache.invalidateCacheAround(positionX, positionY, positionZ);
+        }
       }
     };
 
     Location location = player.getLocation();
     boolean transactionSynchronize = inDistance(blockPositions, location, 8);
     if (transactionSynchronize) {
-      user.tracedTickFeedback(process, pendingBlockUpdates);
+      user.tracedPacketTickFeedback(event, process, pendingBlockUpdates);
     } else {
       process.success();
     }
+  }
+
+  @PacketSubscription(
+    packetsOut = {
+      BLOCK_CHANGED_ACK
+    }
+  )
+  public void blockChangedAck(PacketEvent event) {
+    Player player = event.getPlayer();
+    User user = UserRepository.userOf(player);
+    int sequenceNumber = event.getPacket().getIntegers().read(0);
+    user.packetTickFeedback(event, () ->
+      user.blockCache().moveClientSpeculationsToOverride(player.getWorld(), sequenceNumber)
+    );
   }
 
   private static boolean inDistance(Collection<? extends BlockPosition> blockPositions, Location playerLocation, int requiredDistance) {

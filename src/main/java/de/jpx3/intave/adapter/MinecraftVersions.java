@@ -7,6 +7,7 @@ public final class MinecraftVersions {
   public static final MinecraftVersion VER1_20 = new MinecraftVersion("1.20");
   public static final MinecraftVersion VER1_19_4 = new MinecraftVersion("1.19.4");
   public static final MinecraftVersion VER1_19_3 = new MinecraftVersion("1.19.3");
+  public static final MinecraftVersion VER1_19_2 = new MinecraftVersion("1.19.2");
   public static final MinecraftVersion VER1_19_1 = new MinecraftVersion("1.19.1");
   public static final MinecraftVersion VER1_19 = new MinecraftVersion("1.19");
   public static final MinecraftVersion VER1_18_2 = new MinecraftVersion("1.18.2");

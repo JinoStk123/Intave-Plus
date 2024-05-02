@@ -13,7 +13,7 @@ public class OneForAll<SUB extends LIS_BASE, LIS_BASE, KEY> implements Subscript
   }
 
   @Override
-  public Class<SUB> subscriberClass() {
+  public Class<SUB> type() {
     return subscriberClass;
   }
 

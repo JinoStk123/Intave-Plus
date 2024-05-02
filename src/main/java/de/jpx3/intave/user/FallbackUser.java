@@ -396,13 +396,23 @@ final class FallbackUser implements User {
   }
 
   @Override
+  public void packetTickFeedback(PacketEvent event, EmptyFeedbackCallback callback) {
+
+  }
+
+  @Override
+  public void packetTickFeedback(PacketEvent event, EmptyFeedbackCallback callback, int options) {
+    User.super.packetTickFeedback(event, callback, options);
+  }
+
+  @Override
   public void tracedTickFeedback(EmptyFeedbackCallback callback, FeedbackObserver tracker) {
 
   }
 
   @Override
-  public void tracedTickFeedback(EmptyFeedbackCallback callback, FeedbackObserver tracker, int options) {
-    User.super.tracedTickFeedback(callback, tracker, options);
+  public void tracedPacketTickFeedback(PacketEvent event, EmptyFeedbackCallback callback, FeedbackObserver tracker) {
+
   }
 
   @Override

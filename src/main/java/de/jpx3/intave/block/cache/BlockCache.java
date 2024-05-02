@@ -50,6 +50,14 @@ public interface BlockCache {
    */
   int variantIndexAt(int posX, int posY, int posZ);
 
+  boolean isClientSpeculatingAt(int posX, int posY, int posZ);
+
+  void setClientSpeculationValue(World world, int posX, int posY, int posZ, Material type, int variant, int sequenceNumber);
+
+  void undoClientSpeculation(World world, int posX, int posY, int posZ);
+
+  void moveClientSpeculationsToOverride(World world, int requiredSequenceNumber);
+
   /**
    * Retrieves if this position is currently being overridden
    *
