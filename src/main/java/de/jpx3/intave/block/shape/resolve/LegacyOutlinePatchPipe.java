@@ -3,6 +3,8 @@ package de.jpx3.intave.block.shape.resolve;
 import de.jpx3.intave.block.shape.BlockShape;
 import de.jpx3.intave.block.shape.ShapeResolverPipeline;
 import de.jpx3.intave.block.type.MaterialSearch;
+import de.jpx3.intave.share.BoundingBox;
+import de.jpx3.intave.share.Direction;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -23,12 +25,30 @@ public class LegacyOutlinePatchPipe implements ShapeResolverPipeline {
 
   @Override
   public BlockShape outlineShapeOf(World world, Player player, Material type, int variantIndex, int posX, int posY, int posZ) {
+    BlockShape outputBox;
     if (affected(type)) {
       // use collision shape for outline
-      return forward.collisionShapeOf(world, player, type, variantIndex, posX, posY, posZ);
+      outputBox = forward.collisionShapeOf(world, player, type, variantIndex, posX, posY, posZ);
     } else {
-      return forward.outlineShapeOf(world, player, type, variantIndex, posX, posY, posZ);
+      outputBox = forward.outlineShapeOf(world, player, type, variantIndex, posX, posY, posZ);
     }
+
+    double xMidpoint = (outputBox.min(Direction.Axis.X_AXIS) + outputBox.max(Direction.Axis.X_AXIS)) / 2;
+    double yMidpoint = (outputBox.min(Direction.Axis.Y_AXIS) + outputBox.max(Direction.Axis.Y_AXIS)) / 2;
+    double zMidpoint = (outputBox.min(Direction.Axis.Z_AXIS) + outputBox.max(Direction.Axis.Z_AXIS)) / 2;
+
+    boolean assumeIncorrectlyNormalized =
+      xMidpoint >= 0 && xMidpoint <= 1 && Math.abs(posX - xMidpoint) > 3 &&
+      yMidpoint >= 0 && yMidpoint <= 1 && Math.abs(posY - yMidpoint) > 3 &&
+      zMidpoint >= 0 && zMidpoint <= 1 && Math.abs(posZ - zMidpoint) > 3;
+
+    if (assumeIncorrectlyNormalized) {
+      if (outputBox instanceof BoundingBox) {
+        ((BoundingBox) outputBox).makeOriginBox();
+      }
+      outputBox = outputBox.contextualized(posX, posY, posZ);
+    }
+    return outputBox;
   }
 
   private final Set<Material> affectedMaterials = MaterialSearch.materialsThatContain(
