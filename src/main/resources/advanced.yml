@@ -59,10 +59,11 @@ check:
     # Do you want to block pulse-blinking?
     block-pulse-blink: true
 
-    # DO NOT BAN
     thresholds:
-      50: "intave internals sendnotify &c{player}&7/{trust-color}&7 is moving too frequently / is lagging"
-      100: "intave internals sendnotify &c{player}&7/{trust-color}&7 is moving too frequently / is lagging for a long period"
+      50: "intave internals sendnotify &c{player}&7/{trust-color}&7 is speeding up their game"
+      75: "intave internals sendnotify &c{player}&7/{trust-color}&7 is speeding up their game #2"
+      100:
+        - $ban$
 
   heuristics:
     enabled: true
