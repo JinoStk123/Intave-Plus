@@ -337,10 +337,10 @@ public final class Heuristics extends MetaCheck<Heuristics.HeuristicMeta> {
     YamlConfiguration settings = IntavePlugin.singletonInstance().settings();
     ConfigurationSection section = settings.getConfigurationSection("check.heuristics.cloud-thresholds.on-premise");
     if (section != null) {
-      IntaveLogger.logger().info("Using new heuristics format");
+//      IntaveLogger.logger().info("Using new heuristics format");
       return legacyConfigLayCache = false;
     } else {
-      IntaveLogger.logger().info("Still using old heuristics config format");
+//      IntaveLogger.logger().info("Still using old heuristics config format");
       return legacyConfigLayCache = true;
     }
   }
