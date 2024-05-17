@@ -16,9 +16,7 @@ import de.jpx3.intave.user.meta.AbilityMetadata;
 import de.jpx3.intave.user.meta.MetadataBundle;
 import de.jpx3.intave.user.meta.MovementMetadata;
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerTeleportEvent;
 
 import static de.jpx3.intave.module.linker.packet.PacketId.Client.*;
 import static de.jpx3.intave.module.linker.packet.PacketId.Server.POSITION;
@@ -111,18 +109,18 @@ public final class AbilityTracker extends Module {
       double distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
       if (distance > 4) {
         if (user.receives(MessageChannel.DEBUG_TELEPORT)) {
-          player.sendMessage(IntavePlugin.prefix() + "Teleport to " + player.getLocation().getBlockX() + " " + player.getLocation().getBlockY() + " " + player.getLocation().getBlockZ() + " " + " for " + ChatColor.RED + " critical flying disallow protection");
+          player.sendMessage(IntavePlugin.prefix() + "Pseudo-Teleport to " + player.getLocation().getBlockX() + " " + player.getLocation().getBlockY() + " " + player.getLocation().getBlockZ() + " " + " for " + ChatColor.RED + " critical flying disallow protection");
         }
-        player.teleport(
-          new Location(
-            player.getWorld(),
-            movementData.verifiedPositionX,
-            movementData.verifiedPositionY,
-            movementData.verifiedPositionZ,
-            player.getLocation().getYaw(),
-            player.getLocation().getPitch()
-          ), PlayerTeleportEvent.TeleportCause.UNKNOWN
-        );
+//        player.teleport(1
+//          new Location(
+//            player.getWorld(),
+//            movementData.verifiedPositionX,
+//            movementData.verifiedPositionY,
+//            movementData.verifiedPositionZ,
+//            player.getLocation().getYaw(),
+//            player.getLocation().getPitch()
+//          ), PlayerTeleportEvent.TeleportCause.UNKNOWN
+//        );
         movementData.criticalFlyingDisallowStacks = 0;
       }
     }
