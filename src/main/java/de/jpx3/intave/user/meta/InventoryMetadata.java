@@ -207,12 +207,13 @@ public final class InventoryMetadata {
     if (!inventoryOpen && clientData.supportsInventoryAchievementPacket()) {
       this.forceInventoryOnClickOpen = true;
     }
-//    deactivateHand();
-    releaseItemNextTick();
-
-    if (user.receives(MessageChannel.DEBUG_ITEM_RESETS)) {
-      user.player().sendMessage(IntavePlugin.prefix() + "Requesting item usage reset as " + ChatColor.RED + " inventory was toggled ");
+    if (inventoryOpen != this.inventoryOpen) {
+      releaseItemNextTick();
+      if (user.receives(MessageChannel.DEBUG_ITEM_RESETS)) {
+        user.player().sendMessage(IntavePlugin.prefix() + "Requesting item usage reset as " + ChatColor.RED + " inventory was toggled ");
+      }
     }
+//    deactivateHand();
     this.inventoryOpen = inventoryOpen;
   }
 
