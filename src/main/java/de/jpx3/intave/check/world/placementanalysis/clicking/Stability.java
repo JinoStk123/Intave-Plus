@@ -88,6 +88,7 @@ public final class Stability extends MetaCheckPart<PlacementAnalysis, Stability.
 
                     if (meta.vl > 6) {
                         //dmc45
+                        user.nerfPermanently(AttackNerfStrategy.GARBAGE_HITS, "45");
                         user.nerf(AttackNerfStrategy.APPLY_LESS_KNOCKBACK, "45");
                         user.nerf(AttackNerfStrategy.CRITICALS, "45");
                         meta.vl -= 0.2;
