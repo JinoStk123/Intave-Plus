@@ -59,18 +59,17 @@ public final class Session {
     this.cloud = cloud;
   }
 
-  public void init(Consumer<Boolean> onFinal) {
+  public void tryToConnect(Consumer<Boolean> lazyReturn) {
     EventLoopGroup group = new NioEventLoopGroup(2, IntaveThreadFactory.ofPriority(3));
     Bootstrap bootstrap = new Bootstrap()
       .group(group)
       .channel(NioSocketChannel.class)
-      .option(CONNECT_TIMEOUT_MILLIS, 5000)
+      .option(CONNECT_TIMEOUT_MILLIS, 8000)
       .handler(new ChannelInitializer<SocketChannel>() {
         @Override
         protected void initChannel(SocketChannel ch) throws Exception {
           ch.pipeline()
             .addLast("timeout", new ReadTimeoutHandler(120))
-//            .addLast("logger", new LoggingHandler(LogLevel.INFO))
             .addLast("decompression", new Decompression(256))
             .addLast("compression", new Compression(256))
             .addLast("codec", new PacketCodec(protocol, CLIENTBOUND))
@@ -82,25 +81,24 @@ public final class Session {
     try {
       boolean connected = bootstrap.connect(shard.domain(), shard.port()).await().addListener(future -> {
         if (!future.isSuccess()) {
-          onFinal.accept(false);
+          lazyReturn.accept(false);
           return;
         }
         channel = ((ChannelFuture) future).channel();
         channel.closeFuture().addListener(future2 -> {
-          IntaveLogger.logger().info("Cloud connection closed forcefully");
+          IntaveLogger.logger().info("Cloud session closed");
           shutdownSubscribers.forEach(subscriber -> subscriber.accept(this));
           group.shutdownGracefully();
-          onFinal.accept(false);
+          lazyReturn.accept(false);
         });
-        onFinal.accept(true);
+        lazyReturn.accept(true);
       }).await(10, SECONDS);
       if (!connected) {
-        IntaveLogger.logger().info("Cloud connection timed out");
-        onFinal.accept(false);
+        IntaveLogger.logger().info("Unable to connect to cloud");
+        lazyReturn.accept(false);
       }
     } catch (Exception e) {
-      IntaveLogger.logger().info("Cloud disconnected");
-      onFinal.accept(false);
+      lazyReturn.accept(false);
     }
   }
 

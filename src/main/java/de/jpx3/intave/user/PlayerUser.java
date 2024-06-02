@@ -153,7 +153,7 @@ final class PlayerUser implements User {
     Player player = player();
     LogTransmittor logTransmittor = IntavePlugin.singletonInstance().logTransmittor();
     ProtocolMetadata clientData = meta().protocol();
-    logTransmittor.addPlayerLog(player, "(JOIN) " + player.getName() + " joined with version " + clientData.versionString() + "/" + clientData.protocolVersion() + " and locale " + clientData.locale());
+    logTransmittor.addPlayerLog(player, "(JOIN) " + player.getName() + " joined game "+IntavePlugin.gameId()+" with version " + clientData.versionString() + "/" + clientData.protocolVersion() + " and locale " + clientData.locale());
     if (!ConsoleOutput.CLIENT_VERSION_DEBUG) {
       return;
     }

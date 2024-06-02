@@ -31,6 +31,7 @@ public final class Timer extends Check {
     // deprecated
     highToleranceMode = settings.boolBy("high-tolerance", false);
     lowTolerance = settings.boolBy("low-tolerance", IntaveControl.GOMME_MODE);
+    // reverse lag just sucks
     reverseLag = settings.boolBy("reverse-lag", false);
 
     blinkLimit = settings.intBy("blink-limit", (lowTolerance ? 100 : -1));

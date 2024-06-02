@@ -59,6 +59,7 @@ public final class Cloud {
   private CloudConfig cloudConfig;
   private int taskId;
   private boolean wasConnected = false;
+  private boolean lastAttemptFailed = false;
 
   public void init() {
     setupKeepAliveTick();
@@ -91,20 +92,27 @@ public final class Cloud {
       throw new IllegalArgumentException("Shard cannot be null");
     }
     Session session = new Session(shard, this);
-    session.init(success -> {
+    session.tryToConnect(success -> {
       if (success) {
-//        IntaveLogger.logger().info("Authenticating with " + shard + "..");
         session.subscribeToStarted(unused -> {
           reconnectAttempts.remove(shard);
-//          IntaveLogger.logger().info("Connected to " + shard);
+          if (lastAttemptFailed) {
+            IntaveLogger.logger().info("Successfully reconnected to " + shard);
+            lastAttemptFailed = false;
+            for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+              IntavePlugin.singletonInstance().logTransmittor()
+                .addPlayerLog(onlinePlayer, "--- CLOUD RECONNECTED ---");
+            }
+          }
           setTrustAndStorage();
           askForGlobalSampleTransmission();
           wasConnected = true;
         });
       } else {
+        lastAttemptFailed = true;
         // called on failure or connection closure
         int attempts = reconnectAttempts.getOrDefault(shard, 0);
-        int retryingIn = (int) (Math.pow(2, attempts + 1) * 2) + 10;
+        int retryingIn = (int) (Math.pow(2, attempts + 1.75) * 2) + 10;
 
         // add random 25% jitter
         retryingIn += (int) (retryingIn * (Math.random() * 0.25));
@@ -114,6 +122,7 @@ public final class Cloud {
             Nayoro nayoro = Modules.nayoro();
             int delay = 0;
             for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+              IntavePlugin.singletonInstance().logTransmittor().addPlayerLog(onlinePlayer, "--- CLOUD LOST ---");
               nayoro.disableRecordingFor(UserRepository.userOf(onlinePlayer));
             }
           } catch (Exception exception) {
@@ -123,14 +132,20 @@ public final class Cloud {
           wasConnected = false;
         }
 
-        IntaveLogger.logger().warning("Unable to connect to " + shard + ", retrying in " + retryingIn + " seconds, attempt " + attempts + "/20");
+        IntaveLogger.logger().warning(
+          String.format("Cloud reconnect unsuccessful, retrying in %d seconds, attempt %d/20", retryingIn, attempts + 1)
+        );
         if (attempts < 20) {
           reconnectAttempts.put(shard, attempts + 1);
           Synchronizer.synchronizeDelayed(() -> {
             BackgroundExecutors.executeWhenever(() -> openSession(shard));
           }, 20 * retryingIn);
         } else {
-          IntaveLogger.logger().warning("Unable to connect to " + shard + " after 10 attempts");
+          IntaveLogger.logger().warning("Unable to connect to " + shard + " after 20 attempts");
+          IntaveLogger.logger().warning("We will try to reconnect every 12 hours now");
+          Synchronizer.synchronizeDelayed(() -> {
+            BackgroundExecutors.executeWhenever(() -> openSession(shard));
+          }, 20 * 60 * 60 * 12);
         }
         sessions.remove(shard);
       }
@@ -254,7 +269,7 @@ public final class Cloud {
     storageRequests.entrySet().removeIf(entry -> now - entry.getValue().lastUpdate() > timeout);
   }
 
-  public void requestSampleTransmission(Player player,  Consumer<Classifier> callbackIfAccepted) {
+  public void requestSampleTransmission(Player player, Consumer<Classifier> callbackIfAccepted) {
     if (!cloudConfig.isEnabled() || !cloudConfig.features().sampleTransmission()) {
       return;
     }
@@ -263,11 +278,7 @@ public final class Cloud {
       return;
     }
     UUID id = player.getUniqueId();
-    Request<Classifier> request = sampleTransmissionRequests.get(id);
-    if (request == null) {
-      request = new Request<>();
-      sampleTransmissionRequests.put(id, request);
-    }
+    Request<Classifier> request = sampleTransmissionRequests.computeIfAbsent(id, k -> new Request<>());
     request.subscribe(callbackIfAccepted);
     sendPacket(new ServerboundSampleTransmissionRequest(Identity.from(player)));
   }
@@ -277,11 +288,7 @@ public final class Cloud {
       return;
     }
     UUID id = player.getUniqueId();
-    Request<Classifier> request = sampleTransmissionRequests.get(id);
-    if (request == null) {
-      request = new Request<>();
-      sampleTransmissionRequests.put(id, request);
-    }
+    Request<Classifier> request = sampleTransmissionRequests.computeIfAbsent(id, k -> new Request<>());
     request.subscribe(callbackIfAccepted);
     sendPacket(new ServerboundSampleTransmissionRequest(Identity.from(player), classifier, cheatOrScenario, version));
   }
@@ -325,11 +332,7 @@ public final class Cloud {
       return;
     }
     UUID key = player.getUniqueId();
-    Request<TrustFactor> request = trustfactorRequests.get(key);
-    if (request == null) {
-      request = new Request<>();
-      trustfactorRequests.put(key, request);
-    }
+    Request<TrustFactor> request = trustfactorRequests.computeIfAbsent(key, k -> new Request<>());
     request.subscribe(callback);
     sendPacket(new ServerboundRequestTrustfactor(Identity.from(player)));
   }
@@ -345,11 +348,7 @@ public final class Cloud {
     if (!available()) {
       return;
     }
-    Request<ByteBuffer> request = storageRequests.get(id);
-    if (request == null) {
-      request = new Request<>();
-      storageRequests.put(id, request);
-    }
+    Request<ByteBuffer> request = storageRequests.computeIfAbsent(id, k -> new Request<>());
     request.subscribe(callback);
     sendPacket(new ServerboundRequestStorage(Identity.from(id)));
   }
