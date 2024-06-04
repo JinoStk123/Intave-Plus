@@ -79,6 +79,41 @@ final class HopperPatch extends BlockShapePatch {
   }
 
   @Override
+  protected BlockShape outlinePatch(World world, Player player, int posX, int posY, int posZ, Material type, int blockState, BlockShape originalShape) {
+    User user = UserRepository.userOf(player);
+    if (user.protocolVersion() >= VER_1_13) {
+      BlockVariant variant = BlockVariantRegister.variantOf(Material.HOPPER, blockState);
+      Direction direction = variant.enumProperty(Direction.class, "facing");
+      BlockShape shape;
+      switch (direction) {
+        case DOWN:
+          shape = SHAPE_DOWN;
+          break;
+        case NORTH:
+          shape = SHAPE_NORTH;
+          break;
+        case SOUTH:
+          shape = SHAPE_SOUTH;
+          break;
+        case WEST:
+          shape = SHAPE_WEST;
+          break;
+        case EAST:
+          shape = SHAPE_EAST;
+          break;
+        case UP:
+          throw new IllegalStateException("Hopper cannot be facing up");
+        default:
+          shape = MAIN_SHAPE;
+          break;
+      }
+      return shape;
+    } else {
+      return BlockShapes.originCube();
+    }
+  }
+
+  @Override
   public boolean appliesTo(Material material) {
     return material.name().contains("HOPPER");
   }
