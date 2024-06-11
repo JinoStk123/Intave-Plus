@@ -154,7 +154,7 @@ public class PlayerTime extends MetaCheckPart<Timer, PlayerTime.PlayerTimeMeta> 
         statisticApply(user, CheckStatistics::increaseFails);
         Vector setback = new Vector(0, 0, 0);
         Modules.mitigate().movement().emulationSetBack(player, setback, 3, 2, false);
-        if (violationContext.violationLevelAfter() > 20) {
+        if (violationContext.violationLevelAfter() > 50) {
           user.nerfPermanently(AttackNerfStrategy.DMG_HIGH, "timer");
         }
       }
