@@ -9,8 +9,10 @@ import de.jpx3.intave.module.Module;
 import de.jpx3.intave.module.linker.packet.ListenerPriority;
 import de.jpx3.intave.module.linker.packet.PacketSubscription;
 import de.jpx3.intave.packet.PacketSender;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static de.jpx3.intave.module.linker.packet.PacketId.Server.*;
 
@@ -26,13 +28,19 @@ public final class PacketResynchronizer extends Module {
     }
   )
   public void catchDesynchronized(PacketEvent event) {
-    if (!Bukkit.isPrimaryThread()) {
+    if (isInInvalidThread()) {
       event.setCancelled(true);
       Player player = event.getPlayer();
       PacketContainer packet = event.getPacket();
       Synchronizer.synchronize(() -> sendPacket(player, packet));
       PacketSynchronizations.enterResynchronization(event.getPacketType());
     }
+  }
+
+  private final Map<String, Boolean> cache = new HashMap<>();
+
+  private boolean isInInvalidThread() {
+    return cache.computeIfAbsent(Thread.currentThread().getName(), s -> s.startsWith("Netty "));
   }
 
   private void sendPacket(Player player, PacketContainer packet) {

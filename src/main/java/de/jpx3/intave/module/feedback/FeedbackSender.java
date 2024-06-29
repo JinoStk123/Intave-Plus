@@ -20,6 +20,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadLocalRandom;
@@ -98,14 +100,14 @@ public final class FeedbackSender extends Module {
     if (!Bukkit.isPrimaryThread()) {
       if (matches(SELF_SYNCHRONIZATION, options)) {
         Synchronizer.synchronize(() -> tracedDoubleSynchronize(player, encapsulate, target, firstCallback, secondCallback, firstTracker, secondTracker, options));
-      } else {
-        IntaveLogger.logger().error("Can't perform tick-validation off main thread");
-        IntaveLogger.logger().error("Please check if you sent a packet / performed a bukkit player action asynchronously in the following trace:");
+        return;
+      } else if (isInInvalidThread()) {
+        IntaveLogger.logger().error("We can't perform tick-validation on thread " + Thread.currentThread().getName());
         Thread.dumpStack();
         firstCallback.success(player, target);
         secondCallback.success(player, target);
+        return;
       }
-      return;
     }
     User user = UserRepository.userOf(player);
     if (!user.hasPlayer()) {
@@ -116,6 +118,12 @@ public final class FeedbackSender extends Module {
     sendPacket(player, encapsulate.shallowClone());
     user.receiveNextOutboundPacketAgain();
     tracedSingleSynchronize(player, target, secondCallback, secondTracker, options);
+  }
+
+  private final Map<String, Boolean> cache = new HashMap<>();
+
+  private boolean isInInvalidThread() {
+    return cache.computeIfAbsent(Thread.currentThread().getName(), s -> s.startsWith("Netty "));
   }
 
   public void synchronize(Player player, Consumer<Void> callback) {
