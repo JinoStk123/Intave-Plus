@@ -183,13 +183,13 @@ public final class FeedbackSender extends Module {
     if (!Bukkit.isPrimaryThread()) {
       if (matches(SELF_SYNCHRONIZATION, options)) {
         Synchronizer.synchronize(() -> tracedSingleSynchronize(player, target, callback, tracker, options));
-      } else {
-        IntaveLogger.logger().error("Can't perform tick-validation off main thread");
-        IntaveLogger.logger().error("Please check if you sent a packet / performed a bukkit player action asynchronously in the following trace:");
+        return;
+      } else if (isInInvalidThread()) {
+        IntaveLogger.logger().error("We can't perform tick-validation on thread " + Thread.currentThread().getName());
         Thread.dumpStack();
         callback.success(player, target);
+        return;
       }
-      return;
     }
     User user = UserRepository.userOf(player);
     if (!user.hasPlayer()) {
