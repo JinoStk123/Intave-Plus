@@ -109,6 +109,7 @@ public final class AttackDispatcher extends Module {
       // Sprinting will be set to zero after the first reduce in the tick, does not apply to knockback
       boolean limitedToOneAttack = itemKnockback == 0;
 
+      //player.sendMessage(entity.isPlayer + " " + f + " " + f1 + " " + isSprinting + " " + itemKnockback + " " + limitedToOneAttack);
       if (entity.isPlayer && (f > 0 || f1 > 0) && (isSprinting || itemKnockback > 0)) {
         movementData.pastPlayerReduceAttackPhysics = 0;
         if (movementData.reduceTicks == 0 || !limitedToOneAttack) {

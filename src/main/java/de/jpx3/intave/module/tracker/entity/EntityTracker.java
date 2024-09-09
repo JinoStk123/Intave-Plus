@@ -338,6 +338,10 @@ public final class EntityTracker extends Module {
       }
       return null;
     }
+    if ("ServerPlayer".equalsIgnoreCase(typeData.name())) {
+      entityIsPlayer = true;
+    }
+//    player.sendMessage("Spawned " + entityId + ". "+typeData.name()+ " ? " +typeData.isLivingEntity() + " " + typeData.size() + " player:"+entityIsPlayer);
     return processPacketSpawnMob(user, packet, typeData, entityId, entityIsPlayer);
   }
 

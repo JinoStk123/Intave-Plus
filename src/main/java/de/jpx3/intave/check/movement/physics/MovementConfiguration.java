@@ -1,216 +1,293 @@
 package de.jpx3.intave.check.movement.physics;
 
-final class MovementConfiguration {
-  private static final int BOOLEANS = 4;
-  private static final double BOOLEAN_POW_2 = Math.pow(BOOLEANS, 2);
-  private static final MovementConfiguration[] UNIVERSE = new MovementConfiguration[(int) (Math.pow(4, 2) * Math.pow(2, BOOLEANS) * 4) + 1];
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+public class MovementConfiguration {
+  private static final List<State> states;
+
+  private static final QuadState forward = new QuadState();
+  private static final QuadState strafe = new QuadState();
+
+  private static final QuadState attackReduceTicks = new QuadState();
+  private static final BiState sprintingState = new BiState();
+  private static final BiState jumped = new BiState();
+  private static final BiState handActive = new BiState();
+  private static final BiState reduceBefore = new BiState();
+
+  static {
+    List<State> statez = new ArrayList<>();
+    statez.add(forward);
+    statez.add(strafe);
+    statez.add(attackReduceTicks);
+    statez.add(sprintingState);
+    statez.add(jumped);
+    statez.add(handActive);
+    statez.add(reduceBefore);
+    states = Collections.unmodifiableList(statez);
+  }
+
+  private static final MovementConfiguration[] UNIVERSE = new MovementConfiguration[
+    1 << (states.stream().mapToInt(State::bitLength).reduce(1, Integer::sum) + 1)
+    ];
+
+  static {
+    Arrays.setAll(UNIVERSE, MovementConfiguration::new);
+  }
 
   private final int index;
-  private final int forward, strafe;
-  private final int attackReduceTicks;
-  private final boolean attackReduce, sprinting, jumped, handActive;
 
-  private MovementConfiguration(
-    int index,
-    int forward, int strafe,
-    int attackReduceTicks, boolean sprinting,
-    boolean jumped, boolean handActive
-  ) {
+  private MovementConfiguration(int index) {
     this.index = index;
-    this.forward = forward;
-    this.strafe = strafe;
-    this.attackReduce = attackReduceTicks >= 1;
-    this.attackReduceTicks = attackReduceTicks;
-    this.sprinting = sprinting;
-    this.jumped = jumped;
-    this.handActive = handActive;
+  }
+
+  public static MovementConfiguration select(
+    int forward, int strafe, int reduceTicks, boolean sprint, boolean jumped, boolean handActive, boolean reduceBefore
+  ) {
+    MovementConfiguration configuration = noAction();
+    configuration = configuration.withForward(forward);
+    configuration = configuration.withStrafe(strafe);
+    configuration = configuration.withReduceTicks(reduceTicks);
+    configuration = configuration.withSprintingSetTo(sprint);
+    configuration = configuration.withJumped(jumped);
+    configuration = configuration.withHandActive(handActive);
+    configuration = configuration.withReduceBefore(reduceBefore);
+    return configuration;
   }
 
   public int forward() {
-    return forward;
+    int forwardRepresentation = forward.get(index);
+    switch (forwardRepresentation) {
+      case 0:
+        return 0;
+      case 1:
+        return 1;
+      case 2:
+        return -1;
+      default:
+        throw new IllegalStateException("Unexpected value: " + forwardRepresentation);
+    }
   }
 
   public int strafe() {
-    return strafe;
-  }
-
-  public boolean isReducing() {
-    return attackReduceTicks > 0;
-  }
-
-  public int reduceTicks() {
-    return attackReduceTicks;
-  }
-
-  public MovementConfiguration withReducing(int ticks) {
-    ticks &= 0b11;
-    if (ticks == 0) {
-      return withoutReducing();
-    } else if (attackReduceTicks == ticks) {
-      return this;
+    // can only be 0, 1, 2
+    int strafeRepresentation = strafe.get(index);
+    switch (strafeRepresentation) {
+      case 0:
+        return 0;
+      case 1:
+        return 1;
+      case 2:
+        return -1;
+      default:
+        throw new IllegalStateException("Unexpected value: " + strafeRepresentation);
     }
-    return keyLookup(index | ticks << BOOLEANS + 4 | 1 << 3);
   }
 
-  public MovementConfiguration withoutReducing() {
-    if (attackReduceTicks == 0) {
-      return this;
+  public MovementConfiguration withForward(int forward) {
+    if (forward < -1 || forward > 1) {
+      throw new IllegalArgumentException("forward can only be -1, 0, 1");
     }
-    return keyLookup(index & ~(0b11 << BOOLEANS + 4) & ~(1 << 3));
-  }
-
-  public boolean isSprinting() {
-    return sprinting;
-  }
-
-  public MovementConfiguration withSprinting() {
-    if (sprinting) {
-      return this;
+    switch (forward) {
+      case -1:
+        return UNIVERSE[MovementConfiguration.forward.set(index, 2)];
+      case 0:
+        return UNIVERSE[MovementConfiguration.forward.set(index, 0)];
+      case 1:
+        return UNIVERSE[MovementConfiguration.forward.set(index, 1)];
+      default:
+        throw new IllegalStateException("Unexpected value: " + forward);
     }
-    return keyLookup(index | 1 << 2);
   }
 
-  public MovementConfiguration withoutSprinting() {
-    if (!sprinting) {
-      return this;
+  public MovementConfiguration withStrafe(int strafe) {
+    if (strafe < -1 || strafe > 1) {
+      throw new IllegalArgumentException("strafe can only be -1, 0, 1");
     }
-    return keyLookup(index & ~(1 << 2));
-  }
-
-  public boolean isJumping() {
-    return jumped;
-  }
-
-  public MovementConfiguration withJump() {
-    if (jumped) {
-      return this;
+    switch (strafe) {
+      case -1:
+        return UNIVERSE[MovementConfiguration.strafe.set(index, 2)];
+      case 0:
+        return UNIVERSE[MovementConfiguration.strafe.set(index, 0)];
+      case 1:
+        return UNIVERSE[MovementConfiguration.strafe.set(index, 1)];
+      default:
+        throw new IllegalStateException("Unexpected value: " + strafe);
     }
-    return keyLookup(index | 1 << 1);
-  }
-
-  public MovementConfiguration withoutJump() {
-    if (!jumped) {
-      return this;
-    }
-    return keyLookup(index & ~(1 << 1));
-  }
-
-  public boolean isHandActive() {
-    return handActive;
-  }
-
-  public MovementConfiguration withActiveHand() {
-    if (handActive) {
-      return this;
-    }
-    return keyLookup(index | 1);
-  }
-
-  public MovementConfiguration withoutActiveHand() {
-    if (!handActive) {
-      return this;
-    }
-    return keyLookup(index & ~1);
   }
 
   public MovementConfiguration withoutKeypress() {
-    if (forward == 0 && strafe == 0) {
-      return this;
-    }
-    return withKeyPress(0, 0);
+    return withForward(0).withStrafe(0);
   }
 
-  public MovementConfiguration withKeyPress(int forward, int strafe) {
+  public MovementConfiguration withKeypress(int forward, int strafe) {
     if (Math.abs(forward) > 1 || Math.abs(strafe) > 1) {
-      throw new IllegalStateException("That key can not exist (" + forward + "/" + strafe + ")");
+      throw new IllegalArgumentException("forward and strafe can only be -1, 0, 1");
     }
-    int forwardSlot = (forward + 1 & 0x3) << BOOLEANS + 2;
-    int strafeSlot = (strafe + 1 & 0x3) << BOOLEANS;
-    return keyLookup(forwardSlot | strafeSlot | emptyKeypress().index);
+    return withForward(forward).withStrafe(strafe);
   }
 
-  private MovementConfiguration emptyKeypress() {
-    return keyLookup(index & ~(0b11 << BOOLEANS + 2) & ~(0b11 << BOOLEANS));
+  public static MovementConfiguration[] values() {
+    return UNIVERSE;
   }
 
-  public static MovementConfiguration keyLookup(int key) {
-    MovementConfiguration config = UNIVERSE[key];
-    if (config == null) {
-      throw new IllegalStateException("Unable to lookup " + key);
+  public boolean isReducing() {
+    return attackReduceTicks.get(index) > 0;
+  }
+
+  public int reduceTicks() {
+    return attackReduceTicks.get(index);
+  }
+
+  public MovementConfiguration withReduceTicks(int ticks) {
+    return UNIVERSE[attackReduceTicks.set(index, minmax(ticks, 0, 3))];
+  }
+
+  public MovementConfiguration withoutReducing() {
+    return UNIVERSE[attackReduceTicks.set(index, 0)];
+  }
+
+  public boolean isSprinting() {
+    return sprintingState.get(index);
+  }
+
+  public MovementConfiguration withSprinting() {
+    return UNIVERSE[sprintingState.set(index, true)];
+  }
+
+  public MovementConfiguration withoutSprinting() {
+    return UNIVERSE[sprintingState.set(index, false)];
+  }
+
+  public MovementConfiguration withSprintingSetTo(boolean sprinting) {
+    return UNIVERSE[sprintingState.set(index, sprinting)];
+  }
+
+  public boolean isJumping() {
+    return jumped.get(index);
+  }
+
+  public MovementConfiguration withJumped(boolean hasJumped) {
+    return UNIVERSE[jumped.set(index, hasJumped)];
+  }
+
+  public boolean isHandActive() {
+    return handActive.get(index);
+  }
+
+  public MovementConfiguration withActiveHand() {
+    return UNIVERSE[handActive.set(index, true)];
+  }
+
+  public MovementConfiguration withoutActiveHand() {
+    return UNIVERSE[handActive.set(index, false)];
+  }
+
+  public MovementConfiguration withHandActive(boolean hasHandActive) {
+    return UNIVERSE[handActive.set(index, hasHandActive)];
+  }
+
+  public boolean reduceBefore() {
+    return reduceBefore.get(index);
+  }
+
+  public String bitString() {
+    return String.format("%32s", Integer.toBinaryString(index)).replace(' ', '0');
+  }
+
+  public MovementConfiguration withReduceBefore(boolean hasReduceBefore) {
+    return UNIVERSE[reduceBefore.set(index, hasReduceBefore)];
+  }
+
+  private static MovementConfiguration keyLookup(int index) {
+    return UNIVERSE[index];
+  }
+
+  public static MovementConfiguration noAction() {
+    return UNIVERSE[0];
+  }
+
+  private static int minmax(int val, int min, int max) {
+    return Math.max(min, Math.min(max, val));
+  }
+
+  private static int starterBit;
+
+  public MovementConfiguration withJump() {
+    return withJumped(true);
+  }
+
+  public MovementConfiguration withoutJump() {
+    return withJumped(false);
+  }
+
+  private static class BiState extends State {
+    private final int slot = starterBit++;
+
+    public int set(int before, boolean val) {
+      return val ? before | (1 << slot) : before & ~(1 << slot);
     }
-    return config;
+
+    public int set(int before, int val) {
+      return val == 1 ? before | (1 << slot) : before & ~(1 << slot);
+    }
+
+    public boolean get(int before) {
+      return ((before >> slot) & 1) == 1;
+    }
+
+    @Override
+    int bitLength() {
+      return 1;
+    }
+
+    @Override
+    int bitMask() {
+      return 1 << slot;
+    }
   }
 
-  private static final MovementConfiguration EMPTY_CONFIGURATION;
+  private static class QuadState extends State {
+    private final int slot;
 
-  public static MovementConfiguration empty() {
-    return EMPTY_CONFIGURATION;
+    private QuadState() {
+      this.slot = starterBit;
+      starterBit += 2;
+    }
+
+    public int set(int before, int val) {
+      return (before & ~(0b11 << slot)) | val << slot;
+    }
+
+    public int get(int before) {
+      return (before >> slot) & 0b11;
+    }
+
+    @Override
+    int bitLength() {
+      return 2;
+    }
+
+    @Override
+    int bitMask() {
+      return 0b11 << slot;
+    }
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-    MovementConfiguration that = (MovementConfiguration) o;
-    return index == that.index;
+  private abstract static class State {
+    abstract int bitLength();
+
+    abstract int bitMask();
   }
 
   @Override
   public String toString() {
-    return "(" + forward + "/" + strafe + ") " +
-      (attackReduce ? "R" : "") +
-      (sprinting ? "S" : "") +
-      (jumped ? "J" : "") +
-      (handActive ? "H" : "");
-  }
-
-  @Override
-  public int hashCode() {
-    return index;
-  }
-
-  public static MovementConfiguration select(
-    int forward, int strafe,
-    int attackReduceTicks, boolean sprinting,
-    boolean jumped, boolean handActive
-  ) {
-    if (Math.abs(forward) > 1 || Math.abs(strafe) > 1) {
-      throw new IllegalStateException("That key can not exist " + forward + " " + strafe);
-    }
-    if (attackReduceTicks > 4) {
-      attackReduceTicks = 4;
-    }
-    int key = (attackReduceTicks & 0b11) << BOOLEANS + 4 |
-      forward + 1 << BOOLEANS + 2 | strafe + 1 << BOOLEANS |
-      (attackReduceTicks > 0 ? 8 : 0) | (sprinting ? 4 : 0) |
-      (jumped ? 2 : 0) | (handActive ? 1 : 0);
-    try {
-      return keyLookup(key);
-    } catch (IllegalStateException e) {
-      throw new IllegalStateException("Unable to lookup " + key + " " + forward + " " + strafe + " " + attackReduceTicks + " " + sprinting + " " + jumped + " " + handActive);
-    }
-  }
-
-  static {
-    for (int forward = -1; forward <= 1; forward++) {
-      for (int strafe = -1; strafe <= 1; strafe++) {
-        for (int k = 0; k < Math.pow(BOOLEANS, 2); k++) {
-          for (int attackReduceTicks = 0; attackReduceTicks < 4; attackReduceTicks++) {
-            boolean reduceMark = ((k & 0b1000) > 0);
-            boolean reduceTicks = attackReduceTicks > 0;
-            if (reduceMark != reduceTicks) {
-              continue;
-            }
-            int key = (attackReduceTicks & 0b11) << BOOLEANS + 4 | (forward + 1 & 0x3) << BOOLEANS + 2 | (strafe + 1 & 0x3) << BOOLEANS | k;
-            UNIVERSE[key] = new MovementConfiguration(
-              key, forward, strafe,
-              attackReduceTicks, (k & 4) != 0,
-              (k & 2) != 0, (k & 1) != 0
-            );
-          }
-        }
-      }
-    }
-    EMPTY_CONFIGURATION = select(0, 0, 0, false, false, false);
+    return "(" + forward() + ", " + strafe() + ") " +
+      (isReducing() ? "R" + reduceTicks() : "") +
+      (isSprinting() ? "S" : "") +
+      (isJumping() ? "J" : "") +
+      (isHandActive() ? "H" : "");
   }
 }

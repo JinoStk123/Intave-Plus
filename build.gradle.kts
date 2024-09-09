@@ -12,7 +12,7 @@ plugins {
 
 val simpleName = "Intave"
 group = "de.jpx3"
-version = "14.8.5"
+version = "14.8.6"
 description = "Automated cheat detection and prevention"
 
 /*

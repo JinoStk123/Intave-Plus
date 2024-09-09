@@ -55,6 +55,7 @@ class BaseSimulator extends Simulator {
     boolean jumped = configuration.isJumping();
     boolean sprinting = configuration.isSprinting();
     int reduceTicks = configuration.reduceTicks();
+    boolean reduceBefore = configuration.reduceBefore();
 
     // static movement configuration
     MetadataBundle meta = user.meta();
@@ -82,21 +83,24 @@ class BaseSimulator extends Simulator {
       forward *= 0.2f;
       strafe *= 0.2f;
     }
-    for (int i = 0; i < reduceTicks; i++) {
-      motion.motionX *= 0.6;
-      motion.motionZ *= 0.6;
-    }
-    if (reduceTicks > 0) {
-      // perform motion clamping (reducing inaccuracy prefetched)
-      double resetMotion = environment.resetMotion();
-      if (Math.abs(motion.motionX) < resetMotion) {
-        motion.motionX = 0.0;
+
+    if (reduceBefore) {
+      for (int i = 0; i < reduceTicks; i++) {
+        motion.motionX *= 0.6;
+        motion.motionZ *= 0.6;
       }
-      if (Math.abs(motion.motionY) < resetMotion) {
-        motion.motionY = 0.0;
-      }
-      if (Math.abs(motion.motionZ) < resetMotion) {
-        motion.motionZ = 0.0;
+      if (reduceTicks > 0) {
+        // perform motion clamping (reducing inaccuracy prefetched)
+        double resetMotion = environment.resetMotion();
+        if (Math.abs(motion.motionX) < resetMotion) {
+          motion.motionX = 0.0;
+        }
+        if (Math.abs(motion.motionY) < resetMotion) {
+          motion.motionY = 0.0;
+        }
+        if (Math.abs(motion.motionZ) < resetMotion) {
+          motion.motionZ = 0.0;
+        }
       }
     }
 
@@ -628,6 +632,7 @@ class BaseSimulator extends Simulator {
     if (!clientData.waterUpdate()) {
       motion.motionY -= 0.02D;
     }
+    // todo check if it is not movementconfig sprinting
     if (clientData.waterUpdate() && !environment.isSprinting()) {
       if (motion.motionY <= 0.0D
         && Math.abs(motion.motionY - 0.005D) >= 0.003D

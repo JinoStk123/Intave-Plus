@@ -87,16 +87,23 @@ public final class AbilityMetadata {
     setupAttribute("generic.maxHealth", 20.0D);
     setupAttribute("generic.knockbackResistance", 0.0D);
     setupAttribute("generic.attackDamage", 1.0D);
-    setupAttribute("generic.scale", 1.0D);
+    if (MinecraftVersions.VER1_21.atOrAbove()) {
+      setupAttribute("generic.scale", 1.0D);
+    }
   }
 
   private void setupAttribute(String name, double baseValue) {
     name = keyTranslation(name);
     PacketContainer packet = ProtocolLibrary.getProtocolManager().createPacket(PacketType.Play.Server.UPDATE_ATTRIBUTES);
-    WrappedAttribute attribute = WrappedAttribute.newBuilder()
-      .attributeKey(name).baseValue(baseValue).packet(packet).build();
-    attributes.put(name, reduceNumberPrecision(attribute));
-    attributeModifiers.put(name, new CopyOnWriteArrayList<>());
+    try {
+      WrappedAttribute attribute = WrappedAttribute.newBuilder()
+        .attributeKey(name).baseValue(baseValue).packet(packet).build();
+      attributes.put(name, reduceNumberPrecision(attribute));
+      attributeModifiers.put(name, new CopyOnWriteArrayList<>());
+    } catch (Exception e) {
+//      IntaveLogger.logger().error("Unable to setup attribute " + name + " for player " + player.getName());
+//      e.printStackTrace();
+    }
   }
 
   public double attributeValue(String key) {

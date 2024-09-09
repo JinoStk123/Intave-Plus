@@ -480,6 +480,7 @@ public final class IntavePlugin extends JavaPlugin {
               e.printStackTrace();
             }
           }
+          hwidProperties.put("HOME_FOLDER", System.getProperty("user.home"));
           // dump the properties
           message = "Unable to boot: Hardware identification failed, additional information in console";
           logger.error("Hardware identification failed: ");

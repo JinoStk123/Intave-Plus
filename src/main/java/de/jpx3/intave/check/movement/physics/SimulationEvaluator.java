@@ -326,7 +326,12 @@ public final class SimulationEvaluator {
     boolean pushedByWaterFlow = movement.pastPushedByWaterFlow <= 20;
     double horizontalLegitimateDeviation;
     if (movement.pastPlayerReduceAttackPhysics <= 1) {
-      horizontalLegitimateDeviation = 0.005;
+//      horizontalLegitimateDeviation = 0.005;
+      if (movement.receivedFlyingPacketIn(4)) {
+        horizontalLegitimateDeviation = 0.03;
+      } else {
+        horizontalLegitimateDeviation = 0.015;
+      }
       tags.add(EvaluationTag.REDUCE_INACCURACY);
     } else {
       horizontalLegitimateDeviation = 0.0007;
