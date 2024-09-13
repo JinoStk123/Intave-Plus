@@ -31,7 +31,7 @@ public final class ApplyOnShapeBoundingBoxBuilder {
   }
 
   public BlockShape resolveAsShape() {
-    return BlockShapes.merge(boundingBoxes);
+    return BlockShapes.mergeBoxes(boundingBoxes);
   }
 
   public static ApplyOnShapeBoundingBoxBuilder create() {

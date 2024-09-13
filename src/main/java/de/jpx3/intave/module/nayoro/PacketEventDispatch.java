@@ -196,7 +196,6 @@ public final class PacketEventDispatch implements PacketEventSubscriber {
   ) {
     int slots = reader.slots();
     user.meta().connection().nextWindowOpenSlots = slots;
-    //user.player().sendMessage("Opened a window with " + slots + " slots");
   }
 
   @PacketSubscription(

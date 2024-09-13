@@ -10,7 +10,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
-public final class TorchPatch extends BlockShapePatch {
+final class TorchPatch extends BlockShapePatch {
   private static final BlockShape[] torchShapeCache = new BlockShape[6];
 
   @Override

@@ -121,7 +121,7 @@ final class MultiChunkKeyBlockCache implements BlockCache {
       blockState = new BlockState(outlineShape, collisionShape, type, variant);
     }
     BlockPosition position = BlockPosition.of(posX, posY, posZ);
-    int newSequenceNumber = speculativeSequenceNumbers.compute(position, (key, old) -> old == null || seq > old ? seq : old);
+    speculativeSequenceNumbers.compute(position, (key, old) -> old == null || seq > old ? seq : old);
     speculativeHeads.put(position, blockState);
     speculationKeys.add(bigKey(posX, posY, posZ));
     User user = UserRepository.userOf(player);

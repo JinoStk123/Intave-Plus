@@ -628,8 +628,6 @@ public final class InteractionEmulator implements EventProcessor {
       int variant = blockStateAccess.variantIndexAt(block.getX(), block.getY(), block.getZ());
       BlockVariant properties = BlockVariantRegister.variantOf(type, variant);
       String propertyString = "{"+properties.propertyNames().stream().map(s -> s + ": " + properties.propertyOf(s)).collect(Collectors.joining(", ")) +"}";
-
-//      Fluid fluid = Fluids.fluidAt(userOf(player), block.getX(), block.getY(), block.getZ());
       Fluid fluid = Fluids.fluidAt(userOf(player), block.getX(), block.getY(), block.getZ());
       player.sendMessage(type + "/" + variant + "."+propertyString+" f"+ fluid +" -> " + blockStateAccess.collisionShapeAt(block.getX(), block.getY(), block.getZ()) +"/"+blockStateAccess.outlineShapeAt(block.getX(), block.getY(), block.getZ()));
     }

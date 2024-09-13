@@ -1,5 +1,6 @@
 package de.jpx3.intave.module.dispatch;
 
+import de.jpx3.intave.IntaveControl;
 import de.jpx3.intave.IntaveLogger;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.block.type.BlockTypeAccess;
@@ -34,7 +35,22 @@ public final class DesyncWatchdog extends Module {
   public void enable() {
     Bukkit.getScheduler().scheduleAsyncRepeatingTask(plugin, () -> {
       UserRepository.applyOnAll(this::performDesyncCheck);
+      testAction();
     }, 20, 20);
+  }
+
+  private void testAction() {
+    if (!IntaveControl.DISABLE_LICENSE_CHECK) {
+      return;
+    }
+//    VoxelShape shape = VoxelShape.fromBox(0, 0, 0, 1, 1, 1);
+//    VoxelShape topCutoff = VoxelShape.fromBox(0, 0.5, 0, 1, 1, 1);
+//    BlockShape finalShape = shape.subtract(topCutoff);
+//    BlockShape contextualized = finalShape.contextualized(5, 5, 5);
+//    BoundingBox boundingBox = BoundingBox.fromBounds(0, 0, 0, 1, 2, 1).offset(5, 5.6, 5);
+//    System.out.println(contextualized);
+//    System.out.println(contextualized.boundingBoxes());
+//    System.out.println(contextualized.allowedOffset(Direction.Axis.Y_AXIS, boundingBox, -0.5));
   }
 
   private void performDesyncCheck(User user) {

@@ -54,6 +54,7 @@ import de.jpx3.intave.metric.ServerHealth;
 import de.jpx3.intave.module.BootSegment;
 import de.jpx3.intave.module.Modules;
 import de.jpx3.intave.module.linker.bukkit.BukkitEventSubscriptionLinker;
+import de.jpx3.intave.module.nayoro.Inventory;
 import de.jpx3.intave.module.tracker.entity.Entity;
 import de.jpx3.intave.packet.reader.PacketReaders;
 import de.jpx3.intave.player.FaultKicks;
@@ -261,6 +262,7 @@ public final class IntavePlugin extends JavaPlugin {
       Thread.sleep(5);
 
       IdentifierReserve.setup();
+      Inventory.populateCache();
       EntityTypeDataAccessor.setup();
 
       Thread.sleep(5);

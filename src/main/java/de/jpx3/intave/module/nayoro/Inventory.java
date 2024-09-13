@@ -8,7 +8,9 @@ import org.bukkit.inventory.ItemStack;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class Inventory {
   private final int windowId;
@@ -261,13 +263,39 @@ public class Inventory {
         name.endsWith("_BOOTS");
     }
 
+    private static final Set<Material> IS_BLOCK_CACHE = new HashSet<>();
+    private static final Set<Material> IS_NOT_BLOCK_CACHE = new HashSet<>();
+
     private static boolean isBlock(ItemStack item) {
-      return item.getType().isBlock();
+      Material type = item.getType();
+      if (IS_BLOCK_CACHE.contains(type)) {
+        return true;
+      } else if (IS_NOT_BLOCK_CACHE.contains(type)) {
+        return false;
+      }
+      boolean isBlock = type.isBlock();
+      (isBlock ? IS_BLOCK_CACHE : IS_NOT_BLOCK_CACHE).add(type);
+      return isBlock;
+    }
+  }
+
+  private static final Set<Material> CAN_BE_ENCHANTED = new HashSet<>();
+
+  public static void populateCache() {
+    for (Material value : Material.values()) {
+      if (!value.isBlock()) {
+        for (Enchantment enchantment : Enchantment.values()) {
+          if (enchantment.canEnchantItem(new ItemStack(value))) {
+            CAN_BE_ENCHANTED.add(value);
+            break;
+          }
+        }
+      }
     }
   }
 
   public static boolean isGlowing(ItemStack item) {
-    return !item.getEnchantments().isEmpty();
+    return CAN_BE_ENCHANTED.contains(item.getType()) && item.hasItemMeta() && item.getItemMeta().hasEnchants();
   }
 
   public static double[] strengthOf(ItemStack item) {

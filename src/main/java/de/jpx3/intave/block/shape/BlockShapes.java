@@ -1,7 +1,9 @@
 package de.jpx3.intave.block.shape;
 
+import de.jpx3.intave.share.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
 import java.util.List;
 
 public final class BlockShapes {
@@ -46,12 +48,41 @@ public final class BlockShapes {
     }
   }
 
+  public static BlockShape mergeBoxes(@NotNull List<? extends BoundingBox> boxes) {
+    switch (boxes.size()) {
+      case 0:
+        return emptyShape();
+      case 1:
+        return boxes.get(0);
+      case 2:
+        return shapeFromTwo(boxes.get(0), boxes.get(1));
+      default:
+        return VoxelShape.fromBoxes(boxes);
+    }
+  }
+
+  public static BlockShape mergeBoxes(@NotNull BoundingBox... boxes) {
+    switch (boxes.length) {
+      case 0:
+        return emptyShape();
+      case 1:
+        return boxes[0];
+      case 2:
+        return shapeFromTwo(boxes[0], boxes[1]);
+      default:
+        return VoxelShape.fromBoxes(Arrays.asList(boxes));
+    }
+  }
+
   private static BlockShape shapeFromTwo(@NotNull BlockShape first, @NotNull BlockShape second) {
     if (first.isEmpty()) {
       return second;
     }
     if (second.isEmpty() || first == second) {
       return first;
+    }
+    if (first instanceof VoxelShape && second instanceof BoundingBox) {
+      return ((VoxelShape) first).combineWith(VoxelShape.fromBox((BoundingBox) second)).optimized();
     }
     return new MergeBlockShape(first, second);
   }

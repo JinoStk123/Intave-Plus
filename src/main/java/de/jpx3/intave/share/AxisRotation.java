@@ -10,7 +10,7 @@ public enum AxisRotation {
       return axisIn;
     }
 
-    public AxisRotation reverse() {
+    public AxisRotation inverse() {
       return this;
     }
   },
@@ -23,7 +23,7 @@ public enum AxisRotation {
       return AXES[Math.floorMod(axisIn.ordinal() + 1, 3)];
     }
 
-    public AxisRotation reverse() {
+    public AxisRotation inverse() {
       return BACKWARD;
     }
   },
@@ -36,7 +36,7 @@ public enum AxisRotation {
       return AXES[Math.floorMod(axisIn.ordinal() - 1, 3)];
     }
 
-    public AxisRotation reverse() {
+    public AxisRotation inverse() {
       return FORWARD;
     }
   };
@@ -51,9 +51,9 @@ public enum AxisRotation {
 
   public abstract Direction.Axis cycle(Direction.Axis axisIn);
 
-  public abstract AxisRotation reverse();
+  public abstract AxisRotation inverse();
 
-  public static AxisRotation from(Direction.Axis a, Direction.Axis b) {
+  public static AxisRotation differential(Direction.Axis a, Direction.Axis b) {
     return AXIS_ROTATIONS[Math.floorMod(b.ordinal() - a.ordinal(), 3)];
   }
 }

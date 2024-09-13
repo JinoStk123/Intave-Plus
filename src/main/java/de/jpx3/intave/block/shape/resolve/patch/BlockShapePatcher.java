@@ -35,6 +35,7 @@ public final class BlockShapePatcher {
     add(SmallFlowerPatch.class);
     add(MangrovePropagulePatch.class);
     add(TorchPatch.class);
+    add(MudPatch.class);
 //    add(StairPatch.class);
 //    add(BlockDoorPatch.class);
   }

@@ -360,6 +360,11 @@ public enum Direction {
       public double select(double x, double y, double z) {
         return x;
       }
+
+      @Override
+      public <T> T select(T x, T y, T z) {
+        return x;
+      }
     },
     Y_AXIS("y", Direction.Plane.VERTICAL) {
       public int select(int x, int y, int z) {
@@ -369,6 +374,11 @@ public enum Direction {
       public double select(double x, double y, double z) {
         return y;
       }
+
+      @Override
+      public <T> T select(T x, T y, T z) {
+        return y;
+      }
     },
     Z_AXIS("z", Direction.Plane.HORIZONTAL) {
       public int select(int x, int y, int z) {
@@ -376,6 +386,11 @@ public enum Direction {
       }
 
       public double select(double x, double y, double z) {
+        return z;
+      }
+
+      @Override
+      public <T> T select(T x, T y, T z) {
         return z;
       }
     };
@@ -424,6 +439,8 @@ public enum Direction {
     public abstract int select(int x, int y, int z);
 
     public abstract double select(double x, double y, double z);
+
+    public abstract <T> T select(T x, T y, T z);
 
     static {
       for (Direction.Axis value : values()) {

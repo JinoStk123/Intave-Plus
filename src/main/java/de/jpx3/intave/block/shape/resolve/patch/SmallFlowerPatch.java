@@ -12,7 +12,7 @@ import java.util.Set;
 
 import static de.jpx3.intave.share.ClientMath.coordinateRandom;
 
-public final class SmallFlowerPatch extends BlockShapePatch {
+final class SmallFlowerPatch extends BlockShapePatch {
   private static final BoundingBox LEAF = BoundingBox.originFromX16(5.0D, 0.0D, 5.0D, 11.0D, 10.0D, 11.0D);
   private static final BlockShape[][] CACHE = new BlockShape[16][16];
 

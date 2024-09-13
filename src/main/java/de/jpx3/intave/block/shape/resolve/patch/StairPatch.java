@@ -77,11 +77,11 @@ class StairPatch extends BlockShapePatch {
       BlockStairs stairs = (BlockStairs) block;
       List<BoundingBox> shapes = calculateCollisionShapes(serverWorld, stairs.getBlockData(), variantIndex, pos);
       // Contextualize corrected collision boxes to position
-      List<BlockShape> contextualizedShapes = new ArrayList<>();
+      List<BoundingBox> contextualizedShapes = new ArrayList<>();
       for (BoundingBox boundingBox : shapes) {
         contextualizedShapes.add(boundingBox.contextualized(posX, posY, posZ));
       }
-      return BlockShapes.merge(contextualizedShapes);
+      return BlockShapes.mergeBoxes(contextualizedShapes);
     }
     return shape;
   }

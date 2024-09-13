@@ -281,7 +281,7 @@ public final class BoundingBox extends MemoryTraced implements BlockShape {
   }
 
   @Override
-  public BlockShape contextualized(int posX, int posY, int posZ) {
+  public BoundingBox contextualized(int posX, int posY, int posZ) {
     if (!isOriginBox()) {
       return this;
     }
@@ -337,6 +337,10 @@ public final class BoundingBox extends MemoryTraced implements BlockShape {
    */
   public boolean intersectsWith(BoundingBox boundingBox) {
     return boundingBox.maxX > this.minX && boundingBox.minX < this.maxX && (boundingBox.maxY > this.minY && boundingBox.minY < this.maxY && boundingBox.maxZ > this.minZ && boundingBox.minZ < this.maxZ);
+  }
+
+  public boolean intersectsWith(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
+    return maxX > this.minX && minX < this.maxX && (maxY > this.minY && minY < this.maxY && maxZ > this.minZ && minZ < this.maxZ);
   }
 
   /**
