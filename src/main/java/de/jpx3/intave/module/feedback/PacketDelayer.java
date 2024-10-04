@@ -97,7 +97,10 @@ public final class PacketDelayer extends Module {
       CUSTOM_SOUND_EFFECT,
       NAMED_SOUND_EFFECT,
       ANIMATION,
-      CHAT_OUT
+      CHAT_OUT,
+      // required for spawn entity player consistency logic
+      PLAYER_INFO,
+      PLAYER_INFO_REMOVE
     }
   )
   public void enqueueOutgoingPackets(PacketEvent event) {
@@ -110,6 +113,22 @@ public final class PacketDelayer extends Module {
 
     PacketContainer packetContainer = event.getPacket();
     PacketType packetType = event.getPacketType();
+
+//    if (event.getPacketType() == PacketType.Play.Server.PLAYER_INFO) {
+////      connection.lastRespawn = System.currentTimeMillis();
+//      System.out.println("Player info packet for " + event.getPacket().getPlayerInfoDataLists().read(0));
+//      Thread.dumpStack();
+//    }
+
+//    if (event.getPacketType() == PacketType.Play.Server.PLAYER_INFO_REMOVE) {
+//      System.out.println("Player info remove packet for " + event.getPacket().getEntityModifier(player.getWorld()).read(0).getUniqueId());
+//    }
+
+    // spawn player
+//    if (packetType == PacketType.Play.Server.NAMED_ENTITY_SPAWN) {
+//      System.out.println("Named entity spawn packet for " + packetContainer.getUUIDs().read(0));
+//      Thread.dumpStack();
+//    }
 
     if (user.justJoined() || !(reverseBlink || reverseLag)) {
       return;
