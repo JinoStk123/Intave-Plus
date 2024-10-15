@@ -159,6 +159,11 @@ final class CubeShape extends MemoryTraced implements BlockShape {
     return new BlockRaytrace(direction, closest.distance(origin));
   }
 
+  @Override
+  public BoundingBox outline() {
+    return new BoundingBox(x, y, z, x + 1, y + 1, z + 1);
+  }
+
   private boolean xIntersectsWith(Position position) {
     if (position == null) {
       return false;

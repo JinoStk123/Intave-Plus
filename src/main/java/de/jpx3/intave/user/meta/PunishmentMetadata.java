@@ -60,6 +60,10 @@ public final class PunishmentMetadata {
         event -> event.setCancelled(true)
       ),
       new AttackNerfer(
+        AttackNerfStrategy.SHORT_CANCEL, 500,
+        event -> event.setCancelled(true)
+      ),
+      new AttackNerfer(
         AttackNerfStrategy.HT_SPOOF, 750,
         event -> event.setCancelled(true)
       ),

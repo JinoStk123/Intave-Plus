@@ -16,6 +16,8 @@ import de.jpx3.intave.annotate.Nullable;
 import de.jpx3.intave.annotate.Relocate;
 import de.jpx3.intave.block.access.VolatileBlockAccess;
 import de.jpx3.intave.block.collision.Collision;
+import de.jpx3.intave.block.shape.BlockShape;
+import de.jpx3.intave.block.shape.BlockShapes;
 import de.jpx3.intave.block.tick.ShulkerBox;
 import de.jpx3.intave.block.type.MaterialSearch;
 import de.jpx3.intave.block.variant.BlockVariant;
@@ -44,19 +46,13 @@ import de.jpx3.intave.packet.reader.*;
 import de.jpx3.intave.player.FaultKicks;
 import de.jpx3.intave.player.ItemProperties;
 import de.jpx3.intave.player.fake.FakePlayer;
-import de.jpx3.intave.share.BoundingBox;
-import de.jpx3.intave.share.Direction;
-import de.jpx3.intave.share.Motion;
-import de.jpx3.intave.share.NativeVector;
+import de.jpx3.intave.share.*;
 import de.jpx3.intave.user.MessageChannel;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserRepository;
 import de.jpx3.intave.user.meta.*;
 import de.jpx3.intave.world.WorldHeight;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.EventPriority;
@@ -67,10 +63,7 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.util.Vector;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static de.jpx3.intave.IntaveControl.DEBUG_MOVEMENT_IGNORE;
@@ -435,6 +428,14 @@ public final class MovementDispatcher extends Module {
     movementData.updateMovement(packet, hasMovement, hasRotation);
     teleportApplyEnforcer.receiveMovement(event);
 
+    if (IntaveControl.DEBUG_COLLISION_BOXES) {
+      BoundingBox box = movementData.boundingBox().grow(0.1);
+      BlockShape shape = Collision.shape(player, box);
+      List<BoundingBox> boundingBoxes = shape.boundingBoxes();
+      boundingBoxes = BlockShapes.mergeBoxes(boundingBoxes).boundingBoxes();
+      drawDebugBoxes(user, boundingBoxes);
+    }
+
     for (Superposition<?> superposition : movementData.superpositions()) {
       superposition.beginTick();
     }
@@ -551,7 +552,7 @@ public final class MovementDispatcher extends Module {
         movementData.recheckWebStateFromLastTick();
       }
 
-      // I have neither the time or the energy for a proper fix
+      // I have neither the time nor the energy for a proper fix
       if (movementData.motion().length() > 0.5 && movementData.detachVehicleTicks < 2) {
         movementData.setBaseMotionX(0);
         movementData.setBaseMotionY(0);
@@ -612,6 +613,41 @@ public final class MovementDispatcher extends Module {
       movementData.awaitOutgoingTeleport = true; // awaiting next teleport
       event.setCancelled(true);
     }
+  }
+
+  private void drawDebugBoxes(User user, List<BoundingBox> boxes) {
+    if (IntaveControl.DEBUG_COLLISION_BOXES && MinecraftVersions.VER1_13_0.atOrAbove()) {
+      boxes
+        .stream()
+        .flatMap(box -> box.vertices().stream())
+        .distinct()
+        .forEach(position -> spawnParticleAt(user, position));
+    }
+  }
+
+  private void spawnParticleAt(User user, Position position) {
+    user.player().getWorld().spawnParticle(
+      (Particle) particle(),
+      position.toLocation(user.player().getWorld()),
+      1
+    );
+  }
+
+  private Object particleCache;
+
+  private Object particle() {
+    if (particleCache == null) {
+      try {
+        try {
+          particleCache = Particle.VILLAGER_HAPPY;
+        } catch (NoSuchFieldError e) {
+          particleCache = Particle.class.getField("HAPPY_VILLAGER").get(null);
+        }
+      } catch (IllegalAccessException | NoSuchFieldException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    return particleCache;
   }
 
   private void updatePotionEffects(User user) {
@@ -807,7 +843,7 @@ public final class MovementDispatcher extends Module {
 //    if (movement.onGround && movement.elytraFlying) {
 //      player.sendMessage(ChatColor.RED + "Deactivated elytra flying");
 //      movement.elytraFlying = false;
-//    }
+//    }//
     if (movement.inWeb) {
       movement.pastInWeb = 0;
       movement.webTicks++;
@@ -872,12 +908,13 @@ public final class MovementDispatcher extends Module {
       movement.physicsEatingSlotSwitchVL = 0;
     }
 
-    if (!event.isCancelled() /*&& !movement.isTeleportConfirmationPacket && !movement.dropPostTickMotionProcessing*/) {
+    if (!event.isCancelled() && !movement.isTeleportConfirmationPacket && !movement.dropPostTickMotionProcessing) {
       movement.lastOnGround = movement.onGround;
       movement.verifiedPositionX = movement.positionX;
       movement.verifiedPositionY = movement.positionY;
       movement.verifiedPositionZ = movement.positionZ;
       movement.verifiedPositionOrigin = "Verification push";
+//      System.out.println("Verified position: " + movement.positionX + " " + movement.positionY + " " + movement.positionZ);
     }
 
     if (inventoryData.handActive()) {

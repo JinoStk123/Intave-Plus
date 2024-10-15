@@ -7,12 +7,14 @@ import de.jpx3.intave.block.shape.voxel.SameIndexMerger;
 import de.jpx3.intave.share.*;
 import it.unimi.dsi.fastutil.doubles.DoubleSet;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BinaryOperator;
+import java.util.function.Supplier;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 public final class VoxelShape implements BlockShape {
   private final BitSet sectorBits;
@@ -270,14 +272,13 @@ public final class VoxelShape implements BlockShape {
   public boolean intersectsWith(BoundingBox boundingBox) {
     AtomicBoolean intersects = new AtomicBoolean(false);
     forAllBoxes((minX, minY, minZ, maxX, maxY, maxZ) -> {
-      if (boundingBox.maxX >= minX && boundingBox.minX <= maxX &&
-        boundingBox.maxY >= minY && boundingBox.minY <= maxY &&
-        boundingBox.maxZ >= minZ && boundingBox.minZ <= maxZ) {
+      boolean intersectsWith = boundingBox.intersectsWith(minX, minY, minZ, maxX, maxY, maxZ);
+      if (intersectsWith) {
         intersects.set(true);
         return false;
       }
       return true;
-    }, true);
+    }, false);
     return intersects.get();
   }
 
@@ -333,13 +334,24 @@ public final class VoxelShape implements BlockShape {
   }
 
   @Override
+  public BoundingBox outline() {
+    return boundingBoxes().stream().reduce(BoundingBox::union).orElse(BoundingBox.empty());
+  }
+
+  @Override
   public List<BoundingBox> boundingBoxes() {
-    List<BoundingBox> boxes = new ArrayList<>();
+    return collectBoxes(Collectors.toList());
+  }
+
+  public <C, R> R collectBoxes(
+    Collector<? super BoundingBox, C, R> collector
+  ) {
+    Supplier<C> supplier = collector.supplier();
     forAllBoxes((minX, minY, minZ, maxX, maxY, maxZ) -> {
-      boxes.add(BoundingBox.fromBounds(minX, minY, minZ, maxX, maxY, maxZ));
+      collector.accumulator().accept(supplier.get(), BoundingBox.fromBounds(minX, minY, minZ, maxX, maxY, maxZ));
       return true;
     }, true);
-    return boxes;
+    return collector.finisher().apply(supplier.get());
   }
 
   // cursed code
@@ -576,7 +588,7 @@ public final class VoxelShape implements BlockShape {
     }
     VoxelShape shape = null;
     for (BoundingBox box : boxes) {
-      VoxelShape boxShape = fromBox(box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ);
+      VoxelShape boxShape = fromBox(box);
       if (shape == null) {
         shape = boxShape;
       } else {
@@ -599,7 +611,7 @@ public final class VoxelShape implements BlockShape {
     return new VoxelShape(shape.minX, shape.minY, shape.minZ, shape.maxX, shape.maxY, shape.maxZ);
   }
 
-  public static VoxelShape fromBox(
+  public static VoxelShape fromOriginBox(
     double minX, double minY, double minZ,
     double maxX, double maxY, double maxZ
   ) {
@@ -607,7 +619,7 @@ public final class VoxelShape implements BlockShape {
       throw new IllegalArgumentException("Empty shape");
     }
     if (Math.abs(minX) > 10 || Math.abs(minY) > 10 || Math.abs(minZ) > 10) {
-      throw new IllegalArgumentException("Box must be within 10 blocks of the origin");
+      throw new IllegalArgumentException("Must be origin box: " + minX + ", " + minY + ", " + minZ + " -> " + maxX + ", " + maxY + ", " + maxZ);
     }
     return new VoxelShape(minX, minY, minZ, maxX, maxY, maxZ);
   }
@@ -616,9 +628,9 @@ public final class VoxelShape implements BlockShape {
     VoxelShape[] optimized = new VoxelShape[1];
     forAllBoxes((minX, minY, minZ, maxX, maxY, maxZ) -> {
       if (optimized[0] == null) {
-        optimized[0] = fromBox(minX, minY, minZ, maxX, maxY, maxZ);
+        optimized[0] = fromOriginBox(minX, minY, minZ, maxX, maxY, maxZ);
       } else {
-        optimized[0] = optimized[0].combineWith(fromBox(minX, minY, minZ, maxX, maxY, maxZ));
+        optimized[0] = optimized[0].combineWith(fromOriginBox(minX, minY, minZ, maxX, maxY, maxZ));
       }
       return true;
     }, true);

@@ -17,6 +17,8 @@ public final class ViolationMetadata {
   public volatile boolean disableActiveTeleportBundleNextTick;
   public volatile boolean ignorePostTickMotionReset;
 
+  public long lastMovementDebugRequest;
+
   public double backtrackVL;
   public long lastBacktrackVLChange;
   public long lastBacktrackHitCancelRequest;

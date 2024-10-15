@@ -11,6 +11,7 @@ import it.unimi.dsi.fastutil.doubles.DoubleSet;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -133,6 +134,12 @@ public final class BoundingBox extends MemoryTraced implements BlockShape {
     );
   }
 
+  private static final BoundingBox EMPTY = new BoundingBox(0, 0, 0, 0, 0, 0);
+
+  public static BoundingBox empty() {
+    return EMPTY;
+  }
+
   public double min(Direction.Axis axis) {
     switch (axis) {
       case X_AXIS:
@@ -244,6 +251,11 @@ public final class BoundingBox extends MemoryTraced implements BlockShape {
     return new BoundingBox(d0, d1, d2, d3, d4, d5);
   }
 
+  @Override
+  public BoundingBox outline() {
+    return new BoundingBox(minX, minY, minZ, maxX, maxY, maxZ);
+  }
+
   /**
    * Offsets the current bounding box by the specified coordinates. Args: x, y, z
    */
@@ -278,6 +290,27 @@ public final class BoundingBox extends MemoryTraced implements BlockShape {
       }
     }
     return offset;
+  }
+
+  /*
+        +----+
+       /    /|
+      +----+ |
+      |    | +
+      |    |/
+      +----+
+   */
+  public List<Position> vertices() {
+    return Arrays.asList(
+      new Position(minX, minY, minZ),
+      new Position(minX, minY, maxZ),
+      new Position(minX, maxY, minZ),
+      new Position(minX, maxY, maxZ),
+      new Position(maxX, minY, minZ),
+      new Position(maxX, minY, maxZ),
+      new Position(maxX, maxY, minZ),
+      new Position(maxX, maxY, maxZ)
+    );
   }
 
   @Override
@@ -336,11 +369,15 @@ public final class BoundingBox extends MemoryTraced implements BlockShape {
    * Returns whether the given bounding box intersects with this one. Args: axisAlignedBB
    */
   public boolean intersectsWith(BoundingBox boundingBox) {
-    return boundingBox.maxX > this.minX && boundingBox.minX < this.maxX && (boundingBox.maxY > this.minY && boundingBox.minY < this.maxY && boundingBox.maxZ > this.minZ && boundingBox.minZ < this.maxZ);
+    return boundingBox.maxX > this.minX && boundingBox.minX < this.maxX &&
+      boundingBox.maxY > this.minY && boundingBox.minY < this.maxY &&
+      boundingBox.maxZ > this.minZ && boundingBox.minZ < this.maxZ;
   }
 
   public boolean intersectsWith(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
-    return maxX > this.minX && minX < this.maxX && (maxY > this.minY && minY < this.maxY && maxZ > this.minZ && minZ < this.maxZ);
+    return maxX > this.minX && minX < this.maxX &&
+      maxY > this.minY && minY < this.maxY &&
+      maxZ > this.minZ && minZ < this.maxZ;
   }
 
   /**
@@ -672,7 +709,7 @@ public final class BoundingBox extends MemoryTraced implements BlockShape {
   }
 
   public String toCompactString() {
-    return "" + MathHelper.formatDouble(this.minX, 3) + ", " + MathHelper.formatDouble(this.minY, 3) + ", " + MathHelper.formatDouble(this.minZ, 3) + " -> " + MathHelper.formatDouble(this.maxX, 3) + ", " + MathHelper.formatDouble(this.maxY, 3) + ", " + MathHelper.formatDouble(this.maxZ, 3);
+    return MathHelper.formatDouble(this.minX, 3) + ", " + MathHelper.formatDouble(this.minY, 3) + ", " + MathHelper.formatDouble(this.minZ, 3) + " -> " + MathHelper.formatDouble(this.maxX, 3) + ", " + MathHelper.formatDouble(this.maxY, 3) + ", " + MathHelper.formatDouble(this.maxZ, 3);
   }
 
   public boolean func_181656_b() {

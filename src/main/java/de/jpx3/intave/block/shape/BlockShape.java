@@ -21,6 +21,7 @@ public interface BlockShape {
 
   @Nullable
   BlockRaytrace raytrace(Position origin, Position target);
+  BoundingBox outline();
 
   @Deprecated
   List<BoundingBox> boundingBoxes();

@@ -20,6 +20,7 @@ import de.jpx3.intave.block.cache.BlockCache;
 import de.jpx3.intave.block.collision.Collision;
 import de.jpx3.intave.block.fluid.Fluid;
 import de.jpx3.intave.block.fluid.Fluids;
+import de.jpx3.intave.block.shape.BlockShape;
 import de.jpx3.intave.block.type.BlockTypeAccess;
 import de.jpx3.intave.block.variant.BlockVariantNativeAccess;
 import de.jpx3.intave.check.Check;
@@ -709,6 +710,9 @@ public final class Physics extends Check {
       granularDebugs.put("insig", formatDouble(violationLevelData.physicsInsignificantBufferVL, 1));
       granularDebugs.put("acc/off", formatDouble(violationLevelData.physicsOffset, 2));
       granularDebugs.put("s/c v", MinecraftVersion.getCurrentVersion().getVersion() + " / " + user.protocolVersion());
+      BlockShape collShape = Collision.shape(player, currentBoundingBox);
+      granularDebugs.put("coll", collShape.toString());
+      granularDebugs.put("coll_out", collShape.outline().toCompactString());
       granularDebugs.put("v/tags", verticalTags.stream().map(EvaluationTag::toString).map(String::toUpperCase).distinct().collect(Collectors.joining(",")));
       granularDebugs.put("h/tags", horizontalTags.stream().map(EvaluationTag::toString).map(String::toUpperCase).distinct().collect(Collectors.joining(",")));
 
@@ -780,6 +784,10 @@ public final class Physics extends Check {
             player.closeInventory();
           }
           break;
+      }
+
+      if (distance > 5) {
+        violationLevelData.lastMovementDebugRequest = System.currentTimeMillis();
       }
 
       // reduce setbacks

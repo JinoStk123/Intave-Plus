@@ -328,8 +328,6 @@ public final class AttackRaytrace extends MetaCheck<AttackRaytrace.AttackRaytrac
         double stdDev = feedbackAnalysis.stdDev(user);
         double zScore = (highest - mean) / stdDev;
         boolean frequencyMismatch = feedbackAnalysis.recentlyDetectedForFreqMisrep(user);
-//        double latencyProbability = feedbackAnalysis.latencyProbability(user, highest);
-//        player.sendMessage(violationLevel.backtrackVL + " | " + formatDouble(latencyProbability * 100, 8) + "%");
         double addedVl = (zScore > 4.5 ? 1 : 0.5);
         if (frequencyMismatch) {
           addedVl += 0.5;
@@ -355,7 +353,7 @@ public final class AttackRaytrace extends MetaCheck<AttackRaytrace.AttackRaytrac
             .appendFlags(DISPLAY_IN_ALL_VERBOSE_MODES)
             .build();
 
-          boolean certain = faring && feedbackAnalysis.recentlyDetectedForFreqMisrep(user);
+          boolean certain = faring && frequencyMismatch;
 
           ViolationContext violationContext = Modules.violationProcessor().processViolation(violation);
           double after = violationContext.violationLevelAfter();

@@ -30,7 +30,7 @@ public final class BlockRaytrace {
     if (this == obj) return true;
     if (obj == null || getClass() != obj.getClass()) return false;
     BlockRaytrace that = (BlockRaytrace) obj;
-    if (Double.compare(that.lengthOffset, lengthOffset) != 0) return false;
+    if (Math.abs(lengthOffset - that.lengthOffset) > 1e-6) return false;
     return direction == that.direction;
   }
 

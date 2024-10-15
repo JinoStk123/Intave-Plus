@@ -32,6 +32,11 @@ final class EmptyBlockShape implements BlockShape {
   }
 
   @Override
+  public BoundingBox outline() {
+    return BoundingBox.empty();
+  }
+
+  @Override
   public List<BoundingBox> boundingBoxes() {
     return Collections.emptyList();
   }

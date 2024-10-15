@@ -96,6 +96,22 @@ final class ArrayBlockShape extends MemoryTraced implements BlockShape {
     return raytrace;
   }
 
+  @Override
+  public BoundingBox outline() {
+    BoundingBox outline = null;
+    for (BlockShape content : contents) {
+      BoundingBox added = content.outline();
+      if (added != BoundingBox.empty()) {
+        if (outline == null) {
+          outline = added;
+        } else {
+          outline = outline.union(added);
+        }
+      }
+    }
+    return outline == null ? BoundingBox.empty() : outline;
+  }
+
   private static final Reference<List<BoundingBox>> NULL_REFERENCE = new WeakReference<>(null);
   private static final Reference<List<BoundingBox>> EMPTY_REFERENCE = new WeakReference<>(Collections.emptyList());
   private Reference<List<BoundingBox>> boundingBoxCache = NULL_REFERENCE;

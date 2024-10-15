@@ -67,6 +67,11 @@ final class MergeBlockShape implements BlockShape {
   }
 
   @Override
+  public BoundingBox outline() {
+    return firstShape.outline().union(secondShape.outline());
+  }
+
+  @Override
   public List<BoundingBox> boundingBoxes() {
     if (firstShape.isEmpty()) {
       return secondShape.boundingBoxes();

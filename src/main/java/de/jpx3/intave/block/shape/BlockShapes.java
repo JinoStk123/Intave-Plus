@@ -3,7 +3,6 @@ package de.jpx3.intave.block.shape;
 import de.jpx3.intave.share.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
 import java.util.List;
 
 public final class BlockShapes {
@@ -57,7 +56,11 @@ public final class BlockShapes {
       case 2:
         return shapeFromTwo(boxes.get(0), boxes.get(1));
       default:
-        return VoxelShape.fromBoxes(boxes);
+//        return new ComparisonAlertShape(
+//          new ArrayBlockShape(boxes),
+//        );
+//        return VoxelShape.fromBoxes(boxes);
+        return new ArrayBlockShape(boxes);
     }
   }
 
@@ -70,7 +73,12 @@ public final class BlockShapes {
       case 2:
         return shapeFromTwo(boxes[0], boxes[1]);
       default:
-        return VoxelShape.fromBoxes(Arrays.asList(boxes));
+//        return new ComparisonAlertShape(
+//          new ArrayBlockShape(boxes),
+//          VoxelShape.fromAnyBoxes(Arrays.asList(boxes))
+//        );
+//        return VoxelShape.fromBoxes(Arrays.asList(boxes));
+        return new ArrayBlockShape(boxes);
     }
   }
 

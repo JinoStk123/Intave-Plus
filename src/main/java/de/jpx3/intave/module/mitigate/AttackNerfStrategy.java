@@ -5,6 +5,7 @@ import java.util.Map;
 
 public enum AttackNerfStrategy {
   CANCEL("cancel", "full block of all attacks"),
+  SHORT_CANCEL("cancel/micro", "micro block of all attacks"),
   CANCEL_FIRST_HIT("cancel/first"),
   RECEIVE_MORE_KNOCKBACK("kb/receive-more", "receive more knockback"),
   APPLY_LESS_KNOCKBACK("kb/apply-less", "apply less knockback"),
