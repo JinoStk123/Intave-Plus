@@ -1,5 +1,6 @@
 package de.jpx3.intave.user.meta;
 
+import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.reflect.StructureModifier;
 import com.comphenix.protocol.wrappers.BlockPosition;
@@ -340,6 +341,8 @@ public final class MovementMetadata implements SimulationEnvironment {
     PacketContainer packet,
     boolean hasMovement, boolean hasRotation
   ) {
+    boolean vehicleMove = packet.getType() == PacketType.Play.Client.VEHICLE_MOVE;
+    boolean containsCollision = MinecraftVersions.VER1_21_4.atOrAbove();
     PacketLogging logging = Modules.tracker().packetLogging();
     if (!boundingBoxSetup) {
       setupDefaults();
@@ -354,6 +357,9 @@ public final class MovementMetadata implements SimulationEnvironment {
     }
     if (hasMovement) {
       StructureModifier<Double> position = packet.getDoubles();
+      if (containsCollision && vehicleMove) {
+        position = packet.getStructures().read(0).getDoubles();
+      }
       positionX = position.read(0);
       positionY = position.read(1);
       positionZ = position.read(2);
@@ -1461,7 +1467,6 @@ public final class MovementMetadata implements SimulationEnvironment {
   }
 
   public void setVehicle(Entity ridingEntity) {
-    System.out.println("Setting vehicle to " + ridingEntity);
     this.attachVehicleTicks = 0;
     this.invalidVehiclePositionTicks = 0;
     this.attachMoveDistance = ridingEntity.distanceTo(lastPosition());

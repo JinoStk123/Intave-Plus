@@ -340,6 +340,9 @@ public final class MovementDispatcher extends Module {
 
     if (hasMovement) {
       StructureModifier<Double> modifier = packet.getDoubles();
+      if (containsCollision && vehicleMove) {
+        modifier = packet.getStructures().read(0).getDoubles();
+      }
       for (int i = 0; i < 3; i++) {
         Double read = modifier.read(i);
         if ((read == null || Double.isInfinite(read) || Double.isNaN(read)) && FaultKicks.POSITION_FAULTS) {
@@ -384,6 +387,9 @@ public final class MovementDispatcher extends Module {
       && packet.getType() == PacketType.Play.Client.POSITION_LOOK
     ) {
       StructureModifier<Double> modifier = packet.getDoubles();
+      if (containsCollision && vehicleMove) {
+        modifier = packet.getStructures().read(0).getDoubles();
+      }
       double positionX = modifier.read(0);
       double positionY = modifier.read(1);
       double positionZ = modifier.read(2);
