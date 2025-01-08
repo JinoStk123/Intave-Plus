@@ -32,6 +32,7 @@ jobs:
     needs: build
     container:
       image: registry.lennoxlotl.dev/intave/obfuscation-lite:1.0.1
+      options: "--entrypoint /bin/bash"
       credentials:
         username: ${{ secrets.INTAVE_REGISTRY_USERNAME }}
         password: ${{ secrets.INTAVE_REGISTRY_PASSWORD }}
