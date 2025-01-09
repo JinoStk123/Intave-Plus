@@ -10,6 +10,7 @@ import de.jpx3.intave.entity.type.EntityTypeData;
 import de.jpx3.intave.math.Hypot;
 import de.jpx3.intave.module.feedback.FeedbackObserver;
 import de.jpx3.intave.module.feedback.PendingCountingFeedbackObserver;
+import de.jpx3.intave.packet.TeleportFlag;
 import de.jpx3.intave.share.BoundingBox;
 import de.jpx3.intave.share.ClientMath;
 import de.jpx3.intave.share.HistoryWindow;
@@ -20,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class Entity {
   /*
@@ -219,7 +221,6 @@ public class Entity {
    * @param packet contains information about the entity teleportation
    */
   public void handleEntityTeleport(User user, PacketContainer packet) {
-    user.player().sendMessage("received teleport");
     double newPosX;
     double newPosY;
     double newPosZ;
@@ -259,6 +260,63 @@ public class Entity {
       setAlternativeYPosition(alternativePosition.posY);
     } else {
       setAlternativeYPosition(alternativeNewPosY);
+    }
+  }
+
+  public void immediateEntityTeleportModern(PacketContainer packet) {
+    double newPosX;
+    double newPosY;
+    double newPosZ;
+
+    InternalStructure playerPosition = packet.getStructures().read(0);
+    Vector position = playerPosition.getVectors().read(0);
+    Set<TeleportFlag> flags = TeleportFlag.flagsFrom(packet);
+    double currentX = flags.contains(TeleportFlag.X) ? immediateServerPosition.getX() : 0.0;
+    double currentY = flags.contains(TeleportFlag.Y) ? immediateServerPosition.getY() : 0.0;
+    double currentZ = flags.contains(TeleportFlag.Z) ? immediateServerPosition.getZ() : 0.0;
+    newPosX = currentX + position.getX();
+    newPosY = currentY + position.getY();
+    newPosZ = currentZ + position.getZ();
+    immServerPosX = ClientMath.positionLong(newPosX);
+    immServerPosY = ClientMath.positionLong(newPosY);
+    immServerPosZ = ClientMath.positionLong(newPosZ);
+
+    boolean instantTeleport = squaredDistanceTo(newPosX, newPosY, newPosZ) > 4096;
+    if (instantTeleport) {
+      setPosition(newPosX, newPosY, newPosZ);
+    } else {
+      setPositionAndRotationEntityLiving(newPosX, newPosY, newPosZ, 3);
+    }
+  }
+
+  /**
+   * Handles a teleportation. Packets: ENTITY_TELEPORT
+   *
+   * @param packet contains information about the entity teleportation
+   */
+  public void handleEntityTeleportModern(PacketContainer packet) {
+    double newPosX;
+    double newPosY;
+    double newPosZ;
+
+    InternalStructure playerPosition = packet.getStructures().read(0);
+    Vector position = playerPosition.getVectors().read(0);
+    Set<TeleportFlag> flags = TeleportFlag.flagsFrom(packet);
+    double currentX = flags.contains(TeleportFlag.X) ? this.position.posX : 0.0;
+    double currentY = flags.contains(TeleportFlag.Y) ? this.position.posY : 0.0;
+    double currentZ = flags.contains(TeleportFlag.Z) ? this.position.posZ : 0.0;
+    newPosX = currentX + position.getX();
+    newPosY = currentY + position.getY();
+    newPosZ = currentZ + position.getZ();
+    serverPosX = ClientMath.positionLong(newPosX);
+    serverPosY = ClientMath.positionLong(newPosY);
+    serverPosZ = ClientMath.positionLong(newPosZ);
+
+    boolean instantTeleport = squaredDistanceTo(newPosX, newPosY, newPosZ) > 4096;
+    if (instantTeleport) {
+      setPosition(newPosX, newPosY, newPosZ);
+    } else {
+      setPositionAndRotationEntityLiving(newPosX, newPosY, newPosZ, 3);
     }
   }
 

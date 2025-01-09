@@ -585,13 +585,22 @@ public final class EntityTracker extends Module {
 
     MovementMetadata movement = user.meta().movement();
     double distanceBefore = entity.distanceToPlayerCache > 8 ? 10 : entity.immediateServerPosition.distance(movement.positionX, movement.positionY, movement.positionZ);
-    entity.immediateEntityTeleport(user, packet);
+    boolean newTeleports = MinecraftVersions.VER1_21_4.atOrAbove();
+    if (newTeleports) {
+      entity.immediateEntityTeleportModern(packet);
+    } else {
+      entity.immediateEntityTeleport(user, packet);
+    }
     double distanceAfter = distanceBefore > 8 ? 10 : entity.immediateServerPosition.distance(movement.positionX, movement.positionY, movement.positionZ);
 
     if (entity.typeData().isLivingEntity() && entity.tracingEnabled()) {
       EmptyFeedbackCallback task = () -> {
         entity.verifiedPosition = false;
-        entity.handleEntityTeleport(user, packet);
+        if (newTeleports) {
+          entity.handleEntityTeleportModern(packet);
+        } else {
+          entity.handleEntityTeleport(user, packet);
+        }
         entity.clientSynchronized = true;
         nayoroEntityPositionUpdate(player, entity);
       };
@@ -602,7 +611,11 @@ public final class EntityTracker extends Module {
       }
       user.tracedPacketTickFeedback(event, task, observer, options);
     } else {
-      entity.handleEntityTeleport(user, packet);
+      if (newTeleports) {
+        entity.handleEntityTeleportModern(packet);
+      } else {
+        entity.handleEntityTeleport(user, packet);
+      }
       entity.clientSynchronized = false;
     }
   }
