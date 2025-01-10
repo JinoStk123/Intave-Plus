@@ -179,7 +179,7 @@ public final class AbilityMetadata {
   static {
     KEY_WRAPPED = MinecraftVersions.VER1_16_0.atOrAbove();
     Map<String, String> remap = new HashMap<>();
-    if (MinecraftVersions.VER1_21_4.atOrAbove()) {
+    if (MinecraftVersions.VER1_21_3.atOrAbove()) {
       remap.put("generic.maxHealth", "max_health");
       remap.put("generic.followRange", "follow_range");
       remap.put("generic.knockbackResistance", "knockback_resistance");

@@ -11,7 +11,7 @@ import de.jpx3.intave.share.Rotation;
 import java.util.Set;
 
 public final class PlayerTeleportReader extends AbstractPacketReader {
-  private final static boolean VECTOR_ENCAPSULATION = MinecraftVersions.VER1_21_4.atOrAbove();
+  private final static boolean VECTOR_ENCAPSULATION = MinecraftVersions.VER1_21_3.atOrAbove();
   private PositionMoveRotation positionMoveRotation;
   private boolean mod;
 

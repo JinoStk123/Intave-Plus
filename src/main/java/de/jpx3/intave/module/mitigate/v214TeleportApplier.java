@@ -3,10 +3,13 @@ package de.jpx3.intave.module.mitigate;
 import de.jpx3.intave.access.IntaveInternalException;
 import de.jpx3.intave.klass.Lookup;
 import de.jpx3.intave.klass.rewrite.PatchyAutoTranslation;
+import de.jpx3.intave.packet.converter.PosMoveRotConverter;
+import de.jpx3.intave.share.Motion;
+import de.jpx3.intave.share.Position;
+import de.jpx3.intave.share.PositionMoveRotation;
+import de.jpx3.intave.share.Rotation;
 import de.jpx3.intave.user.User;
 import de.jpx3.intave.user.UserRepository;
-import net.minecraft.world.entity.PositionMoveRotation;
-import net.minecraft.world.phys.Vec3D;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.InvocationTargetException;
@@ -20,7 +23,7 @@ class v214TeleportApplier implements TeleportApplier {
   public v214TeleportApplier() {
     Class<?> playerConnectionClass = Lookup.serverClass("PlayerConnection");
     try {
-      internalTeleportMethod = playerConnectionClass.getDeclaredMethod("internalTeleport", PositionMoveRotation.class, Set.class);
+      internalTeleportMethod = playerConnectionClass.getDeclaredMethod("internalTeleport", PosMoveRotConverter.nativePositionMoveRotClass, Set.class);
       if (!internalTeleportMethod.isAccessible()) {
         internalTeleportMethod.setAccessible(true);
       }
@@ -38,8 +41,13 @@ class v214TeleportApplier implements TeleportApplier {
         return;
       }
       Object playerConnection = user.playerConnection();
-      PositionMoveRotation rotation = new PositionMoveRotation(new Vec3D(posX, posY, posZ), new Vec3D(0, 0, 0), yaw, pitch);
-      internalTeleportMethod.invoke(playerConnection, rotation, relatives);
+      PositionMoveRotation posMoveRot = new PositionMoveRotation(
+        new Position(posX, posY, posZ),
+        new Motion(),
+        new Rotation(yaw, pitch)
+      );
+      Object posMoveRotNative = PosMoveRotConverter.INSTANCE.getGeneric(posMoveRot);
+      internalTeleportMethod.invoke(playerConnection, posMoveRotNative, relatives);
     } catch (InvocationTargetException | IllegalAccessException e) {
       e.printStackTrace();
     }

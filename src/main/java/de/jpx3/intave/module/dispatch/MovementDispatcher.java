@@ -314,7 +314,7 @@ public final class MovementDispatcher extends Module {
 
     PacketType packetType = event.getPacketType();
     boolean vehicleMove = packetType == PacketType.Play.Client.VEHICLE_MOVE;
-    boolean containsCollision = MinecraftVersions.VER1_21_4.atOrAbove();
+    boolean containsCollision = MinecraftVersions.VER1_21_3.atOrAbove();
     boolean hasMovement = vehicleMove || packet.getBooleans().read(containsCollision ? 2 : 1);
     boolean hasRotation = vehicleMove || packet.getBooleans().read(containsCollision ? 3 : 2);
 
@@ -735,7 +735,7 @@ public final class MovementDispatcher extends Module {
 
     PacketType packetType = event.getPacketType();
     boolean vehicleMove = packetType == PacketType.Play.Client.VEHICLE_MOVE;
-    boolean containsCollision = MinecraftVersions.VER1_21_4.atOrAbove();
+    boolean containsCollision = MinecraftVersions.VER1_21_3.atOrAbove();
     boolean hasMovement = vehicleMove || packet.getBooleans().read(containsCollision ? 2 : 1);
     boolean hasRotation = vehicleMove || packet.getBooleans().read(containsCollision ? 3 : 2);
     boolean claimsToBeOnGround = vehicleMove ? player.isOnGround() : packet.getBooleans().read(0);
@@ -982,7 +982,7 @@ public final class MovementDispatcher extends Module {
     User user = UserRepository.userOf(player);
     MovementMetadata movementData = user.meta().movement();
     PacketContainer packet = event.getPacket();
-    if (MinecraftVersions.VER1_21_4.atOrAbove()) {
+    if (MinecraftVersions.VER1_21_3.atOrAbove()) {
       StructureModifier<Boolean> inputBooleans = packet.getStructures().read(0).getBooleans();
       movementData.lastInput = movementData.input;
       Input input = new Input();
