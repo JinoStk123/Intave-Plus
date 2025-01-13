@@ -272,19 +272,19 @@ public final class MovementDispatcher extends Module {
       EXPLOSION
     }
   )
-  public void sentExplosion(PacketEvent event) {
-    Player player = event.getPlayer();
-    StructureModifier<Float> floats = event.getPacket().getFloat();
-    User user = UserRepository.userOf(player);
-    user.tickFeedback(() -> {
-      MovementMetadata movementData = user.meta().movement();
-      Float motionX = floats.read(1);
-      Float motionY = floats.read(2);
-      Float motionZ = floats.read(3);
-      movementData.baseMotionX += motionX;
-      movementData.baseMotionY += motionY;
-      movementData.baseMotionZ += motionZ;
-    });
+  public void sentExplosion(
+    User user,
+    ExplosionReader reader
+  ) {
+    Motion knockback = reader.knockback();
+    if (knockback != null) {
+      user.tickFeedback(() -> {
+        MovementMetadata movementData = user.meta().movement();
+        movementData.baseMotionX += knockback.motionX;
+        movementData.baseMotionY += knockback.motionY;
+        movementData.baseMotionZ += knockback.motionZ;
+      });
+    }
   }
 
   @PacketSubscription(
