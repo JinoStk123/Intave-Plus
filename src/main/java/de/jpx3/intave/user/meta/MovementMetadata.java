@@ -524,7 +524,11 @@ public final class MovementMetadata implements SimulationEnvironment {
         continue;
       }
       BlockShape shape = user.blockCache().collisionShapeAt(x, y, z);
-      if (shape.isEmpty() || !box.intersectsWith(BoundingBox.fromBounds(x, y, z, x + 1, y + 1, z + 1))) {
+      if (shape.isEmpty()) {
+        continue;
+      } else if (shape.isCubic() && !box.intersectsWith(BoundingBox.fromBounds(x, y, z, x + 1, y + 1, z + 1))) {
+        continue;
+      } else if (!shape.isCubic() && !shape.intersectsWith(box)) {
         continue;
       }
       double distanceToCenter = distanceToCenter(x, y, z, positionX, positionY, positionZ);
@@ -1303,10 +1307,10 @@ public final class MovementMetadata implements SimulationEnvironment {
 //  @Deprecated
 //  public void setAiMoveSpeed(float aiMoveSpeed) {
 //    this.aiMoveSpeed = aiMoveSpeed;
-////    friction = MovementHelper.resolveFriction(user, sprinting, verifiedPositionX, verifiedPositionY, verifiedPositionZ);
+
+  /// /    friction = MovementHelper.resolveFriction(user, sprinting, verifiedPositionX, verifiedPositionY, verifiedPositionZ);
 //    refreshFriction(sprinting);
 //  }
-
   public int pastFlyingPacketAccurate() {
     return pastFlyingPacketAccurate;
   }
