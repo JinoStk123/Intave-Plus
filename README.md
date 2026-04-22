@@ -1,12 +1,12 @@
-# Intave
+
+![Intave](docs/assets/hero_banner.png "Intave")
+
 
 Intave is an enterprise anticheat plugin for Minecraft servers in development since 2016.
 After almost a decade of use on the world's largest Minecraft servers
-and shutting down in mid-2025, we now decided to give back to the community by making Intave source available to everyone.
+and shutting down in mid-2025, we now decided to give back to the community by making Intave source-available to everyone.
 
 ## General
-
-### How Intave works
 
 Unlike traditional module-based anticheats, Intave accurately simulates player movement, client-side entity and block
 data to detect even the smallest manipulations. Through this approach, Intave successfully prevents any kind of combat,
@@ -48,11 +48,10 @@ If you have any questions, feel free to get in touch with us on [Discord](https:
 
 ## License
 We want to make Intave completely free and open source, available for everyone.
-However, as we've seen with other copy-cat anticheats, we don't want
-others to take our work, rebrand it and sell it as their own creation.
+However, we don't want others to take this work, rebrand it and sell it as their own creation.
 We've seen this happen multiple times with other anticheats, and we explicitly forbid this kind of behavior.
 Still, we want to allow Minecraft servers commercial use of Intave and
-the ability to modify and adapt it to their needs, as long as they don't compete with us by selling it as a product.
+the ability to modify and adapt it to their needs, as long as they don't sell it as a product.
 Therefore, we decided to use the [Polyform Perimeter License 1.0.0](LICENSE.md),
 prohibiting any form of competitive use.
 Please note that Intave uses third-party libraries, which are licensed under their respective licenses.
