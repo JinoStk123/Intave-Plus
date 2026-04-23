@@ -4,10 +4,10 @@ import xyz.jpenilla.runpaper.task.RunServer
 
 plugins {
   java
-  id("com.github.gmazzo.buildconfig") version "4.1.2"
-  id("net.minecrell.plugin-yml.bukkit") version "0.5.2"
-  id("com.github.johnrengelman.shadow") version "7.1.2"
-  id("xyz.jpenilla.run-paper") version "2.1.0"
+  id("com.github.gmazzo.buildconfig") version "6.0.9"
+  id("net.minecrell.plugin-yml.bukkit") version "0.6.0"
+  id("com.gradleup.shadow") version "9.4.1"
+  id("xyz.jpenilla.run-paper") version "3.0.2"
 }
 
 val simpleName = "Intave"
@@ -325,7 +325,11 @@ fun registerServerTask(serverVersion: String, javaVersion: Int) {
 /*
  * Gradle Task Configuration
  */
-java.toolchain.languageVersion.set(JavaLanguageVersion.of(8))
+java {
+  toolchain {
+    languageVersion.set(JavaLanguageVersion.of(21))
+  }
+}
 
 tasks {
   build { dependsOn(shadowJar) }
@@ -346,5 +350,9 @@ tasks {
     val classifier = "file"
     archiveFileName.set("$simpleName.jar")
     archiveClassifier.set(classifier)
+  }
+
+  test {
+    failOnNoDiscoveredTests = false
   }
 }
