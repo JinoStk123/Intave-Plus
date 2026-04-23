@@ -47,16 +47,18 @@ Our block system is briefly outlined in [this document](docs/BLOCK_SYSTEM.md).
 If you have any questions, feel free to get in touch with us on [Discord](https://intave.ac/go/discord).
 
 ## License
-We want to make Intave completely free and open source, available for everyone, indefinitely.
-However, we don't want others to take this work, rebrand it and sell it as their own creation.
+We want to make Intave completely free and open, available for everyone, indefinitely.
+However, we don't want you or others to take this work, rebrand it and sell it as their own creation.
 We've seen this happen multiple times with other anticheats, and we explicitly forbid this kind of behavior.
 Still, we want to allow Minecraft servers commercial use of Intave and
-the ability to modify and adapt it to their needs, as long as they don't sell it as a product.
+the ability to modify and adapt it to their needs, as long as they don't sell it as a product or publish it.
 Therefore, we decided to use the [Polyform Perimeter License 1.0.0](LICENSE.md),
 prohibiting any form of competitive use.
 We also want to encourage everyone to contribute back to the project instead of creating their personal spin-offs,
-so we explicity don't allow any major derivative works.
-This means Intave isn't actually "open-source", but "source-available" for everyone to use and modify, but not to sell or rebrand as their own.
-In case of source stealing or commercial redistribution we will be issuing DMCA takedowns and in blatant cases will go 
-the extra mile to bring legal action against you just like we have done when the project was proprietary.
-Please note that Intave uses third-party libraries, which are licensed under their respective licenses.
+making the project better for everyone instead of fragmenting the community and development efforts.
+This also technically means Intave isn't actually "open-source", but "source-available" for everyone to use and modify, but not to sell,
+rebrand as their own or mix into their own product or project, no matter the respective licenses.
+In case of source stealing or commercial redistribution we will be issuing DMCA takedowns and in blatant cases we will go 
+the extra mile to bring legal action against you, we are not joking about this.
+Please note that Intave uses third-party libraries, which are licensed under their respective licenses and
+may not be covered by the Polyform Perimeter License.
