@@ -32,8 +32,8 @@ public final class ComponentLoader {
   }
 
   public void prepareComponents() {
-    if (Bukkit.getVersion().contains("MC: 1.19") || Bukkit.getVersion().contains("MC: 1.20") || Bukkit.getVersion().contains("MC: 1.21") || Bukkit.getVersion().contains("MC: 1.22")) {
-      essentialComponents.put("ProtocolLib", "https://ci.dmulloy2.net/job/ProtocolLib/lastSuccessfulBuild/artifact/build/libs/ProtocolLib.jar");
+    if (Bukkit.getVersion().contains("MC: 1.19") || Bukkit.getVersion().contains("MC: 1.20") || Bukkit.getVersion().contains("MC: 1.21")) {
+      essentialComponents.put("ProtocolLib", "https://github.com/dmulloy2/ProtocolLib/releases/download/5.4.0/ProtocolLib.jar");
     } else {
       essentialComponents.put("ProtocolLib", "https://" + IntaveDomains.primaryServiceDomain() + "/resource/ProtocolLib-4-8-0.jar");
     }
