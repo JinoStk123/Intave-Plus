@@ -16,18 +16,39 @@ import de.jpx3.intave.check.combat.heuristics.MiningStrategy;
 import de.jpx3.intave.check.combat.heuristics.detect.clickpatterns.OldAirClickLimitHeuristic;
 import de.jpx3.intave.check.combat.heuristics.detect.clickpatterns.SwingDeviationHeuristics;
 import de.jpx3.intave.check.combat.heuristics.detect.clickpatterns.SwingLimitHeuristics;
-import de.jpx3.intave.check.combat.heuristics.detect.combatpatterns.*;
+import de.jpx3.intave.check.combat.heuristics.detect.combatpatterns.AttackRequiredHeuristic;
+import de.jpx3.intave.check.combat.heuristics.detect.combatpatterns.BaritoneRotationCheck;
+import de.jpx3.intave.check.combat.heuristics.detect.combatpatterns.LongTermClickAccuracyHeuristic;
+import de.jpx3.intave.check.combat.heuristics.detect.combatpatterns.LongTermClickAccuracyRelayHeuristic;
+import de.jpx3.intave.check.combat.heuristics.detect.combatpatterns.PerfectAttackHeuristic;
+import de.jpx3.intave.check.combat.heuristics.detect.combatpatterns.PreAttackHeuristic;
+import de.jpx3.intave.check.combat.heuristics.detect.combatpatterns.RotationAccuracyPitchHeuristic;
+import de.jpx3.intave.check.combat.heuristics.detect.combatpatterns.RotationAccuracyYawHeuristic;
+import de.jpx3.intave.check.combat.heuristics.detect.combatpatterns.RotationModuloResetHeuristic;
+import de.jpx3.intave.check.combat.heuristics.detect.combatpatterns.RotationSensitivityHeuristic;
+import de.jpx3.intave.check.combat.heuristics.detect.combatpatterns.RotationStandardDeviationHeuristic;
+import de.jpx3.intave.check.combat.heuristics.detect.combatpatterns.RotationStandardDeviationRelayHeuristic;
+import de.jpx3.intave.check.combat.heuristics.detect.combatpatterns.SameRotationHeuristic;
 import de.jpx3.intave.check.combat.heuristics.detect.experimental.RotationPrevisionDetermination;
 import de.jpx3.intave.check.combat.heuristics.detect.experimental.RotationPrevisionFluctuation;
 import de.jpx3.intave.check.combat.heuristics.detect.inventory.PacketInventoryHeuristic;
-import de.jpx3.intave.check.combat.heuristics.detect.other.*;
+import de.jpx3.intave.check.combat.heuristics.detect.other.AttackInInvalidStateHeuristic;
+import de.jpx3.intave.check.combat.heuristics.detect.other.BlockingHeuristic;
+import de.jpx3.intave.check.combat.heuristics.detect.other.CivbreakHeuristic;
+import de.jpx3.intave.check.combat.heuristics.detect.other.DoubleEntityActionHeuristic;
+import de.jpx3.intave.check.combat.heuristics.detect.other.InvalidFlyingPacketHeuristic;
+import de.jpx3.intave.check.combat.heuristics.detect.other.JumpVelocityHeuristic;
+import de.jpx3.intave.check.combat.heuristics.detect.other.NoSwingHeuristic;
+import de.jpx3.intave.check.combat.heuristics.detect.other.PacketOrderHeuristic;
+import de.jpx3.intave.check.combat.heuristics.detect.other.PacketOrderSwingHeuristic;
+import de.jpx3.intave.check.combat.heuristics.detect.other.PacketPlayerActionToggleHeuristic;
+import de.jpx3.intave.check.combat.heuristics.detect.other.ReshapedJumpHeuristic;
+import de.jpx3.intave.check.combat.heuristics.detect.other.RotationSnapHeuristic;
+import de.jpx3.intave.check.combat.heuristics.detect.other.SprintOnAttackHeuristic;
+import de.jpx3.intave.check.combat.heuristics.detect.other.ToolSwitchHeuristic;
 import de.jpx3.intave.check.combat.heuristics.detect.testing.TestingHeuristic;
 import de.jpx3.intave.check.combat.heuristics.mine.MiningStrategyContainer;
 import de.jpx3.intave.check.combat.heuristics.mine.MiningStrategyExecutor;
-import de.jpx3.intave.diagnostic.message.DebugBroadcast;
-import de.jpx3.intave.diagnostic.message.MessageCategory;
-import de.jpx3.intave.diagnostic.message.MessageSeverity;
-import de.jpx3.intave.executor.Synchronizer;
 import de.jpx3.intave.executor.TaskTracker;
 import de.jpx3.intave.module.Modules;
 import de.jpx3.intave.module.linker.bukkit.BukkitEventSubscription;
@@ -38,7 +59,6 @@ import de.jpx3.intave.user.meta.AttackMetadata;
 import de.jpx3.intave.user.meta.CheckCustomMetadata;
 import de.jpx3.intave.user.storage.HeuristicsStorage;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
@@ -46,12 +66,27 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
-import static de.jpx3.intave.check.combat.heuristics.Confidence.*;
-import static de.jpx3.intave.module.linker.packet.PacketId.Client.*;
+import static de.jpx3.intave.check.combat.heuristics.Confidence.ALMOST_CERTAIN;
+import static de.jpx3.intave.check.combat.heuristics.Confidence.CERTAIN;
+import static de.jpx3.intave.check.combat.heuristics.Confidence.MAYBE;
+import static de.jpx3.intave.check.combat.heuristics.Confidence.NONE;
+import static de.jpx3.intave.check.combat.heuristics.Confidence.confidenceFrom;
+import static de.jpx3.intave.check.combat.heuristics.Confidence.levelFrom;
+import static de.jpx3.intave.module.linker.packet.PacketId.Client.FLYING;
+import static de.jpx3.intave.module.linker.packet.PacketId.Client.LOOK;
+import static de.jpx3.intave.module.linker.packet.PacketId.Client.POSITION;
+import static de.jpx3.intave.module.linker.packet.PacketId.Client.POSITION_LOOK;
+import static de.jpx3.intave.module.linker.packet.PacketId.Client.USE_ENTITY;
+import static de.jpx3.intave.module.linker.packet.PacketId.Client.VEHICLE_MOVE;
 
 public final class Heuristics extends MetaCheck<Heuristics.HeuristicMeta> {
   private static Boolean legacyConfigLayCache = null;
@@ -142,30 +177,6 @@ public final class Heuristics extends MetaCheck<Heuristics.HeuristicMeta> {
         meta.anomalies.add(anomaly);
       }
     }
-    Synchronizer.synchronize(() -> debug(player, anomaly));
-  }
-
-  private void debug(Player player, Anomaly anomaly) {
-    User user = userOf(player);
-    List<Anomaly> anomalies = catchAnomaliesOf(user, false);
-    List<Confidence> allConfidences = resolveConfidencesOf(anomalies);
-    Confidence overallConfidence = computeOverallConfidence(allConfidences);
-
-    String pattern = anomaly.key();
-    String description = anomaly.description();
-
-    String confidenceDetails = overallConfidence.output() + " (" + levelFrom(allConfidences.toArray(new Confidence[0])) + "+" + anomaly.confidence().level() + ")";
-    String defaultPrefix = ChatColor.RED + "[IH] ";
-    if (IntavePlugin.singletonInstance().sibyl().encryptionActiveFor(player)) {
-      defaultPrefix = "";
-    }
-    String message = defaultPrefix + player.getName() + " on p[" + pattern + "]" + confidenceDetails + " " + description;
-
-    if (IntaveControl.DEBUG_HEURISTICS && !plugin.sibyl().isAuthenticated(player)) {
-      player.sendMessage(message);
-    }
-
-    DebugBroadcast.broadcast(player, MessageCategory.HERAN, MessageSeverity.HIGH, message, message);
   }
 
   private void evaluateAll() {
@@ -183,13 +194,13 @@ public final class Heuristics extends MetaCheck<Heuristics.HeuristicMeta> {
     HeuristicsStorage storage = user.storageOf(HeuristicsStorage.class);
 
     // External confidence
-    List<Anomaly> activeAnomalies = catchAnomaliesOf(user, true);
+    List<Anomaly> activeAnomalies = catchAnomaliesOf(user);
     List<Confidence> activeConfidence = resolveConfidencesOf(activeAnomalies);
     int overallActiveConfidenceLevel = levelFrom(activeConfidence.toArray(new Confidence[0]));
     Confidence overallActiveConfidence = computeOverallConfidence(activeConfidence);
 
     // Internal confidence
-    List<Anomaly> allAnomalies = catchAnomaliesOf(user, false);
+    List<Anomaly> allAnomalies = catchAnomaliesOf(user);
     List<Confidence> allConfidencesWithoutDelay = resolveConfidencesOf(allAnomalies);
     Confidence overallAllConfidence = computeOverallConfidence(allConfidencesWithoutDelay);
 
@@ -245,17 +256,14 @@ public final class Heuristics extends MetaCheck<Heuristics.HeuristicMeta> {
   }
 
   @NotNull
-  public List<Anomaly> catchAnomaliesOf(User user, boolean delay) {
-    if (user.hasPlayer()) {
+  public List<Anomaly> catchAnomaliesOf(User user) {
+    if (!user.hasPlayer()) {
       return Collections.emptyList();
     }
 
     List<Anomaly> anomalies = metaOf(user).anomalies;
     anomalies.removeIf(Anomaly::expired);
     anomalies = new ArrayList<>(anomalies);
-    if (delay) {
-      anomalies.removeIf(anomaly -> !anomaly.active());
-    }
     Anomaly combined = combinator.combined(anomalies);
     if (combined != null) {
       anomalies.add(combined);
