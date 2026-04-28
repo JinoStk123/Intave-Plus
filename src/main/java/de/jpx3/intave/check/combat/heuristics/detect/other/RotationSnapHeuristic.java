@@ -2,21 +2,16 @@ package de.jpx3.intave.check.combat.heuristics.detect.other;
 
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
-import com.comphenix.protocol.wrappers.BlockPosition;
 import com.comphenix.protocol.wrappers.EnumWrappers;
-import de.jpx3.intave.adapter.MinecraftVersions;
-import de.jpx3.intave.block.access.BlockInteractionAccess;
-import de.jpx3.intave.block.access.VolatileBlockAccess;
 import de.jpx3.intave.check.MetaCheckPart;
 import de.jpx3.intave.check.combat.Heuristics;
 import de.jpx3.intave.check.combat.heuristics.Anomaly;
 import de.jpx3.intave.check.combat.heuristics.Confidence;
-import de.jpx3.intave.klass.Lookup;
 import de.jpx3.intave.math.MathHelper;
+import de.jpx3.intave.module.linker.bukkit.BukkitEventSubscription;
 import de.jpx3.intave.module.linker.packet.ListenerPriority;
 import de.jpx3.intave.module.linker.packet.PacketSubscription;
 import de.jpx3.intave.module.tracker.entity.Entity;
-import de.jpx3.intave.packet.converter.BlockPositionConverter;
 import de.jpx3.intave.share.BoundingBox;
 import de.jpx3.intave.share.ClientMath;
 import de.jpx3.intave.user.User;
@@ -26,21 +21,19 @@ import de.jpx3.intave.user.meta.MovementMetadata;
 import de.jpx3.intave.world.raytrace.EntityRaytraceBlockConstraint;
 import de.jpx3.intave.world.raytrace.Raytrace;
 import de.jpx3.intave.world.raytrace.Raytracing;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.block.BlockPlaceEvent;
+
+import java.util.concurrent.atomic.AtomicLong;
 
 import static de.jpx3.intave.check.combat.heuristics.Anomaly.AnomalyOption.LIMIT_1;
 import static de.jpx3.intave.check.combat.heuristics.Anomaly.AnomalyOption.LIMIT_2;
 import static de.jpx3.intave.check.combat.heuristics.Anomaly.AnomalyOption.LIMIT_4;
-import static de.jpx3.intave.module.linker.packet.PacketId.Client.ARM_ANIMATION;
-import static de.jpx3.intave.module.linker.packet.PacketId.Client.BLOCK_PLACE;
-import static de.jpx3.intave.module.linker.packet.PacketId.Client.FLYING;
-import static de.jpx3.intave.module.linker.packet.PacketId.Client.LOOK;
-import static de.jpx3.intave.module.linker.packet.PacketId.Client.POSITION;
-import static de.jpx3.intave.module.linker.packet.PacketId.Client.POSITION_LOOK;
-import static de.jpx3.intave.module.linker.packet.PacketId.Client.USE_ENTITY;
+import static de.jpx3.intave.module.linker.packet.PacketId.Client.*;
 
 public final class RotationSnapHeuristic extends MetaCheckPart<Heuristics, RotationSnapHeuristic.RotationSnapHeuristicMeta> {
+  // Defines how long after a block place, arm swing or attack the VL for mitigations should be increased. 
+  private static final long VL_BOOST_MODIFIER_TIME = (1000 / 20) * 3; // Set to 3 ticks. (150ms)
 
   public RotationSnapHeuristic(Heuristics parentCheck) {
     super(parentCheck, RotationSnapHeuristicMeta.class);
@@ -57,41 +50,15 @@ public final class RotationSnapHeuristic extends MetaCheckPart<Heuristics, Rotat
     User user = userOf(player);
     RotationSnapHeuristicMeta meta = metaOf(user);
 
-    meta.lastSwing = 0;
+    meta.lastSwing = System.currentTimeMillis();
   }
 
-  @PacketSubscription(
-    priority = ListenerPriority.HIGH,
-    packetsIn = {
-      BLOCK_PLACE
-    }
-  )
-  public void blockPlace(PacketEvent event) {
-    // moved to enabled() function at the bottom
-//    if (MinecraftVersions.VER1_9_0.atOrAbove()) {
-//      return;
-//    }
-    Player player = event.getPlayer();
+  @BukkitEventSubscription
+  public void on(BlockPlaceEvent place) {
+    Player player = place.getPlayer();
     User user = userOf(player);
-
-    // TODO: 01/28/21 Warning by Richy: The block-place is empty for native server versions from 1.9! Use the USE_ITEM packet instead
-//    BlockPosition blockPosition = event.getPacket().getBlockPositionModifier().read(0);
-    BlockPosition blockPosition = event.getPacket().getModifier()
-      .withType(Lookup.serverClass("BlockPosition"), BlockPositionConverter.threadConverter())
-      .read(0);
-    int blockPlaceDirection = event.getPacket().getIntegers().read(0);
-
-    if (blockPosition != null) {
-      if (blockPlaceDirection != 255) {
-        Material clickedType = VolatileBlockAccess.typeAccess(user, blockPosition.toLocation(player.getWorld()));
-        boolean clickable = BlockInteractionAccess.isClickable(clickedType);
-
-        if (!clickable) {
-          RotationSnapHeuristicMeta meta = metaOf(user);
-          meta.lastBlockPlace = 0;
-        }
-      }
-    }
+    RotationSnapHeuristicMeta meta = metaOf(user);
+    meta.lastBlockPlace.set(System.currentTimeMillis());
   }
 
   @PacketSubscription(
@@ -112,7 +79,7 @@ public final class RotationSnapHeuristic extends MetaCheckPart<Heuristics, Rotat
     }
 
     if (action == EnumWrappers.EntityUseAction.ATTACK) {
-      meta.lastAttack = 0;
+      meta.lastAttack = System.currentTimeMillis();
     }
   }
 
@@ -141,10 +108,6 @@ public final class RotationSnapHeuristic extends MetaCheckPart<Heuristics, Rotat
     }
   )
   public void receiveMovementPacket(PacketEvent event) {
-    // moved to enabled() function at the bottom
-//    if (MinecraftVersions.VER1_9_0.atOrAbove()) {
-//      return;
-//    }
     Player player = event.getPlayer();
     User user = userOf(player);
     MovementMetadata movementData = user.meta().movement();
@@ -155,7 +118,7 @@ public final class RotationSnapHeuristic extends MetaCheckPart<Heuristics, Rotat
     RotationSnapHeuristicMeta meta = metaOf(user);
 
     if (movementData.motionX() != 0 && movementData.motionZ() != 0) {
-      meta.internalViolation -= 0.01;
+      meta.internalViolation -= 0.01f;
       if (meta.internalViolation < 0)
         meta.internalViolation = 0;
     }
@@ -188,32 +151,14 @@ public final class RotationSnapHeuristic extends MetaCheckPart<Heuristics, Rotat
         movementData.lastRotationYaw, movementData.lastRotationPitch
       );
       meta.movementAtTick[0] = tick;
-
-//      for (Map.Entry<Integer, Entity> entry : user.meta().connection().entitiesById().entrySet()) {
-//        Entity value = entry.getValue();
-//        if (value != null && !(value instanceof Entity.Destroyed)) {
-//          meta.entityPositions.put(entry.getKey(), value.positionHistory.get(Math.max(value.positionHistory.size() - 1, 0)));
-//        }
-//      }
-
-      for (Entity tracedEntity : user.meta().connection().tracedEntities()) {
-        if (tracedEntity != null && !(tracedEntity instanceof Entity.Destroyed)) {
-//          try {
-//            tracedEntity.positionHistoryLock.lock();
-//            meta.entityPositions.put(tracedEntity.entityId(), tracedEntity.immediateServerPosition);
-//          } finally {
-//            tracedEntity.positionHistoryLock.unlock();
-//          }
-        }
-      }
     }
 
-    boolean isSuspicious = (meta.yawMotions[1] == 0 && meta.yawMotions[0] > 25 && meta.yawMotions[0] > 9);
+    boolean isSuspicious = (meta.yawMotions[1] == 0 && meta.yawMotions[0] > 25 && yawMotion < 9);
     boolean liteFlag = isSuspicious && meta.silentMovements[1] == KeyStates.SILENTMOVE && meta.rotationPacketCounter > 10 && movementData.lastTeleport > 7;
 
     isSuspicious = meta.yawMotions[1] < 9 && meta.yawMotions[0] > 40 && yawMotion < 9;
 
-    if (isSuspicious && (meta.lastSwing <= 3 || meta.lastAttack <= 3) && meta.rotationPacketCounter > 10 && movementData.lastTeleport > 7) {
+    if (isSuspicious && (wasRecent(meta.lastSwing) || wasRecent(meta.lastAttack)) && meta.rotationPacketCounter > 10 && movementData.lastTeleport > 7) {
       double valueOfSnap = meta.yawMotions[0];
       String description = "rotation snap ["
         + MathHelper.formatDouble(meta.yawMotions[1], 2)
@@ -231,11 +176,10 @@ public final class RotationSnapHeuristic extends MetaCheckPart<Heuristics, Rotat
         Entity entity = attackData.lastAttackedEntity();
 
         Tick tick = meta.movementAtTick[1];
-//        Map<Integer, Entity.EntityPositionContext> entityPositions = meta.entityPositions;
-//        Entity.EntityPositionContext lastEntityPosition = entityPositions.get(entity.entityId());
+        Entity.EntityPositionContext lastEntityPosition = entity.lastPosition;
 
-        if (/*lastEntityPosition != null && */tick != null) {
-          BoundingBox lastBoundingBox = null;//Entity.entityBoundingBoxFrom(lastEntityPosition, entity);
+        if (lastEntityPosition != null && tick != null) {
+          BoundingBox lastBoundingBox = Entity.entityBoundingBoxFrom(lastEntityPosition, entity);
           Raytrace last = Raytracing.entityRaytrace(
             player,
             lastBoundingBox,
@@ -283,7 +227,7 @@ public final class RotationSnapHeuristic extends MetaCheckPart<Heuristics, Rotat
     Player player = user.player();
 
     meta.internalViolation += violationToAdd;
-    Confidence confidence = Confidence.confidenceFrom(meta.internalViolation);
+    Confidence confidence = Confidence.confidenceFrom((int) meta.internalViolation);
 
     if (confidence.level() >= 30) {
       meta.internalViolation -= confidence.level();
@@ -317,7 +261,7 @@ public final class RotationSnapHeuristic extends MetaCheckPart<Heuristics, Rotat
     } else if (valueOfSnap > 50) {
       vl = 10;
     }
-    if (meta.lastBlockPlace < 3) {
+    if (wasRecent(meta.lastBlockPlace.get())) {
       vl *= 1.5;
     }
     if (changedLookToEntity) {
@@ -339,6 +283,10 @@ public final class RotationSnapHeuristic extends MetaCheckPart<Heuristics, Rotat
     return vl;
   }
 
+  private boolean wasRecent(long milliseconds) {
+    return System.currentTimeMillis() - milliseconds < VL_BOOST_MODIFIER_TIME;
+  }
+
   private void prepareNextTick(RotationSnapHeuristicMeta meta, double yawMotion, User user) {
     MovementMetadata movementData = user.meta().movement();
     meta.lastKeyForward = movementData.keyForward;
@@ -356,15 +304,6 @@ public final class RotationSnapHeuristic extends MetaCheckPart<Heuristics, Rotat
 
     meta.movementAtTick[1] = meta.movementAtTick[0];
     meta.movementAtTick[0] = null;
-
-    meta.lastSwing++;
-    meta.lastAttack++;
-    meta.lastBlockPlace++;
-  }
-
-  @Override
-  public boolean enabled() {
-    return !MinecraftVersions.VER1_9_0.atOrAbove() && super.enabled();
   }
 
   public static final class RotationSnapHeuristicMeta extends CheckCustomMetadata {
@@ -373,14 +312,16 @@ public final class RotationSnapHeuristic extends MetaCheckPart<Heuristics, Rotat
     private final Tick[] movementAtTick = new Tick[2];
     private final double[] yawMotions = new double[2];
     private final KeyStates[] silentMovements = new KeyStates[2];
-    private int internalViolation;
+    private float internalViolation;
     private int lastKeyForward;
     private int lastKeyStrafe;
     // used to disable the check on startup
     private int rotationPacketCounter;
-    private int lastSwing;
-    private int lastAttack;
-    private int lastBlockPlace;
+    private long lastSwing;
+    private long lastAttack;
+
+    // AtomicLong is being used because it gets set in a Bukkit thread. 
+    private AtomicLong lastBlockPlace = new AtomicLong();
   }
 
   enum KeyStates {
