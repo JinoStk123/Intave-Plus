@@ -2,21 +2,16 @@ package de.jpx3.intave.check.combat.heuristics.detect.other;
 
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
-import com.comphenix.protocol.wrappers.BlockPosition;
 import com.comphenix.protocol.wrappers.EnumWrappers;
-import de.jpx3.intave.adapter.MinecraftVersions;
-import de.jpx3.intave.block.access.BlockInteractionAccess;
-import de.jpx3.intave.block.access.VolatileBlockAccess;
 import de.jpx3.intave.check.MetaCheckPart;
 import de.jpx3.intave.check.combat.Heuristics;
 import de.jpx3.intave.check.combat.heuristics.Anomaly;
 import de.jpx3.intave.check.combat.heuristics.Confidence;
-import de.jpx3.intave.klass.Lookup;
 import de.jpx3.intave.math.MathHelper;
+import de.jpx3.intave.module.linker.bukkit.BukkitEventSubscription;
 import de.jpx3.intave.module.linker.packet.ListenerPriority;
 import de.jpx3.intave.module.linker.packet.PacketSubscription;
 import de.jpx3.intave.module.tracker.entity.Entity;
-import de.jpx3.intave.packet.converter.BlockPositionConverter;
 import de.jpx3.intave.share.BoundingBox;
 import de.jpx3.intave.share.ClientMath;
 import de.jpx3.intave.user.User;
@@ -26,19 +21,13 @@ import de.jpx3.intave.user.meta.MovementMetadata;
 import de.jpx3.intave.world.raytrace.EntityRaytraceBlockConstraint;
 import de.jpx3.intave.world.raytrace.Raytrace;
 import de.jpx3.intave.world.raytrace.Raytracing;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.block.BlockPlaceEvent;
 
 import static de.jpx3.intave.check.combat.heuristics.Anomaly.AnomalyOption.LIMIT_1;
 import static de.jpx3.intave.check.combat.heuristics.Anomaly.AnomalyOption.LIMIT_2;
 import static de.jpx3.intave.check.combat.heuristics.Anomaly.AnomalyOption.LIMIT_4;
-import static de.jpx3.intave.module.linker.packet.PacketId.Client.ARM_ANIMATION;
-import static de.jpx3.intave.module.linker.packet.PacketId.Client.BLOCK_PLACE;
-import static de.jpx3.intave.module.linker.packet.PacketId.Client.FLYING;
-import static de.jpx3.intave.module.linker.packet.PacketId.Client.LOOK;
-import static de.jpx3.intave.module.linker.packet.PacketId.Client.POSITION;
-import static de.jpx3.intave.module.linker.packet.PacketId.Client.POSITION_LOOK;
-import static de.jpx3.intave.module.linker.packet.PacketId.Client.USE_ENTITY;
+import static de.jpx3.intave.module.linker.packet.PacketId.Client.*;
 
 public final class RotationSnapHeuristic extends MetaCheckPart<Heuristics, RotationSnapHeuristic.RotationSnapHeuristicMeta> {
 
@@ -60,38 +49,12 @@ public final class RotationSnapHeuristic extends MetaCheckPart<Heuristics, Rotat
     meta.lastSwing = 0;
   }
 
-  @PacketSubscription(
-    priority = ListenerPriority.HIGH,
-    packetsIn = {
-      BLOCK_PLACE
-    }
-  )
-  public void blockPlace(PacketEvent event) {
-    // moved to enabled() function at the bottom
-//    if (MinecraftVersions.VER1_9_0.atOrAbove()) {
-//      return;
-//    }
-    Player player = event.getPlayer();
+  @BukkitEventSubscription
+  public void on(BlockPlaceEvent place) {
+    Player player = place.getPlayer();
     User user = userOf(player);
-
-    // TODO: 01/28/21 Warning by Richy: The block-place is empty for native server versions from 1.9! Use the USE_ITEM packet instead
-//    BlockPosition blockPosition = event.getPacket().getBlockPositionModifier().read(0);
-    BlockPosition blockPosition = event.getPacket().getModifier()
-      .withType(Lookup.serverClass("BlockPosition"), BlockPositionConverter.threadConverter())
-      .read(0);
-    int blockPlaceDirection = event.getPacket().getIntegers().read(0);
-
-    if (blockPosition != null) {
-      if (blockPlaceDirection != 255) {
-        Material clickedType = VolatileBlockAccess.typeAccess(user, blockPosition.toLocation(player.getWorld()));
-        boolean clickable = BlockInteractionAccess.isClickable(clickedType);
-
-        if (!clickable) {
-          RotationSnapHeuristicMeta meta = metaOf(user);
-          meta.lastBlockPlace = 0;
-        }
-      }
-    }
+    RotationSnapHeuristicMeta meta = metaOf(user);
+    meta.lastBlockPlace = 0;
   }
 
   @PacketSubscription(
@@ -141,10 +104,6 @@ public final class RotationSnapHeuristic extends MetaCheckPart<Heuristics, Rotat
     }
   )
   public void receiveMovementPacket(PacketEvent event) {
-    // moved to enabled() function at the bottom
-//    if (MinecraftVersions.VER1_9_0.atOrAbove()) {
-//      return;
-//    }
     Player player = event.getPlayer();
     User user = userOf(player);
     MovementMetadata movementData = user.meta().movement();
@@ -360,11 +319,6 @@ public final class RotationSnapHeuristic extends MetaCheckPart<Heuristics, Rotat
     meta.lastSwing++;
     meta.lastAttack++;
     meta.lastBlockPlace++;
-  }
-
-  @Override
-  public boolean enabled() {
-    return !MinecraftVersions.VER1_9_0.atOrAbove() && super.enabled();
   }
 
   public static final class RotationSnapHeuristicMeta extends CheckCustomMetadata {
