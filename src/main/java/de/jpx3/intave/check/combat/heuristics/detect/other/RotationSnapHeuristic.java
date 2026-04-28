@@ -33,7 +33,7 @@ import static de.jpx3.intave.module.linker.packet.PacketId.Client.*;
 
 public final class RotationSnapHeuristic extends MetaCheckPart<Heuristics, RotationSnapHeuristic.RotationSnapHeuristicMeta> {
   // Defines how long after a block place, arm swing or attack the VL for mitigations should be increased. 
-  private static final long VL_BOOST_MODIFIER_TIME = (1000 / 50) * 3; // Set to 3 ticks. (150ms)
+  private static final long VL_BOOST_MODIFIER_TIME = (1000 / 20) * 3; // Set to 3 ticks. (150ms)
 
   public RotationSnapHeuristic(Heuristics parentCheck) {
     super(parentCheck, RotationSnapHeuristicMeta.class);
@@ -151,24 +151,6 @@ public final class RotationSnapHeuristic extends MetaCheckPart<Heuristics, Rotat
         movementData.lastRotationYaw, movementData.lastRotationPitch
       );
       meta.movementAtTick[0] = tick;
-
-//      for (Map.Entry<Integer, Entity> entry : user.meta().connection().entitiesById().entrySet()) {
-//        Entity value = entry.getValue();
-//        if (value != null && !(value instanceof Entity.Destroyed)) {
-//          meta.entityPositions.put(entry.getKey(), value.positionHistory.get(Math.max(value.positionHistory.size() - 1, 0)));
-//        }
-//      }
-
-      for (Entity tracedEntity : user.meta().connection().tracedEntities()) {
-        if (tracedEntity != null && !(tracedEntity instanceof Entity.Destroyed)) {
-//          try {
-//            tracedEntity.positionHistoryLock.lock();
-//            meta.entityPositions.put(tracedEntity.entityId(), tracedEntity.immediateServerPosition);
-//          } finally {
-//            tracedEntity.positionHistoryLock.unlock();
-//          }
-        }
-      }
     }
 
     boolean isSuspicious = (meta.yawMotions[1] == 0 && meta.yawMotions[0] > 25 && yawMotion < 9);
@@ -194,11 +176,10 @@ public final class RotationSnapHeuristic extends MetaCheckPart<Heuristics, Rotat
         Entity entity = attackData.lastAttackedEntity();
 
         Tick tick = meta.movementAtTick[1];
-//        Map<Integer, Entity.EntityPositionContext> entityPositions = meta.entityPositions;
-//        Entity.EntityPositionContext lastEntityPosition = entityPositions.get(entity.entityId());
+        Entity.EntityPositionContext lastEntityPosition = entity.lastPosition;
 
-        if (/*lastEntityPosition != null && */tick != null) {
-          BoundingBox lastBoundingBox = null;//Entity.entityBoundingBoxFrom(lastEntityPosition, entity);
+        if (lastEntityPosition != null && tick != null) {
+          BoundingBox lastBoundingBox = Entity.entityBoundingBoxFrom(lastEntityPosition, entity);
           Raytrace last = Raytracing.entityRaytrace(
             player,
             lastBoundingBox,
@@ -338,7 +319,7 @@ public final class RotationSnapHeuristic extends MetaCheckPart<Heuristics, Rotat
     private int rotationPacketCounter;
     private long lastSwing;
     private long lastAttack;
-    
+
     // AtomicLong is being used because it gets set in a Bukkit thread. 
     private AtomicLong lastBlockPlace = new AtomicLong();
   }
