@@ -1,6 +1,5 @@
 package de.jpx3.intave.block.fluid;
 
-import de.jpx3.intave.adapter.MinecraftVersions;
 import de.jpx3.intave.block.physics.MaterialMagic;
 import de.jpx3.intave.block.variant.BlockVariant;
 import de.jpx3.intave.block.variant.BlockVariantRegister;
