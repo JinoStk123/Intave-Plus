@@ -7,9 +7,8 @@ assignees: ventolotl
 
 ---
 
-**Describe the bug**
-Include a precise description of the bug here and make sure you replace the X's below.
+**Description of the bug**
+Include a precise description of the bug here
 
-Intave version: X
-Client version: X
-Server version:  X (include: spigot, paper, ...)
+**Environmental Information**
+Output of `/intave diagnostics environment` (click the chat message to copy)
