@@ -23,7 +23,6 @@ final class FileResource implements Resource {
     return file.lastModified();
   }
 
-  // ✅ FIX: không close InputStream (caller owns it)
   @Override
   public void write(InputStream inputStream) {
     try {
@@ -54,7 +53,6 @@ final class FileResource implements Resource {
     }
   }
 
-  // ✅ FIX: bỏ finalize, dùng close hook rõ ràng
   @Override
   public OutputStream writeStream() {
     try {
@@ -98,7 +96,6 @@ final class FileResource implements Resource {
     return true;
   }
 
-  // ✅ FIX: rõ ownership → caller phải tự close
   @Override
   public InputStream read() {
     try {
