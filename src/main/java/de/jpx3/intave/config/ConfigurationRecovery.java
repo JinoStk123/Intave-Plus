@@ -13,14 +13,16 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.time.format.DateTimeFormatter;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 final class ConfigurationRecovery {
+
+  private static final Object LOCK = new Object();
 
   private static final String BUGGED_CONFIG_FOLDER = "bugged config";
 
@@ -37,7 +39,7 @@ final class ConfigurationRecovery {
   private ConfigurationRecovery() {}
 
   // ---------------------------
-  // LOAD ENTRY
+  // ENTRY
   // ---------------------------
 
   static YamlConfiguration loadConfiguration(File file, String defaultResource) {
@@ -53,8 +55,12 @@ final class ConfigurationRecovery {
 
       return configuration;
 
-    } catch (Exception exception) {
-      return recoverConfiguration(file, defaultResource, exception);
+    } catch (InvalidConfigurationException e) {
+      return recover(file, defaultResource, e);
+    } catch (IOException e) {
+      return recover(file, defaultResource, e);
+    } catch (Exception e) {
+      return recover(file, defaultResource, e);
     }
   }
 
@@ -69,39 +75,30 @@ final class ConfigurationRecovery {
   // RECOVERY
   // ---------------------------
 
-  static YamlConfiguration recoverConfiguration(File file, String defaultResource, Exception exception) {
-    byte[] defaultBytes = recover(file, defaultResource, exception);
+  static YamlConfiguration recover(File file, String defaultResource, Exception exception) {
+    synchronized (LOCK) {
 
-    try {
-      YamlConfiguration configuration = loadFromBytes(defaultBytes);
+      logFailure(file, exception);
 
-      VersionState state = validate(configuration, defaultResource);
-      if (state != VersionState.OK) {
-        handleVersionState(state, file, defaultResource);
+      moveBuggedConfiguration(file);
+
+      byte[] data = writeDefault(file, defaultResource);
+
+      try {
+        return loadFromBytes(data);
+      } catch (Exception e) {
+        throw new RuntimeException("Recovery failed for " + file.getName(), e);
       }
-
-      return configuration;
-
-    } catch (Exception recoveredException) {
-      throw new RuntimeException(
-          "Unable to recover configuration " + file.getName(),
-          recoveredException
-      );
     }
   }
 
-  private static byte[] recover(File file, String defaultResource, Exception exception) {
-    IntavePlugin.singletonInstance()
-        .logger()
-        .error("Invalid " + file.getName() + ", moving to backup: " + exception.getMessage());
-
-    moveBuggedConfiguration(file);
-    return writeDefault(file, defaultResource);
-  }
-
-  private static void handleVersionState(VersionState state, File file, String resource) {
-    // intentionally no auto-migration for now
-    // reserved for future migration pipeline
+  private static void logFailure(File file, Exception exception) {
+    IntavePlugin.singletonInstance().logger().error(
+        "Configuration recovery triggered",
+        "file=" + file.getName(),
+        "error=" + exception.getClass().getSimpleName(),
+        "message=" + exception.getMessage()
+    );
   }
 
   // ---------------------------
@@ -122,9 +119,7 @@ final class ConfigurationRecovery {
         CONFIGURATION_TYPES.get(resourceName.toLowerCase(Locale.ROOT));
 
     if (type == null) {
-      throw new IllegalStateException(
-          "No configuration schema registered for: " + resourceName
-      );
+      throw new IllegalStateException("No schema registered for: " + resourceName);
     }
 
     validatePrefix(configuration, type.prefixPath);
@@ -133,12 +128,12 @@ final class ConfigurationRecovery {
 
   private static void validatePrefix(YamlConfiguration configuration, String path) {
     if (!configuration.isString(path)) {
-      throw new IllegalArgumentException("Missing or invalid: " + path);
+      throw new IllegalArgumentException("Missing: " + path);
     }
 
     String value = configuration.getString(path);
     if (value == null || value.trim().isEmpty()) {
-      throw new IllegalArgumentException("Empty value: " + path);
+      throw new IllegalArgumentException("Empty: " + path);
     }
   }
 
@@ -150,23 +145,15 @@ final class ConfigurationRecovery {
     String configured = configuration.getString("version");
 
     if (configured == null || configured.trim().isEmpty()) {
-      warnOnce(type.resourceName,
-          "Missing version in " + type.resourceName +
-          " (skipping migration, keeping file)");
+      warnOnce(type.resourceName, "Missing version in " + type.resourceName);
       return VersionState.MISSING;
     }
 
     int cmp = compareSchemaVersions(configured, type.schemaVersion);
 
     if (cmp != 0) {
-      String direction = cmp < 0 ? "upgrade required" : "downgrade detected";
-
       warnOnce(type.resourceName,
-          "Schema mismatch " + type.resourceName +
-          ": found " + configured +
-          ", expected " + type.schemaVersion +
-          " (" + direction + ")");
-
+          "Schema mismatch: " + configured + " vs " + type.schemaVersion);
       return VersionState.MISMATCH;
     }
 
@@ -179,8 +166,12 @@ final class ConfigurationRecovery {
     }
   }
 
+  private static void handleVersionState(VersionState state, File file, String resource) {
+    // reserved for migration system
+  }
+
   // ---------------------------
-  // MOVE / WRITE SAFETY
+  // SAFE FILE HANDLING
   // ---------------------------
 
   private static void moveBuggedConfiguration(File file) {
@@ -188,7 +179,7 @@ final class ConfigurationRecovery {
 
     File folder = new File(file.getParentFile(), BUGGED_CONFIG_FOLDER);
     if (!folder.exists() && !folder.mkdirs()) {
-      throw new IllegalStateException("Cannot create " + folder.getAbsolutePath());
+      throw new IllegalStateException("Cannot create backup folder");
     }
 
     String timestamp = DATE_FORMAT.format(LocalDateTime.now());
@@ -211,16 +202,26 @@ final class ConfigurationRecovery {
     }
   }
 
+  // ---------------------------
+  // DEFAULT WRITE (SAFE)
+  // ---------------------------
+
   private static byte[] writeDefault(File file, String defaultResource) {
     Resource jar = Resources.resourceFromJarOrBuild(defaultResource);
     Resource out = Resources.resourceFromFile(file);
 
     try {
       byte[] data = readFully(jar, defaultResource);
-      out.write(data);
+
+      // SAFE WRITE: only overwrite if missing or corrupted
+      if (!file.exists() || file.length() == 0) {
+        out.write(data);
+      }
+
       return data;
+
     } catch (IOException e) {
-      throw new RuntimeException("Unable to write default " + defaultResource, e);
+      throw new RuntimeException("Cannot write default " + defaultResource, e);
     }
   }
 
