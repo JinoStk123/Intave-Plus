@@ -116,7 +116,22 @@ final class FileResource implements Resource {
 
   @Override
   public void delete() {
-    file.delete();
+    if (!file.delete() && file.exists()) {
+      throw new IllegalStateException("Failed to delete file: " + file.getAbsolutePath());
+    }
+  }
+
+  static void cleanupTempFiles(File folder) {
+    if (folder == null || !folder.exists()) return;
+
+    File[] files = folder.listFiles((dir, name) -> name.endsWith(".tmp"));
+    if (files == null) return;
+
+    for (File f : files) {
+      try {
+        f.delete();
+      } catch (Exception ignored) {}
+    }
   }
 
   private void ensureParentDirectory() throws IOException {
