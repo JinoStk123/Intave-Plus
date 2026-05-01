@@ -13,16 +13,14 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.LocalDateTime;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 final class ConfigurationRecovery {
-
-  private static final Object LOCK = new Object();
 
   private static final String BUGGED_CONFIG_FOLDER = "bugged config";
 
@@ -39,7 +37,7 @@ final class ConfigurationRecovery {
   private ConfigurationRecovery() {}
 
   // ---------------------------
-  // ENTRY
+  // LOAD ENTRY
   // ---------------------------
 
   static YamlConfiguration loadConfiguration(File file, String defaultResource) {
@@ -55,8 +53,8 @@ final class ConfigurationRecovery {
 
       return configuration;
 
-    } catch (Exception e) {
-      return recover(file, defaultResource, e);
+    } catch (Exception exception) {
+      return recoverConfiguration(file, defaultResource, exception);
     }
   }
 
@@ -64,57 +62,147 @@ final class ConfigurationRecovery {
     Resource resource = Resources.resourceFromFile(file);
     if (resource.available()) return;
 
-    writeDefaultSafe(file, defaultResource);
+    writeDefault(file, defaultResource);
   }
 
   // ---------------------------
-  // RECOVERY (CRASH SAFE)
+  // RECOVERY
   // ---------------------------
 
-  static YamlConfiguration recover(File file, String defaultResource, Exception exception) {
-    synchronized (LOCK) {
+  static YamlConfiguration recoverConfiguration(File file, String defaultResource, Exception exception) {
+    byte[] defaultBytes = recover(file, defaultResource, exception);
 
-      logFailure(file, exception);
+    try {
+      YamlConfiguration configuration = loadFromBytes(defaultBytes);
 
-      moveBuggedConfigurationBestEffort(file);
-
-      byte[] data = writeDefaultSafe(file, defaultResource);
-
-      try {
-        return loadFromBytes(data);
-      } catch (Exception e) {
-        IntavePlugin.singletonInstance()
-            .logger()
-            .error("Recovery parse failed: " + file.getName());
-
-        return new YamlConfiguration();
+      VersionState state = validate(configuration, defaultResource);
+      if (state != VersionState.OK) {
+        handleVersionState(state, file, defaultResource);
       }
+
+      return configuration;
+
+    } catch (Exception recoveredException) {
+      throw new RuntimeException(
+          "Unable to recover configuration " + file.getName(),
+          recoveredException
+      );
     }
   }
 
-  private static void logFailure(File file, Exception exception) {
-    IntavePlugin.singletonInstance().logger().error(
-        "Config recovery triggered",
-        "file=" + file.getName(),
-        "error=" + exception.getClass().getSimpleName(),
-        "msg=" + exception.getMessage()
-    );
+  private static byte[] recover(File file, String defaultResource, Exception exception) {
+    IntavePlugin.singletonInstance()
+        .logger()
+        .error("Invalid " + file.getName() + ", moving to backup: " + exception.getMessage());
+
+    moveBuggedConfiguration(file);
+    return writeDefault(file, defaultResource);
+  }
+
+  private static void handleVersionState(VersionState state, File file, String resource) {
+    // reserved for future migration pipeline
   }
 
   // ---------------------------
-  // SAFE BACKUP (NO CRASH)
+  // VALIDATION
   // ---------------------------
 
-  private static void moveBuggedConfigurationBestEffort(File file) {
+  private static YamlConfiguration loadFromFile(File file)
+      throws IOException, InvalidConfigurationException {
+
+    YamlConfiguration configuration = new YamlConfiguration();
+    configuration.load(file);
+    return configuration;
+  }
+
+  private static VersionState validate(YamlConfiguration configuration, String resourceName) {
+
+    ConfigurationType type =
+        CONFIGURATION_TYPES.get(resourceName.toLowerCase(Locale.ROOT));
+
+    if (type == null) {
+      throw new IllegalStateException(
+          "No configuration schema registered for: " + resourceName
+      );
+    }
+
+    validatePrefix(configuration, type.prefixPath);
+    return validateVersion(configuration, type);
+  }
+
+  private static void validatePrefix(YamlConfiguration configuration, String path) {
+    if (!configuration.isString(path)) {
+      throw new IllegalArgumentException("Missing or invalid: " + path);
+    }
+
+    String value = configuration.getString(path);
+    if (value == null || value.trim().isEmpty()) {
+      throw new IllegalArgumentException("Empty value: " + path);
+    }
+  }
+
+  private static VersionState validateVersion(
+      YamlConfiguration configuration,
+      ConfigurationType type
+  ) {
+
+    String configured = configuration.getString("version");
+
+    if (configured == null || configured.trim().isEmpty()) {
+      warnOnce(type.resourceName,
+          "Missing version in " + type.resourceName +
+          " (skipping migration, keeping file)");
+      return VersionState.MISSING;
+    }
+
+    int cmp = compareSchemaVersions(configured, type.schemaVersion);
+
+    if (cmp != 0) {
+      String direction = cmp < 0 ? "upgrade required" : "downgrade detected";
+
+      warnOnce(type.resourceName,
+          "Schema mismatch " + type.resourceName +
+          ": found " + configured +
+          ", expected " + type.schemaVersion +
+          " (" + direction + ")");
+
+      return VersionState.MISMATCH;
+    }
+
+    return VersionState.OK;
+  }
+
+  private static void warnOnce(String key, String message) {
+    if (VERSION_WARNINGS.add(key)) {
+      IntavePlugin.singletonInstance().logger().warn(message);
+    }
+  }
+
+  // ---------------------------
+  // FIXED BACKUP (IMPORTANT)
+  // ---------------------------
+
+  private static void moveBuggedConfiguration(File file) {
     if (!file.exists()) return;
 
     File folder = new File(file.getParentFile(), BUGGED_CONFIG_FOLDER);
 
-    if (!folder.exists() && !folder.mkdirs()) {
-      IntavePlugin.singletonInstance()
-          .logger()
-          .warn("Cannot create backup folder, skipping backup: " + file.getName());
-      return;
+    // 🔥 FIX: best-effort mkdirs, không được crash plugin
+    if (!folder.exists()) {
+      boolean created = false;
+      try {
+        created = folder.mkdirs();
+      } catch (Exception ignored) {
+        // ignore hard fail
+      }
+
+      if (!created && !folder.exists()) {
+        IntavePlugin.singletonInstance()
+            .logger()
+            .warn("Cannot create backup folder: " + folder.getAbsolutePath()
+                + " -> skipping backup");
+        return; // 🚫 KHÔNG THROW
+      }
     }
 
     String timestamp = DATE_FORMAT.format(LocalDateTime.now());
@@ -127,114 +215,40 @@ final class ConfigurationRecovery {
 
     try {
       Files.move(file.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE);
-    } catch (IOException e) {
+    } catch (IOException e1) {
       try {
         Files.move(file.toPath(), target.toPath());
-      } catch (IOException ex) {
+      } catch (IOException e2) {
         IntavePlugin.singletonInstance()
             .logger()
-            .warn("Backup move failed: " + file.getName());
+            .warn("Failed to backup corrupted config: " + e2.getMessage());
+        // 🚫 vẫn KHÔNG throw
       }
     }
   }
 
   // ---------------------------
-  // SAFE WRITE (NO OVERWRITE)
+  // WRITE DEFAULT
   // ---------------------------
 
-  private static byte[] writeDefaultSafe(File file, String defaultResource) {
+  private static byte[] writeDefault(File file, String defaultResource) {
     Resource jar = Resources.resourceFromJarOrBuild(defaultResource);
     Resource out = Resources.resourceFromFile(file);
 
     try {
       byte[] data = readFully(jar, defaultResource);
-
-      // FIX: never overwrite existing user config
-      if (!file.exists() || file.length() == 0) {
-        out.write(data);
-      }
-
+      out.write(data);
       return data;
-
     } catch (IOException e) {
-      throw new RuntimeException("Default write failed: " + defaultResource, e);
+      throw new RuntimeException("Unable to write default " + defaultResource, e);
     }
   }
-
-  // ---------------------------
-  // VALIDATION
-  // ---------------------------
-
-  private static YamlConfiguration loadFromFile(File file)
-      throws IOException, InvalidConfigurationException {
-
-    YamlConfiguration cfg = new YamlConfiguration();
-    cfg.load(file);
-    return cfg;
-  }
-
-  private static VersionState validate(YamlConfiguration cfg, String resource) {
-
-    ConfigurationType type =
-        CONFIGURATION_TYPES.get(resource.toLowerCase(Locale.ROOT));
-
-    if (type == null) {
-      throw new IllegalStateException("No schema: " + resource);
-    }
-
-    validatePrefix(cfg, type.prefixPath);
-    return validateVersion(cfg, type);
-  }
-
-  private static void validatePrefix(YamlConfiguration cfg, String path) {
-    if (!cfg.isString(path)) {
-      throw new IllegalArgumentException("Missing: " + path);
-    }
-
-    String v = cfg.getString(path);
-    if (v == null || v.trim().isEmpty()) {
-      throw new IllegalArgumentException("Empty: " + path);
-    }
-  }
-
-  private static VersionState validateVersion(YamlConfiguration cfg, ConfigurationType type) {
-
-    String v = cfg.getString("version");
-
-    if (v == null || v.trim().isEmpty()) {
-      warnOnce(type.resourceName, "Missing version: " + type.resourceName);
-      return VersionState.MISSING;
-    }
-
-    int cmp = compareSchemaVersions(v, type.schemaVersion);
-
-    if (cmp != 0) {
-      warnOnce(type.resourceName, "Schema mismatch: " + v + " vs " + type.schemaVersion);
-      return VersionState.MISMATCH;
-    }
-
-    return VersionState.OK;
-  }
-
-  private static void warnOnce(String key, String msg) {
-    if (VERSION_WARNINGS.add(key)) {
-      IntavePlugin.singletonInstance().logger().warn(msg);
-    }
-  }
-
-  private static void handleVersionState(VersionState state, File file, String resource) {
-    // reserved
-  }
-
-  // ---------------------------
-  // IO
-  // ---------------------------
 
   private static byte[] readFully(Resource resource, String name) throws IOException {
     try (InputStream in = resource.read()) {
 
       if (in == null) {
-        throw new IOException("Missing: " + name);
+        throw new IOException("Missing resource: " + name);
       }
 
       ByteArrayOutputStream out = new ByteArrayOutputStream();
