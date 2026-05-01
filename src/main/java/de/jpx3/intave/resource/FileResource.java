@@ -25,10 +25,11 @@ final class FileResource implements Resource {
 
   @Override
   public void write(InputStream inputStream) {
+    File tempFile = new File(this.file.getAbsolutePath() + ".tmp");
+
     try {
       ensureParentDirectory();
 
-      File tempFile = new File(this.file.getAbsolutePath() + ".tmp");
       if (!tempFile.exists() && !tempFile.createNewFile()) {
         throw new IllegalStateException("Unable to create temp file " + tempFile);
       }
@@ -46,9 +47,10 @@ final class FileResource implements Resource {
         output.getFD().sync();
       }
 
-      moveIntoPlace(tempFile);
+      moveIntoPlaceSafe(tempFile);
 
     } catch (IOException exception) {
+      tempFile.delete();
       throw new IllegalStateException("Unable to write " + file.getAbsolutePath(), exception);
     }
   }
@@ -59,6 +61,7 @@ final class FileResource implements Resource {
       ensureParentDirectory();
 
       File tempFile = new File(this.file.getAbsolutePath() + ".tmp");
+
       if (!tempFile.exists() && !tempFile.createNewFile()) {
         throw new IllegalStateException("Unable to create temp file " + tempFile);
       }
@@ -78,11 +81,14 @@ final class FileResource implements Resource {
           if (closed) return;
           closed = true;
 
-          out.flush();
-          fos.getFD().sync();
-          super.close();
+          try {
+            out.flush();
+            fos.getFD().sync();
+          } finally {
+            super.close();
+          }
 
-          moveIntoPlace(tempFile);
+          moveIntoPlaceSafe(tempFile);
         }
       };
 
@@ -120,11 +126,15 @@ final class FileResource implements Resource {
     }
   }
 
-  private void moveIntoPlace(File tempFile) throws IOException {
+  private void moveIntoPlaceSafe(File tempFile) {
     try {
       Files.move(tempFile.toPath(), this.file.toPath(), ATOMIC_MOVE, REPLACE_EXISTING);
-    } catch (IOException atomicMoveException) {
-      Files.move(tempFile.toPath(), this.file.toPath(), REPLACE_EXISTING);
+    } catch (IOException e1) {
+      try {
+        Files.move(tempFile.toPath(), this.file.toPath(), REPLACE_EXISTING);
+      } catch (IOException e2) {
+        tempFile.delete();
+      }
     }
   }
 }
