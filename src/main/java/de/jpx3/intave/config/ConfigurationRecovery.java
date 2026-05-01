@@ -187,7 +187,6 @@ final class ConfigurationRecovery {
 
     File folder = new File(file.getParentFile(), BUGGED_CONFIG_FOLDER);
 
-    // 🔥 FIX: best-effort mkdirs, không được crash plugin
     if (!folder.exists()) {
       boolean created = false;
       try {
@@ -201,7 +200,7 @@ final class ConfigurationRecovery {
             .logger()
             .warn("Cannot create backup folder: " + folder.getAbsolutePath()
                 + " -> skipping backup");
-        return; // 🚫 KHÔNG THROW
+        return;
       }
     }
 
@@ -222,7 +221,6 @@ final class ConfigurationRecovery {
         IntavePlugin.singletonInstance()
             .logger()
             .warn("Failed to backup corrupted config: " + e2.getMessage());
-        // 🚫 vẫn KHÔNG throw
       }
     }
   }
